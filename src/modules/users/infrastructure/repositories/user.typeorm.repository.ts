@@ -1,9 +1,59 @@
 import { Injectable } from '@nestjs/common';
+import { User } from '../../domain/entities/user.entity';
 import { UserRepositoryInterface } from '../../domain/interfaces/user.repository.interface';
+import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
-export class UserTypeormRepository implements UserRepositoryInterface {
-  hello(): string {
-    return 'Hello from User Repository';
+export class UserTypeormRepository
+  extends Repository<User>
+  implements UserRepositoryInterface
+{
+  constructor(private readonly dataSource: DataSource) {
+    super(User, dataSource.createEntityManager());
+  }
+
+  async findUserById(id: number): Promise<User> {
+    return await this.findOne({ where: { id } });
+  }
+
+  async createUser(
+    username: string,
+    password: string,
+    email: string,
+    roleId: number,
+  ): Promise<User> {
+    const user = this.create({
+      username,
+      password,
+      email,
+      roleId,
+    });
+    return await this.save(user);
+  }
+
+  async updateUser(
+    id: number,
+    username: string,
+    password: string,
+    email: string,
+    roleId: number,
+  ): Promise<User> {
+    const user = await this.findUserById(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    user.username = username;
+    user.password = password;
+    user.email = email;
+    user.roleId = roleId;
+    return await this.save(user);
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    const user = await this.findUserById(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    await this.delete(id);
   }
 }

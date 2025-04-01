@@ -3,7 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   BaseEntity,
-  ManyToOne,
+  OneToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Server } from '../../../servers/domain/entities/server.entity';
@@ -30,6 +30,6 @@ export class Room extends BaseEntity {
   @Column({ type: 'varchar' })
   password!: string;
 
-  @ManyToOne(() => Server, (server) => server.room)
+  @OneToMany(() => Server, (server) => server.room)
   servers: Server[];
 }

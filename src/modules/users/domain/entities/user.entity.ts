@@ -3,7 +3,8 @@ import {
   PrimaryGeneratedColumn,
   Column,
   BaseEntity,
-  OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Role } from '../../../roles/domain/entities/role.entity';
@@ -26,6 +27,12 @@ export class User extends BaseEntity {
   @Column({ type: 'varchar', nullable: true })
   email: string;
 
-  @OneToMany(() => Role, (role) => role.users)
+  @ApiProperty({ type: () => Role })
+  @ManyToOne(() => Role, (role) => role.users)
+  @JoinColumn({ name: 'roleId' })
   role: Role;
+
+  @ApiProperty()
+  @Column()
+  roleId!: number;
 }

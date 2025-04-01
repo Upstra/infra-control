@@ -3,7 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   BaseEntity,
-  ManyToOne,
+  OneToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Server } from '../../../servers/domain/entities/server.entity';
@@ -42,6 +42,6 @@ export class Ups extends BaseEntity {
   @Column({ type: 'varchar' })
   ups_agent: string;
 
-  @ManyToOne(() => Server, (server) => server.ups)
+  @OneToMany(() => Server, (server) => server.ups)
   servers: Server[];
 }

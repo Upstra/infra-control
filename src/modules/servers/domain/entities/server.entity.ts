@@ -3,13 +3,13 @@ import {
   PrimaryGeneratedColumn,
   Column,
   BaseEntity,
-  OneToMany, ManyToOne,
+  OneToMany, ManyToOne, JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Group } from '../../../groups/domain/entities/group.entity';
 import { Room } from '../../../rooms/domain/entities/room.entity';
 import { Ups } from '../../../ups/domain/entities/ups.entity';
-import { VM } from '../../../vms/domain/entities/vm.entity';
+import { Vm } from '../../../vms/domain/entities/vm.entity';
 
 @Entity('serveur')
 export class Server extends BaseEntity {
@@ -53,15 +53,33 @@ export class Server extends BaseEntity {
   @Column({ unique: true })
   priority: number;
 
-  @OneToMany(() => Group, (group) => group.servers)
+  @ApiProperty({ type: () => Group })
+  @ManyToOne(() => Group, (group) => group.servers)
+  @JoinColumn({ name: 'groupId' })
   group: Group;
 
-  @OneToMany(() => Room, (room) => room.servers)
+  @ApiProperty()
+  @Column()
+  groupId!: number;
+
+  @ApiProperty({ type: () => Room })
+  @ManyToOne(() => Room, (room) => room.servers)
+  @JoinColumn({ name: 'roomId' })
   room: Room;
 
-  @OneToMany(() => Ups, (ups) => ups.servers)
+  @ApiProperty()
+  @Column()
+  roomId!: number;
+
+  @ApiProperty({ type: () => Ups })
+  @ManyToOne(() => Ups, (ups) => ups.servers)
+  @JoinColumn({ name: 'upsId' })
   ups: Ups;
 
-  @ManyToOne(() => VM, (vm) => vm.server)
-  vms: VM[];
+  @ApiProperty()
+  @Column()
+  upsId!: number;
+
+  @OneToMany(() => Vm, (vm) => vm.server)
+  vms: Vm[];
 }

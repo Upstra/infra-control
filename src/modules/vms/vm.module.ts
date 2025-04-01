@@ -4,10 +4,10 @@ import { VmController } from './application/vm.controller';
 import { VmService } from './application/vm.service';
 import { VmDomainService } from './domain/services/vm.domain.service';
 import { VmTypeormRepository } from './infrastructure/repositories/vm.typeorm.repository';
-import { VM } from './domain/entities/vm.entity';
+import { Vm } from './domain/entities/vm.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([VM])],
+  imports: [TypeOrmModule.forFeature([Vm])],
   controllers: [VmController],
   providers: [
     VmService,

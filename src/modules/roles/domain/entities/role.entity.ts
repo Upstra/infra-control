@@ -3,7 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   BaseEntity,
-  ManyToOne,
+  OneToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../../users/domain/entities/user.entity';
@@ -34,6 +34,6 @@ export class Role extends BaseEntity {
   @Column({ type: 'boolean', default: false })
   allowReadVM!: boolean;
 
-  @ManyToOne(() => User, (user) => user.role)
+  @OneToMany(() => User, (user) => user.role)
   users: User[];
 }

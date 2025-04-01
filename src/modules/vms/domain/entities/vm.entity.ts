@@ -3,14 +3,15 @@ import {
   PrimaryGeneratedColumn,
   Column,
   BaseEntity,
-  OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Group } from '../../../groups/domain/entities/group.entity';
 import { Server } from '../../../servers/domain/entities/server.entity';
 
 @Entity('vm')
-export class VM extends BaseEntity {
+export class Vm extends BaseEntity {
   @ApiProperty()
   @PrimaryGeneratedColumn()
   id!: number;
@@ -51,9 +52,21 @@ export class VM extends BaseEntity {
   @Column({ unique: true })
   priority: number;
 
-  @OneToMany(() => Group, (group) => group.vms)
+  @ApiProperty({ type: () => Group })
+  @ManyToOne(() => Group, (group) => group.servers)
+  @JoinColumn({ name: 'groupId' })
   group: Group;
 
-  @OneToMany(() => Server, (server) => server.vms)
+  @ApiProperty()
+  @Column()
+  groupId!: number;
+
+  @ApiProperty({ type: () => Server })
+  @ManyToOne(() => Server, (server) => server.vms)
+  @JoinColumn({ name: 'serverId' })
   server: Server;
+
+  @ApiProperty()
+  @Column()
+  serverId!: number;
 }
