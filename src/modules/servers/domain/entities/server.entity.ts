@@ -3,7 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   BaseEntity,
-  OneToMany,
+  OneToMany, ManyToOne,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Group } from '../../../groups/domain/entities/group.entity';
@@ -60,8 +60,8 @@ export class Server extends BaseEntity {
   room: Room;
 
   @OneToMany(() => Ups, (ups) => ups.servers)
-  ups: Ups[];
+  ups: Ups;
 
-  @OneToMany(() => VM, (vm) => vm.server)
+  @ManyToOne(() => VM, (vm) => vm.server)
   vms: VM[];
 }

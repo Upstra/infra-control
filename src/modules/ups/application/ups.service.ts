@@ -1,5 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { UpsRepositoryInterface } from '../domain/interfaces/ups.repository.interface';
+import { UpsResponseDto } from './dto/ups.response.dto';
+import { UpsCreationDto } from './dto/ups.creation.dto';
 
 @Injectable()
 export class UpsService {
@@ -8,7 +10,23 @@ export class UpsService {
     private readonly upsRepository: UpsRepositoryInterface,
   ) {}
 
-  create() {
-    return this.upsRepository.hello();
+  async getAllUps(): Promise<UpsResponseDto> {
+    return null;
+  }
+
+  async getUpsById(id: string): Promise<UpsResponseDto> {
+    return null;
+  }
+
+  async createUps(upsDto: UpsCreationDto): Promise<UpsResponseDto> {
+    return null;
+  }
+
+  async updateUps(id: string, upsDto: UpsCreationDto): Promise<UpsResponseDto> {
+    return null;
+  }
+
+  async deleteUps(id: string): Promise<void> {
+    return null;
   }
 }
