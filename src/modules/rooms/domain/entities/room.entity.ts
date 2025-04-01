@@ -1,8 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  BaseEntity,
+  ManyToOne,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { Server } from '../../../servers/domain/entities/server.entity';
 
-@Entity('ilo')
-export class Ilo extends BaseEntity {
+@Entity('room')
+export class Room extends BaseEntity {
   @ApiProperty()
   @PrimaryGeneratedColumn()
   id!: number;
@@ -22,4 +29,7 @@ export class Ilo extends BaseEntity {
   @ApiProperty()
   @Column({ type: 'varchar' })
   password!: string;
+
+  @ManyToOne(() => Server, (server) => server.room)
+  servers: Server[];
 }

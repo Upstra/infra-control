@@ -1,10 +1,39 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  BaseEntity,
+  ManyToOne,
+} from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
+import { User } from '../../../users/domain/entities/user.entity';
 
 @Entity('role')
-export class Role {
+export class Role extends BaseEntity {
+  @ApiProperty()
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  name: string;
+  @ApiProperty()
+  @Column({ type: 'varchar' })
+  name!: string;
+
+  @ApiProperty()
+  @Column({ type: 'boolean', default: false })
+  allowWriteServer!: boolean;
+
+  @ApiProperty()
+  @Column({ type: 'boolean', default: false })
+  allowReadServer!: boolean;
+
+  @ApiProperty()
+  @Column({ type: 'boolean', default: false })
+  allowWriteVM!: boolean;
+
+  @ApiProperty()
+  @Column({ type: 'boolean', default: false })
+  allowReadVM!: boolean;
+
+  @ManyToOne(() => User, (user) => user.role)
+  users: User[];
 }

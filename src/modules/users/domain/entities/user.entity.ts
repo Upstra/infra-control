@@ -1,10 +1,31 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  BaseEntity,
+  OneToMany,
+} from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
+import { Role } from '../../../roles/domain/entities/role.entity';
 
 @Entity('user')
-export class User {
+export class User extends BaseEntity {
+  @ApiProperty()
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  name: string;
+  @ApiProperty()
+  @Column({ type: 'varchar' })
+  username!: string;
+
+  @ApiProperty()
+  @Column({ type: 'varchar' })
+  password!: string;
+
+  @ApiProperty()
+  @Column({ type: 'varchar', nullable: true })
+  email: string;
+
+  @OneToMany(() => Role, (role) => role.users)
+  role: Role;
 }

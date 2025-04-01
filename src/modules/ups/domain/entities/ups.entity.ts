@@ -6,11 +6,10 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { Group } from '../../../groups/domain/entities/group.entity';
 import { Server } from '../../../servers/domain/entities/server.entity';
 
-@Entity('vm')
-export class VM extends BaseEntity {
+@Entity('ups')
+export class Ups extends BaseEntity {
   @ApiProperty()
   @PrimaryGeneratedColumn()
   id!: number;
@@ -18,22 +17,6 @@ export class VM extends BaseEntity {
   @ApiProperty()
   @Column({ type: 'varchar' })
   name!: string;
-
-  @ApiProperty()
-  @Column({ type: 'varchar' })
-  state: string;
-
-  @ApiProperty()
-  @Column()
-  grace_period_on: number;
-
-  @ApiProperty()
-  @Column()
-  grace_period_off: number;
-
-  @ApiProperty()
-  @Column({ type: 'varchar' })
-  os!: string;
 
   @ApiProperty()
   @Column({ type: 'varchar' })
@@ -48,12 +31,17 @@ export class VM extends BaseEntity {
   password!: string;
 
   @ApiProperty()
-  @Column({ unique: true })
-  priority: number;
+  @Column()
+  grace_period_on: number;
 
-  @ManyToOne(() => Group, (group) => group.vms)
-  group: Group;
+  @ApiProperty()
+  @Column()
+  grace_period_off: number;
 
-  @ManyToOne(() => Server, (server) => server.vms)
-  server: Server;
+  @ApiProperty()
+  @Column({ type: 'varchar' })
+  ups_agent: string;
+
+  @ManyToOne(() => Server, (server) => server.ups)
+  servers: Server[];
 }
