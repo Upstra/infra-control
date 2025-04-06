@@ -17,5 +17,9 @@ async function bootstrap() {
   const port = parseInt(process.env.APP_PORT || '3000', 10);
   await app.listen(port);
   logger.log(`🚀 Application lancée sur http://localhost:${port}`);
+
+  logger.log(
+    `📚 Documentation Swagger disponible sur http://localhost:${port}/docs`,
+  );
 }
 bootstrap();
