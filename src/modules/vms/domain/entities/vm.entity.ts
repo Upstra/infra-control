@@ -5,10 +5,12 @@ import {
   BaseEntity,
   ManyToOne,
   JoinColumn,
+  ManyToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Group } from '../../../groups/domain/entities/group.entity';
 import { Server } from '../../../servers/domain/entities/server.entity';
+import { PermissionVm } from '@/modules/permissions/domain/entities/permission.vm.entity';
 
 @Entity('vm')
 export class Vm extends BaseEntity {
@@ -69,4 +71,9 @@ export class Vm extends BaseEntity {
   @ApiProperty()
   @Column()
   serverId!: number;
+
+  @ApiProperty({ type: () => PermissionVm, isArray: true })
+  @ManyToMany(() => PermissionVm, (permission) => permission.vms)
+  @JoinColumn()
+  permissions: PermissionVm[];
 }

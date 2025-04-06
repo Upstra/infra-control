@@ -4,9 +4,13 @@ import {
   Column,
   BaseEntity,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../../users/domain/entities/user.entity';
+import { PermissionServer } from '@/modules/permissions/domain/entities/permission.server.entity';
+import { PermissionVm } from '@/modules/permissions/domain/entities/permission.vm.entity';
 
 @Entity('role')
 export class Role extends BaseEntity {
@@ -18,22 +22,25 @@ export class Role extends BaseEntity {
   @Column({ type: 'varchar' })
   name!: string;
 
-  @ApiProperty()
-  @Column({ type: 'boolean', default: false })
-  allowWriteServer!: boolean;
-
-  @ApiProperty()
-  @Column({ type: 'boolean', default: false })
-  allowReadServer!: boolean;
-
-  @ApiProperty()
-  @Column({ type: 'boolean', default: false })
-  allowWriteVM!: boolean;
-
-  @ApiProperty()
-  @Column({ type: 'boolean', default: false })
-  allowReadVM!: boolean;
-
+  @ApiProperty({ type: () => User, isArray: true })
   @OneToMany(() => User, (user) => user.role)
   users: User[];
+
+  @ApiProperty({ type: () => PermissionServer })
+  @ManyToOne(() => PermissionServer, (permission) => permission.roles)
+  @JoinColumn({ name: 'permissionServerId' })
+  permissionServer: PermissionServer;
+
+  @ApiProperty()
+  @Column()
+  permissionServerId!: number;
+
+  @ApiProperty({ type: () => PermissionVm })
+  @ManyToOne(() => PermissionVm, (permission) => permission.roles)
+  @JoinColumn({ name: 'permissionVmId' })
+  permissionVm: PermissionVm;
+
+  @ApiProperty()
+  @Column()
+  permissionVmId!: number;
 }

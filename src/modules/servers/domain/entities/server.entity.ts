@@ -6,12 +6,14 @@ import {
   OneToMany,
   ManyToOne,
   JoinColumn,
+  ManyToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Group } from '../../../groups/domain/entities/group.entity';
 import { Room } from '../../../rooms/domain/entities/room.entity';
 import { Ups } from '../../../ups/domain/entities/ups.entity';
 import { Vm } from '../../../vms/domain/entities/vm.entity';
+import { PermissionServer } from '@/modules/permissions/domain/entities/permission.server.entity';
 
 @Entity('serveur')
 export class Server extends BaseEntity {
@@ -82,6 +84,12 @@ export class Server extends BaseEntity {
   @Column()
   upsId!: number;
 
+  @ApiProperty({ type: () => Vm, isArray: true })
   @OneToMany(() => Vm, (vm) => vm.server)
   vms: Vm[];
+
+  @ApiProperty({ type: () => PermissionServer, isArray: true })
+  @ManyToMany(() => PermissionServer, (permission) => permission.servers)
+  @JoinColumn()
+  permissions: PermissionServer[];
 }

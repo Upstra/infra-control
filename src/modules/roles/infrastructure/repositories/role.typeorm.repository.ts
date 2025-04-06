@@ -27,17 +27,9 @@ export class RoleTypeormRepository
 
   async createRole(
     name: string,
-    allowWriteServer: boolean,
-    allowReadServer: boolean,
-    allowWriteVM: boolean,
-    allowReadVM: boolean,
   ): Promise<Role> {
     const role = this.create({
       name,
-      allowWriteServer,
-      allowReadServer,
-      allowWriteVM,
-      allowReadVM,
     });
     return await this.save(role);
   }
@@ -45,20 +37,12 @@ export class RoleTypeormRepository
   async updateRole(
     id: number,
     name: string,
-    allowWriteServer: boolean,
-    allowReadServer: boolean,
-    allowWriteVM: boolean,
-    allowReadVM: boolean,
   ): Promise<Role> {
     const role = await this.findRoleById(id);
     if (!role) {
       throw new Error('Role not found');
     }
     role.name = name;
-    role.allowWriteServer = allowWriteServer;
-    role.allowReadServer = allowReadServer;
-    role.allowWriteVM = allowWriteVM;
-    role.allowReadVM = allowReadVM;
     return await this.save(role);
   }
 
