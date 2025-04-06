@@ -5,7 +5,7 @@ services:
     container_name: nest-app
     build: .
     ports:
-      - '3000:3000'
+      - ${APP_PORT}:3000
     depends_on:
       - postgres
     env_file:
@@ -14,16 +14,17 @@ services:
 
   postgres:
     image: postgres:15
-    container_name: pg
+    container_name: upstra-infra-control
     environment:
-      POSTGRES_DB: pg
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_HOST: ${DB_HOST}
     ports:
-      - '5432:5432'
+      - ${DB_PORT}:5432
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - upstra-infra-control_data:/var/lib/postgresql/data
     restart: unless-stopped
 
 volumes:
-  pg_data:
+  upstra-infra-control_data:
