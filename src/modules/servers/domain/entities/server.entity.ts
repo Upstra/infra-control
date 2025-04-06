@@ -3,7 +3,9 @@ import {
   PrimaryGeneratedColumn,
   Column,
   BaseEntity,
-  OneToMany, ManyToOne, JoinColumn,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Group } from '../../../groups/domain/entities/group.entity';

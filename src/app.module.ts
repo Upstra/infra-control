@@ -1,7 +1,6 @@
-import { configModule } from './config/config.module';
+import { configModule } from './common/config/config.module';
 import { Logger, Module } from '@nestjs/common';
 
-import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GroupModule } from './modules/groups/group.module';
 import { IloModule } from './modules/ilos/ilo.module';
@@ -11,7 +10,7 @@ import { RoomModule } from './modules/rooms/room.module';
 import { ServerModule } from './modules/servers/server.module';
 import { UserModule } from './modules/users/user.module';
 import { VmModule } from './modules/vms/vm.module';
-import { typeOrmConfig } from './config/typeorm.config';
+import { typeOrmConfig } from './common/config/typeorm.config';
 
 @Module({
   imports: [

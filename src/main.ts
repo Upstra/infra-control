@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { setupSwagger } from './config/swagger.config';
-import { setupValidationPipe } from './config/validation.config';
+import { setupSwagger } from './common/config/swagger.config';
+import { setupValidationPipe } from './common/config/validation.config';
 import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
