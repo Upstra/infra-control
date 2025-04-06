@@ -7,8 +7,9 @@ import { RoomDomainService } from './domain/services/room.domain.service';
 import { RoomTypeormRepository } from './infrastructure/repositories/room.typeorm.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Room])],
   controllers: [RoomController],
+  exports: [RoomService],
+  imports: [TypeOrmModule.forFeature([Room])],
   providers: [
     RoomService,
     RoomDomainService,
@@ -17,6 +18,5 @@ import { RoomTypeormRepository } from './infrastructure/repositories/room.typeor
       useClass: RoomTypeormRepository,
     },
   ],
-  exports: [RoomService],
 })
 export class RoomModule {}

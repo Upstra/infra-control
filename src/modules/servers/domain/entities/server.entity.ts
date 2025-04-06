@@ -9,11 +9,11 @@ import {
   ManyToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { Group } from '../../../groups/domain/entities/group.entity';
+import { GroupServer } from '../../../groups/domain/entities/group.server.entity';
 import { Room } from '../../../rooms/domain/entities/room.entity';
 import { Ups } from '../../../ups/domain/entities/ups.entity';
 import { Vm } from '../../../vms/domain/entities/vm.entity';
-import { PermissionServer } from '@/modules/permissions/domain/entities/permission.server.entity';
+import { PermissionServer } from '../../../permissions/domain/entities/permission.server.entity';
 
 @Entity('serveur')
 export class Server extends BaseEntity {
@@ -57,10 +57,10 @@ export class Server extends BaseEntity {
   @Column({ unique: true })
   priority: number;
 
-  @ApiProperty({ type: () => Group })
-  @ManyToOne(() => Group, (group) => group.servers)
+  @ApiProperty({ type: () => GroupServer })
+  @ManyToOne(() => GroupServer, (group) => group.servers)
   @JoinColumn({ name: 'groupId' })
-  group: Group;
+  group: GroupServer;
 
   @ApiProperty()
   @Column()

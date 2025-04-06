@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class GroupDomainService {
+export class GroupVmDomainService {
   hello(): string {
     return 'Hello from Group Domain Service';
   }

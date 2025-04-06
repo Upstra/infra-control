@@ -7,8 +7,9 @@ import { ServerDomainService } from './domain/services/server.domain.service';
 import { ServerTypeormRepository } from './infrastructure/repositories/server.typeorm.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Server])],
   controllers: [ServerController],
+  exports: [ServerService],
+  imports: [TypeOrmModule.forFeature([Server])],
   providers: [
     ServerService,
     ServerDomainService,
@@ -17,6 +18,5 @@ import { ServerTypeormRepository } from './infrastructure/repositories/server.ty
       useClass: ServerTypeormRepository,
     },
   ],
-  exports: [ServerService],
 })
 export class ServerModule {}

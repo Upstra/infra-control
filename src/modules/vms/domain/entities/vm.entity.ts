@@ -8,9 +8,9 @@ import {
   ManyToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { Group } from '../../../groups/domain/entities/group.entity';
+import { GroupVm } from '../../../groups/domain/entities/group.vm.entity';
 import { Server } from '../../../servers/domain/entities/server.entity';
-import { PermissionVm } from '@/modules/permissions/domain/entities/permission.vm.entity';
+import { PermissionVm } from '../../../permissions/domain/entities/permission.vm.entity';
 
 @Entity('vm')
 export class Vm extends BaseEntity {
@@ -54,10 +54,10 @@ export class Vm extends BaseEntity {
   @Column({ unique: true })
   priority: number;
 
-  @ApiProperty({ type: () => Group })
-  @ManyToOne(() => Group, (group) => group.servers)
+  @ApiProperty({ type: () => GroupVm })
+  @ManyToOne(() => GroupVm, (group) => group.vms)
   @JoinColumn({ name: 'groupId' })
-  group: Group;
+  group: GroupVm;
 
   @ApiProperty()
   @Column()

@@ -10,9 +10,11 @@ import { RoomModule } from './modules/rooms/room.module';
 import { ServerModule } from './modules/servers/server.module';
 import { UserModule } from './modules/users/user.module';
 import { VmModule } from './modules/vms/vm.module';
+import { PermissionModule } from './modules/permissions/permission.module';
 import { typeOrmConfig } from './common/config/typeorm.config';
 
 @Module({
+  controllers: [],
   imports: [
     configModule,
     TypeOrmModule.forRoot(typeOrmConfig),
@@ -24,8 +26,8 @@ import { typeOrmConfig } from './common/config/typeorm.config';
     ServerModule,
     UserModule,
     VmModule,
+    PermissionModule,
   ],
-  controllers: [],
   providers: [Logger],
 })
 export class AppModule {}

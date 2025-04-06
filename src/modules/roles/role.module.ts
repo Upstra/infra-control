@@ -7,8 +7,9 @@ import { RoleDomainService } from './domain/services/role.domain.service';
 import { RoleTypeormRepository } from './infrastructure/repositories/role.typeorm.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Role])],
   controllers: [RoleController],
+  exports: [RoleService],
+  imports: [TypeOrmModule.forFeature([Role])],
   providers: [
     RoleService,
     RoleDomainService,
@@ -17,6 +18,5 @@ import { RoleTypeormRepository } from './infrastructure/repositories/role.typeor
       useClass: RoleTypeormRepository,
     },
   ],
-  exports: [RoleService],
 })
 export class RoleModule {}

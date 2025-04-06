@@ -7,8 +7,9 @@ import { VmTypeormRepository } from './infrastructure/repositories/vm.typeorm.re
 import { Vm } from './domain/entities/vm.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Vm])],
   controllers: [VmController],
+  exports: [VmService],
+  imports: [TypeOrmModule.forFeature([Vm])],
   providers: [
     VmService,
     VmDomainService,
@@ -17,6 +18,5 @@ import { Vm } from './domain/entities/vm.entity';
       useClass: VmTypeormRepository,
     },
   ],
-  exports: [VmService],
 })
 export class VmModule {}

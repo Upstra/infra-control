@@ -1,24 +1,20 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsString } from 'class-validator';
+import { IsNumber, IsString } from 'class-validator';
 
 export class RoleDto {
+  @ApiProperty()
+  @IsString()
+  id: number;
+
   @ApiProperty()
   @IsString()
   name: string;
 
   @ApiProperty()
-  @IsBoolean()
-  allowWriteServer: boolean;
+  @IsNumber()
+  permissionServerId: number;
 
   @ApiProperty()
-  @IsBoolean()
-  allowReadServer: boolean;
-
-  @ApiProperty()
-  @IsBoolean()
-  allowWriteVM: boolean;
-
-  @ApiProperty()
-  @IsBoolean()
-  allowReadVM: boolean;
+  @IsNumber()
+  permissionVmId: number;
 }

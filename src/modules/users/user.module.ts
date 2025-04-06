@@ -7,8 +7,9 @@ import { UserDomainService } from './domain/services/user.domain.service';
 import { UserTypeormRepository } from './infrastructure/repositories/user.typeorm.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User])],
   controllers: [UserController],
+  exports: [UserService],
+  imports: [TypeOrmModule.forFeature([User])],
   providers: [
     UserService,
     UserDomainService,
@@ -17,6 +18,5 @@ import { UserTypeormRepository } from './infrastructure/repositories/user.typeor
       useClass: UserTypeormRepository,
     },
   ],
-  exports: [UserService],
 })
 export class UserModule {}

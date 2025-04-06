@@ -27,9 +27,13 @@ export class RoleTypeormRepository
 
   async createRole(
     name: string,
+    permissionServerId: number,
+    permissionVmId: number,
   ): Promise<Role> {
     const role = this.create({
       name,
+      permissionServerId,
+      permissionVmId,
     });
     return await this.save(role);
   }
@@ -37,12 +41,16 @@ export class RoleTypeormRepository
   async updateRole(
     id: number,
     name: string,
+    permissionServerId: number,
+    permissionVmId: number,
   ): Promise<Role> {
     const role = await this.findRoleById(id);
     if (!role) {
       throw new Error('Role not found');
     }
     role.name = name;
+    role.permissionServerId = permissionServerId;
+    role.permissionVmId = permissionVmId;
     return await this.save(role);
   }
 

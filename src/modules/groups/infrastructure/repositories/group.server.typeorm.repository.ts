@@ -1,50 +1,48 @@
 import { Injectable } from '@nestjs/common';
-import { Group } from '../../domain/entities/group.entity';
+import { GroupServer } from '../../domain/entities/group.server.entity';
 import { GroupRepositoryInterface } from '../../domain/interfaces/group.repository.interface';
 import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
-export class GroupTypeormRepository
-  extends Repository<Group>
+export class GroupServerTypeormRepository
+  extends Repository<GroupServer>
   implements GroupRepositoryInterface
 {
   constructor(private readonly dataSource: DataSource) {
-    super(Group, dataSource.createEntityManager());
+    super(GroupServer, dataSource.createEntityManager());
   }
 
-  async findAll(): Promise<Group[]> {
+  async findAll(): Promise<GroupServer[]> {
     return await this.find({
-      relations: ['servers', 'vms'],
+      relations: ['servers'],
     });
   }
 
-  async findGroupById(id: number): Promise<Group | null> {
+  async findGroupById(id: number): Promise<GroupServer | null> {
     return await this.findOne({
       where: { id },
-      relations: ['servers', 'vms'],
+      relations: ['servers'],
     });
   }
 
-  async createGroup(type: string, priority: number): Promise<Group> {
+  async createGroup(name: string, priority: number): Promise<GroupServer> {
     const group = this.create({
-      type,
+      name,
       priority,
-      servers: [],
-      vms: [],
     });
     return await this.save(group);
   }
 
   async updateGroup(
     id: number,
-    type: string,
+    name: string,
     priority: number,
-  ): Promise<Group> {
+  ): Promise<GroupServer> {
     const group = await this.findGroupById(id);
     if (!group) {
       throw new Error('Group not found');
     }
-    group.type = type;
+    group.name = name;
     group.priority = priority;
     return await this.save(group);
   }

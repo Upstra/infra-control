@@ -5,18 +5,14 @@ export interface RoleRepositoryInterface {
   findRoleById(id: number): Promise<Role | null>;
   createRole(
     name: string,
-    allowWriteServer: boolean,
-    allowReadServer: boolean,
-    allowWriteVM: boolean,
-    allowReadVM: boolean,
+    permissionServerId: number,
+    permissionVmId: number,
   ): Promise<Role>;
   updateRole(
     id: number,
     name: string,
-    allowWriteServer: boolean,
-    allowReadServer: boolean,
-    allowWriteVM: boolean,
-    allowReadVM: boolean,
+    permissionServerId: number,
+    permissionVmId: number,
   ): Promise<Role>;
   deleteRole(id: number): Promise<void>;
 }

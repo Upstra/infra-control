@@ -7,8 +7,9 @@ import { UpsDomainService } from './domain/services/ups.domain.service';
 import { UpsTypeormRepository } from './infrastructure/repositories/ups.typeorm.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Ups])],
   controllers: [UpsController],
+  exports: [UpsService],
+  imports: [TypeOrmModule.forFeature([Ups])],
   providers: [
     UpsService,
     UpsDomainService,
@@ -17,6 +18,5 @@ import { UpsTypeormRepository } from './infrastructure/repositories/ups.typeorm.
       useClass: UpsTypeormRepository,
     },
   ],
-  exports: [UpsService],
 })
 export class UpsModule {}
