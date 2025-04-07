@@ -9,33 +9,34 @@ import {
   Post,
 } from '@nestjs/common';
 import { RoomService } from '../services/room.service';
-import { RoomDto } from '../dto/room.dto';
+import { RoomResponseDto } from '../dto/room.response.dto';
 import { RoomEndpointInterface } from '@/modules/rooms/application/interfaces/room.endpoint.interface';
+import { RoomCreationDto } from '@/modules/rooms/application/dto/room.creation.dto';
 
 @Controller('room')
 export class RoomController implements RoomEndpointInterface {
   constructor(private readonly roomService: RoomService) {}
 
   @Get()
-  async getAllRooms(): Promise<RoomDto[]> {
+  async getAllRooms(): Promise<RoomResponseDto[]> {
     return this.roomService.getAllRooms();
   }
 
   @Get(':id')
-  async getRoomById(@Param('id', ParseUUIDPipe) id: string): Promise<RoomDto> {
+  async getRoomById(@Param('id', ParseUUIDPipe) id: string): Promise<RoomResponseDto> {
     return this.roomService.getRoomById(id);
   }
 
   @Post()
-  async createRoom(@Body() roomDto: RoomDto): Promise<RoomDto> {
+  async createRoom(@Body() roomDto: RoomCreationDto): Promise<RoomResponseDto> {
     return this.roomService.createRoom(roomDto);
   }
 
   @Patch(':id')
   async updateRoom(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() roomDto: RoomDto,
-  ): Promise<RoomDto> {
+    @Body() roomDto: RoomCreationDto,
+  ): Promise<RoomResponseDto> {
     return this.roomService.updateRoom(id, roomDto);
   }
 

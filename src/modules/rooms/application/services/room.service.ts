@@ -1,8 +1,9 @@
 import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
-import { RoomDto } from '../dto/room.dto';
+import { RoomResponseDto } from '../dto/room.response.dto';
 import { RoomEndpointInterface } from '../interfaces/room.endpoint.interface';
 import { RoomNotFoundException } from '../../domain/exceptions/room.exception';
 import { RoomRepositoryInterface } from '../../domain/interfaces/room.repository.interface';
+import { RoomCreationDto } from '@/modules/rooms/application/dto/room.creation.dto';
 
 @Injectable()
 export class RoomService implements RoomEndpointInterface {
@@ -11,37 +12,40 @@ export class RoomService implements RoomEndpointInterface {
     private readonly roomRepository: RoomRepositoryInterface,
   ) {}
 
-  async getAllRooms(): Promise<RoomDto[]> {
+  async getAllRooms(): Promise<RoomResponseDto[]> {
     try {
       const rooms = await this.roomRepository.findAll();
-      return rooms.map((room) => new RoomDto(room));
+      return rooms.map((room) => new RoomResponseDto(room));
     } catch (error: any) {
       this.handleError(error);
     }
   }
 
-  async getRoomById(id: string): Promise<RoomDto> {
+  async getRoomById(id: string): Promise<RoomResponseDto> {
     try {
       const room = await this.roomRepository.findRoomById(id);
-      return new RoomDto(room);
+      return new RoomResponseDto(room);
     } catch (error: any) {
       this.handleError(error);
     }
   }
 
-  async createRoom(roomDto: RoomDto): Promise<RoomDto> {
+  async createRoom(roomDto: RoomCreationDto): Promise<RoomResponseDto> {
     try {
       const room = await this.roomRepository.createRoom(roomDto.name);
-      return new RoomDto(room);
+      return new RoomResponseDto(room);
     } catch (error: any) {
       this.handleError(error);
     }
   }
 
-  async updateRoom(id: string, roomDto: RoomDto): Promise<RoomDto> {
+  async updateRoom(
+    id: string,
+    roomDto: RoomCreationDto,
+  ): Promise<RoomResponseDto> {
     try {
       const room = await this.roomRepository.updateRoom(id, roomDto.name);
-      return new RoomDto(room);
+      return new RoomResponseDto(room);
     } catch (error: any) {
       this.handleError(error);
     }

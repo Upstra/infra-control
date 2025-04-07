@@ -88,7 +88,7 @@ export class Server extends BaseEntity {
 
   @ApiProperty()
   @Column()
-  upsId!: string;
+  upsId: string;
 
   @ApiProperty({ type: () => Vm, isArray: true })
   @OneToMany(() => Vm, (vm) => vm.server)

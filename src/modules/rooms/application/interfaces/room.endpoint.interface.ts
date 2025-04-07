@@ -1,9 +1,10 @@
-import { RoomDto } from '../dto/room.dto';
+import { RoomResponseDto } from '../dto/room.response.dto';
+import { RoomCreationDto } from '@/modules/rooms/application/dto/room.creation.dto';
 
 export interface RoomEndpointInterface {
-  getAllRooms(): Promise<RoomDto[]>;
-  getRoomById(id: string): Promise<RoomDto>;
-  createRoom(roomDto: RoomDto): Promise<RoomDto>;
-  updateRoom(id: string, roomDto: RoomDto): Promise<RoomDto>;
+  getAllRooms(): Promise<RoomResponseDto[]>;
+  getRoomById(id: string): Promise<RoomResponseDto>;
+  createRoom(roomDto: RoomCreationDto): Promise<RoomResponseDto>;
+  updateRoom(id: string, roomDto: RoomCreationDto): Promise<RoomResponseDto>;
   deleteRoom(id: string): Promise<void>;
 }
