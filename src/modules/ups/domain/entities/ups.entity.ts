@@ -18,7 +18,7 @@ export class Ups extends BaseEntity {
   @Column({ type: 'varchar' })
   name!: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', unique: true })
   ip!: string;
 
   @Column({ type: 'varchar' })

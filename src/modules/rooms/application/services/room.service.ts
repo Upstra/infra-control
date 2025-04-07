@@ -59,7 +59,7 @@ export class RoomService implements RoomEndpointInterface {
     }
   }
 
-  handleError(error: any): void {
+  private handleError(error: any): void {
     if (error instanceof RoomNotFoundException) {
       throw new HttpException(error.message, HttpStatus.NOT_FOUND);
     } else {

@@ -3,7 +3,7 @@ import { UpsRepositoryInterface } from '../../domain/interfaces/ups.repository.i
 import { UpsResponseDto } from '../dto/ups.response.dto';
 import { UpsCreationDto } from '../dto/ups.creation.dto';
 import { UpsEndpointInterface } from '@/modules/ups/application/interfaces/ups.endpoint.interface';
-import { UpsNotFoundException } from '@/modules/ups/domain/exceptions/ups.exception';
+import { UpsNotFoundException } from '@/modules/ups/domain/exceptions/ups.notfound.exception';
 import { UpsUpdateDto } from '@/modules/ups/application/dto/ups.update.dto';
 
 @Injectable()
@@ -74,7 +74,7 @@ export class UpsService implements UpsEndpointInterface {
     }
   }
 
-  handleError(error: any): void {
+  private handleError(error: any): void {
     if (error instanceof UpsNotFoundException) {
       throw new HttpException(error.message, HttpStatus.NOT_FOUND);
     } else {

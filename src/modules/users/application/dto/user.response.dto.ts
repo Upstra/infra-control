@@ -1,16 +1,32 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { User } from '@/modules/users/domain/entities/user.entity';
 
 export class UserResponseDto {
   @ApiProperty()
-  @IsString()
-  username: string;
-
-  @ApiProperty()
-  @IsString()
-  email: string;
-
-  @ApiProperty()
+  @IsNotEmpty()
   @IsUUID()
-  roleId: string;
+  readonly id: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  readonly username: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  readonly email: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsUUID()
+  readonly roleId: string;
+
+  constructor(user: User) {
+    this.id = user.id;
+    this.username = user.username;
+    this.email = user.email;
+    this.roleId = user.roleId;
+  }
 }
