@@ -15,8 +15,8 @@ import { PermissionVm } from '../../../permissions/domain/entities/permission.vm
 @Entity('vm')
 export class Vm extends BaseEntity {
   @ApiProperty()
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @ApiProperty()
   @Column({ type: 'varchar' })
@@ -65,7 +65,7 @@ export class Vm extends BaseEntity {
 
   @ApiProperty()
   @Column()
-  groupId!: number;
+  groupId!: string;
 
   @ApiProperty({ type: () => Server })
   @ManyToOne(() => Server, (server) => server.vms)
@@ -74,7 +74,7 @@ export class Vm extends BaseEntity {
 
   @ApiProperty()
   @Column()
-  serverId!: number;
+  serverId!: string;
 
   @ApiProperty({ type: () => PermissionVm, isArray: true })
   @ManyToMany(() => PermissionVm, (permission) => permission.vms)

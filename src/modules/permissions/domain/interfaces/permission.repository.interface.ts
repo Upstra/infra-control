@@ -2,7 +2,7 @@ import { Permission } from '../entities/permission.entity';
 
 export interface PermissionRepositoryInterface {
   findAll(): Promise<Permission[]>;
-  findPermissionById(id: number): Promise<Permission | null>;
+  findPermissionById(id: string): Promise<Permission | null>;
   createPermission(
     name: string,
     ip: string,
@@ -10,11 +10,11 @@ export interface PermissionRepositoryInterface {
     password: string,
   ): Promise<Permission>;
   updatePermission(
-    id: number,
+    id: string,
     name: string,
     ip: string,
     login: string,
     password: string,
   ): Promise<Permission>;
-  deletePermission(id: number): Promise<void>;
+  deletePermission(id: string): Promise<void>;
 }

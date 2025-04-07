@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
 } from '@nestjs/common';
@@ -21,7 +22,9 @@ export class UpsController {
   }
 
   @Get(':id')
-  async getUpsById(@Param('id') id: string): Promise<UpsResponseDto> {
+  async getUpsById(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<UpsResponseDto> {
     return this.upsService.getUpsById(id);
   }
 
@@ -32,14 +35,14 @@ export class UpsController {
 
   @Patch(':id')
   async updateUps(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() upsDto: UpsCreationDto,
   ): Promise<UpsResponseDto> {
     return this.upsService.updateUps(id, upsDto);
   }
 
   @Delete(':id')
-  async deleteUps(@Param('id') id: string): Promise<void> {
+  async deleteUps(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.upsService.deleteUps(id);
   }
 }

@@ -18,7 +18,7 @@ export class RoleTypeormRepository
     });
   }
 
-  async findRoleById(id: number): Promise<Role> {
+  async findRoleById(id: string): Promise<Role> {
     return await this.findOne({
       where: { id },
       relations: ['users'],
@@ -27,8 +27,8 @@ export class RoleTypeormRepository
 
   async createRole(
     name: string,
-    permissionServerId: number,
-    permissionVmId: number,
+    permissionServerId: string,
+    permissionVmId: string,
   ): Promise<Role> {
     const role = this.create({
       name,
@@ -39,10 +39,10 @@ export class RoleTypeormRepository
   }
 
   async updateRole(
-    id: number,
+    id: string,
     name: string,
-    permissionServerId: number,
-    permissionVmId: number,
+    permissionServerId: string,
+    permissionVmId: string,
   ): Promise<Role> {
     const role = await this.findRoleById(id);
     if (!role) {
@@ -54,7 +54,7 @@ export class RoleTypeormRepository
     return await this.save(role);
   }
 
-  async deleteRole(id: number): Promise<void> {
+  async deleteRole(id: string): Promise<void> {
     const role = await this.findRoleById(id);
     if (!role) {
       throw new Error('Role not found');

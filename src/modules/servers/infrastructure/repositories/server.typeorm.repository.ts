@@ -18,7 +18,7 @@ export class ServerTypeormRepository
     });
   }
 
-  async findServerById(id: number): Promise<Server> {
+  async findServerById(id: string): Promise<Server> {
     return await this.findOne({
       where: { id },
       relations: ['vms'],
@@ -35,9 +35,9 @@ export class ServerTypeormRepository
     password: string,
     type: string,
     priority: number,
-    groupId: number,
-    roomId: number,
-    upsId: number,
+    groupId: string,
+    roomId: string,
+    upsId: string,
   ): Promise<Server> {
     const server: Server = this.create({
       name,
@@ -58,7 +58,7 @@ export class ServerTypeormRepository
   }
 
   async updateServer(
-    id: number,
+    id: string,
     name: string,
     state: string,
     grace_period_on: number,
@@ -68,9 +68,9 @@ export class ServerTypeormRepository
     password: string,
     type: string,
     priority: number,
-    groupId: number,
-    roomId: number,
-    upsId: number,
+    groupId: string,
+    roomId: string,
+    upsId: string,
   ): Promise<Server> {
     const server = await this.findServerById(id);
     if (!server) {
@@ -91,7 +91,7 @@ export class ServerTypeormRepository
     return await this.save(server);
   }
 
-  async deleteServer(id: number): Promise<void> {
+  async deleteServer(id: string): Promise<void> {
     const server = await this.findServerById(id);
     if (!server) {
       throw new Error('Server not found');

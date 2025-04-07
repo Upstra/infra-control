@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
 } from '@nestjs/common';
@@ -21,7 +22,9 @@ export class ServerController {
   }
 
   @Get(':id')
-  async getServerById(@Param('id') id: string): Promise<ServerResponseDto> {
+  async getServerById(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<ServerResponseDto> {
     return this.serverService.getServerById(id);
   }
 
@@ -34,14 +37,14 @@ export class ServerController {
 
   @Patch(':id')
   async updateServer(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() serverDto: ServerCreationDto,
   ): Promise<ServerResponseDto> {
     return this.serverService.updateServer(id, serverDto);
   }
 
   @Delete(':id')
-  async deleteServer(@Param('id') id: string): Promise<void> {
+  async deleteServer(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.serverService.deleteServer(id);
   }
 }

@@ -11,8 +11,8 @@ import { Server } from '@/modules/servers/domain/entities/server.entity';
 @Entity('ilo')
 export class Ilo extends BaseEntity {
   @ApiProperty()
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @ApiProperty()
   @Column({ type: 'varchar' })

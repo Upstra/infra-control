@@ -27,7 +27,6 @@ export class User extends BaseEntity {
   @Column({ type: 'varchar', length: 100 })
   lastName!: string;
 
-
   @ApiProperty()
   @Column({ type: 'varchar' })
   password!: string;
@@ -43,7 +42,7 @@ export class User extends BaseEntity {
 
   @ApiProperty()
   @Column()
-  roleId!: number;
+  roleId!: string;
 
   @Column({ default: false })
   isTwoFactorEnabled: boolean;

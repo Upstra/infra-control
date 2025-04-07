@@ -12,7 +12,7 @@ export class UserTypeormRepository
     super(User, dataSource.createEntityManager());
   }
 
-  async findUserById(id: number): Promise<User> {
+  async findUserById(id: string): Promise<User> {
     return await this.findOne({ where: { id } });
   }
 
@@ -20,7 +20,7 @@ export class UserTypeormRepository
     username: string,
     password: string,
     email: string,
-    roleId: number,
+    roleId: string,
   ): Promise<User> {
     const user = this.create({
       username,
@@ -32,11 +32,11 @@ export class UserTypeormRepository
   }
 
   async updateUser(
-    id: number,
+    id: string,
     username: string,
     password: string,
     email: string,
-    roleId: number,
+    roleId: string,
   ): Promise<User> {
     const user = await this.findUserById(id);
     if (!user) {
@@ -49,7 +49,7 @@ export class UserTypeormRepository
     return await this.save(user);
   }
 
-  async deleteUser(id: number): Promise<void> {
+  async deleteUser(id: string): Promise<void> {
     const user = await this.findUserById(id);
     if (!user) {
       throw new Error('User not found');

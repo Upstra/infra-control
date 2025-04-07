@@ -1,19 +1,19 @@
 import { User } from '../entities/user.entity';
 
 export interface UserRepositoryInterface {
-  findUserById(id: number): Promise<User | null>;
+  findUserById(id: string): Promise<User | null>;
   createUser(
     username: string,
     password: string,
     email: string,
-    roleId: number,
+    roleId: string,
   ): Promise<User>;
   updateUser(
-    id: number,
+    id: string,
     username: string,
     password: string,
     email: string,
-    roleId: number,
+    roleId: string,
   ): Promise<User>;
-  deleteUser(id: number): Promise<void>;
+  deleteUser(id: string): Promise<void>;
 }

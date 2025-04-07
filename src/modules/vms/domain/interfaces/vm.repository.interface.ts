@@ -2,7 +2,7 @@ import { Vm } from '../entities/vm.entity';
 
 export interface VmRepositoryInterface {
   findAll(): Promise<Vm[]>;
-  findVmById(id: number): Promise<Vm | null>;
+  findVmById(id: string): Promise<Vm | null>;
   createVm(
     name: string,
     state: string,
@@ -14,11 +14,11 @@ export interface VmRepositoryInterface {
     login: string,
     password: string,
     priority: number,
-    serverId: number,
-    groupId: number,
+    serverId: string,
+    groupId: string,
   ): Promise<Vm>;
   updateVm(
-    id: number,
+    id: string,
     name: string,
     state: string,
     grace_period_on: number,
@@ -29,8 +29,8 @@ export interface VmRepositoryInterface {
     login: string,
     password: string,
     priority: number,
-    serverId: number,
-    groupId: number,
+    serverId: string,
+    groupId: string,
   ): Promise<Vm>;
-  deleteVm(id: number): Promise<void>;
+  deleteVm(id: string): Promise<void>;
 }

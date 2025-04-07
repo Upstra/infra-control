@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsString, IsUUID } from 'class-validator';
 
 export class VmResponseDto {
   @ApiProperty()
@@ -35,10 +35,10 @@ export class VmResponseDto {
   priority: number;
 
   @ApiProperty()
-  @IsNumber()
-  groupId: number;
+  @IsUUID()
+  groupId: string;
 
   @ApiProperty()
-  @IsNumber()
-  serverId: number;
+  @IsUUID()
+  serverId: string;
 }

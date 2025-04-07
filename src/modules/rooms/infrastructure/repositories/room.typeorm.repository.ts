@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Room } from '../../domain/entities/room.entity';
 import { RoomRepositoryInterface } from '../../domain/interfaces/room.repository.interface';
 import { DataSource, Repository } from 'typeorm';
+import { RoomNotFoundException } from '@/modules/rooms/domain/exceptions/room.exception';
 
 @Injectable()
 export class RoomTypeormRepository
@@ -18,11 +19,15 @@ export class RoomTypeormRepository
     });
   }
 
-  async findRoomById(id: number): Promise<Room | null> {
-    return await this.findOne({
+  async findRoomById(id: string): Promise<Room> {
+    const room = await this.findOne({
       where: { id },
       relations: ['servers'],
     });
+    if (!room) {
+      throw new RoomNotFoundException(id);
+    }
+    return room;
   }
 
   async createRoom(name: string): Promise<Room> {
@@ -34,20 +39,14 @@ export class RoomTypeormRepository
     return await this.save(room);
   }
 
-  async updateRoom(id: number, name: string): Promise<Room> {
+  async updateRoom(id: string, name: string): Promise<Room> {
     const room = await this.findRoomById(id);
-    if (!room) {
-      throw new Error('Room not found');
-    }
     room.name = name;
     return await this.save(room);
   }
 
-  async deleteRoom(id: number): Promise<void> {
-    const room = await this.findRoomById(id);
-    if (!room) {
-      throw new Error('Room not found');
-    }
+  async deleteRoom(id: string): Promise<void> {
+    await this.findRoomById(id);
     await this.delete(id);
   }
 }

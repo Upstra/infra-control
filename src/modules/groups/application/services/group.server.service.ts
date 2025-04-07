@@ -1,10 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { GroupServiceInterface } from '../interfaces/group.service.interface';
+import { GroupEndpointInterface } from '../interfaces/group.endpoint.Interface';
 import { GroupRepositoryInterface } from '../../domain/interfaces/group.repository.interface';
 import { GroupServerDto } from '../dto/group.server.dto';
 
 @Injectable()
-export class GroupServerService implements GroupServiceInterface {
+export class GroupServerService implements GroupEndpointInterface {
   constructor(
     @Inject('GroupRepositoryInterface')
     private readonly groupRepository: GroupRepositoryInterface,

@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
 } from '@nestjs/common';
@@ -20,7 +21,7 @@ export class RoleController {
   }
 
   @Get(':id')
-  async getRoleById(@Param('id') id: string): Promise<RoleDto> {
+  async getRoleById(@Param('id', ParseUUIDPipe) id: string): Promise<RoleDto> {
     return this.roleService.getRoleById(id);
   }
 
@@ -31,14 +32,14 @@ export class RoleController {
 
   @Patch(':id')
   async updateRole(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() roleDto: RoleDto,
   ): Promise<RoleDto> {
     return this.roleService.updateRole(id, roleDto);
   }
 
   @Delete(':id')
-  async deleteRole(@Param('id') id: string): Promise<void> {
+  async deleteRole(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.roleService.deleteRole(id);
   }
 }

@@ -16,7 +16,7 @@ export class VmTypeormRepository
     return await this.find();
   }
 
-  async findVmById(id: number): Promise<Vm> {
+  async findVmById(id: string): Promise<Vm> {
     return await this.findOne({ where: { id } });
   }
 
@@ -31,8 +31,8 @@ export class VmTypeormRepository
     login: string,
     password: string,
     priority: number,
-    serverId: number,
-    groupId: number,
+    serverId: string,
+    groupId: string,
   ): Promise<Vm> {
     const vm = this.create({
       name,
@@ -52,7 +52,7 @@ export class VmTypeormRepository
   }
 
   async updateVm(
-    id: number,
+    id: string,
     name: string,
     state: string,
     grace_period_on: number,
@@ -63,8 +63,8 @@ export class VmTypeormRepository
     login: string,
     password: string,
     priority: number,
-    serverId: number,
-    groupId: number,
+    serverId: string,
+    groupId: string,
   ): Promise<Vm> {
     const vm = await this.findVmById(id);
     if (!vm) {
@@ -85,7 +85,7 @@ export class VmTypeormRepository
     return await this.save(vm);
   }
 
-  async deleteVm(id: number): Promise<void> {
+  async deleteVm(id: string): Promise<void> {
     const vm = await this.findVmById(id);
     if (!vm) {
       throw new Error('VM not found');

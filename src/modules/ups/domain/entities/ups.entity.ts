@@ -14,8 +14,8 @@ import { Room } from '../../../rooms/domain/entities/room.entity';
 @Entity('ups')
 export class Ups extends BaseEntity {
   @ApiProperty()
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @ApiProperty()
   @Column({ type: 'varchar' })
@@ -52,5 +52,5 @@ export class Ups extends BaseEntity {
 
   @ApiProperty()
   @Column()
-  roomId!: number;
+  roomId!: string;
 }

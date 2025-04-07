@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
 } from '@nestjs/common';
@@ -21,7 +22,9 @@ export class IloController {
   }
 
   @Get(':id')
-  async getIloById(@Param('id') id: string): Promise<IloResponseDto> {
+  async getIloById(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<IloResponseDto> {
     return this.iloService.getIloById(id);
   }
 
@@ -32,14 +35,14 @@ export class IloController {
 
   @Patch(':id')
   async updateIlo(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() iloDto: IloCreationDto,
   ): Promise<IloResponseDto> {
     return this.iloService.updateIlo(id, iloDto);
   }
 
   @Delete(':id')
-  async deleteIlo(@Param('id') id: string): Promise<void> {
+  async deleteIlo(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.iloService.deleteIlo(id);
   }
 }

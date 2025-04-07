@@ -16,7 +16,7 @@ export class IloTypeormRepository
     return await this.find();
   }
 
-  async findIloById(id: number): Promise<Ilo | null> {
+  async findIloById(id: string): Promise<Ilo | null> {
     return await this.findOne({
       where: { id },
     });
@@ -38,7 +38,7 @@ export class IloTypeormRepository
   }
 
   async updateIlo(
-    id: number,
+    id: string,
     name: string,
     ip: string,
     login: string,
@@ -55,7 +55,7 @@ export class IloTypeormRepository
     return await this.save(ilo);
   }
 
-  async deleteIlo(id: number): Promise<void> {
+  async deleteIlo(id: string): Promise<void> {
     const ilo = await this.findIloById(id);
     if (!ilo) {
       throw new Error('Ilo not found');

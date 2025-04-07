@@ -18,7 +18,7 @@ export class UpsTypeormRepository
     });
   }
 
-  async findUpsById(id: number): Promise<Ups> {
+  async findUpsById(id: string): Promise<Ups> {
     return await this.findOne({
       where: { id },
       relations: ['servers'],
@@ -46,7 +46,7 @@ export class UpsTypeormRepository
   }
 
   async updateUps(
-    id: number,
+    id: string,
     name: string,
     ip: string,
     login: string,
@@ -67,7 +67,7 @@ export class UpsTypeormRepository
     return await this.save(ups);
   }
 
-  async deleteUps(id: number): Promise<void> {
+  async deleteUps(id: string): Promise<void> {
     const ups = await this.findUpsById(id);
     if (!ups) {
       throw new Error('Ups not found');

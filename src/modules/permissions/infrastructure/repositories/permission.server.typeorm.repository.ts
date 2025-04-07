@@ -17,7 +17,7 @@ export class PermissionServerTypeormRepository
     throw new Error('Method not implemented.');
   }
 
-  async findPermissionById(id: number): Promise<Permission> {
+  async findPermissionById(id: string): Promise<Permission> {
     throw new Error('Method not implemented.');
   }
 
@@ -31,7 +31,7 @@ export class PermissionServerTypeormRepository
   }
 
   async updatePermission(
-    id: number,
+    id: string,
     name: string,
     ip: string,
     login: string,
@@ -40,7 +40,7 @@ export class PermissionServerTypeormRepository
     throw new Error('Method not implemented.');
   }
 
-  async deletePermission(id: number): Promise<void> {
+  async deletePermission(id: string): Promise<void> {
     throw new Error('Method not implemented.');
   }
 }

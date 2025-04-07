@@ -15,8 +15,8 @@ import { PermissionVm } from '@/modules/permissions/domain/entities/permission.v
 @Entity('role')
 export class Role extends BaseEntity {
   @ApiProperty()
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @ApiProperty()
   @Column({ type: 'varchar' })
@@ -33,7 +33,7 @@ export class Role extends BaseEntity {
 
   @ApiProperty()
   @Column()
-  permissionServerId!: number;
+  permissionServerId!: string;
 
   @ApiProperty({ type: () => PermissionVm })
   @ManyToOne(() => PermissionVm, (permission) => permission.roles)
@@ -42,5 +42,5 @@ export class Role extends BaseEntity {
 
   @ApiProperty()
   @Column()
-  permissionVmId!: number;
+  permissionVmId!: string;
 }
