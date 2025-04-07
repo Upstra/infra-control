@@ -10,7 +10,6 @@ export interface UpsRepositoryInterface {
     password: string,
     grace_period_on: number,
     grace_period_off: number,
-    ups_agent: string,
   ): Promise<Ups>;
   updateUps(
     id: number,
@@ -20,7 +19,6 @@ export interface UpsRepositoryInterface {
     password: string,
     grace_period_on: number,
     grace_period_off: number,
-    ups_agent: string,
   ): Promise<Ups>;
   deleteUps(id: number): Promise<void>;
 }

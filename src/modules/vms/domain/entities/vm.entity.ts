@@ -40,6 +40,10 @@ export class Vm extends BaseEntity {
 
   @ApiProperty()
   @Column({ type: 'varchar' })
+  adminUrl: string;
+
+  @ApiProperty()
+  @Column({ type: 'varchar' })
   ip!: string;
 
   @ApiProperty()

@@ -1,5 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  BaseEntity,
+  OneToOne,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { Server } from '@/modules/servers/domain/entities/server.entity';
 
 @Entity('ilo')
 export class Ilo extends BaseEntity {
@@ -22,4 +29,8 @@ export class Ilo extends BaseEntity {
   @ApiProperty()
   @Column({ type: 'varchar' })
   password!: string;
+
+  @ApiProperty({ type: () => Server })
+  @OneToOne(() => Server)
+  server!: Server;
 }

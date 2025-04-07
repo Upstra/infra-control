@@ -4,10 +4,6 @@ import { IsNumber, IsString } from 'class-validator';
 export class RoleDto {
   @ApiProperty()
   @IsString()
-  id: number;
-
-  @ApiProperty()
-  @IsString()
   name: string;
 
   @ApiProperty()

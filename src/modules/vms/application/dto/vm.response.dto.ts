@@ -24,6 +24,10 @@ export class VmResponseDto {
 
   @ApiProperty()
   @IsString()
+  adminUrl: string;
+
+  @ApiProperty()
+  @IsString()
   ip: string;
 
   @ApiProperty()

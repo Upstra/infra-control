@@ -1,7 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { RoomRepositoryInterface } from '../domain/interfaces/room.repository.interface';
-import { RoomResponseDto } from './dto/room.response.dto';
-import { RoomCreationDto } from './dto/room.creation.dto';
+import { RoomDto } from './dto/room.dto';
 
 @Injectable()
 export class RoomService {
@@ -10,22 +9,19 @@ export class RoomService {
     private readonly roomRepository: RoomRepositoryInterface,
   ) {}
 
-  async getAllRooms(): Promise<RoomResponseDto[]> {
+  async getAllRooms(): Promise<RoomDto[]> {
     return null;
   }
 
-  async getRoomById(id: string): Promise<RoomResponseDto> {
+  async getRoomById(id: string): Promise<RoomDto> {
     return null;
   }
 
-  async createRoom(roomDto: RoomCreationDto): Promise<RoomResponseDto> {
+  async createRoom(roomDto: RoomDto): Promise<RoomDto> {
     return null;
   }
 
-  async updateRoom(
-    id: string,
-    roomDto: RoomCreationDto,
-  ): Promise<RoomResponseDto> {
+  async updateRoom(id: string, roomDto: RoomDto): Promise<RoomDto> {
     return null;
   }
 

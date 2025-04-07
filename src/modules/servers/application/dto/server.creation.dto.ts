@@ -20,6 +20,10 @@ export class ServerCreationDto {
 
   @ApiProperty()
   @IsString()
+  adminUrl: string;
+
+  @ApiProperty()
+  @IsString()
   ip: string;
 
   @ApiProperty()
@@ -37,4 +41,8 @@ export class ServerCreationDto {
   @ApiProperty()
   @IsNumber()
   priority: number;
+
+  @ApiProperty()
+  @IsNumber()
+  roomId: number;
 }

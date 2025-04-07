@@ -8,33 +8,32 @@ import {
   Post,
 } from '@nestjs/common';
 import { RoomService } from './room.service';
-import { RoomResponseDto } from './dto/room.response.dto';
-import { RoomCreationDto } from './dto/room.creation.dto';
+import { RoomDto } from './dto/room.dto';
 
 @Controller('room')
 export class RoomController {
   constructor(private readonly roomService: RoomService) {}
 
   @Get()
-  async getAllRooms(): Promise<RoomResponseDto[]> {
+  async getAllRooms(): Promise<RoomDto[]> {
     return this.roomService.getAllRooms();
   }
 
   @Get(':id')
-  async getRoomById(@Param('id') id: string): Promise<RoomResponseDto> {
+  async getRoomById(@Param('id') id: string): Promise<RoomDto> {
     return this.roomService.getRoomById(id);
   }
 
   @Post()
-  async createRoom(@Body() roomDto: RoomCreationDto): Promise<RoomResponseDto> {
+  async createRoom(@Body() roomDto: RoomDto): Promise<RoomDto> {
     return this.roomService.createRoom(roomDto);
   }
 
   @Patch(':id')
   async updateRoom(
     @Param('id') id: string,
-    @Body() roomDto: RoomCreationDto,
-  ): Promise<RoomResponseDto> {
+    @Body() roomDto: RoomDto,
+  ): Promise<RoomDto> {
     return this.roomService.updateRoom(id, roomDto);
   }
 

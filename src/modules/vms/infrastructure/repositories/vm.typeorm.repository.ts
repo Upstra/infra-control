@@ -26,6 +26,7 @@ export class VmTypeormRepository
     grace_period_on: number,
     grace_period_off: number,
     os: string,
+    adminUrl: string,
     ip: string,
     login: string,
     password: string,
@@ -39,6 +40,7 @@ export class VmTypeormRepository
       grace_period_on,
       grace_period_off,
       os,
+      adminUrl,
       ip,
       login,
       password,
@@ -56,6 +58,7 @@ export class VmTypeormRepository
     grace_period_on: number,
     grace_period_off: number,
     os: string,
+    adminUrl: string,
     ip: string,
     login: string,
     password: string,
@@ -72,6 +75,7 @@ export class VmTypeormRepository
     vm.grace_period_on = grace_period_on;
     vm.grace_period_off = grace_period_off;
     vm.os = os;
+    vm.adminUrl = adminUrl;
     vm.ip = ip;
     vm.login = login;
     vm.password = password;

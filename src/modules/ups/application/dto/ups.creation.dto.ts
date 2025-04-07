@@ -25,8 +25,4 @@ export class UpsCreationDto {
   @ApiProperty()
   @IsNumber()
   grace_period_off: number;
-
-  @ApiProperty()
-  @IsString()
-  ups_agent: string;
 }

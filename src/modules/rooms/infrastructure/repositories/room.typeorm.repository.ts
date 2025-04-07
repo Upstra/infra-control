@@ -25,37 +25,21 @@ export class RoomTypeormRepository
     });
   }
 
-  async createRoom(
-    name: string,
-    ip: string,
-    login: string,
-    password: string,
-  ): Promise<Room> {
+  async createRoom(name: string): Promise<Room> {
     const room = this.create({
       name,
-      ip,
-      login,
-      password,
       servers: [],
+      ups: [],
     });
     return await this.save(room);
   }
 
-  async updateRoom(
-    id: number,
-    name: string,
-    ip: string,
-    login: string,
-    password: string,
-  ): Promise<Room> {
+  async updateRoom(id: number, name: string): Promise<Room> {
     const room = await this.findRoomById(id);
     if (!room) {
       throw new Error('Room not found');
     }
     room.name = name;
-    room.ip = ip;
-    room.login = login;
-    room.password = password;
     return await this.save(room);
   }
 

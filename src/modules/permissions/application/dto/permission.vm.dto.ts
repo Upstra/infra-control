@@ -4,10 +4,6 @@ import { IsBoolean, IsNumber } from 'class-validator';
 
 export class PermissionVmDto implements PermissionDtoInterface {
   @ApiProperty()
-  @IsNumber()
-  id: number;
-
-  @ApiProperty()
   @IsBoolean()
   allowWrite?: boolean;
 

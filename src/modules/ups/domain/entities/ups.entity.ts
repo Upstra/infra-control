@@ -4,9 +4,12 @@ import {
   Column,
   BaseEntity,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Server } from '../../../servers/domain/entities/server.entity';
+import { Room } from '../../../rooms/domain/entities/room.entity';
 
 @Entity('ups')
 export class Ups extends BaseEntity {
@@ -38,10 +41,16 @@ export class Ups extends BaseEntity {
   @Column()
   grace_period_off: number;
 
-  @ApiProperty()
-  @Column({ type: 'varchar' })
-  ups_agent: string;
-
+  @ApiProperty({ type: () => Server, isArray: true })
   @OneToMany(() => Server, (server) => server.ups)
   servers: Server[];
+
+  @ApiProperty({ type: Room })
+  @ManyToOne(() => Room, (room) => room.ups)
+  @JoinColumn({ name: 'roomId' })
+  room: Room;
+
+  @ApiProperty()
+  @Column()
+  roomId!: number;
 }

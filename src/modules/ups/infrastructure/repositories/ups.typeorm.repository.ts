@@ -32,7 +32,6 @@ export class UpsTypeormRepository
     password: string,
     grace_period_on: number,
     grace_period_off: number,
-    ups_agent: string,
   ): Promise<Ups> {
     const ups = this.create({
       name,
@@ -41,7 +40,6 @@ export class UpsTypeormRepository
       password,
       grace_period_on,
       grace_period_off,
-      ups_agent,
       servers: [],
     });
     return await this.save(ups);
@@ -55,7 +53,6 @@ export class UpsTypeormRepository
     password: string,
     grace_period_on: number,
     grace_period_off: number,
-    ups_agent: string,
   ): Promise<Ups> {
     const ups = await this.findUpsById(id);
     if (!ups) {
@@ -67,7 +64,6 @@ export class UpsTypeormRepository
     ups.password = password;
     ups.grace_period_on = grace_period_on;
     ups.grace_period_off = grace_period_off;
-    ups.ups_agent = ups_agent;
     return await this.save(ups);
   }
 
