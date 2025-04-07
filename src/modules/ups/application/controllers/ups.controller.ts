@@ -8,16 +8,18 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { UpsService } from './ups.service';
-import { UpsResponseDto } from './dto/ups.response.dto';
-import { UpsCreationDto } from './dto/ups.creation.dto';
+import { UpsService } from '../services/ups.service';
+import { UpsResponseDto } from '../dto/ups.response.dto';
+import { UpsCreationDto } from '../dto/ups.creation.dto';
+import { UpsEndpointInterface } from '@/modules/ups/application/interfaces/ups.endpoint.interface';
+import { UpsUpdateDto } from '@/modules/ups/application/dto/ups.update.dto';
 
 @Controller('ups')
-export class UpsController {
+export class UpsController implements UpsEndpointInterface {
   constructor(private readonly upsService: UpsService) {}
 
   @Get()
-  async getAllUps(): Promise<UpsResponseDto> {
+  async getAllUps(): Promise<UpsResponseDto[]> {
     return this.upsService.getAllUps();
   }
 
@@ -36,7 +38,7 @@ export class UpsController {
   @Patch(':id')
   async updateUps(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() upsDto: UpsCreationDto,
+    @Body() upsDto: UpsUpdateDto,
   ): Promise<UpsResponseDto> {
     return this.upsService.updateUps(id, upsDto);
   }

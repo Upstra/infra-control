@@ -1,15 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 import { Room } from '@/modules/rooms/domain/entities/room.entity';
 
 export class RoomResponseDto {
   @ApiProperty()
+  @IsNotEmpty()
   @IsUUID()
-  id: string;
+  readonly id: string;
 
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
-  name: string;
+  readonly name: string;
 
   constructor(room: Room) {
     this.id = room.id;

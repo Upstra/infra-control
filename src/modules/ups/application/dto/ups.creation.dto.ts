@@ -1,28 +1,39 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, IsUUID } from 'class-validator';
 
 export class UpsCreationDto {
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
-  name: string;
+  readonly name: string;
 
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
-  ip: string;
+  readonly ip: string;
 
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
-  login: string;
+  readonly login: string;
 
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
-  password: string;
+  readonly password: string;
 
   @ApiProperty()
+  @IsNotEmpty()
   @IsNumber()
-  grace_period_on: number;
+  readonly grace_period_on: number;
 
   @ApiProperty()
+  @IsNotEmpty()
   @IsNumber()
-  grace_period_off: number;
+  readonly grace_period_off: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsUUID()
+  readonly roomId: string;
 }

@@ -23,7 +23,9 @@ export class RoomController implements RoomEndpointInterface {
   }
 
   @Get(':id')
-  async getRoomById(@Param('id', ParseUUIDPipe) id: string): Promise<RoomResponseDto> {
+  async getRoomById(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<RoomResponseDto> {
     return this.roomService.getRoomById(id);
   }
 
