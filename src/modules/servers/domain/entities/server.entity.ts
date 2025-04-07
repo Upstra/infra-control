@@ -94,9 +94,7 @@ export class Server extends BaseEntity {
   @OneToMany(() => Vm, (vm) => vm.server)
   vms: Vm[];
 
-  @ApiProperty({ type: () => PermissionServer, isArray: true })
-  @ManyToMany(() => PermissionServer, (permission) => permission.servers)
-  @JoinColumn()
+  @OneToMany(() => PermissionServer, (permission) => permission.server)
   permissions: PermissionServer[];
 
   @ApiProperty({ type: () => Ilo })
