@@ -1,44 +1,85 @@
-import { IsNumber, IsString, IsUUID } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Server } from '@/modules/servers/domain/entities/server.entity';
+import { IloResponseDto } from '@/modules/ilos/application/dto/ilo.response.dto';
 
 export class ServerResponseDto {
   @ApiProperty()
-  @IsString()
-  name: string;
-
-  @ApiProperty()
-  @IsString()
-  state: string;
-
-  @ApiProperty()
-  @IsNumber()
-  grace_period_on: number;
-
-  @ApiProperty()
-  @IsNumber()
-  grace_period_off: number;
-
-  @ApiProperty()
-  @IsString()
-  ip: string;
-
-  @ApiProperty()
-  @IsString()
-  type: string;
-
-  @ApiProperty()
-  @IsNumber()
-  priority: number;
-
-  @ApiProperty()
+  @IsNotEmpty()
   @IsUUID()
-  groupId: string;
+  readonly id!: string;
 
   @ApiProperty()
-  @IsUUID()
-  roomId: string;
+  @IsNotEmpty()
+  @IsString()
+  readonly name!: string;
 
   @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  readonly state!: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsNumber()
+  readonly grace_period_on!: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsNumber()
+  readonly grace_period_off!: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  readonly ip!: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  readonly type!: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsNumber()
+  readonly priority!: number;
+
+  @ApiProperty()
+  @IsOptional()
   @IsUUID()
-  upsId: string;
+  readonly groupId?: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsUUID()
+  readonly roomId!: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsUUID()
+  readonly upsId?: string;
+
+  @ApiProperty({ type: IloResponseDto })
+  @IsNotEmpty()
+  readonly ilo!: IloResponseDto;
+
+  constructor(server: Server, ilo: IloResponseDto) {
+    this.id = server.id;
+    this.name = server.name;
+    this.state = server.state;
+    this.grace_period_on = server.grace_period_on;
+    this.grace_period_off = server.grace_period_off;
+    this.ip = server.ip;
+    this.type = server.type;
+    this.priority = server.priority;
+    this.roomId = server.roomId;
+    this.upsId = server.upsId;
+    this.ilo = ilo;
+  }
 }

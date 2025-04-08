@@ -1,9 +1,9 @@
 import { Ilo } from '../entities/ilo.entity';
 
 export interface IloRepositoryInterface {
-  findAll(): Promise<Ilo[]>;
-  findIloById(id: string): Promise<Ilo | null>;
+  findIloById(id: string): Promise<Ilo>;
   createIlo(
+    id: string,
     name: string,
     ip: string,
     login: string,

@@ -36,7 +36,7 @@ export class Vm extends BaseEntity {
   adminUrl: string;
 
   @ApiProperty()
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', unique: true })
   ip!: string;
 
   @Column({ type: 'varchar' })

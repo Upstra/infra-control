@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Server } from '../../domain/entities/server.entity';
 import { ServerRepositoryInterface } from '../../domain/interfaces/server.repository.interface';
 import { DataSource, Repository } from 'typeorm';
+import { ServerNotFoundException } from '@/modules/servers/domain/exceptions/server.notfound.exception';
 
 @Injectable()
 export class ServerTypeormRepository
@@ -19,10 +20,14 @@ export class ServerTypeormRepository
   }
 
   async findServerById(id: string): Promise<Server> {
-    return await this.findOne({
+    const server = await this.findOne({
       where: { id },
       relations: ['vms'],
     });
+    if (!server) {
+      throw new ServerNotFoundException(id);
+    }
+    return server;
   }
 
   async createServer(
@@ -73,29 +78,27 @@ export class ServerTypeormRepository
     upsId: string,
   ): Promise<Server> {
     const server = await this.findServerById(id);
-    if (!server) {
-      throw new Error('Server not found');
-    }
-    server.name = name;
-    server.state = state;
-    server.grace_period_on = grace_period_on;
-    server.grace_period_off = grace_period_off;
-    server.ip = ip;
-    server.login = login;
-    server.password = password;
-    server.type = type;
-    server.priority = priority;
-    server.groupId = groupId;
-    server.roomId = roomId;
-    server.upsId = upsId;
+    server.name = name ? name : server.name;
+    server.state = state ? state : server.state;
+    server.grace_period_on = grace_period_on
+      ? grace_period_on
+      : server.grace_period_on;
+    server.grace_period_off = grace_period_off
+      ? grace_period_off
+      : server.grace_period_off;
+    server.ip = ip ? ip : server.ip;
+    server.login = login ? login : server.login;
+    server.password = password ? password : server.password;
+    server.type = type ? type : server.type;
+    server.priority = priority ? priority : server.priority;
+    server.groupId = groupId ? groupId : server.groupId;
+    server.roomId = roomId ? roomId : server.roomId;
+    server.upsId = upsId ? upsId : server.upsId;
     return await this.save(server);
   }
 
   async deleteServer(id: string): Promise<void> {
-    const server = await this.findServerById(id);
-    if (!server) {
-      throw new Error('Server not found');
-    }
+    await this.findServerById(id);
     await this.delete(id);
   }
 }

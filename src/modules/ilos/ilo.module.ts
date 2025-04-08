@@ -1,17 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { IloController } from './application/ilo.controller';
-import { IloService } from './application/ilo.service';
+import { IloService } from './application/services/ilo.service';
 import { Ilo } from './domain/entities/ilo.entity';
-import { IloDomainService } from './domain/services/ilo.domain.service';
 import { IloTypeormRepository } from './infrastructure/repositories/ilo.typeorm.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Ilo])],
-  controllers: [IloController],
   providers: [
     IloService,
-    IloDomainService,
     {
       provide: 'IloRepositoryInterface',
       useClass: IloTypeormRepository,

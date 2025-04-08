@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Vm } from '../../domain/entities/vm.entity';
 import { VmRepositoryInterface } from '../../domain/interfaces/vm.repository.interface';
 import { DataSource, Repository } from 'typeorm';
-import { VmNotFoundException } from '@/modules/vms/domain/exceptions/vm.exception';
+import { VmNotFoundException } from '@/modules/vms/domain/exceptions/vm.notfound.exception';
 
 @Injectable()
 export class VmTypeormRepository

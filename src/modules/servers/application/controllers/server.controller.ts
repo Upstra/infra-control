@@ -8,12 +8,14 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { ServerService } from './server.service';
-import { ServerResponseDto } from './dto/server.response.dto';
-import { ServerCreationDto } from './dto/server.creation.dto';
+import { ServerService } from '../services/server.service';
+import { ServerResponseDto } from '../dto/server.response.dto';
+import { ServerCreationDto } from '../dto/server.creation.dto';
+import { ServerEndpointInterface } from '@/modules/servers/application/interfaces/server.endpoint.interface';
+import { ServerUpdateDto } from '@/modules/servers/application/dto/server.update.dto';
 
 @Controller('server')
-export class ServerController {
+export class ServerController implements ServerEndpointInterface {
   constructor(private readonly serverService: ServerService) {}
 
   @Get()
@@ -38,7 +40,7 @@ export class ServerController {
   @Patch(':id')
   async updateServer(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() serverDto: ServerCreationDto,
+    @Body() serverDto: ServerUpdateDto,
   ): Promise<ServerResponseDto> {
     return this.serverService.updateServer(id, serverDto);
   }

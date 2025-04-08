@@ -1,20 +1,29 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class IloCreationDto {
   @ApiProperty()
-  @IsString()
-  name: string;
+  @IsNotEmpty()
+  @IsUUID()
+  id!: string;
 
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
-  ip: string;
+  readonly name!: string;
 
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
-  login: string;
+  readonly ip!: string;
 
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
-  password: string;
+  readonly login!: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  readonly password!: string;
 }

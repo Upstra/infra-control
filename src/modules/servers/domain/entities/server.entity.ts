@@ -6,7 +6,6 @@ import {
   OneToMany,
   ManyToOne,
   JoinColumn,
-  ManyToMany,
   OneToOne,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
@@ -44,7 +43,7 @@ export class Server extends BaseEntity {
   adminUrl: string;
 
   @ApiProperty()
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', unique: true })
   ip!: string;
 
   @ApiProperty()

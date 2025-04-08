@@ -3,7 +3,7 @@ import { VmRepositoryInterface } from '../../domain/interfaces/vm.repository.int
 import { VmResponseDto } from '../dto/vm.response.dto';
 import { VmCreationDto } from '../dto/vm.creation.dto';
 import { VmEndpointInterface } from '@/modules/vms/application/interfaces/vm.endpoint.interface';
-import { VmNotFoundException } from '@/modules/vms/domain/exceptions/vm.exception';
+import { VmNotFoundException } from '@/modules/vms/domain/exceptions/vm.notfound.exception';
 import { VmUpdateDto } from '@/modules/vms/application/dto/vm.update.dto';
 
 @Injectable()
