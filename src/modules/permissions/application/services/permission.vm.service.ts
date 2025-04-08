@@ -6,9 +6,7 @@ import { PermissionNotFoundException } from '@/modules/permissions/domain/except
 
 @Injectable()
 export class PermissionVmService implements PermissionEndpointInterface {
-  constructor(
-    private readonly permissionRepository: PermissionVmRepository,
-  ) {}
+  constructor(private readonly permissionRepository: PermissionVmRepository) {}
 
   async getPermissionsByRole(roleId: string): Promise<PermissionVmDto[]> {
     try {

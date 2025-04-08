@@ -2,7 +2,7 @@ import { Vm } from '../entities/vm.entity';
 
 export interface VmRepositoryInterface {
   findAll(): Promise<Vm[]>;
-  findVmById(id: string): Promise<Vm | null>;
+  findVmById(id: string): Promise<Vm>;
   createVm(
     name: string,
     state: string,

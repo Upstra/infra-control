@@ -7,12 +7,14 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { VmService } from './vm.service';
-import { VmCreationDto } from './dto/vm.creation.dto';
-import { VmResponseDto } from './dto/vm.response.dto';
+import { VmService } from '../services/vm.service';
+import { VmCreationDto } from '../dto/vm.creation.dto';
+import { VmResponseDto } from '../dto/vm.response.dto';
+import { VmEndpointInterface } from '@/modules/vms/application/interfaces/vm.endpoint.interface';
+import { VmUpdateDto } from '@/modules/vms/application/dto/vm.update.dto';
 
 @Controller('vm')
-export class VmController {
+export class VmController implements VmEndpointInterface {
   constructor(private readonly vmService: VmService) {}
 
   @Get()
@@ -33,7 +35,7 @@ export class VmController {
   @Patch(':id')
   async updateVm(
     @Param('id') id: string,
-    @Body() vmDto: VmCreationDto,
+    @Body() vmDto: VmUpdateDto,
   ): Promise<VmResponseDto> {
     return this.vmService.updateVm(id, vmDto);
   }

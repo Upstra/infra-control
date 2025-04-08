@@ -5,35 +5,35 @@ export class UpsCreationDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  readonly name: string;
+  readonly name!: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  readonly ip: string;
+  readonly ip!: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  readonly login: string;
+  readonly login!: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  readonly password: string;
+  readonly password!: string;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsNumber()
-  readonly grace_period_on: number;
+  readonly grace_period_on!: number;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsNumber()
-  readonly grace_period_off: number;
+  readonly grace_period_off!: number;
 
   @ApiProperty()
   @IsNotEmpty()
   @IsUUID()
-  readonly roomId: string;
+  readonly roomId!: string;
 }
