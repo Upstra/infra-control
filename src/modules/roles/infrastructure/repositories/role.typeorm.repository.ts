@@ -6,10 +6,13 @@ import { Role } from '../../domain/entities/role.entity';
 @Injectable()
 export class RoleTypeormRepository
   extends Repository<Role>
-  implements RoleRepositoryInterface
-{
+  implements RoleRepositoryInterface {
   constructor(private readonly dataSource: DataSource) {
     super(Role, dataSource.createEntityManager());
+  }
+
+  async findByName(name: string): Promise<Role | null> {
+    return this.findOne({ where: { name } });
   }
 
   async findAll(): Promise<Role[]> {

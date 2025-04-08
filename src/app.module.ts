@@ -12,12 +12,14 @@ import { UserModule } from './modules/users/user.module';
 import { VmModule } from './modules/vms/vm.module';
 import { PermissionModule } from './modules/permissions/permission.module';
 import { typeOrmConfig } from './common/config/typeorm.config';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   controllers: [],
   imports: [
     configModule,
     TypeOrmModule.forRoot(typeOrmConfig),
+    AuthModule,
     GroupModule,
     IloModule,
     UpsModule,

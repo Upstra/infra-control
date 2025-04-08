@@ -8,7 +8,7 @@ import { UserTypeormRepository } from './infrastructure/repositories/user.typeor
 
 @Module({
   controllers: [UserController],
-  exports: [UserService],
+  exports: [UserService, UserDomainService],
   imports: [TypeOrmModule.forFeature([User])],
   providers: [
     UserService,

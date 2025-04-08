@@ -1,6 +1,7 @@
 import { Role } from '../entities/role.entity';
 
 export interface RoleRepositoryInterface {
+  findByName(name: string): Promise<Role | null>;
   findAll(): Promise<Role[]>;
   findRoleById(id: number): Promise<Role | null>;
   createRole(

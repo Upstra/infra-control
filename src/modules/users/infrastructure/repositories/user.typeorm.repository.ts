@@ -11,9 +11,20 @@ export class UserTypeormRepository
   constructor(private readonly dataSource: DataSource) {
     super(User, dataSource.createEntityManager());
   }
+  async findUserById(id: string): Promise<User | null> {
+    return this.findOne({ where: { id } });
+  }
 
-  async findUserById(id: number): Promise<User> {
+  async findByEmail(email: string): Promise<User | null> {
+    return await this.findOne({ where: { email } });
+  }
+
+  async findById(id: string): Promise<User | null> {
     return await this.findOne({ where: { id } });
+  }
+
+  async findByUsername(username: string): Promise<User | null> {
+    return await this.findOne({ where: { username } });
   }
 
   async createUser(
@@ -32,7 +43,7 @@ export class UserTypeormRepository
   }
 
   async updateUser(
-    id: number,
+    id: string,
     username: string,
     password: string,
     email: string,
@@ -49,7 +60,7 @@ export class UserTypeormRepository
     return await this.save(user);
   }
 
-  async deleteUser(id: number): Promise<void> {
+  async deleteUser(id: string): Promise<void> {
     const user = await this.findUserById(id);
     if (!user) {
       throw new Error('User not found');

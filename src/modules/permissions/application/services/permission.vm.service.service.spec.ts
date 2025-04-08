@@ -9,7 +9,9 @@ describe('PermissionVmServiceService', () => {
       providers: [PermissionVmServiceService],
     }).compile();
 
-    service = module.get<PermissionVmServiceService>(PermissionVmServiceService);
+    service = module.get<PermissionVmServiceService>(
+      PermissionVmServiceService,
+    );
   });
 
   it('should be defined', () => {
