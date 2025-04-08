@@ -4,6 +4,10 @@ import { UserDomainService } from '@/modules/users/domain/services/user.domain.s
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '@/modules/users/application/services/user.service';
 import { RegisterDto } from '../../dto/register.dto';
+import { v4 as uuidv4 } from 'uuid';
+import { Role } from '@/modules/roles/domain/entities/role.entity';
+import { RoleService } from '@/modules/roles/application/services/role.service';
+import { RoleResponseDto } from '@/modules/roles/application/dto/role.response.dto';
 
 @Injectable()
 export class AuthService {
@@ -11,6 +15,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly userDomain: UserDomainService,
     private readonly jwtService: JwtService,
+    private readonly roleService: RoleService,
   ) {}
 
   async login(dto: LoginDto) {
@@ -46,13 +51,14 @@ export class AuthService {
       dto.username,
       dto.email,
     );
-    const defaultRoleId = await this.userService.getDefaultRoleId();
+
+    const role: RoleResponseDto = await this.roleService.ensureDefaultRole();
 
     const user = await this.userDomain.createUser(
       dto.username,
       dto.password,
       dto.email,
-      defaultRoleId,
+      uuidv4().toString(),
       dto.firstName,
       dto.lastName,
     );

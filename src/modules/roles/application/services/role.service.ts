@@ -64,6 +64,29 @@ export class RoleService implements RoleEndpointInterface {
     }
   }
 
+  async ensureDefaultRole(): Promise<Role> {
+    const roles = await this.roleRepository.findAll();
+
+    if (roles.length === 0) {
+      const permServer: PermissionServer =
+        await this.permissionServerService.createFullPermission();
+      const permVm: PermissionVm =
+        await this.permissionVmService.createFullPermission();
+      const adminRole = this.roleDomain.createAdminRole(permServer, permVm);
+      return this.roleRepository.save(adminRole);
+    }
+
+    const guest = await this.roleRepository.findByName('GUEST');
+    if (guest) return guest;
+
+    const permServer: PermissionServer =
+      await this.permissionServerService.createReadOnlyPermission();
+    const permVm: PermissionVm =
+      await this.permissionVmService.createReadOnlyPermission();
+    const guestRole = this.roleDomain.createGuestRole(permServer, permVm);
+    return this.roleRepository.save(guestRole);
+  }
+
   private handleError(error: any): void {
     if (error instanceof RoleNotFoundException) {
       throw new HttpException(error.message, HttpStatus.NOT_FOUND);

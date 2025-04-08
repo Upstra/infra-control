@@ -16,7 +16,6 @@ import { RoleCreationDto } from '@/modules/roles/application/dto/role.creation.d
 @Controller('role')
 export class RoleController implements RoleEndpointInterface {
   constructor(private readonly roleService: RoleService) {}
-
   @Get()
   async getAllRoles(): Promise<RoleResponseDto[]> {
     return this.roleService.getAllRoles();

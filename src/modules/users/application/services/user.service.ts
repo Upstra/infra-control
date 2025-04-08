@@ -1,3 +1,4 @@
+import { RoleService } from './../../../roles/application/services/role.service';
 import {
   Injectable,
   Inject,
@@ -18,8 +19,7 @@ export class UserService implements UserEndpointInterface {
   constructor(
     @Inject('UserRepositoryInterface')
     private readonly userRepository: UserRepositoryInterface,
-    @Inject('RoleRepositoryInterface')
-    private readonly roleRepository: RoleRepositoryInterface,
+    private readonly roleService: RoleService,
   ) {}
 
   async getUserById(id: string): Promise<UserResponseDto> {
@@ -45,6 +45,8 @@ export class UserService implements UserEndpointInterface {
         id,
         updateUserDto.username,
         updateUserDto.password,
+        '', // TODO
+        '',
         updateUserDto.email,
         updateUserDto.roleId,
       );
@@ -63,12 +65,7 @@ export class UserService implements UserEndpointInterface {
   }
 
   createUser(user: User): Promise<User> {
-    return this.userRepository.createUser(
-      user.username,
-      user.password,
-      user.email,
-      user.roleId,
-    );
+    return this.userRepository.createUser(user);
   }
 
   async assertUsernameAndEmailAvailable(username: string, email: string) {
@@ -80,8 +77,9 @@ export class UserService implements UserEndpointInterface {
   }
 
   async getDefaultRoleId(): Promise<string> {
-    const guest = await this.roleRepository.findByName('Guest');
-    return guest?.id;
+    //const guest = await this.roleRepository.findByName('Guest');
+    //return guest?.id;
+    return '1';
   }
 
   private handleError(error: any): void {

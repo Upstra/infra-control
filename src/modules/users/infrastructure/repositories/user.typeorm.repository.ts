@@ -28,18 +28,12 @@ export class UserTypeormRepository
     return await this.findOne({ where: { username } });
   }
 
-  async createUser(
-    username: string,
-    password: string,
-    email: string,
-    roleId: string,
-  ): Promise<User> {
-    const user = this.create({
-      username,
-      password,
-      email,
-      roleId,
-    });
+  async createUser(user: User): Promise<User> {
+    user.isTwoFactorEnabled = false;
+    user.twoFactorSecret = null;
+
+    user.createdAt = new Date();
+    user.updatedAt = new Date();
     return await this.save(user);
   }
 
