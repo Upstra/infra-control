@@ -2,7 +2,7 @@ import { Ups } from '../entities/ups.entity';
 
 export interface UpsRepositoryInterface {
   findAll(): Promise<Ups[]>;
-  findUpsById(id: number): Promise<Ups | null>;
+  findUpsById(id: string): Promise<Ups | null>;
   createUps(
     name: string,
     ip: string,
@@ -10,17 +10,17 @@ export interface UpsRepositoryInterface {
     password: string,
     grace_period_on: number,
     grace_period_off: number,
-    ups_agent: string,
+    roomId: string,
   ): Promise<Ups>;
   updateUps(
-    id: number,
+    id: string,
     name: string,
     ip: string,
     login: string,
     password: string,
     grace_period_on: number,
     grace_period_off: number,
-    ups_agent: string,
+    roomId: string,
   ): Promise<Ups>;
-  deleteUps(id: number): Promise<void>;
+  deleteUps(id: string): Promise<void>;
 }

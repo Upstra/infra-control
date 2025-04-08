@@ -18,7 +18,7 @@ export class GroupServerTypeormRepository
     });
   }
 
-  async findGroupById(id: number): Promise<GroupServer | null> {
+  async findGroupById(id: string): Promise<GroupServer | null> {
     return await this.findOne({
       where: { id },
       relations: ['servers'],
@@ -34,7 +34,7 @@ export class GroupServerTypeormRepository
   }
 
   async updateGroup(
-    id: number,
+    id: string,
     name: string,
     priority: number,
   ): Promise<GroupServer> {
@@ -47,7 +47,7 @@ export class GroupServerTypeormRepository
     return await this.save(group);
   }
 
-  async deleteGroup(id: number): Promise<void> {
+  async deleteGroup(id: string): Promise<void> {
     const group = await this.findGroupById(id);
     if (!group) {
       throw new Error('Group not found');

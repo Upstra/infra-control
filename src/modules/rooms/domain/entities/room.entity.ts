@@ -5,31 +5,20 @@ import {
   BaseEntity,
   OneToMany,
 } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
 import { Server } from '../../../servers/domain/entities/server.entity';
+import { Ups } from '../../../ups/domain/entities/ups.entity';
 
 @Entity('room')
 export class Room extends BaseEntity {
-  @ApiProperty()
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
-  @ApiProperty()
   @Column({ type: 'varchar' })
   name!: string;
 
-  @ApiProperty()
-  @Column({ type: 'varchar' })
-  ip!: string;
-
-  @ApiProperty()
-  @Column({ type: 'varchar' })
-  login!: string;
-
-  @ApiProperty()
-  @Column({ type: 'varchar' })
-  password!: string;
-
   @OneToMany(() => Server, (server) => server.room)
   servers: Server[];
+
+  @OneToMany(() => Ups, (ups) => ups.room)
+  ups: Ups[];
 }

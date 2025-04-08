@@ -1,11 +1,16 @@
 import { PermissionDtoInterface } from '@/modules/permissions/application/interfaces/permission.dto.interface';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNumber } from 'class-validator';
+import { IsBoolean, IsUUID } from 'class-validator';
+import { PermissionServer } from '@/modules/permissions/domain/entities/permission.server.entity';
 
 export class PermissionServerDto implements PermissionDtoInterface {
   @ApiProperty()
-  @IsNumber()
-  id: number;
+  @IsUUID()
+  roleId?: string;
+
+  @ApiProperty()
+  @IsUUID()
+  serverId?: string;
 
   @ApiProperty()
   @IsBoolean()
@@ -15,7 +20,10 @@ export class PermissionServerDto implements PermissionDtoInterface {
   @IsBoolean()
   allowRead?: boolean;
 
-  @ApiProperty()
-  @IsNumber()
-  serverId?: number;
+  constructor(permission: PermissionServer) {
+    this.serverId = permission.serverId;
+    this.roleId = permission.roleId;
+    this.allowWrite = permission.allowWrite;
+    this.allowRead = permission.allowRead;
+  }
 }

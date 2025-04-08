@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { IloRepositoryInterface } from '../../domain/interfaces/ilo.repository.interface';
 import { DataSource, Repository } from 'typeorm';
 import { Ilo } from '../../domain/entities/ilo.entity';
+import { IloNotFoundException } from '@/modules/ilos/domain/exceptions/ilo.exception';
 
 @Injectable()
 export class IloTypeormRepository
@@ -12,23 +13,25 @@ export class IloTypeormRepository
     super(Ilo, dataSource.createEntityManager());
   }
 
-  async findAll(): Promise<Ilo[]> {
-    return await this.find();
-  }
-
-  async findIloById(id: number): Promise<Ilo | null> {
-    return await this.findOne({
+  async findIloById(id: string): Promise<Ilo> {
+    const ilo = await this.findOne({
       where: { id },
     });
+    if (!ilo) {
+      throw new IloNotFoundException(id);
+    }
+    return ilo;
   }
 
   async createIlo(
+    id: string,
     name: string,
     ip: string,
     login: string,
     password: string,
   ): Promise<Ilo> {
     const ilo = this.create({
+      id,
       name,
       ip,
       login,
@@ -38,16 +41,13 @@ export class IloTypeormRepository
   }
 
   async updateIlo(
-    id: number,
+    id: string,
     name: string,
     ip: string,
     login: string,
     password: string,
   ): Promise<Ilo> {
     const ilo = await this.findIloById(id);
-    if (!ilo) {
-      throw new Error('Ilo not found');
-    }
     ilo.name = name;
     ilo.ip = ip;
     ilo.login = login;
@@ -55,11 +55,8 @@ export class IloTypeormRepository
     return await this.save(ilo);
   }
 
-  async deleteIlo(id: number): Promise<void> {
-    const ilo = await this.findIloById(id);
-    if (!ilo) {
-      throw new Error('Ilo not found');
-    }
+  async deleteIlo(id: string): Promise<void> {
+    await this.findIloById(id);
     await this.delete(id);
   }
 }

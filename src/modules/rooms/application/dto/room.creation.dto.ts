@@ -1,20 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class RoomCreationDto {
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
-  name: string;
-
-  @ApiProperty()
-  @IsString()
-  ip: string;
-
-  @ApiProperty()
-  @IsString()
-  login: string;
-
-  @ApiProperty()
-  @IsString()
-  password: string;
+  readonly name: string;
 }

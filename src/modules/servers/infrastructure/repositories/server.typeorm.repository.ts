@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Server } from '../../domain/entities/server.entity';
 import { ServerRepositoryInterface } from '../../domain/interfaces/server.repository.interface';
 import { DataSource, Repository } from 'typeorm';
+import { ServerNotFoundException } from '@/modules/servers/domain/exceptions/server.notfound.exception';
 
 @Injectable()
 export class ServerTypeormRepository
@@ -18,11 +19,15 @@ export class ServerTypeormRepository
     });
   }
 
-  async findServerById(id: number): Promise<Server> {
-    return await this.findOne({
+  async findServerById(id: string): Promise<Server> {
+    const server = await this.findOne({
       where: { id },
       relations: ['vms'],
     });
+    if (!server) {
+      throw new ServerNotFoundException(id);
+    }
+    return server;
   }
 
   async createServer(
@@ -35,9 +40,9 @@ export class ServerTypeormRepository
     password: string,
     type: string,
     priority: number,
-    groupId: number,
-    roomId: number,
-    upsId: number,
+    groupId: string,
+    roomId: string,
+    upsId: string,
   ): Promise<Server> {
     const server: Server = this.create({
       name,
@@ -58,7 +63,7 @@ export class ServerTypeormRepository
   }
 
   async updateServer(
-    id: number,
+    id: string,
     name: string,
     state: string,
     grace_period_on: number,
@@ -68,34 +73,32 @@ export class ServerTypeormRepository
     password: string,
     type: string,
     priority: number,
-    groupId: number,
-    roomId: number,
-    upsId: number,
+    groupId: string,
+    roomId: string,
+    upsId: string,
   ): Promise<Server> {
     const server = await this.findServerById(id);
-    if (!server) {
-      throw new Error('Server not found');
-    }
-    server.name = name;
-    server.state = state;
-    server.grace_period_on = grace_period_on;
-    server.grace_period_off = grace_period_off;
-    server.ip = ip;
-    server.login = login;
-    server.password = password;
-    server.type = type;
-    server.priority = priority;
-    server.groupId = groupId;
-    server.roomId = roomId;
-    server.upsId = upsId;
+    server.name = name ? name : server.name;
+    server.state = state ? state : server.state;
+    server.grace_period_on = grace_period_on
+      ? grace_period_on
+      : server.grace_period_on;
+    server.grace_period_off = grace_period_off
+      ? grace_period_off
+      : server.grace_period_off;
+    server.ip = ip ? ip : server.ip;
+    server.login = login ? login : server.login;
+    server.password = password ? password : server.password;
+    server.type = type ? type : server.type;
+    server.priority = priority ? priority : server.priority;
+    server.groupId = groupId ? groupId : server.groupId;
+    server.roomId = roomId ? roomId : server.roomId;
+    server.upsId = upsId ? upsId : server.upsId;
     return await this.save(server);
   }
 
-  async deleteServer(id: number): Promise<void> {
-    const server = await this.findServerById(id);
-    if (!server) {
-      throw new Error('Server not found');
-    }
+  async deleteServer(id: string): Promise<void> {
+    await this.findServerById(id);
     await this.delete(id);
   }
 }

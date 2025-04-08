@@ -15,7 +15,7 @@ export class UserDomainService {
     username: string,
     password: string,
     email: string,
-    roleId: number,
+    roleId: string,
     firstName?: string,
     lastName?: string,
   ): Promise<User> {

@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RoleController } from './application/role.controller';
-import { RoleService } from './application/role.service';
+import { RoleController } from './application/controllers/role.controller';
+import { RoleService } from './application/services/role.service';
 import { Role } from './domain/entities/role.entity';
-import { RoleDomainService } from './domain/services/role.domain.service';
 import { RoleTypeormRepository } from './infrastructure/repositories/role.typeorm.repository';
 
 @Module({
@@ -12,7 +11,6 @@ import { RoleTypeormRepository } from './infrastructure/repositories/role.typeor
   imports: [TypeOrmModule.forFeature([Role])],
   providers: [
     RoleService,
-    RoleDomainService,
     {
       provide: 'RoleRepositoryInterface',
       useClass: RoleTypeormRepository,

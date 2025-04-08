@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { User } from '../../domain/entities/user.entity';
 import { UserRepositoryInterface } from '../../domain/interfaces/user.repository.interface';
 import { DataSource, Repository } from 'typeorm';
+import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.notfound.exception';
 
 @Injectable()
 export class UserTypeormRepository
@@ -31,7 +32,7 @@ export class UserTypeormRepository
     username: string,
     password: string,
     email: string,
-    roleId: number,
+    roleId: string,
   ): Promise<User> {
     const user = this.create({
       username,
@@ -47,24 +48,19 @@ export class UserTypeormRepository
     username: string,
     password: string,
     email: string,
-    roleId: number,
+    roleId: string,
   ): Promise<User> {
     const user = await this.findUserById(id);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    user.username = username;
-    user.password = password;
-    user.email = email;
-    user.roleId = roleId;
-    return await this.save(user);
+    user.username = username ? username : user.username;
+    user.password = password ? password : user.password;
+    user.email = email ? email : user.email;
+    user.roleId = roleId ? roleId : user.roleId;
+    await this.save(user);
+    return user;
   }
 
   async deleteUser(id: string): Promise<void> {
-    const user = await this.findUserById(id);
-    if (!user) {
-      throw new Error('User not found');
-    }
+    await this.findUserById(id);
     await this.delete(id);
   }
 }

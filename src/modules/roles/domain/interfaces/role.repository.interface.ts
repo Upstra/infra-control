@@ -3,17 +3,8 @@ import { Role } from '../entities/role.entity';
 export interface RoleRepositoryInterface {
   findByName(name: string): Promise<Role | null>;
   findAll(): Promise<Role[]>;
-  findRoleById(id: number): Promise<Role | null>;
-  createRole(
-    name: string,
-    permissionServerId: number,
-    permissionVmId: number,
-  ): Promise<Role>;
-  updateRole(
-    id: number,
-    name: string,
-    permissionServerId: number,
-    permissionVmId: number,
-  ): Promise<Role>;
-  deleteRole(id: number): Promise<void>;
+  findRoleById(id: string): Promise<Role>;
+  createRole(name: string): Promise<Role>;
+  updateRole(id: string, name: string): Promise<Role>;
+  deleteRole(id: string): Promise<void>;
 }

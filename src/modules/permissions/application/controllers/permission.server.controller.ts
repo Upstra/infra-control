@@ -1,6 +1,6 @@
 import { Controller } from '@nestjs/common';
 import { PermissionController } from '../interfaces/permission.controller';
-import { PermissionServerService } from '../services/permission.server.service.service';
+import { PermissionServerService } from '../services/permission.server.service';
 
 @Controller('permission/server')
 export class PermissionServerController extends PermissionController {

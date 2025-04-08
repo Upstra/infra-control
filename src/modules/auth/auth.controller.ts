@@ -1,6 +1,6 @@
 import { Controller, Post, Body } from '@nestjs/common';
-import { AuthService } from './application/auth.service';
-import { TwoFactorAuthService } from './application/twofa.service';
+import { AuthService } from './application/services/auth.service';
+import { TwoFactorAuthService } from './application/services/twofa.service';
 import { LoginDto } from './dto/login.dto';
 import { TwoFADto } from './dto/twofa.dto';
 import { ApiBody } from '@nestjs/swagger';
@@ -11,7 +11,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly twoFAService: TwoFactorAuthService,
-  ) { }
+  ) {}
 
   @Post('login')
   @ApiBody({

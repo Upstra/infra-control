@@ -2,7 +2,7 @@ import { Server } from '../entities/server.entity';
 
 export interface ServerRepositoryInterface {
   findAll(): Promise<Server[]>;
-  findServerById(id: number): Promise<Server | null>;
+  findServerById(id: string): Promise<Server | null>;
   createServer(
     name: string,
     state: string,
@@ -13,12 +13,12 @@ export interface ServerRepositoryInterface {
     password: string,
     type: string,
     priority: number,
-    groupId: number,
-    roomId: number,
-    upsId: number,
+    groupId: string,
+    roomId: string,
+    upsId: string,
   ): Promise<Server>;
   updateServer(
-    id: number,
+    id: string,
     name: string,
     state: string,
     grace_period_on: number,
@@ -28,9 +28,9 @@ export interface ServerRepositoryInterface {
     password: string,
     type: string,
     priority: number,
-    groupId: number,
-    roomId: number,
-    upsId: number,
+    groupId: string,
+    roomId: string,
+    upsId: string,
   ): Promise<Server>;
-  deleteServer(id: number): Promise<void>;
+  deleteServer(id: string): Promise<void>;
 }

@@ -1,17 +1,13 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
+import { BaseEntity, Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity('permission')
 export abstract class Permission extends BaseEntity {
-  @ApiProperty()
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryColumn()
+  roleId!: string;
 
-  @ApiProperty()
   @Column({ type: 'boolean', default: false })
   allowWrite!: boolean;
 
-  @ApiProperty()
   @Column({ type: 'boolean', default: false })
   allowRead!: boolean;
 }

@@ -2,66 +2,64 @@ import { Injectable } from '@nestjs/common';
 import { RoleRepositoryInterface } from '../../domain/interfaces/role.repository.interface';
 import { DataSource, Repository } from 'typeorm';
 import { Role } from '../../domain/entities/role.entity';
+import { RoleNotFoundException } from '@/modules/roles/domain/exceptions/role.exception';
 
 @Injectable()
 export class RoleTypeormRepository
   extends Repository<Role>
-  implements RoleRepositoryInterface {
+  implements RoleRepositoryInterface
+{
   constructor(private readonly dataSource: DataSource) {
     super(Role, dataSource.createEntityManager());
   }
 
-  async findByName(name: string): Promise<Role | null> {
-    return this.findOne({ where: { name } });
+  async findByName(name: string): Promise<Role> {
+    const role = await this.findOne({
+      where: { name },
+      relations: ['users', 'permissionServers', 'permissionVms'],
+    });
+    if (!role) {
+      throw new RoleNotFoundException(name);
+    }
+    return role;
   }
 
   async findAll(): Promise<Role[]> {
     return await this.find({
-      relations: ['users'],
+      relations: ['users', 'permissionServers', 'permissionVms'],
     });
   }
 
-  async findRoleById(id: number): Promise<Role> {
-    return await this.findOne({
+  async findRoleById(id: string): Promise<Role> {
+    const role = await this.findOne({
       where: { id },
-      relations: ['users'],
+      relations: ['users', 'permissionServers', 'permissionVms'],
     });
+    if (!role) {
+      throw new RoleNotFoundException(id);
+    }
+    return role;
   }
 
-  async createRole(
-    name: string,
-    permissionServerId: number,
-    permissionVmId: number,
-  ): Promise<Role> {
+  async createRole(name: string): Promise<Role> {
     const role = this.create({
       name,
-      permissionServerId,
-      permissionVmId,
+      users: [],
+      permissionServers: [],
+      permissionVms: [],
     });
     return await this.save(role);
   }
 
-  async updateRole(
-    id: number,
-    name: string,
-    permissionServerId: number,
-    permissionVmId: number,
-  ): Promise<Role> {
+  async updateRole(id: string, name: string): Promise<Role> {
     const role = await this.findRoleById(id);
-    if (!role) {
-      throw new Error('Role not found');
-    }
     role.name = name;
-    role.permissionServerId = permissionServerId;
-    role.permissionVmId = permissionVmId;
-    return await this.save(role);
+    await this.save(role);
+    return role;
   }
 
-  async deleteRole(id: number): Promise<void> {
-    const role = await this.findRoleById(id);
-    if (!role) {
-      throw new Error('Role not found');
-    }
+  async deleteRole(id: string): Promise<void> {
+    await this.findRoleById(id);
     await this.delete(id);
   }
 }

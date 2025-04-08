@@ -1,10 +1,18 @@
-import { Body, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { GroupDtoInterface } from './group.dto.interface';
-import { GroupServiceInterface } from './group.service.interface';
+import { GroupEndpointInterface } from './group.endpoint.Interface';
 
-export abstract class GroupController {
+export abstract class GroupController implements GroupEndpointInterface {
   protected constructor(
-    protected readonly groupService: GroupServiceInterface,
+    protected readonly groupService: GroupEndpointInterface,
   ) {}
 
   @Get()
@@ -13,7 +21,9 @@ export abstract class GroupController {
   }
 
   @Get(':id')
-  async getGroupById(@Param('id') id: string): Promise<GroupDtoInterface> {
+  async getGroupById(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<GroupDtoInterface> {
     return this.groupService.getGroupById(id);
   }
 
@@ -26,14 +36,14 @@ export abstract class GroupController {
 
   @Patch(':id')
   async updateGroup(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() groupDto: GroupDtoInterface,
   ): Promise<GroupDtoInterface> {
     return this.groupService.updateGroup(id, groupDto);
   }
 
   @Delete(':id')
-  async deleteGroup(@Param('id') id: string): Promise<void> {
+  async deleteGroup(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.groupService.deleteGroup(id);
   }
 }

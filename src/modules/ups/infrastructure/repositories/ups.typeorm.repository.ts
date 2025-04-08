@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Ups } from '../../domain/entities/ups.entity';
 import { UpsRepositoryInterface } from '../../domain/interfaces/ups.repository.interface';
 import { DataSource, Repository } from 'typeorm';
+import { UpsNotFoundException } from '@/modules/ups/domain/exceptions/ups.notfound.exception';
 
 @Injectable()
 export class UpsTypeormRepository
@@ -18,11 +19,15 @@ export class UpsTypeormRepository
     });
   }
 
-  async findUpsById(id: number): Promise<Ups> {
-    return await this.findOne({
+  async findUpsById(id: string): Promise<Ups> {
+    const ups = await this.findOne({
       where: { id },
       relations: ['servers'],
     });
+    if (!ups) {
+      throw new UpsNotFoundException(id);
+    }
+    return ups;
   }
 
   async createUps(
@@ -32,7 +37,7 @@ export class UpsTypeormRepository
     password: string,
     grace_period_on: number,
     grace_period_off: number,
-    ups_agent: string,
+    roomId: string,
   ): Promise<Ups> {
     const ups = this.create({
       name,
@@ -41,41 +46,40 @@ export class UpsTypeormRepository
       password,
       grace_period_on,
       grace_period_off,
-      ups_agent,
       servers: [],
+      roomId,
     });
     return await this.save(ups);
   }
 
   async updateUps(
-    id: number,
+    id: string,
     name: string,
     ip: string,
     login: string,
     password: string,
     grace_period_on: number,
     grace_period_off: number,
-    ups_agent: string,
+    roomId: string,
   ): Promise<Ups> {
     const ups = await this.findUpsById(id);
-    if (!ups) {
-      throw new Error('Ups not found');
-    }
-    ups.name = name;
-    ups.ip = ip;
-    ups.login = login;
-    ups.password = password;
-    ups.grace_period_on = grace_period_on;
-    ups.grace_period_off = grace_period_off;
-    ups.ups_agent = ups_agent;
-    return await this.save(ups);
+    ups.name = name ? name : ups.name;
+    ups.ip = ip ? ip : ups.ip;
+    ups.login = login ? login : ups.login;
+    ups.password = password ? password : ups.password;
+    ups.grace_period_on = grace_period_on
+      ? grace_period_on
+      : ups.grace_period_on;
+    ups.grace_period_off = grace_period_off
+      ? grace_period_off
+      : ups.grace_period_off;
+    ups.roomId = roomId ? roomId : ups.roomId;
+    await this.save(ups);
+    return ups;
   }
 
-  async deleteUps(id: number): Promise<void> {
-    const ups = await this.findUpsById(id);
-    if (!ups) {
-      throw new Error('Ups not found');
-    }
+  async deleteUps(id: string): Promise<void> {
+    await this.findUpsById(id);
     await this.delete(id);
   }
 }

@@ -1,24 +1,44 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, IsUUID } from 'class-validator';
+import { Ups } from '@/modules/ups/domain/entities/ups.entity';
 
 export class UpsResponseDto {
   @ApiProperty()
-  @IsString()
-  name: string;
+  @IsNotEmpty()
+  @IsUUID()
+  readonly id: string;
 
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
-  ip: string;
+  readonly name: string;
 
   @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  readonly ip: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
   @IsNumber()
-  grace_period_on: number;
+  readonly grace_period_on: number;
 
   @ApiProperty()
+  @IsNotEmpty()
   @IsNumber()
-  grace_period_off: number;
+  readonly grace_period_off: number;
 
   @ApiProperty()
-  @IsString()
-  ups_agent: string;
+  @IsNotEmpty()
+  @IsUUID()
+  readonly roomId: string;
+
+  constructor(ups: Ups) {
+    this.id = ups.id;
+    this.name = ups.name;
+    this.ip = ups.ip;
+    this.grace_period_on = ups.grace_period_on;
+    this.grace_period_off = ups.grace_period_off;
+    this.roomId = ups.roomId;
+  }
 }

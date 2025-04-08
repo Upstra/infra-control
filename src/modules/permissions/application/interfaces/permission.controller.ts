@@ -1,22 +1,35 @@
-import { PermissionServiceInterface } from './permission.service.interface';
+import { PermissionEndpointInterface } from './permission.endpoint.interface';
 import { PermissionDtoInterface } from './permission.dto.interface';
-import { Body, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+} from '@nestjs/common';
 
-export abstract class PermissionController {
+export abstract class PermissionController
+  implements PermissionEndpointInterface
+{
   protected constructor(
-    protected readonly permissionService: PermissionServiceInterface,
+    protected readonly permissionService: PermissionEndpointInterface,
   ) {}
 
-  @Get()
-  async getAllPermissions(): Promise<PermissionDtoInterface[]> {
-    return this.permissionService.getAllPermissions();
+  @Get('role/:roleId')
+  async getPermissionsByRole(
+    @Param('roleId', ParseUUIDPipe) roleId: string,
+  ): Promise<PermissionDtoInterface[]> {
+    return this.permissionService.getPermissionsByRole(roleId);
   }
 
-  @Get(':id')
-  async getPermissionById(
-    @Param('id') id: string,
+  @Get(':machineId/role/:roleId')
+  async getPermissionByIds(
+    @Param('roleId', ParseUUIDPipe) roleId: string,
+    @Param('machineId', ParseUUIDPipe) machineId: string,
   ): Promise<PermissionDtoInterface> {
-    return this.permissionService.getPermissionById(id);
+    return this.permissionService.getPermissionByIds(machineId, roleId);
   }
 
   @Post()
@@ -26,16 +39,24 @@ export abstract class PermissionController {
     return this.permissionService.createPermission(permissionDto);
   }
 
-  @Patch(':id')
+  @Patch(':machineId/role/:roleId')
   async updatePermission(
-    @Param('id') id: string,
+    @Param('machineId', ParseUUIDPipe) machineId: string,
+    @Param('roleId', ParseUUIDPipe) roleId: string,
     @Body() permissionDto: PermissionDtoInterface,
   ): Promise<PermissionDtoInterface> {
-    return this.permissionService.updatePermission(id, permissionDto);
+    return this.permissionService.updatePermission(
+      machineId,
+      roleId,
+      permissionDto,
+    );
   }
 
-  @Delete(':id')
-  async deletePermission(@Param('id') id: string): Promise<void> {
-    return this.permissionService.deletePermission(id);
+  @Delete(':machineId/role/:roleId')
+  async deletePermission(
+    @Param('machineId', ParseUUIDPipe) machineId: string,
+    @Param('roleId', ParseUUIDPipe) roleId: string,
+  ): Promise<void> {
+    return this.permissionService.deletePermission(machineId, roleId);
   }
 }

@@ -1,12 +1,20 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
+import { Ilo } from '@/modules/ilos/domain/entities/ilo.entity';
 
 export class IloResponseDto {
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
-  name: string;
+  readonly name!: string;
 
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
-  ip: string;
+  readonly ip!: string;
+
+  constructor(ilo: Ilo) {
+    this.name = ilo.name;
+    this.ip = ilo.ip;
+  }
 }

@@ -18,7 +18,7 @@ export class GroupVmTypeormRepository
     });
   }
 
-  async findGroupById(id: number): Promise<GroupVm | null> {
+  async findGroupById(id: string): Promise<GroupVm | null> {
     return await this.findOne({
       where: { id },
       relations: ['vms'],
@@ -34,7 +34,7 @@ export class GroupVmTypeormRepository
   }
 
   async updateGroup(
-    id: number,
+    id: string,
     name: string,
     priority: number,
   ): Promise<GroupVm> {
@@ -47,7 +47,7 @@ export class GroupVmTypeormRepository
     return await this.save(group);
   }
 
-  async deleteGroup(id: number): Promise<void> {
+  async deleteGroup(id: string): Promise<void> {
     const group = await this.findGroupById(id);
     if (!group) {
       throw new Error('Group not found');

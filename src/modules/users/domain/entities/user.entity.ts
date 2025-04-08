@@ -6,33 +6,44 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
 import { Role } from '@/modules/roles/domain/entities/role.entity';
 
 @Entity('user')
 export class User extends BaseEntity {
-  @ApiProperty()
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
-  @ApiProperty()
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', unique: true })
   username!: string;
 
-  @ApiProperty()
+  @Column({ type: 'varchar', length: 100 })
+  firstName!: string;
+
+  @Column({ type: 'varchar', length: 100 })
+  lastName!: string;
+
   @Column({ type: 'varchar' })
   password!: string;
 
-  @ApiProperty()
   @Column({ type: 'varchar', nullable: true })
-  email: string;
+  email?: string;
 
-  @ApiProperty({ type: () => Role })
+  @Column({ default: false })
+  isTwoFactorEnabled: boolean;
+
+  @Column({ nullable: true })
+  twoFactorSecret: string;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  updatedAt: Date;
+
   @ManyToOne(() => Role, (role) => role.users)
   @JoinColumn({ name: 'roleId' })
   role: Role;
 
-  @ApiProperty()
   @Column()
-  roleId!: number;
+  roleId!: string;
 }
