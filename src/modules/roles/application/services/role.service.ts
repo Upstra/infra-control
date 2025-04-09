@@ -5,12 +5,22 @@ import { RoleEndpointInterface } from '@/modules/roles/application/interfaces/ro
 import { RoleNotFoundException } from '@/modules/roles/domain/exceptions/role.exception';
 import { RoleCreationDto } from '@/modules/roles/application/dto/role.creation.dto';
 import { Role } from '@/modules/roles/domain/entities/role.entity';
+import { PermissionServer } from '@/modules/permissions/domain/entities/permission.server.entity';
+import { PermissionServerService } from '@/modules/permissions/application/services/permission.server.service';
+import { PermissionVm } from '@/modules/permissions/domain/entities/permission.vm.entity';
+import { RoleDomainService } from '../../domain/services/role.domain.service';
+import { PermissionServerDto } from '@/modules/permissions/application/dto/permission.server.dto';
+import { PermissionVmDto } from '@/modules/permissions/application/dto/permission.vm.dto';
+import { PermissionVmService } from '@/modules/permissions/application/services/permission.vm.service';
 
 @Injectable()
 export class RoleService implements RoleEndpointInterface {
   constructor(
     @Inject('RoleRepositoryInterface')
     private readonly roleRepository: RoleRepositoryInterface,
+    private readonly permissionServerService: PermissionServerService,
+    private readonly permissionVmService: PermissionVmService,
+    private readonly roleDomain: RoleDomainService,
   ) {}
 
   async getAllRoles(): Promise<RoleResponseDto[]> {
@@ -72,7 +82,11 @@ export class RoleService implements RoleEndpointInterface {
         await this.permissionServerService.createFullPermission();
       const permVm: PermissionVm =
         await this.permissionVmService.createFullPermission();
-      const adminRole = this.roleDomain.createAdminRole(permServer, permVm);
+
+      const adminRole = this.roleDomain.createAdminRoleEntity(
+        permServer,
+        permVm,
+      );
       return this.roleRepository.save(adminRole);
     }
 

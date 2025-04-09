@@ -7,4 +7,5 @@ export interface RoleRepositoryInterface {
   createRole(name: string): Promise<Role>;
   updateRole(id: string, name: string): Promise<Role>;
   deleteRole(id: string): Promise<void>;
+  save(role: Role): Promise<Role>;
 }

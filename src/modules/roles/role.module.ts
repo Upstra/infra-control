@@ -20,4 +20,4 @@ import { RoleDomainService } from './domain/services/role.domain.service';
     },
   ],
 })
-export class RoleModule { }
+export class RoleModule {}

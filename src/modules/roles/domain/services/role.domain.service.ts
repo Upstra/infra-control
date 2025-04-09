@@ -5,25 +5,25 @@ import { PermissionVm } from '@/modules/permissions/domain/entities/permission.v
 
 @Injectable()
 export class RoleDomainService {
-    createAdminRole(
-        permissionServer: PermissionServer,
-        permissionVm: PermissionVm,
-    ): Role {
-        const role = new Role();
-        role.name = 'ADMIN';
-        role.permissionServers = role.permissionServers.concat(permissionServer);
-        role.permissionVms = role.permissionVms.concat(permissionVm);
-        return role;
-    }
+  createAdminRoleEntity(
+    permissionServer: PermissionServer,
+    permissionVm: PermissionVm,
+  ): Role {
+    const role = new Role();
+    role.name = 'ADMIN';
+    role.permissionServers = role.permissionServers.concat(permissionServer);
+    role.permissionVms = role.permissionVms.concat(permissionVm);
+    return role;
+  }
 
-    createGuestRole(
-        permissionServer: PermissionServer,
-        permissionVm: PermissionVm,
-    ): Role {
-        const role = new Role();
-        role.name = 'GUEST';
-        role.permissionServers = role.permissionServers.concat(permissionServer);
-        role.permissionVms = role.permissionVms.concat(permissionVm);
-        return role;
-    }
+  createGuestRole(
+    permissionServer: PermissionServer,
+    permissionVm: PermissionVm,
+  ): Role {
+    const role = new Role();
+    role.name = 'GUEST';
+    role.permissionServers = role.permissionServers.concat(permissionServer);
+    role.permissionVms = role.permissionVms.concat(permissionVm);
+    return role;
+  }
 }

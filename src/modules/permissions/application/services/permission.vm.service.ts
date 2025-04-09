@@ -3,10 +3,15 @@ import { PermissionEndpointInterface } from '../interfaces/permission.endpoint.i
 import { PermissionVmDto } from '../dto/permission.vm.dto';
 import { PermissionVmRepository } from '@/modules/permissions/infrastructure/repositories/permission.vm.repository';
 import { PermissionNotFoundException } from '@/modules/permissions/domain/exceptions/permission.exception';
+import { PermissionVm } from '../../domain/entities/permission.vm.entity';
+import { PermissionDomainVmService } from '../../domain/services/permission.domain.VM.service';
 
 @Injectable()
 export class PermissionVmService implements PermissionEndpointInterface {
-  constructor(private readonly permissionRepository: PermissionVmRepository) {}
+  constructor(
+    private readonly permissionRepository: PermissionVmRepository,
+    private readonly permissionDomain: PermissionDomainVmService,
+  ) {}
 
   async getPermissionsByRole(roleId: string): Promise<PermissionVmDto[]> {
     try {
@@ -74,6 +79,17 @@ export class PermissionVmService implements PermissionEndpointInterface {
     }
   }
 
+  async createFullPermission(): Promise<PermissionVm> {
+    const entity = this.permissionDomain.createFullPermissionEntity();
+    const saved = await this.permissionRepository.save(entity);
+    return saved;
+  }
+
+  async createReadOnlyPermission(): Promise<PermissionVm> {
+    const entity = this.permissionDomain.createReadOnlyPermissionEntity();
+    const saved = await this.permissionRepository.save(entity);
+    return saved;
+  }
   private handleError(error: any): void {
     if (error instanceof PermissionNotFoundException) {
       throw new HttpException(error.message, HttpStatus.NOT_FOUND);

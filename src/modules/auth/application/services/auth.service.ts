@@ -4,7 +4,6 @@ import { UserDomainService } from '@/modules/users/domain/services/user.domain.s
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '@/modules/users/application/services/user.service';
 import { RegisterDto } from '../../dto/register.dto';
-import { v4 as uuidv4 } from 'uuid';
 import { Role } from '@/modules/roles/domain/entities/role.entity';
 import { RoleService } from '@/modules/roles/application/services/role.service';
 import { RoleResponseDto } from '@/modules/roles/application/dto/role.response.dto';
@@ -47,25 +46,8 @@ export class AuthService {
   }
 
   async register(dto: RegisterDto) {
-    await this.userService.assertUsernameAndEmailAvailable(
-      dto.username,
-      dto.email,
-    );
-
-    const role: RoleResponseDto = await this.roleService.ensureDefaultRole();
-
-    const user = await this.userDomain.createUser(
-      dto.username,
-      dto.password,
-      dto.email,
-      uuidv4().toString(),
-      dto.firstName,
-      dto.lastName,
-    );
-
-    const saved = await this.userService.createUser(user);
-
-    const token = this.jwtService.sign({ userId: saved.id });
+    const user = await this.userService.registerWithDefaultRole(dto);
+    const token = this.jwtService.sign({ userId: user.id });
     return { accessToken: token };
   }
 }

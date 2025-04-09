@@ -12,13 +12,16 @@ import { UserEndpointInterface } from '@/modules/users/application/interfaces/us
 import { UserUpdateDto } from '@/modules/users/application/dto/user.update.dto';
 import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.notfound.exception';
 import { User } from '@/modules/users/domain/entities/user.entity';
-import { RoleRepositoryInterface } from '@/modules/roles/domain/interfaces/role.repository.interface';
+import { UserDomainService } from '../../domain/services/user.domain.service';
+import { RegisterDto } from '@/modules/auth/dto/register.dto';
+import { Role } from '@/modules/roles/domain/entities/role.entity';
 
 @Injectable()
 export class UserService implements UserEndpointInterface {
   constructor(
     @Inject('UserRepositoryInterface')
     private readonly userRepository: UserRepositoryInterface,
+    private readonly userDomain: UserDomainService,
     private readonly roleService: RoleService,
   ) {}
 
@@ -64,10 +67,6 @@ export class UserService implements UserEndpointInterface {
     }
   }
 
-  createUser(user: User): Promise<User> {
-    return this.userRepository.createUser(user);
-  }
-
   async assertUsernameAndEmailAvailable(username: string, email: string) {
     const user = await this.userRepository.findByUsername(username);
     if (user) throw new ConflictException('Username already exists');
@@ -76,10 +75,21 @@ export class UserService implements UserEndpointInterface {
     if (emailUser) throw new ConflictException('Email already exists');
   }
 
-  async getDefaultRoleId(): Promise<string> {
-    //const guest = await this.roleRepository.findByName('Guest');
-    //return guest?.id;
-    return '1';
+  async registerWithDefaultRole(dto: RegisterDto): Promise<User> {
+    await this.assertUsernameAndEmailAvailable(dto.username, dto.email);
+
+    const role = await this.roleService.ensureDefaultRole();
+
+    const user = this.userDomain.createUserEntity(
+      dto.username,
+      dto.password,
+      dto.email,
+      role,
+      dto.firstName,
+      dto.lastName,
+    );
+
+    return this.userRepository.save(user);
   }
 
   private handleError(error: any): void {

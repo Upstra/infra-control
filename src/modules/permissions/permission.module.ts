@@ -9,6 +9,8 @@ import { PermissionVmService } from './application/services/permission.vm.servic
 import { PermissionServerService } from './application/services/permission.server.service';
 import { PermissionVmController } from './application/controllers/permission.vm.controller';
 import { PermissionServerController } from './application/controllers/permission.server.controller';
+import { PermissionDomainServerService } from './domain/services/permission.domain.server.service';
+import { PermissionDomainVmService } from './domain/services/permission.domain.VM.service';
 
 @Module({
   controllers: [PermissionVmController, PermissionServerController],
@@ -18,7 +20,9 @@ import { PermissionServerController } from './application/controllers/permission
   ],
   providers: [
     PermissionVmService,
+    PermissionDomainVmService,
     PermissionServerService,
+    PermissionDomainServerService,
     PermissionVmRepository,
     PermissionServerRepository,
   ],

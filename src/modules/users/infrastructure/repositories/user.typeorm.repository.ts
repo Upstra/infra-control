@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { User } from '../../domain/entities/user.entity';
 import { UserRepositoryInterface } from '../../domain/interfaces/user.repository.interface';
 import { DataSource, Repository } from 'typeorm';
-import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.notfound.exception';
 
 @Injectable()
 export class UserTypeormRepository
@@ -26,15 +25,6 @@ export class UserTypeormRepository
 
   async findByUsername(username: string): Promise<User | null> {
     return await this.findOne({ where: { username } });
-  }
-
-  async createUser(user: User): Promise<User> {
-    user.isTwoFactorEnabled = false;
-    user.twoFactorSecret = null;
-
-    user.createdAt = new Date();
-    user.updatedAt = new Date();
-    return await this.save(user);
   }
 
   async updateUser(

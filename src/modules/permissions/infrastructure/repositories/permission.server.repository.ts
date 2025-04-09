@@ -32,21 +32,6 @@ export class PermissionServerRepository
     return permission;
   }
 
-  async createPermission(
-    serverId: string,
-    roleId: string,
-    allowWrite: boolean,
-    allowRead: boolean,
-  ): Promise<PermissionServer> {
-    const permission = this.create({
-      serverId,
-      roleId,
-      allowWrite,
-      allowRead,
-    });
-    return await this.save(permission);
-  }
-
   async updatePermission(
     serverId: string,
     roleId: string,

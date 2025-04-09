@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { User } from '../entities/user.entity';
+import { Role } from '@/modules/roles/domain/entities/role.entity';
 
 @Injectable()
 export class UserDomainService {
@@ -11,21 +12,20 @@ export class UserDomainService {
   isTwoFactorEnabled(user: User): boolean {
     return user.isTwoFactorEnabled;
   }
-  async createUser(
+  createUserEntity(
     username: string,
     password: string,
     email: string,
-    roleId: string,
+    role: Role,
     firstName?: string,
     lastName?: string,
-  ): Promise<User> {
-    const hashedPassword = await bcrypt.hash(password, 10);
-
+  ): User {
+    const hashedPassword = bcrypt.hash(password, 10);
     const user = new User();
     user.username = username;
     user.password = hashedPassword;
     user.email = email.toLowerCase();
-    user.roleId = roleId;
+    user.role = role;
     user.firstName = firstName ?? '';
     user.lastName = lastName ?? '';
     user.isTwoFactorEnabled = false;
