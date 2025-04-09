@@ -2,10 +2,10 @@ import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { ServerRepositoryInterface } from '../../domain/interfaces/server.repository.interface';
 import { ServerResponseDto } from '../dto/server.response.dto';
 import { ServerCreationDto } from '../dto/server.creation.dto';
-import { ServerEndpointInterface } from '@/modules/servers/application/interfaces/server.endpoint.interface';
-import { ServerUpdateDto } from '@/modules/servers/application/dto/server.update.dto';
-import { ServerNotFoundException } from '@/modules/servers/domain/exceptions/server.notfound.exception';
-import { IloService } from '@/modules/ilos/application/services/ilo.service';
+import { ServerEndpointInterface } from '../interfaces/server.endpoint.interface';
+import { ServerUpdateDto } from '../dto/server.update.dto';
+import { ServerNotFoundException } from '../../domain/exceptions/server.notfound.exception';
+import { IloService } from '../../../ilos/application/services/ilo.service';
 import { ServerDomainService } from '../../domain/services/server.domain.service';
 
 @Injectable()

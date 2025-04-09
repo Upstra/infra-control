@@ -2,8 +2,8 @@ import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
 import { IloRepositoryInterface } from '../../domain/interfaces/ilo.repository.interface';
 import { IloResponseDto } from '../dto/ilo.response.dto';
 import { IloCreationDto } from '../dto/ilo.creation.dto';
-import { IloNotFoundException } from '@/modules/ilos/domain/exceptions/ilo.exception';
-import { IloUpdateDto } from '@/modules/ilos/application/dto/ilo.update.dto';
+import { IloNotFoundException } from '../../domain/exceptions/ilo.exception';
+import { IloUpdateDto } from '../dto/ilo.update.dto';
 import { IloDomainService } from '../../domain/services/ilo.domain.service';
 
 @Injectable()

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Role } from '../entities/role.entity';
-import { PermissionServer } from '@/modules/permissions/domain/entities/permission.server.entity';
-import { PermissionVm } from '@/modules/permissions/domain/entities/permission.vm.entity';
+import { PermissionServer } from '../../../permissions/domain/entities/permission.server.entity';
+import { PermissionVm } from '../../../permissions/domain/entities/permission.vm.entity';
 
 @Injectable()
 export class RoleDomainService {

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { IloRepositoryInterface } from '../../domain/interfaces/ilo.repository.interface';
 import { DataSource, Repository } from 'typeorm';
 import { Ilo } from '../../domain/entities/ilo.entity';
-import { IloNotFoundException } from '@/modules/ilos/domain/exceptions/ilo.exception';
+import { IloNotFoundException } from '../../domain/exceptions/ilo.exception';
 
 @Injectable()
 export class IloTypeormRepository

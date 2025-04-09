@@ -1,6 +1,6 @@
-import { VmCreationDto } from '@/modules/vms/application/dto/vm.creation.dto';
-import { VmResponseDto } from '@/modules/vms/application/dto/vm.response.dto';
-import { VmUpdateDto } from '@/modules/vms/application/dto/vm.update.dto';
+import { VmCreationDto } from '../dto/vm.creation.dto';
+import { VmResponseDto } from '../dto/vm.response.dto';
+import { VmUpdateDto } from '../dto/vm.update.dto';
 
 export interface VmEndpointInterface {
   getAllVms(): Promise<VmResponseDto[]>;

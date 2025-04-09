@@ -11,8 +11,8 @@ import {
 } from '@nestjs/common';
 import { RoomService } from '../services/room.service';
 import { RoomResponseDto } from '../dto/room.response.dto';
-import { RoomEndpointInterface } from '@/modules/rooms/application/interfaces/room.endpoint.interface';
-import { RoomCreationDto } from '@/modules/rooms/application/dto/room.creation.dto';
+import { RoomEndpointInterface } from '../interfaces/room.endpoint.interface';
+import { RoomCreationDto } from '../dto/room.creation.dto';
 
 @Controller('room')
 export class RoomController implements RoomEndpointInterface {

@@ -1,7 +1,7 @@
 import { Entity, JoinColumn, ManyToOne, Column } from 'typeorm';
 import { Permission } from './permission.entity';
-import { Vm } from '@/modules/vms/domain/entities/vm.entity';
-import { Role } from '@/modules/roles/domain/entities/role.entity';
+import { Vm } from '../../../vms/domain/entities/vm.entity';
+import { Role } from '../../../roles/domain/entities/role.entity';
 
 @Entity('permission_vm')
 export class PermissionVm extends Permission {

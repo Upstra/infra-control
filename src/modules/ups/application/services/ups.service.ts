@@ -2,9 +2,9 @@ import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
 import { UpsRepositoryInterface } from '../../domain/interfaces/ups.repository.interface';
 import { UpsResponseDto } from '../dto/ups.response.dto';
 import { UpsCreationDto } from '../dto/ups.creation.dto';
-import { UpsEndpointInterface } from '@/modules/ups/application/interfaces/ups.endpoint.interface';
-import { UpsNotFoundException } from '@/modules/ups/domain/exceptions/ups.notfound.exception';
-import { UpsUpdateDto } from '@/modules/ups/application/dto/ups.update.dto';
+import { UpsEndpointInterface } from '../interfaces/ups.endpoint.interface';
+import { UpsNotFoundException } from '../../domain/exceptions/ups.notfound.exception';
+import { UpsUpdateDto } from '../dto/ups.update.dto';
 
 @Injectable()
 export class UpsService implements UpsEndpointInterface {

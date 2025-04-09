@@ -11,8 +11,8 @@ import {
 import { UpsService } from '../services/ups.service';
 import { UpsResponseDto } from '../dto/ups.response.dto';
 import { UpsCreationDto } from '../dto/ups.creation.dto';
-import { UpsEndpointInterface } from '@/modules/ups/application/interfaces/ups.endpoint.interface';
-import { UpsUpdateDto } from '@/modules/ups/application/dto/ups.update.dto';
+import { UpsEndpointInterface } from '../interfaces/ups.endpoint.interface';
+import { UpsUpdateDto } from '../dto/ups.update.dto';
 
 @Controller('ups')
 export class UpsController implements UpsEndpointInterface {

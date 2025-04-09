@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsString, IsUUID } from 'class-validator';
-import { Vm } from '@/modules/vms/domain/entities/vm.entity';
+import { Vm } from '../../domain/entities/vm.entity';
 
 export class VmResponseDto {
   @ApiProperty()

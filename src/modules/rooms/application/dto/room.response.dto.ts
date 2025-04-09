@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
-import { Room } from '@/modules/rooms/domain/entities/room.entity';
+import { Room } from '../../domain/entities/room.entity';
 
 export class RoomResponseDto {
   @ApiProperty()

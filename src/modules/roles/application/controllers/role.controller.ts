@@ -10,8 +10,8 @@ import {
 } from '@nestjs/common';
 import { RoleService } from '../services/role.service';
 import { RoleResponseDto } from '../dto/role.response.dto';
-import { RoleEndpointInterface } from '@/modules/roles/application/interfaces/role.endpoint.interface';
-import { RoleCreationDto } from '@/modules/roles/application/dto/role.creation.dto';
+import { RoleEndpointInterface } from '../interfaces/role.endpoint.interface';
+import { RoleCreationDto } from '../dto/role.creation.dto';
 
 @Controller('role')
 export class RoleController implements RoleEndpointInterface {

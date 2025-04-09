@@ -1,8 +1,8 @@
 import { DataSource, Repository } from 'typeorm';
 import { PermissionVm } from '../../domain/entities/permission.vm.entity';
-import { PermissionRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.repository.interface';
+import { PermissionRepositoryInterface } from '../interfaces/permission.repository.interface';
 import { Injectable } from '@nestjs/common';
-import { PermissionNotFoundException } from '@/modules/permissions/domain/exceptions/permission.exception';
+import { PermissionNotFoundException } from '../../domain/exceptions/permission.exception';
 
 @Injectable()
 export class PermissionVmRepository

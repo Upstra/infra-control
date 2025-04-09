@@ -6,7 +6,7 @@ import {
   IsUUID,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { IloCreationDto } from '@/modules/ilos/application/dto/ilo.creation.dto';
+import { IloCreationDto } from '../../../ilos/application/dto/ilo.creation.dto';
 
 /**
  * DTO utilisé pour la création d'un serveur.

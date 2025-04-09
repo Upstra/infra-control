@@ -1,6 +1,6 @@
 import { IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { IloUpdateDto } from '@/modules/ilos/application/dto/ilo.update.dto';
+import { IloUpdateDto } from '../../../ilos/application/dto/ilo.update.dto';
 
 export class ServerUpdateDto {
   @ApiProperty()

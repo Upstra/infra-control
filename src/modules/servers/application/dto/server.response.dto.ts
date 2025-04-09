@@ -6,8 +6,8 @@ import {
   IsUUID,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Server } from '@/modules/servers/domain/entities/server.entity';
-import { IloResponseDto } from '@/modules/ilos/application/dto/ilo.response.dto';
+import { Server } from '../../domain/entities/server.entity';
+import { IloResponseDto } from '../../../ilos/application/dto/ilo.response.dto';
 
 export class ServerResponseDto {
   @ApiProperty()

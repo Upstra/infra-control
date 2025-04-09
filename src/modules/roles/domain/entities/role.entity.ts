@@ -6,8 +6,8 @@ import {
   OneToMany,
 } from 'typeorm';
 import { User } from '../../../users/domain/entities/user.entity';
-import { PermissionServer } from '@/modules/permissions/domain/entities/permission.server.entity';
-import { PermissionVm } from '@/modules/permissions/domain/entities/permission.vm.entity';
+import { PermissionServer } from '../../../permissions/domain/entities/permission.server.entity';
+import { PermissionVm } from '../../../permissions/domain/entities/permission.vm.entity';
 
 @Entity('role')
 export class Role extends BaseEntity {
