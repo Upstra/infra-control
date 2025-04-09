@@ -40,8 +40,6 @@ export class ServerService implements ServerEndpointInterface {
       const serverEntity =
         this.serverDomain.createServerEntityFromDto(serverDto);
       const server = await this.serverRepository.save(serverEntity);
-
-      serverDto.ilo.id = server.id;
       const ilo = await this.iloService.createIlo(serverDto.ilo);
       return new ServerResponseDto(server, ilo);
     } catch (error: any) {

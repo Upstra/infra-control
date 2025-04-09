@@ -4,11 +4,6 @@ import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 export class IloCreationDto {
   @ApiProperty()
   @IsNotEmpty()
-  @IsUUID()
-  id!: string;
-
-  @ApiProperty()
-  @IsNotEmpty()
   @IsString()
   readonly name!: string;
 

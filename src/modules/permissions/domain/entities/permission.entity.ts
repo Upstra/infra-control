@@ -1,6 +1,5 @@
-import { BaseEntity, Column, Entity, PrimaryColumn } from 'typeorm';
+import { BaseEntity, Column, PrimaryColumn } from 'typeorm';
 
-@Entity('permission')
 export abstract class Permission extends BaseEntity {
   @PrimaryColumn()
   roleId!: string;

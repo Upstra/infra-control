@@ -71,23 +71,23 @@ export class Server extends BaseEntity {
   @Column()
   groupId!: string;
 
-  @ApiProperty({ type: () => Room })
-  @ManyToOne(() => Room, (room) => room.servers)
+  @ApiProperty({ type: () => Room, required: false })
+  @ManyToOne(() => Room, (room) => room.servers, { nullable: true })
   @JoinColumn({ name: 'roomId' })
   room: Room;
 
-  @ApiProperty()
-  @Column()
+  @ApiProperty({ required: false })
+  @Column({ nullable: true })
   roomId!: string;
 
-  @ApiProperty({ type: () => Ups })
-  @ManyToOne(() => Ups, (ups) => ups.servers)
+  @ApiProperty({ type: () => Ups, required: false })
+  @ManyToOne(() => Ups, (ups) => ups.servers, { nullable: true })
   @JoinColumn({ name: 'upsId' })
-  ups: Ups;
+  ups?: Ups;
 
-  @ApiProperty()
-  @Column()
-  upsId: string;
+  @ApiProperty({ required: false })
+  @Column({ nullable: true })
+  upsId?: string;
 
   @ApiProperty({ type: () => Vm, isArray: true })
   @OneToMany(() => Vm, (vm) => vm.server)

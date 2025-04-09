@@ -38,6 +38,11 @@ export class UserService implements UserEndpointInterface {
     return new UserResponseDto(user);
   }
 
+  async findRawByUsername(username: string): Promise<User> {
+    const user = await this.userRepository.findByUsername(username);
+    return user;
+  }
+
   async updateUser(
     id: string,
     updateUserDto: UserUpdateDto,

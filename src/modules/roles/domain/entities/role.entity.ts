@@ -29,4 +29,7 @@ export class Role extends BaseEntity {
     cascade: ['insert'],
   })
   permissionVms: PermissionVm[];
+
+  @Column({ type: 'boolean', default: false })
+  canCreateServer: boolean;
 }

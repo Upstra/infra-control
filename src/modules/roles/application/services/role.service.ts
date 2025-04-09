@@ -5,18 +5,11 @@ import { RoleEndpointInterface } from '../interfaces/role.endpoint.interface';
 import { RoleNotFoundException } from '../../domain/exceptions/role.exception';
 import { RoleCreationDto } from '../dto/role.creation.dto';
 import { Role } from '../../domain/entities/role.entity';
-import { RoleDomainService } from '../../domain/services/role.domain.service';
-import { PermissionDomainServerService } from '../../../permissions/domain/services/permission.domain.server.service';
-import { PermissionDomainVmService } from '../../../permissions/domain/services/permission.domain.vm.service';
-
 @Injectable()
 export class RoleService implements RoleEndpointInterface {
   constructor(
     @Inject('RoleRepositoryInterface')
     private readonly roleRepository: RoleRepositoryInterface,
-    private readonly permissionServerDomain: PermissionDomainServerService,
-    private readonly permissionVmDomain: PermissionDomainVmService,
-    private readonly roleDomain: RoleDomainService,
   ) {}
 
   async getAllRoles(): Promise<RoleResponseDto[]> {
@@ -72,23 +65,10 @@ export class RoleService implements RoleEndpointInterface {
   async ensureDefaultRole(): Promise<Role> {
     const roles = await this.roleRepository.findAll();
 
+    // TODO: check if there are > 0 users or roles.length === 0 to be admin
     if (roles.length === 0) {
-      // Étape 1 : Crée un rôle vide (ADMIN) pour avoir un ID
       const adminRole = await this.roleRepository.createRole('ADMIN');
-
-      // Étape 2 : Génère les permissions en injectant le roleId
-      const permServer =
-        this.permissionServerDomain.createFullPermissionEntity();
-      permServer.roleId = adminRole.id;
-
-      const permVm = this.permissionVmDomain.createFullPermissionEntity();
-      permVm.roleId = adminRole.id;
-
-      // Étape 3 : Attache les permissions à l'entité Role
-      adminRole.permissionServers = [permServer];
-      adminRole.permissionVms = [permVm];
-
-      // Étape 4 : Save final avec cascade
+      adminRole.canCreateServer = true;
       return this.roleRepository.save(adminRole);
     }
 
@@ -98,20 +78,9 @@ export class RoleService implements RoleEndpointInterface {
     } catch (error) {
       if (error instanceof RoleNotFoundException) {
         const guestRole = await this.roleRepository.createRole('GUEST');
-
-        const permServer =
-          this.permissionServerDomain.createReadOnlyPermissionEntity();
-        permServer.roleId = guestRole.id;
-
-        const permVm = this.permissionVmDomain.createReadOnlyPermissionEntity();
-        permVm.roleId = guestRole.id;
-
-        guestRole.permissionServers = [permServer];
-        guestRole.permissionVms = [permVm];
-
         return this.roleRepository.save(guestRole);
       }
-      throw error; // Si c'est une autre erreur, on la relance
+      throw error;
     }
   }
 

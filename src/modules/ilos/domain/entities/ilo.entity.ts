@@ -4,6 +4,8 @@ import {
   Column,
   BaseEntity,
   OneToOne,
+  PrimaryColumn,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Server } from '../../../servers/domain/entities/server.entity';
@@ -11,8 +13,8 @@ import { Server } from '../../../servers/domain/entities/server.entity';
 @Entity('ilo')
 export class Ilo extends BaseEntity {
   @ApiProperty()
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  @PrimaryColumn('uuid') // TODO: penser a que servers envoie la cle primaire
+  id!: string; //id du serveur
 
   @ApiProperty()
   @Column({ type: 'varchar' })
@@ -31,6 +33,7 @@ export class Ilo extends BaseEntity {
   password!: string;
 
   @ApiProperty({ type: () => Server })
-  @OneToOne(() => Server)
+  @OneToOne(() => Server, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'id' })
   server!: Server;
 }
