@@ -3,14 +3,18 @@ import { RoomCreationDto } from '../dto/room.creation.dto';
 import { RoomResponseDto } from '../dto/room.response.dto';
 import { RoomService } from '../services/room.service';
 import { Test, TestingModule } from '@nestjs/testing';
+import { RoomController } from './room.controller';
+import { RoomService } from '../services/room.service';
+import { RoomResponseDto } from '../dto/room.response.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 describe('RoomController', () => {
   let controller: RoomController;
   let service: RoomService;
 
-  const mockRoom: RoomResponseDto = {
-    id: 'uuid-test',
-    name: 'Salle test',
+  let mockRoom: RoomResponseDto = {
+    id: uuidv4().toString(),
+    name: 'Room 69',
   };
 
   const mockService = {
@@ -36,8 +40,10 @@ describe('RoomController', () => {
     service = module.get<RoomService>(RoomService);
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+  it('it should return all rooms', async () => {
+    const rooms = await controller.getAllRooms();
+    expect(rooms).toEqual([mockRoom]);
+    expect(service.getAllRooms).toHaveBeenCalled();
   });
 
   it('should return all rooms', async () => {
