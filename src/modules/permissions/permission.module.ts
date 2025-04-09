@@ -14,7 +14,12 @@ import { PermissionDomainVmService } from './domain/services/permission.domain.V
 
 @Module({
   controllers: [PermissionVmController, PermissionServerController],
-  exports: [PermissionVmService, PermissionServerService],
+  exports: [
+    PermissionVmService,
+    PermissionServerService,
+    PermissionDomainVmService,
+    PermissionDomainServerService,
+  ],
   imports: [
     TypeOrmModule.forFeature([Permission, PermissionServer, PermissionVm]),
   ],

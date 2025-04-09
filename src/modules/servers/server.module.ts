@@ -5,6 +5,7 @@ import { ServerService } from './application/services/server.service';
 import { Server } from './domain/entities/server.entity';
 import { ServerTypeormRepository } from './infrastructure/repositories/server.typeorm.repository';
 import { IloModule } from '@/modules/ilos/ilo.module';
+import { ServerDomainService } from './domain/services/server.domain.service';
 
 @Module({
   controllers: [ServerController],
@@ -12,6 +13,7 @@ import { IloModule } from '@/modules/ilos/ilo.module';
   imports: [TypeOrmModule.forFeature([Server]), IloModule],
   providers: [
     ServerService,
+    ServerDomainService,
     {
       provide: 'ServerRepositoryInterface',
       useClass: ServerTypeormRepository,

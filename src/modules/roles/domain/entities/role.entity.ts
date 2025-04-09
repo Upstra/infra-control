@@ -20,9 +20,13 @@ export class Role extends BaseEntity {
   @OneToMany(() => User, (user) => user.role)
   users: User[];
 
-  @OneToMany(() => PermissionServer, (permission) => permission.role)
+  @OneToMany(() => PermissionServer, (permission) => permission.role, {
+    cascade: ['insert'],
+  })
   permissionServers: PermissionServer[];
 
-  @OneToMany(() => PermissionVm, (permission) => permission.role)
+  @OneToMany(() => PermissionVm, (permission) => permission.role, {
+    cascade: ['insert'],
+  })
   permissionVms: PermissionVm[];
 }

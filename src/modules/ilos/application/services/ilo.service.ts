@@ -4,12 +4,14 @@ import { IloResponseDto } from '../dto/ilo.response.dto';
 import { IloCreationDto } from '../dto/ilo.creation.dto';
 import { IloNotFoundException } from '@/modules/ilos/domain/exceptions/ilo.exception';
 import { IloUpdateDto } from '@/modules/ilos/application/dto/ilo.update.dto';
+import { IloDomainService } from '../../domain/services/ilo.domain.service';
 
 @Injectable()
 export class IloService {
   constructor(
     @Inject('IloRepositoryInterface')
     private readonly iloRepository: IloRepositoryInterface,
+    private readonly iloDomain: IloDomainService,
   ) {}
 
   async getIloById(id: string): Promise<IloResponseDto> {
@@ -23,13 +25,8 @@ export class IloService {
 
   async createIlo(iloDto: IloCreationDto): Promise<IloResponseDto> {
     try {
-      const ilo = await this.iloRepository.createIlo(
-        iloDto.id,
-        iloDto.name,
-        iloDto.ip,
-        iloDto.login,
-        iloDto.password,
-      );
+      const iloEntity = this.iloDomain.createIloEntityFromDto(iloDto);
+      const ilo = await this.iloRepository.save(iloEntity);
       return new IloResponseDto(ilo);
     } catch (error: any) {
       this.handleError(error);

@@ -80,7 +80,7 @@ export class UserService implements UserEndpointInterface {
 
     const role = await this.roleService.ensureDefaultRole();
 
-    const user = this.userDomain.createUserEntity(
+    const user = await this.userDomain.createUserEntity(
       dto.username,
       dto.password,
       dto.email,

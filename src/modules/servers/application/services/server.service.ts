@@ -6,6 +6,7 @@ import { ServerEndpointInterface } from '@/modules/servers/application/interface
 import { ServerUpdateDto } from '@/modules/servers/application/dto/server.update.dto';
 import { ServerNotFoundException } from '@/modules/servers/domain/exceptions/server.notfound.exception';
 import { IloService } from '@/modules/ilos/application/services/ilo.service';
+import { ServerDomainService } from '../../domain/services/server.domain.service';
 
 @Injectable()
 export class ServerService implements ServerEndpointInterface {
@@ -13,6 +14,7 @@ export class ServerService implements ServerEndpointInterface {
     @Inject('ServerRepositoryInterface')
     private readonly serverRepository: ServerRepositoryInterface,
     private readonly iloService: IloService,
+    private readonly serverDomain: ServerDomainService,
   ) {}
 
   async getAllServers(): Promise<ServerResponseDto[]> {
@@ -35,20 +37,10 @@ export class ServerService implements ServerEndpointInterface {
 
   async createServer(serverDto: ServerCreationDto): Promise<ServerResponseDto> {
     try {
-      const server = await this.serverRepository.createServer(
-        serverDto.name,
-        serverDto.state,
-        serverDto.grace_period_on,
-        serverDto.grace_period_off,
-        serverDto.ip,
-        serverDto.login,
-        serverDto.password,
-        serverDto.type,
-        serverDto.priority,
-        serverDto.groupId,
-        serverDto.roomId,
-        serverDto.upsId,
-      );
+      const serverEntity =
+        this.serverDomain.createServerEntityFromDto(serverDto);
+      const server = await this.serverRepository.save(serverEntity);
+
       serverDto.ilo.id = server.id;
       const ilo = await this.iloService.createIlo(serverDto.ilo);
       return new ServerResponseDto(server, ilo);

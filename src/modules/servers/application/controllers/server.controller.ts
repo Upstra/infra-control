@@ -1,3 +1,4 @@
+import { ApiBody } from '@nestjs/swagger';
 import {
   Body,
   Controller,
@@ -31,6 +32,11 @@ export class ServerController implements ServerEndpointInterface {
   }
 
   @Post()
+  @ApiBody({
+    type: ServerCreationDto,
+    description: 'Server creation DTO',
+    required: true,
+  })
   async createServer(
     @Body() serverDto: ServerCreationDto,
   ): Promise<ServerResponseDto> {

@@ -12,15 +12,15 @@ export class UserDomainService {
   isTwoFactorEnabled(user: User): boolean {
     return user.isTwoFactorEnabled;
   }
-  createUserEntity(
+  async createUserEntity(
     username: string,
     password: string,
     email: string,
     role: Role,
     firstName?: string,
     lastName?: string,
-  ): User {
-    const hashedPassword = bcrypt.hash(password, 10);
+  ): Promise<User> {
+    const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User();
     user.username = username;
     user.password = hashedPassword;

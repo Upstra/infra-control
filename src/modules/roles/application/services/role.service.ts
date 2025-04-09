@@ -12,14 +12,16 @@ import { RoleDomainService } from '../../domain/services/role.domain.service';
 import { PermissionServerDto } from '@/modules/permissions/application/dto/permission.server.dto';
 import { PermissionVmDto } from '@/modules/permissions/application/dto/permission.vm.dto';
 import { PermissionVmService } from '@/modules/permissions/application/services/permission.vm.service';
+import { PermissionDomainServerService } from '@/modules/permissions/domain/services/permission.domain.server.service';
+import { PermissionDomainVmService } from '@/modules/permissions/domain/services/permission.domain.VM.service';
 
 @Injectable()
 export class RoleService implements RoleEndpointInterface {
   constructor(
     @Inject('RoleRepositoryInterface')
     private readonly roleRepository: RoleRepositoryInterface,
-    private readonly permissionServerService: PermissionServerService,
-    private readonly permissionVmService: PermissionVmService,
+    private readonly permissionServerDomain: PermissionDomainServerService,
+    private readonly permissionVmDomain: PermissionDomainVmService,
     private readonly roleDomain: RoleDomainService,
   ) {}
 
@@ -73,32 +75,50 @@ export class RoleService implements RoleEndpointInterface {
       this.handleError(error);
     }
   }
-
   async ensureDefaultRole(): Promise<Role> {
     const roles = await this.roleRepository.findAll();
 
     if (roles.length === 0) {
-      const permServer: PermissionServer =
-        await this.permissionServerService.createFullPermission();
-      const permVm: PermissionVm =
-        await this.permissionVmService.createFullPermission();
+      // Étape 1 : Crée un rôle vide (ADMIN) pour avoir un ID
+      const adminRole = await this.roleRepository.createRole('ADMIN');
 
-      const adminRole = this.roleDomain.createAdminRoleEntity(
-        permServer,
-        permVm,
-      );
+      // Étape 2 : Génère les permissions en injectant le roleId
+      const permServer =
+        this.permissionServerDomain.createFullPermissionEntity();
+      permServer.roleId = adminRole.id;
+
+      const permVm = this.permissionVmDomain.createFullPermissionEntity();
+      permVm.roleId = adminRole.id;
+
+      // Étape 3 : Attache les permissions à l'entité Role
+      adminRole.permissionServers = [permServer];
+      adminRole.permissionVms = [permVm];
+
+      // Étape 4 : Save final avec cascade
       return this.roleRepository.save(adminRole);
     }
 
-    const guest = await this.roleRepository.findByName('GUEST');
-    if (guest) return guest;
+    try {
+      const guest = await this.roleRepository.findByName('GUEST');
+      return guest;
+    } catch (error) {
+      if (error instanceof RoleNotFoundException) {
+        const guestRole = await this.roleRepository.createRole('GUEST');
 
-    const permServer: PermissionServer =
-      await this.permissionServerService.createReadOnlyPermission();
-    const permVm: PermissionVm =
-      await this.permissionVmService.createReadOnlyPermission();
-    const guestRole = this.roleDomain.createGuestRole(permServer, permVm);
-    return this.roleRepository.save(guestRole);
+        const permServer =
+          this.permissionServerDomain.createReadOnlyPermissionEntity();
+        permServer.roleId = guestRole.id;
+
+        const permVm = this.permissionVmDomain.createReadOnlyPermissionEntity();
+        permVm.roleId = guestRole.id;
+
+        guestRole.permissionServers = [permServer];
+        guestRole.permissionVms = [permVm];
+
+        return this.roleRepository.save(guestRole);
+      }
+      throw error; // Si c'est une autre erreur, on la relance
+    }
   }
 
   private handleError(error: any): void {
