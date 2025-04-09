@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
-import { Ilo } from '@/modules/ilos/domain/entities/ilo.entity';
+import { Ilo } from '../../domain/entities/ilo.entity';
 
 export class IloResponseDto {
   @ApiProperty()

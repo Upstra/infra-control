@@ -12,8 +12,8 @@ import {
 import { ServerService } from '../services/server.service';
 import { ServerResponseDto } from '../dto/server.response.dto';
 import { ServerCreationDto } from '../dto/server.creation.dto';
-import { ServerEndpointInterface } from '@/modules/servers/application/interfaces/server.endpoint.interface';
-import { ServerUpdateDto } from '@/modules/servers/application/dto/server.update.dto';
+import { ServerEndpointInterface } from '../interfaces/server.endpoint.interface';
+import { ServerUpdateDto } from '../dto/server.update.dto';
 
 @Controller('server')
 export class ServerController implements ServerEndpointInterface {

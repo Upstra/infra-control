@@ -9,8 +9,8 @@ import {
 } from '@nestjs/common';
 import { UserService } from '../services/user.service';
 import { UserResponseDto } from '../dto/user.response.dto';
-import { UserEndpointInterface } from '@/modules/users/application/interfaces/user.endpoint.interface';
-import { UserUpdateDto } from '@/modules/users/application/dto/user.update.dto';
+import { UserEndpointInterface } from '../interfaces/user.endpoint.interface';
+import { UserUpdateDto } from '../dto/user.update.dto';
 
 @Controller('user')
 export class UserController implements UserEndpointInterface {

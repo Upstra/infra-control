@@ -1,4 +1,4 @@
-import { RoleService } from './../../../roles/application/services/role.service';
+import { RoleService } from '../../../roles/application/services/role.service';
 import {
   Injectable,
   Inject,
@@ -8,13 +8,12 @@ import {
 } from '@nestjs/common';
 import { UserRepositoryInterface } from '../../domain/interfaces/user.repository.interface';
 import { UserResponseDto } from '../dto/user.response.dto';
-import { UserEndpointInterface } from '@/modules/users/application/interfaces/user.endpoint.interface';
-import { UserUpdateDto } from '@/modules/users/application/dto/user.update.dto';
-import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.notfound.exception';
-import { User } from '@/modules/users/domain/entities/user.entity';
+import { UserEndpointInterface } from '../interfaces/user.endpoint.interface';
+import { UserUpdateDto } from '../dto/user.update.dto';
+import { UserNotFoundException } from '../../domain/exceptions/user.notfound.exception';
+import { User } from '../../domain/entities/user.entity';
 import { UserDomainService } from '../../domain/services/user.domain.service';
-import { RegisterDto } from '@/modules/auth/dto/register.dto';
-import { Role } from '@/modules/roles/domain/entities/role.entity';
+import { RegisterDto } from '../../../auth/dto/register.dto';
 
 @Injectable()
 export class UserService implements UserEndpointInterface {

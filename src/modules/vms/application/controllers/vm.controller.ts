@@ -10,8 +10,8 @@ import {
 import { VmService } from '../services/vm.service';
 import { VmCreationDto } from '../dto/vm.creation.dto';
 import { VmResponseDto } from '../dto/vm.response.dto';
-import { VmEndpointInterface } from '@/modules/vms/application/interfaces/vm.endpoint.interface';
-import { VmUpdateDto } from '@/modules/vms/application/dto/vm.update.dto';
+import { VmEndpointInterface } from '../interfaces/vm.endpoint.interface';
+import { VmUpdateDto } from '../dto/vm.update.dto';
 
 @Controller('vm')
 export class VmController implements VmEndpointInterface {

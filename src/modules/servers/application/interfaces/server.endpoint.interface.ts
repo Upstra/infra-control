@@ -1,6 +1,6 @@
-import { ServerResponseDto } from '@/modules/servers/application/dto/server.response.dto';
-import { ServerCreationDto } from '@/modules/servers/application/dto/server.creation.dto';
-import { ServerUpdateDto } from '@/modules/servers/application/dto/server.update.dto';
+import { ServerResponseDto } from '../dto/server.response.dto';
+import { ServerCreationDto } from '../dto/server.creation.dto';
+import { ServerUpdateDto } from '../dto/server.update.dto';
 
 export interface ServerEndpointInterface {
   getAllServers(): Promise<ServerResponseDto[]>;

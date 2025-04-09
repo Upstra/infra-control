@@ -1,5 +1,5 @@
-import { RoleResponseDto } from '@/modules/roles/application/dto/role.response.dto';
-import { RoleCreationDto } from '@/modules/roles/application/dto/role.creation.dto';
+import { RoleResponseDto } from '../dto/role.response.dto';
+import { RoleCreationDto } from '../dto/role.creation.dto';
 
 export interface RoleEndpointInterface {
   getAllRoles(): Promise<RoleResponseDto[]>;

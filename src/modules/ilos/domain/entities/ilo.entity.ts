@@ -6,7 +6,7 @@ import {
   OneToOne,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { Server } from '@/modules/servers/domain/entities/server.entity';
+import { Server } from '../../../servers/domain/entities/server.entity';
 
 @Entity('ilo')
 export class Ilo extends BaseEntity {

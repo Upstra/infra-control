@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Ups } from '../../domain/entities/ups.entity';
 import { UpsRepositoryInterface } from '../../domain/interfaces/ups.repository.interface';
 import { DataSource, Repository } from 'typeorm';
-import { UpsNotFoundException } from '@/modules/ups/domain/exceptions/ups.notfound.exception';
+import { UpsNotFoundException } from '../../domain/exceptions/ups.notfound.exception';
 
 @Injectable()
 export class UpsTypeormRepository

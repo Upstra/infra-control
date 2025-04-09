@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { RoleRepositoryInterface } from '../../domain/interfaces/role.repository.interface';
 import { DataSource, Repository } from 'typeorm';
 import { Role } from '../../domain/entities/role.entity';
-import { RoleNotFoundException } from '@/modules/roles/domain/exceptions/role.exception';
+import { RoleNotFoundException } from '../../domain/exceptions/role.exception';
 
 @Injectable()
 export class RoleTypeormRepository

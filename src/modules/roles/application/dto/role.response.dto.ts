@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
-import { Role } from '@/modules/roles/domain/entities/role.entity';
-import { PermissionVmDto } from '@/modules/permissions/application/dto/permission.vm.dto';
-import { PermissionServerDto } from '@/modules/permissions/application/dto/permission.server.dto';
+import { Role } from '../../domain/entities/role.entity';
+import { PermissionVmDto } from '../../../permissions/application/dto/permission.vm.dto';
+import { PermissionServerDto } from '../../../permissions/application/dto/permission.server.dto';
 
 export class RoleResponseDto {
   @ApiProperty()

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsString } from 'class-validator';
-import { GroupDtoInterface } from '@/modules/groups/application/interfaces/group.dto.interface';
+import { GroupDtoInterface } from '../interfaces/group.dto.interface';
 
 export class GroupVmDto implements GroupDtoInterface {
   @ApiProperty()

@@ -1,8 +1,8 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PermissionEndpointInterface } from '../interfaces/permission.endpoint.interface';
 import { PermissionServerDto } from '../dto/permission.server.dto';
-import { PermissionNotFoundException } from '@/modules/permissions/domain/exceptions/permission.exception';
-import { PermissionServerRepository } from '@/modules/permissions/infrastructure/repositories/permission.server.repository';
+import { PermissionNotFoundException } from '../../domain/exceptions/permission.exception';
+import { PermissionServerRepository } from '../../infrastructure/repositories/permission.server.repository';
 import { PermissionDomainServerService } from '../../domain/services/permission.domain.server.service';
 import { PermissionServer } from '../../domain/entities/permission.server.entity';
 

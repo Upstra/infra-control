@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Room } from '../../domain/entities/room.entity';
 import { RoomRepositoryInterface } from '../../domain/interfaces/room.repository.interface';
 import { DataSource, Repository } from 'typeorm';
-import { RoomNotFoundException } from '@/modules/rooms/domain/exceptions/room.exception';
+import { RoomNotFoundException } from '../../domain/exceptions/room.exception';
 
 @Injectable()
 export class RoomTypeormRepository

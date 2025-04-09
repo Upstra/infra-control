@@ -3,7 +3,7 @@ import { RoomResponseDto } from '../dto/room.response.dto';
 import { RoomEndpointInterface } from '../interfaces/room.endpoint.interface';
 import { RoomNotFoundException } from '../../domain/exceptions/room.exception';
 import { RoomRepositoryInterface } from '../../domain/interfaces/room.repository.interface';
-import { RoomCreationDto } from '@/modules/rooms/application/dto/room.creation.dto';
+import { RoomCreationDto } from '../dto/room.creation.dto';
 
 @Injectable()
 export class RoomService implements RoomEndpointInterface {

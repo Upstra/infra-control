@@ -1,7 +1,7 @@
-import { RoomController } from '@/modules/rooms/application/controllers/room.controller';
-import { RoomCreationDto } from '@/modules/rooms/application/dto/room.creation.dto';
-import { RoomResponseDto } from '@/modules/rooms/application/dto/room.response.dto';
-import { RoomService } from '@/modules/rooms/application/services/room.service';
+import { RoomController } from './room.controller';
+import { RoomCreationDto } from '../dto/room.creation.dto';
+import { RoomResponseDto } from '../dto/room.response.dto';
+import { RoomService } from '../services/room.service';
 import { Test, TestingModule } from '@nestjs/testing';
 
 describe('RoomController', () => {

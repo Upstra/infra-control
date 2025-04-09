@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { User } from '../entities/user.entity';
-import { Role } from '@/modules/roles/domain/entities/role.entity';
+import { Role } from '../../../roles/domain/entities/role.entity';
 
 @Injectable()
 export class UserDomainService {

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsString, IsUUID } from 'class-validator';
-import { Ups } from '@/modules/ups/domain/entities/ups.entity';
+import { Ups } from '../../domain/entities/ups.entity';
 
 export class UpsResponseDto {
   @ApiProperty()

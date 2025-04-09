@@ -1,19 +1,13 @@
 import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
 import { RoleRepositoryInterface } from '../../domain/interfaces/role.repository.interface';
 import { RoleResponseDto } from '../dto/role.response.dto';
-import { RoleEndpointInterface } from '@/modules/roles/application/interfaces/role.endpoint.interface';
-import { RoleNotFoundException } from '@/modules/roles/domain/exceptions/role.exception';
-import { RoleCreationDto } from '@/modules/roles/application/dto/role.creation.dto';
-import { Role } from '@/modules/roles/domain/entities/role.entity';
-import { PermissionServer } from '@/modules/permissions/domain/entities/permission.server.entity';
-import { PermissionServerService } from '@/modules/permissions/application/services/permission.server.service';
-import { PermissionVm } from '@/modules/permissions/domain/entities/permission.vm.entity';
+import { RoleEndpointInterface } from '../interfaces/role.endpoint.interface';
+import { RoleNotFoundException } from '../../domain/exceptions/role.exception';
+import { RoleCreationDto } from '../dto/role.creation.dto';
+import { Role } from '../../domain/entities/role.entity';
 import { RoleDomainService } from '../../domain/services/role.domain.service';
-import { PermissionServerDto } from '@/modules/permissions/application/dto/permission.server.dto';
-import { PermissionVmDto } from '@/modules/permissions/application/dto/permission.vm.dto';
-import { PermissionVmService } from '@/modules/permissions/application/services/permission.vm.service';
-import { PermissionDomainServerService } from '@/modules/permissions/domain/services/permission.domain.server.service';
-import { PermissionDomainVmService } from '@/modules/permissions/domain/services/permission.domain.VM.service';
+import { PermissionDomainServerService } from '../../../permissions/domain/services/permission.domain.server.service';
+import { PermissionDomainVmService } from '../../../permissions/domain/services/permission.domain.vm.service';
 
 @Injectable()
 export class RoleService implements RoleEndpointInterface {
