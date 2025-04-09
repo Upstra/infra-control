@@ -17,4 +17,4 @@ import { IloDomainService } from './domain/services/ilo.domain.service';
   ],
   exports: [IloService],
 })
-export class IloModule { }
+export class IloModule {}

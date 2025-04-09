@@ -1,5 +1,20 @@
-import { Controller, Body, Param, ParseUUIDPipe, Get, Post, Patch, Delete } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
+import {
+  Controller,
+  Body,
+  Param,
+  ParseUUIDPipe,
+  Get,
+  Post,
+  Patch,
+  Delete,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBody,
+} from '@nestjs/swagger';
 import { GroupServerDto } from '../dto/group.server.dto';
 import { GroupServerService } from '../services/group.server.service';
 import { GroupController } from '../interfaces/group.controller';
@@ -22,7 +37,9 @@ export class GroupServerController extends GroupController<GroupServerDto> {
   @ApiOperation({ summary: 'Récupérer un groupe serveur par ID' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
   @ApiResponse({ status: 200, type: GroupServerDto })
-  override async getGroupById(@Param('id', ParseUUIDPipe) id: string): Promise<GroupServerDto> {
+  override async getGroupById(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<GroupServerDto> {
     return super.getGroupById(id);
   }
 
@@ -30,7 +47,9 @@ export class GroupServerController extends GroupController<GroupServerDto> {
   @ApiOperation({ summary: 'Créer un nouveau groupe serveur' })
   @ApiBody({ type: GroupServerDto })
   @ApiResponse({ status: 201, type: GroupServerDto })
-  override async createGroup(@Body() groupDto: GroupServerDto): Promise<GroupServerDto> {
+  override async createGroup(
+    @Body() groupDto: GroupServerDto,
+  ): Promise<GroupServerDto> {
     return super.createGroup(groupDto);
   }
 
@@ -50,7 +69,9 @@ export class GroupServerController extends GroupController<GroupServerDto> {
   @ApiOperation({ summary: 'Supprimer un groupe serveur' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
   @ApiResponse({ status: 204 })
-  override async deleteGroup(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+  override async deleteGroup(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<void> {
     return super.deleteGroup(id);
   }
 }

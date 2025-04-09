@@ -12,7 +12,7 @@ import { GroupEndpointInterface } from './group.endpoint.Interface';
 export abstract class GroupController<T> implements GroupEndpointInterface<T> {
   protected constructor(
     protected readonly groupService: GroupEndpointInterface<T>,
-  ) { }
+  ) {}
 
   @Get()
   async getAllGroups(): Promise<T[]> {

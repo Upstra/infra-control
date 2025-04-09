@@ -16,7 +16,7 @@ import { RoomCreationDto } from '@/modules/rooms/application/dto/room.creation.d
 
 @Controller('room')
 export class RoomController implements RoomEndpointInterface {
-  constructor(private readonly roomService: RoomService) { }
+  constructor(private readonly roomService: RoomService) {}
 
   @Get()
   async getAllRooms(): Promise<RoomResponseDto[]> {
@@ -31,9 +31,7 @@ export class RoomController implements RoomEndpointInterface {
   }
 
   @Post()
-  @ApiBody(
-    { type: RoomCreationDto, description: 'Create a new room' }
-  )
+  @ApiBody({ type: RoomCreationDto, description: 'Create a new room' })
   async createRoom(@Body() roomDto: RoomCreationDto): Promise<RoomResponseDto> {
     return this.roomService.createRoom(roomDto);
   }
