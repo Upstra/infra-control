@@ -6,12 +6,10 @@ import { AuthService } from './application/services/auth.service';
 import { TwoFactorAuthService } from './application/services/twofa.service';
 import { AuthController } from './auth.controller';
 import { UserModule } from '../users/user.module';
-import { RoleModule } from '../roles/role.module';
 
 @Module({
   imports: [
     UserModule,
-    RoleModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -26,4 +24,4 @@ import { RoleModule } from '../roles/role.module';
   controllers: [AuthController],
   providers: [AuthService, TwoFactorAuthService],
 })
-export class AuthModule {}
+export class AuthModule { }

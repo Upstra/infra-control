@@ -4,7 +4,6 @@ import { UserDomainService } from '../../../users/domain/services/user.domain.se
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../../../users/application/services/user.service';
 import { RegisterDto } from '../../dto/register.dto';
-import { RoleService } from '../../../roles/application/services/role.service';
 
 @Injectable()
 export class AuthService {
@@ -12,15 +11,13 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly userDomain: UserDomainService,
     private readonly jwtService: JwtService,
-    private readonly roleService: RoleService,
-  ) {}
+  ) { }
 
   async login(dto: LoginDto) {
-    const userResponseDto = await this.userService.findByUsername(dto.username);
-    const user = userResponseDto.toUser();
+    const user = await this.userService.findRawByUsername(dto.username);
 
     const isValidPassword = await this.userDomain.validatePassword(
-      user,
+      user.password,
       dto.password,
     );
 
