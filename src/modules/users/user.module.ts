@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserController } from './application/controllers/user.controller';
 import { UserService } from './application/services/user.service';
@@ -10,7 +10,7 @@ import { RoleModule } from '../roles/role.module';
 @Module({
   controllers: [UserController],
   exports: [UserService, UserDomainService],
-  imports: [TypeOrmModule.forFeature([User]), RoleModule],
+  imports: [TypeOrmModule.forFeature([User]), forwardRef(() => RoleModule)],
   providers: [
     UserService,
     UserDomainService,
@@ -20,4 +20,4 @@ import { RoleModule } from '../roles/role.module';
     },
   ],
 })
-export class UserModule {}
+export class UserModule { }

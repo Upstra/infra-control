@@ -6,8 +6,7 @@ import { DataSource, Repository } from 'typeorm';
 @Injectable()
 export class UserTypeormRepository
   extends Repository<User>
-  implements UserRepositoryInterface
-{
+  implements UserRepositoryInterface {
   constructor(private readonly dataSource: DataSource) {
     super(User, dataSource.createEntityManager());
   }
@@ -25,6 +24,10 @@ export class UserTypeormRepository
 
   async findByUsername(username: string): Promise<User | null> {
     return await this.findOne({ where: { username } });
+  }
+
+  async count(): Promise<number> {
+    return await super.count();
   }
 
   async updateUser(

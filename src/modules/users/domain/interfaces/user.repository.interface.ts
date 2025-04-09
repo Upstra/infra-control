@@ -1,6 +1,7 @@
 import { User } from '../entities/user.entity';
 
 export interface UserRepositoryInterface {
+  count(): Promise<number>;
   save(user: User): Promise<User>;
   findUserById(id: string): Promise<User>;
   updateUser(

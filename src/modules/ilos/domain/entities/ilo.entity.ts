@@ -13,8 +13,8 @@ import { Server } from '../../../servers/domain/entities/server.entity';
 @Entity('ilo')
 export class Ilo extends BaseEntity {
   @ApiProperty()
-  @PrimaryColumn('uuid') // TODO: penser a que servers envoie la cle primaire
-  id!: string; //id du serveur
+  @PrimaryColumn('uuid')
+  id!: string;
 
   @ApiProperty()
   @Column({ type: 'varchar' })

@@ -5,6 +5,7 @@ import {
   HttpException,
   HttpStatus,
   ConflictException,
+  forwardRef,
 } from '@nestjs/common';
 import { UserRepositoryInterface } from '../../domain/interfaces/user.repository.interface';
 import { UserResponseDto } from '../dto/user.response.dto';
@@ -21,8 +22,9 @@ export class UserService implements UserEndpointInterface {
     @Inject('UserRepositoryInterface')
     private readonly userRepository: UserRepositoryInterface,
     private readonly userDomain: UserDomainService,
+    @Inject(forwardRef(() => RoleService))
     private readonly roleService: RoleService,
-  ) {}
+  ) { }
 
   async getUserById(id: string): Promise<UserResponseDto> {
     try {
@@ -105,5 +107,9 @@ export class UserService implements UserEndpointInterface {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  async getUserCount(): Promise<number> {
+    return this.userRepository.count();
   }
 }
