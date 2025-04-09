@@ -4,11 +4,11 @@ import { GroupVmDto } from '../dto/group.vm.dto';
 import { GroupEndpointInterface } from '../interfaces/group.endpoint.Interface';
 
 @Injectable()
-export class GroupVmService implements GroupEndpointInterface {
+export class GroupVmService implements GroupEndpointInterface<GroupVmDto> {
   constructor(
     @Inject('GroupRepositoryInterface')
     private readonly groupRepository: GroupRepositoryInterface,
-  ) {}
+  ) { }
 
   async getAllGroups(): Promise<GroupVmDto[]> {
     throw new Error('Method not implemented.');

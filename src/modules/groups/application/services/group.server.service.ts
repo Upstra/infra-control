@@ -4,11 +4,11 @@ import { GroupRepositoryInterface } from '../../domain/interfaces/group.reposito
 import { GroupServerDto } from '../dto/group.server.dto';
 
 @Injectable()
-export class GroupServerService implements GroupEndpointInterface {
+export class GroupServerService implements GroupEndpointInterface<GroupServerDto> {
   constructor(
     @Inject('GroupRepositoryInterface')
     private readonly groupRepository: GroupRepositoryInterface,
-  ) {}
+  ) { }
 
   async getAllGroups(): Promise<GroupServerDto[]> {
     throw new Error('Method not implemented.');
