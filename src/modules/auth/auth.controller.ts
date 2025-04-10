@@ -1,10 +1,11 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { AuthService } from './application/services/auth.service';
 import { TwoFactorAuthService } from './application/services/twofa.service';
 import { LoginDto } from './dto/login.dto';
 import { TwoFADto } from './dto/twofa.dto';
-import { ApiBody } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { RegisterDto } from './dto/register.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -34,22 +35,21 @@ export class AuthController {
   }
 
   @Post('2fa/generate')
-  @ApiBody({
-    type: String,
-    description: 'Email address to generate 2FA code for',
-    required: true,
-  })
-  generate(@Body('email') email: string) {
-    return this.twoFAService.generate(email);
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  generate(@Req() req) {
+    return this.twoFAService.generate(req.user.email);
   }
 
   @Post('2fa/verify')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiBody({
     type: TwoFADto,
     description: '2FA verification DTO',
     required: true,
   })
-  verify(@Body() dto: TwoFADto) {
-    return this.twoFAService.verify(dto);
+  verify(@Req() req, @Body() dto: TwoFADto) {
+    return this.twoFAService.verify(req.user, dto);
   }
 }

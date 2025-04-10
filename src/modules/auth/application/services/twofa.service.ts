@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as speakeasy from 'speakeasy';
 import * as qrcode from 'qrcode';
-import { TwoFADto } from '../../dto/twofa.dto';
+import { TwoFADto, TwoFAResponseDto } from '../../dto/twofa.dto';
 import { UserService } from '@/modules/users/application/services/user.service';
 
 @Injectable()
@@ -26,12 +26,14 @@ export class TwoFactorAuthService {
     };
   }
 
-  async verify(dto: TwoFADto) {
-    //TODO: after the authentication, the user should be fetched from the JWT token
-    const user = await this.userService.findRawByEmail(dto.email);
+  async verify(
+    userJwtPayload: { userId: string; email: string },
+    dto: TwoFADto,
+  ) {
+    const user = await this.userService.findRawByEmail(userJwtPayload.email);
     if (!user) throw new Error('User not found');
 
-    const isValid = speakeasy.totp.verify({
+    const isValid: boolean = speakeasy.totp.verify({
       secret: user.twoFactorSecret,
       encoding: 'base32',
       token: dto.code,
@@ -43,6 +45,6 @@ export class TwoFactorAuthService {
       });
     }
 
-    return { isValid };
+    return new TwoFAResponseDto(isValid);
   }
 }

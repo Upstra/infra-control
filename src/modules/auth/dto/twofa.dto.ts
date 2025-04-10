@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsString } from 'class-validator';
 
 export class TwoFADto {
   @ApiProperty({
@@ -6,18 +7,19 @@ export class TwoFADto {
     example: '123456',
     required: true,
   })
+  @IsString()
   code: string;
+}
+
+export class TwoFAResponseDto {
   @ApiProperty({
-    description: 'Secret key for 2FA',
-    example: 'JBSWY3DPEHPK3PXP',
+    description: 'Status of the verification',
+    example: true,
     required: true,
   })
-  secret: string;
-  @ApiProperty({
-    description:
-      'Email address to verify 2FA (to delete when the auth will be ready',
-    example: 'john.doe@example.com',
-    required: false,
-  })
-  email?: string;
+  isValid: boolean;
+
+  constructor(isValid: boolean) {
+    this.isValid = isValid;
+  }
 }
