@@ -1,4 +1,4 @@
-import { ApiBody } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import {
   Body,
   Controller,
@@ -15,16 +15,33 @@ import { ServerCreationDto } from '../dto/server.creation.dto';
 import { ServerEndpointInterface } from '../interfaces/server.endpoint.interface';
 import { ServerUpdateDto } from '../dto/server.update.dto';
 
+@ApiTags('Server')
 @Controller('server')
 export class ServerController implements ServerEndpointInterface {
   constructor(private readonly serverService: ServerService) {}
 
   @Get()
+  @ApiOperation({
+    summary: 'Lister tous les serveurs',
+    description:
+      'Renvoie la liste de tous les serveurs enregistrés dans le système.',
+  })
   async getAllServers(): Promise<ServerResponseDto[]> {
     return this.serverService.getAllServers();
   }
 
   @Get(':id')
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'UUID du serveur à récupérer',
+    required: true,
+  })
+  @ApiOperation({
+    summary: 'Récupérer un serveur par ID',
+    description:
+      'Renvoie les informations d’un serveur spécifique via son UUID.',
+  })
   async getServerById(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<ServerResponseDto> {
@@ -34,8 +51,13 @@ export class ServerController implements ServerEndpointInterface {
   @Post()
   @ApiBody({
     type: ServerCreationDto,
-    description: 'Server creation DTO',
+    description: 'Données nécessaires pour créer un nouveau serveur',
     required: true,
+  })
+  @ApiOperation({
+    summary: 'Créer un nouveau serveur',
+    description:
+      'Crée un serveur avec les données spécifiées dans le `ServerCreationDto`.',
   })
   async createServer(
     @Body() serverDto: ServerCreationDto,
@@ -44,6 +66,22 @@ export class ServerController implements ServerEndpointInterface {
   }
 
   @Patch(':id')
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'UUID du serveur à mettre à jour',
+    required: true,
+  })
+  @ApiBody({
+    type: ServerUpdateDto,
+    description: 'Données nécessaires pour mettre à jour un serveur',
+    required: true,
+  })
+  @ApiOperation({
+    summary: 'Mettre à jour un serveur',
+    description:
+      'Met à jour les informations d’un serveur existant via son UUID.',
+  })
   async updateServer(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() serverDto: ServerUpdateDto,
@@ -52,6 +90,17 @@ export class ServerController implements ServerEndpointInterface {
   }
 
   @Delete(':id')
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'UUID du serveur à supprimer',
+    required: true,
+  })
+  @ApiOperation({
+    summary: 'Supprimer un serveur',
+    description:
+      'Supprime un serveur du système à partir de son UUID. Action irréversible.',
+  })
   async deleteServer(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.serverService.deleteServer(id);
   }

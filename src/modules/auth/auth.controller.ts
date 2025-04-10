@@ -3,19 +3,25 @@ import { AuthService } from './application/services/auth.service';
 import { TwoFactorAuthService } from './application/services/twofa.service';
 import { LoginDto } from './dto/login.dto';
 import { TwoFADto } from './dto/twofa.dto';
-import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly twoFAService: TwoFactorAuthService,
-  ) { }
+  ) {}
 
   @Post('login')
+  @ApiOperation({
+    summary: 'Connexion d’un utilisateur',
+    description:
+      'Permet à un utilisateur de se connecter avec son email et son mot de passe. Retourne un JWT.',
+  })
   @ApiBody({
     type: LoginDto,
     description: 'Login DTO',
@@ -26,6 +32,11 @@ export class AuthController {
   }
 
   @Post('register')
+  @ApiOperation({
+    summary: 'Inscription d’un nouvel utilisateur',
+    description:
+      'Crée un nouvel utilisateur avec les informations fournies dans le RegisterDto.',
+  })
   @ApiBody({
     type: RegisterDto,
     description: 'Register DTO',
@@ -36,6 +47,11 @@ export class AuthController {
   }
 
   @Post('2fa/generate')
+  @ApiOperation({
+    summary: 'Générer un QR Code pour le 2FA',
+    description:
+      'Génère un QR Code pour configurer la double authentification via une application type Google Authenticator.',
+  })
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   generate(@Req() req) {
@@ -43,6 +59,11 @@ export class AuthController {
   }
 
   @Post('2fa/verify')
+  @ApiOperation({
+    summary: 'Vérifier un code 2FA',
+    description:
+      'Vérifie le code fourni par l’utilisateur pour activer ou valider le 2FA.',
+  })
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiBody({
@@ -55,6 +76,11 @@ export class AuthController {
   }
 
   @Post('2fa/disable')
+  @ApiOperation({
+    summary: 'Désactiver le 2FA',
+    description:
+      'Désactive la double authentification pour l’utilisateur connecté après vérification.',
+  })
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiBody({

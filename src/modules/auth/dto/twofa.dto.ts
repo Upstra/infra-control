@@ -54,4 +54,3 @@ export class TwoFADisableResponseDto {
       : 'Invalid code. 2FA is still active.';
   }
 }
-

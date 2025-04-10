@@ -1,14 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import * as speakeasy from 'speakeasy';
 import * as qrcode from 'qrcode';
-import { TwoFADisableResponseDto, TwoFADto, TwoFAResponseDto } from '../../dto/twofa.dto';
+import {
+  TwoFADisableResponseDto,
+  TwoFADto,
+  TwoFAResponseDto,
+} from '../../dto/twofa.dto';
 import { UserService } from '@/modules/users/application/services/user.service';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class TwoFactorAuthService {
-  constructor(private readonly userService: UserService, private readonly jwtService: JwtService) { }
+  constructor(
+    private readonly userService: UserService,
+    private readonly jwtService: JwtService,
+  ) {}
   async generate(email: string) {
     const user = await this.userService.findRawByEmail(email);
     if (!user) throw new Error('User not found');
@@ -28,10 +35,7 @@ export class TwoFactorAuthService {
     };
   }
 
-  async verify(
-    userJwtPayload: JwtPayload,
-    dto: TwoFADto,
-  ) {
+  async verify(userJwtPayload: JwtPayload, dto: TwoFADto) {
     const user = await this.userService.findRawByEmail(userJwtPayload.email);
     if (!user) throw new Error('User not found');
 
@@ -49,12 +53,18 @@ export class TwoFactorAuthService {
       });
     }
 
-    const accessToken = this.jwtService.sign({ userId: user.id, email: user.email });
+    const accessToken = this.jwtService.sign({
+      userId: user.id,
+      email: user.email,
+    });
 
     return new TwoFAResponseDto(isValid, accessToken);
   }
 
-  async disable(user: JwtPayload, dto: TwoFADto): Promise<TwoFADisableResponseDto> {
+  async disable(
+    user: JwtPayload,
+    dto: TwoFADto,
+  ): Promise<TwoFADisableResponseDto> {
     const userRaw = await this.userService.findRawByEmail(user.email);
     if (!userRaw) throw new Error('User not found');
 
@@ -73,5 +83,4 @@ export class TwoFactorAuthService {
 
     return new TwoFADisableResponseDto(true);
   }
-
 }
