@@ -11,7 +11,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly userDomain: UserDomainService,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   async login(dto: LoginDto) {
     const user = await this.userService.findRawByUsername(dto.username);

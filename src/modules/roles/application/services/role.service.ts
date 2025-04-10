@@ -19,7 +19,7 @@ export class RoleService implements RoleEndpointInterface {
     private readonly roleRepository: RoleRepositoryInterface,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
-  ) { }
+  ) {}
 
   async getAllRoles(): Promise<RoleResponseDto[]> {
     try {

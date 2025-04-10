@@ -5,7 +5,10 @@ import { Role } from '../../../roles/domain/entities/role.entity';
 
 @Injectable()
 export class UserDomainService {
-  async validatePassword(userPassword: string, plainPassword: string): Promise<boolean> {
+  async validatePassword(
+    userPassword: string,
+    plainPassword: string,
+  ): Promise<boolean> {
     return bcrypt.compare(plainPassword, userPassword);
   }
 

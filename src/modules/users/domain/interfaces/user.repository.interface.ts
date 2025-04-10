@@ -1,9 +1,9 @@
 import { User } from '../entities/user.entity';
 
 export interface UserRepositoryInterface {
+  updateFields(id: string, partialUser: Partial<User>): Promise<User>;
   count(): Promise<number>;
   save(user: User): Promise<User>;
-  findUserById(id: string): Promise<User>;
   updateUser(
     id: string,
     username: string,
@@ -14,8 +14,8 @@ export interface UserRepositoryInterface {
     roleId: string,
   ): Promise<User>;
   deleteUser(id: string): Promise<void>;
-
-  findByUsername(username: string): Promise<User | null>;
-  findByEmail(email: string): Promise<User | null>;
-  findById(id: string): Promise<User | null>;
+  findOneByField<T extends keyof User>(
+    field: T,
+    value: User[T],
+  ): Promise<User | null>;
 }

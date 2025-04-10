@@ -24,11 +24,11 @@ export class UserService implements UserEndpointInterface {
     private readonly userDomain: UserDomainService,
     @Inject(forwardRef(() => RoleService))
     private readonly roleService: RoleService,
-  ) { }
+  ) {}
 
   async getUserById(id: string): Promise<UserResponseDto> {
     try {
-      const user = await this.userRepository.findUserById(id);
+      const user = await this.userRepository.findOneByField('id', id);
       return new UserResponseDto(user);
     } catch (error: any) {
       this.handleError(error);
@@ -36,13 +36,24 @@ export class UserService implements UserEndpointInterface {
   }
 
   async findByUsername(username: string): Promise<UserResponseDto> {
-    const user = await this.userRepository.findByUsername(username);
+    const user = await this.userRepository.findOneByField('username', username);
     return new UserResponseDto(user);
   }
 
   async findRawByUsername(username: string): Promise<User> {
-    const user = await this.userRepository.findByUsername(username);
+    const user = await this.userRepository.findOneByField('username', username);
     return user;
+  }
+
+  async findRawByEmail(email: string) {
+    const user = await this.userRepository.findOneByField('email', email);
+    return user;
+  }
+
+  async updateUserSecret(userId: string, secret: string): Promise<void> {
+    const user = await this.userRepository.findOneByField('id', userId);
+    user.twoFactorSecret = secret;
+    await this.userRepository.save(user);
   }
 
   async updateUser(
@@ -65,6 +76,14 @@ export class UserService implements UserEndpointInterface {
     }
   }
 
+  async updateUserFields(
+    id: string,
+    partialUser: Partial<User>,
+  ): Promise<User> {
+    await this.userRepository.updateFields(id, partialUser);
+    return this.userRepository.findOneByField('id', id);
+  }
+
   async deleteUser(id: string): Promise<void> {
     try {
       await this.userRepository.deleteUser(id);
@@ -74,10 +93,10 @@ export class UserService implements UserEndpointInterface {
   }
 
   async assertUsernameAndEmailAvailable(username: string, email: string) {
-    const user = await this.userRepository.findByUsername(username);
+    const user = await this.userRepository.findOneByField('username', username);
     if (user) throw new ConflictException('Username already exists');
 
-    const emailUser = await this.userRepository.findByEmail(email);
+    const emailUser = await this.userRepository.findOneByField('email', email);
     if (emailUser) throw new ConflictException('Email already exists');
   }
 

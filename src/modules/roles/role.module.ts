@@ -11,7 +11,11 @@ import { UserModule } from '../users/user.module';
 @Module({
   controllers: [RoleController],
   exports: [RoleService, RoleDomainService],
-  imports: [TypeOrmModule.forFeature([Role]), PermissionModule, forwardRef(() => UserModule)],
+  imports: [
+    TypeOrmModule.forFeature([Role]),
+    PermissionModule,
+    forwardRef(() => UserModule),
+  ],
   providers: [
     RoleService,
     RoleDomainService,
@@ -21,4 +25,4 @@ import { UserModule } from '../users/user.module';
     },
   ],
 })
-export class RoleModule { }
+export class RoleModule {}

@@ -13,4 +13,11 @@ export class TwoFADto {
     required: true,
   })
   secret: string;
+  @ApiProperty({
+    description:
+      'Email address to verify 2FA (to delete when the auth will be ready',
+    example: 'john.doe@example.com',
+    required: false,
+  })
+  email?: string;
 }

@@ -20,4 +20,4 @@ import { RoleModule } from '../roles/role.module';
     },
   ],
 })
-export class UserModule { }
+export class UserModule {}
