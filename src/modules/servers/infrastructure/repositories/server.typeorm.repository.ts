@@ -7,8 +7,7 @@ import { ServerNotFoundException } from '../../domain/exceptions/server.notfound
 @Injectable()
 export class ServerTypeormRepository
   extends Repository<Server>
-  implements ServerRepositoryInterface
-{
+  implements ServerRepositoryInterface {
   constructor(private readonly dataSource: DataSource) {
     super(Server, dataSource.createEntityManager());
   }
@@ -28,73 +27,6 @@ export class ServerTypeormRepository
       throw new ServerNotFoundException(id);
     }
     return server;
-  }
-
-  async createServer(
-    name: string,
-    state: string,
-    grace_period_on: number,
-    grace_period_off: number,
-    ip: string,
-    login: string,
-    password: string,
-    type: string,
-    priority: number,
-    groupId: string,
-    roomId: string,
-    upsId: string,
-  ): Promise<Server> {
-    const server: Server = this.create({
-      name,
-      state,
-      grace_period_on,
-      grace_period_off,
-      ip,
-      login,
-      password,
-      type,
-      priority,
-      groupId,
-      roomId,
-      upsId,
-      vms: [],
-    });
-    return await this.save(server);
-  }
-
-  async updateServer(
-    id: string,
-    name: string,
-    state: string,
-    grace_period_on: number,
-    grace_period_off: number,
-    ip: string,
-    login: string,
-    password: string,
-    type: string,
-    priority: number,
-    groupId: string,
-    roomId: string,
-    upsId: string,
-  ): Promise<Server> {
-    const server = await this.findServerById(id);
-    server.name = name ? name : server.name;
-    server.state = state ? state : server.state;
-    server.grace_period_on = grace_period_on
-      ? grace_period_on
-      : server.grace_period_on;
-    server.grace_period_off = grace_period_off
-      ? grace_period_off
-      : server.grace_period_off;
-    server.ip = ip ? ip : server.ip;
-    server.login = login ? login : server.login;
-    server.password = password ? password : server.password;
-    server.type = type ? type : server.type;
-    server.priority = priority ? priority : server.priority;
-    server.groupId = groupId ? groupId : server.groupId;
-    server.roomId = roomId ? roomId : server.roomId;
-    server.upsId = upsId ? upsId : server.upsId;
-    return await this.save(server);
   }
 
   async deleteServer(id: string): Promise<void> {

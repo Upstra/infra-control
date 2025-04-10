@@ -15,7 +15,7 @@ export class ServerService implements ServerEndpointInterface {
     private readonly serverRepository: ServerRepositoryInterface,
     private readonly iloService: IloService,
     private readonly serverDomain: ServerDomainService,
-  ) {}
+  ) { }
 
   async getAllServers(): Promise<ServerResponseDto[]> {
     try {
@@ -52,21 +52,13 @@ export class ServerService implements ServerEndpointInterface {
     serverDto: ServerUpdateDto,
   ): Promise<ServerResponseDto> {
     try {
-      const server = await this.serverRepository.updateServer(
-        id,
-        serverDto.name,
-        serverDto.state,
-        serverDto.grace_period_on,
-        serverDto.grace_period_off,
-        serverDto.ip,
-        serverDto.login,
-        serverDto.password,
-        serverDto.type,
-        serverDto.priority,
-        serverDto.groupId,
-        serverDto.roomId,
-        serverDto.upsId,
+      const serverExists = await this.serverRepository.findServerById(id);
+      const entity = this.serverDomain.updateServerEntityFromDto(
+        serverExists,
+        serverDto,
       );
+
+      const server = await this.serverRepository.save(entity);
       const ilo = await this.iloService.updateIlo(id, serverDto.ilo);
       return new ServerResponseDto(server, ilo);
     } catch (error: any) {

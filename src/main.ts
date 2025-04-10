@@ -14,7 +14,7 @@ async function bootstrap() {
 
   setupSwagger(app);
 
-  const port = parseInt(process.env.APP_PORT || '3000', 10);
+  const port = parseInt(process.env.APP_PORT ?? '3000', 10);
   await app.listen(port);
   logger.log(`🚀 Application lancée sur http://localhost:${port}`);
 

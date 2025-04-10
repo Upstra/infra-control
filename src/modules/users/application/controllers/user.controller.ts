@@ -6,7 +6,6 @@ import {
   Param,
   ParseUUIDPipe,
   Patch,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from '../services/user.service';
@@ -27,7 +26,7 @@ import { JwtPayload } from '@/core/types/jwt-payload.interface';
 @ApiTags('User')
 @Controller('user')
 export class UserController implements UserEndpointInterface {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   @Get('me')
   @UseGuards(JwtAuthGuard)

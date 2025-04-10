@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from 'typeorm';
+import { PrimaryGeneratedColumn, Column, BaseEntity } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 
 export abstract class Group extends BaseEntity {
