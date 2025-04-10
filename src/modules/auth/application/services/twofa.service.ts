@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as speakeasy from 'speakeasy';
 import * as qrcode from 'qrcode';
-import { TwoFADto, TwoFAResponseDto } from '../../dto/twofa.dto';
+import { TwoFADisableResponseDto, TwoFADto, TwoFAResponseDto } from '../../dto/twofa.dto';
 import { UserService } from '@/modules/users/application/services/user.service';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
@@ -52,6 +52,26 @@ export class TwoFactorAuthService {
     const accessToken = this.jwtService.sign({ userId: user.id, email: user.email });
 
     return new TwoFAResponseDto(isValid, accessToken);
-
   }
+
+  async disable(user: JwtPayload, dto: TwoFADto): Promise<TwoFADisableResponseDto> {
+    const userRaw = await this.userService.findRawByEmail(user.email);
+    if (!userRaw) throw new Error('User not found');
+
+    const isValid: boolean = speakeasy.totp.verify({
+      secret: userRaw.twoFactorSecret,
+      encoding: 'base32',
+      token: dto.code,
+    });
+
+    if (!isValid) return new TwoFADisableResponseDto(false);
+
+    await this.userService.updateUserFields(userRaw.id, {
+      isTwoFactorEnabled: false,
+      twoFactorSecret: null,
+    });
+
+    return new TwoFADisableResponseDto(true);
+  }
+
 }

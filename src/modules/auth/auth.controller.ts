@@ -6,13 +6,14 @@ import { TwoFADto } from './dto/twofa.dto';
 import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly twoFAService: TwoFactorAuthService,
-  ) {}
+  ) { }
 
   @Post('login')
   @ApiBody({
@@ -51,5 +52,17 @@ export class AuthController {
   })
   verify(@Req() req, @Body() dto: TwoFADto) {
     return this.twoFAService.verify(req.user, dto);
+  }
+
+  @Post('2fa/disable')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiBody({
+    type: TwoFADto,
+    description: '2FA disable DTO',
+    required: true,
+  })
+  disable(@Req() user: JwtPayload, @Body() dto: TwoFADto) {
+    return this.twoFAService.disable(user, dto);
   }
 }

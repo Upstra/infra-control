@@ -31,3 +31,27 @@ export class TwoFAResponseDto {
     this.accessToken = accessToken;
   }
 }
+
+export class TwoFADisableResponseDto {
+  @ApiProperty({
+    description: 'Status of the 2FA disabling',
+    example: true,
+    required: true,
+  })
+  isDisabled: boolean;
+
+  @ApiProperty({
+    description: 'Confirmation message',
+    example: '2FA has been disabled successfully.',
+    required: true,
+  })
+  message: string;
+
+  constructor(isDisabled: boolean) {
+    this.isDisabled = isDisabled;
+    this.message = isDisabled
+      ? '2FA has been disabled successfully.'
+      : 'Invalid code. 2FA is still active.';
+  }
+}
+
