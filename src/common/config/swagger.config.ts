@@ -1,6 +1,5 @@
-import { DocumentBuilder } from '@nestjs/swagger';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { INestApplication } from '@nestjs/common';
-import { SwaggerModule } from '@nestjs/swagger';
 
 export const swaggerConfig = new DocumentBuilder()
   .setTitle('Infra Control API')

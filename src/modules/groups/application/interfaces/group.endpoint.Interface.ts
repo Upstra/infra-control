@@ -1,5 +1,3 @@
-import { GroupDtoInterface } from './group.dto.interface';
-
 export interface GroupEndpointInterface<T> {
   getAllGroups(): Promise<T[]>;
   getGroupById(id: string): Promise<T>;

@@ -7,8 +7,7 @@ import { ServerNotFoundException } from '../../domain/exceptions/server.notfound
 @Injectable()
 export class ServerTypeormRepository
   extends Repository<Server>
-  implements ServerRepositoryInterface
-{
+  implements ServerRepositoryInterface {
   constructor(private readonly dataSource: DataSource) {
     super(Server, dataSource.createEntityManager());
   }
@@ -78,24 +77,23 @@ export class ServerTypeormRepository
     upsId: string,
   ): Promise<Server> {
     const server = await this.findServerById(id);
-    server.name = name ? name : server.name;
-    server.state = state ? state : server.state;
-    server.grace_period_on = grace_period_on
-      ? grace_period_on
-      : server.grace_period_on;
-    server.grace_period_off = grace_period_off
-      ? grace_period_off
-      : server.grace_period_off;
-    server.ip = ip ? ip : server.ip;
-    server.login = login ? login : server.login;
-    server.password = password ? password : server.password;
-    server.type = type ? type : server.type;
-    server.priority = priority ? priority : server.priority;
-    server.groupId = groupId ? groupId : server.groupId;
-    server.roomId = roomId ? roomId : server.roomId;
-    server.upsId = upsId ? upsId : server.upsId;
+
+    server.name = name ?? server.name;
+    server.state = state ?? server.state;
+    server.grace_period_on = grace_period_on ?? server.grace_period_on;
+    server.grace_period_off = grace_period_off ?? server.grace_period_off;
+    server.ip = ip ?? server.ip;
+    server.login = login ?? server.login;
+    server.password = password ?? server.password;
+    server.type = type ?? server.type;
+    server.priority = priority ?? server.priority;
+    server.groupId = groupId ?? server.groupId;
+    server.roomId = roomId ?? server.roomId;
+    server.upsId = upsId ?? server.upsId;
+
     return await this.save(server);
   }
+
 
   async deleteServer(id: string): Promise<void> {
     await this.findServerById(id);

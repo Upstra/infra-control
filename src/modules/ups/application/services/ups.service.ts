@@ -11,7 +11,7 @@ export class UpsService implements UpsEndpointInterface {
   constructor(
     @Inject('UpsRepositoryInterface')
     private readonly upsRepository: UpsRepositoryInterface,
-  ) {}
+  ) { }
 
   async getAllUps(): Promise<UpsResponseDto[]> {
     try {
@@ -52,13 +52,7 @@ export class UpsService implements UpsEndpointInterface {
     try {
       const ups = await this.upsRepository.updateUps(
         id,
-        upsDto.name,
-        upsDto.ip,
-        upsDto.login,
-        upsDto.password,
-        upsDto.grace_period_on,
-        upsDto.grace_period_off,
-        upsDto.roomId,
+        upsDto,
       );
       return new UpsResponseDto(ups);
     } catch (error: any) {

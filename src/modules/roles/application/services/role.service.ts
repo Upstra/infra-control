@@ -4,6 +4,7 @@ import {
   HttpException,
   HttpStatus,
   forwardRef,
+  Logger,
 } from '@nestjs/common';
 import { RoleRepositoryInterface } from '../../domain/interfaces/role.repository.interface';
 import { RoleResponseDto } from '../dto/role.response.dto';
@@ -14,6 +15,7 @@ import { Role } from '../../domain/entities/role.entity';
 import { UserService } from '@/modules/users/application/services/user.service';
 @Injectable()
 export class RoleService implements RoleEndpointInterface {
+  private readonly logger = new Logger(RoleService.name);
   constructor(
     @Inject('RoleRepositoryInterface')
     private readonly roleRepository: RoleRepositoryInterface,
@@ -81,6 +83,9 @@ export class RoleService implements RoleEndpointInterface {
     const noUsersExist = userCount === 0;
 
     if (noRolesExist && noUsersExist) {
+      this.logger.warn(
+        'Aucun rôle et aucun utilisateur trouvés. Création du rôle ADMIN par défaut...',
+      );
       const adminRole = await this.roleRepository.createRole('ADMIN');
       adminRole.canCreateServer = true;
       return this.roleRepository.save(adminRole);
@@ -89,22 +94,23 @@ export class RoleService implements RoleEndpointInterface {
     if (noUsersExist) {
       try {
         const existingAdmin = await this.roleRepository.findByName('ADMIN');
-        existingAdmin.canCreateServer = true;
-        return this.roleRepository.save(existingAdmin);
+        if (!existingAdmin.canCreateServer) {
+          this.logger.warn(
+            'ADMIN existe mais n’a pas les droits pour créer un serveur. Mise à jour...',
+          );
+          existingAdmin.canCreateServer = true;
+          return this.roleRepository.save(existingAdmin);
+        }
+        return existingAdmin;
       } catch (error) {
-        throw error;
+        this.logger.error(
+          'Impossible de trouver ADMIN alors qu’il n’y a pas encore d’utilisateurs.',
+          error,
+        );
+        const fallbackAdmin = await this.roleRepository.createRole('ADMIN');
+        fallbackAdmin.canCreateServer = true;
+        return this.roleRepository.save(fallbackAdmin);
       }
-    }
-
-    try {
-      const guest = await this.roleRepository.findByName('GUEST');
-      return guest;
-    } catch (error) {
-      if (error instanceof RoleNotFoundException) {
-        const guestRole = await this.roleRepository.createRole('GUEST');
-        return this.roleRepository.save(guestRole);
-      }
-      throw error;
     }
   }
 
