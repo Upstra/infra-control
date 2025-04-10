@@ -19,7 +19,15 @@ export class TwoFAResponseDto {
   })
   isValid: boolean;
 
-  constructor(isValid: boolean) {
+  @ApiProperty({
+    description: 'Access token for the user',
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    required: true,
+  })
+  accessToken: string;
+
+  constructor(isValid: boolean, accessToken: string) {
     this.isValid = isValid;
+    this.accessToken = accessToken;
   }
 }

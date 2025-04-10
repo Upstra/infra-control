@@ -15,6 +15,7 @@ import { UserNotFoundException } from '../../domain/exceptions/user.notfound.exc
 import { User } from '../../domain/entities/user.entity';
 import { UserDomainService } from '../../domain/services/user.domain.service';
 import { RegisterDto } from '../../../auth/dto/register.dto';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 @Injectable()
 export class UserService implements UserEndpointInterface {
@@ -24,8 +25,11 @@ export class UserService implements UserEndpointInterface {
     private readonly userDomain: UserDomainService,
     @Inject(forwardRef(() => RoleService))
     private readonly roleService: RoleService,
-  ) {}
+  ) { }
 
+  async getMe(user: JwtPayload): Promise<UserResponseDto> {
+    return this.getUserById(user.id);
+  }
   async getUserById(id: string): Promise<UserResponseDto> {
     try {
       const user = await this.userRepository.findOneByField('id', id);

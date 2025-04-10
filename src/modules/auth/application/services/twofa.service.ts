@@ -3,10 +3,12 @@ import * as speakeasy from 'speakeasy';
 import * as qrcode from 'qrcode';
 import { TwoFADto, TwoFAResponseDto } from '../../dto/twofa.dto';
 import { UserService } from '@/modules/users/application/services/user.service';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class TwoFactorAuthService {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService, private readonly jwtService: JwtService) { }
   async generate(email: string) {
     const user = await this.userService.findRawByEmail(email);
     if (!user) throw new Error('User not found');
@@ -27,7 +29,7 @@ export class TwoFactorAuthService {
   }
 
   async verify(
-    userJwtPayload: { userId: string; email: string },
+    userJwtPayload: JwtPayload,
     dto: TwoFADto,
   ) {
     const user = await this.userService.findRawByEmail(userJwtPayload.email);
@@ -39,12 +41,17 @@ export class TwoFactorAuthService {
       token: dto.code,
     });
 
-    if (isValid) {
+    if (!isValid) return new TwoFAResponseDto(isValid, null);
+
+    if (!user.isTwoFactorEnabled) {
       await this.userService.updateUserFields(user.id, {
         isTwoFactorEnabled: true,
       });
     }
 
-    return new TwoFAResponseDto(isValid);
+    const accessToken = this.jwtService.sign({ userId: user.id, email: user.email });
+
+    return new TwoFAResponseDto(isValid, accessToken);
+
   }
 }
