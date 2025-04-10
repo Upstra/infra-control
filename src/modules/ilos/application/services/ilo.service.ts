@@ -12,7 +12,7 @@ export class IloService {
     @Inject('IloRepositoryInterface')
     private readonly iloRepository: IloRepositoryInterface,
     private readonly iloDomain: IloDomainService,
-  ) {}
+  ) { }
 
   async getIloById(id: string): Promise<IloResponseDto> {
     try {
@@ -35,13 +35,9 @@ export class IloService {
 
   async updateIlo(id: string, iloDto: IloUpdateDto): Promise<IloResponseDto> {
     try {
-      const ilo = await this.iloRepository.updateIlo(
-        id,
-        iloDto.name,
-        iloDto.ip,
-        iloDto.login,
-        iloDto.password,
-      );
+      const iloExists = await this.iloRepository.findIloById(id);
+      const entity = this.iloDomain.updateIloEntityFromDto(iloExists, iloDto);
+      const ilo = await this.iloRepository.save(entity);
       return new IloResponseDto(ilo);
     } catch (error: any) {
       this.handleError(error);
