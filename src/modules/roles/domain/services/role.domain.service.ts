@@ -1,8 +1,29 @@
 import { Injectable } from '@nestjs/common';
+import { Role } from '../entities/role.entity';
+import { PermissionServer } from '../../../permissions/domain/entities/permission.server.entity';
+import { PermissionVm } from '../../../permissions/domain/entities/permission.vm.entity';
 
 @Injectable()
 export class RoleDomainService {
-  hello(): string {
-    return 'Hello from Role Domain Service';
+  createAdminRoleEntity(
+    permissionServer: PermissionServer,
+    permissionVm: PermissionVm,
+  ): Role {
+    const role = new Role();
+    role.name = 'ADMIN';
+    role.permissionServers = role.permissionServers.concat(permissionServer);
+    role.permissionVms = role.permissionVms.concat(permissionVm);
+    return role;
+  }
+
+  createGuestRole(
+    permissionServer: PermissionServer,
+    permissionVm: PermissionVm,
+  ): Role {
+    const role = new Role();
+    role.name = 'GUEST';
+    role.permissionServers = role.permissionServers.concat(permissionServer);
+    role.permissionVms = role.permissionVms.concat(permissionVm);
+    return role;
   }
 }

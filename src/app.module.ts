@@ -1,32 +1,35 @@
-import { configModule } from './config/config.module';
+import { configModule } from './common/config/config.module';
 import { Logger, Module } from '@nestjs/common';
 
-import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { GroupesModule } from './modules/groupes/groupes.module';
-import { IlosModule } from './modules/ilos/ilos.module';
-import { OnduleursModule } from './modules/onduleurs/onduleurs.module';
-import { RolesModule } from './modules/roles/roles.module';
-import { SallesModule } from './modules/salles/salles.module';
-import { ServersModule } from './modules/servers/servers.module';
-import { UsersModule } from './modules/users/users.module';
-import { VmsModule } from './modules/vms/vms.module';
-import { typeOrmConfig } from './config/typeorm.config';
+import { typeOrmConfig } from './common/config/typeorm.config';
+import { AuthModule } from './modules/auth/auth.module';
+import { GroupModule } from './modules/groups/group.module';
+import { IloModule } from './modules/ilos/ilo.module';
+import { PermissionModule } from './modules/permissions/permission.module';
+import { RoleModule } from './modules/roles/role.module';
+import { RoomModule } from './modules/rooms/room.module';
+import { ServerModule } from './modules/servers/server.module';
+import { UpsModule } from './modules/ups/ups.module';
+import { UserModule } from './modules/users/user.module';
+import { VmModule } from './modules/vms/vm.module';
 
 @Module({
+  controllers: [],
   imports: [
     configModule,
     TypeOrmModule.forRoot(typeOrmConfig),
-    GroupesModule,
-    IlosModule,
-    OnduleursModule,
-    RolesModule,
-    SallesModule,
-    ServersModule,
-    UsersModule,
-    VmsModule,
+    AuthModule,
+    GroupModule,
+    IloModule,
+    PermissionModule,
+    UpsModule,
+    RoleModule,
+    RoomModule,
+    ServerModule,
+    UserModule,
+    VmModule,
   ],
-  controllers: [],
   providers: [Logger],
 })
 export class AppModule {}
