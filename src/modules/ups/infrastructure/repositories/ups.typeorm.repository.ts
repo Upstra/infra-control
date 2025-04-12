@@ -8,7 +8,8 @@ import { UpsUpdateDto } from '../../application/dto/ups.update.dto';
 @Injectable()
 export class UpsTypeormRepository
   extends Repository<Ups>
-  implements UpsRepositoryInterface {
+  implements UpsRepositoryInterface
+{
   constructor(private readonly dataSource: DataSource) {
     super(Ups, dataSource.createEntityManager());
   }
@@ -65,7 +66,6 @@ export class UpsTypeormRepository
 
     return await this.save(ups);
   }
-
 
   async deleteUps(id: string): Promise<void> {
     await this.findUpsById(id);

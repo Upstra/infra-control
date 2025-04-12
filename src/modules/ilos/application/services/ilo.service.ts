@@ -12,7 +12,7 @@ export class IloService {
     @Inject('IloRepositoryInterface')
     private readonly iloRepository: IloRepositoryInterface,
     private readonly iloDomain: IloDomainService,
-  ) { }
+  ) {}
 
   async getIloById(id: string): Promise<IloResponseDto> {
     try {

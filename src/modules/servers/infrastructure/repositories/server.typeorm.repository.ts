@@ -7,7 +7,8 @@ import { ServerNotFoundException } from '../../domain/exceptions/server.notfound
 @Injectable()
 export class ServerTypeormRepository
   extends Repository<Server>
-  implements ServerRepositoryInterface {
+  implements ServerRepositoryInterface
+{
   constructor(private readonly dataSource: DataSource) {
     super(Server, dataSource.createEntityManager());
   }

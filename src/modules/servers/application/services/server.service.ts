@@ -15,7 +15,7 @@ export class ServerService implements ServerEndpointInterface {
     private readonly serverRepository: ServerRepositoryInterface,
     private readonly iloService: IloService,
     private readonly serverDomain: ServerDomainService,
-  ) { }
+  ) {}
 
   async getAllServers(): Promise<ServerResponseDto[]> {
     try {

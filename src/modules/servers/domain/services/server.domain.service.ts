@@ -25,10 +25,7 @@ export class ServerDomainService {
     return server;
   }
 
-  updateServerEntityFromDto(
-    server: Server,
-    dto: ServerUpdateDto,
-  ): Server {
+  updateServerEntityFromDto(server: Server, dto: ServerUpdateDto): Server {
     server.name = dto.name ?? server.name;
     server.state = dto.state ?? server.state;
     server.grace_period_on = dto.grace_period_on ?? server.grace_period_on;

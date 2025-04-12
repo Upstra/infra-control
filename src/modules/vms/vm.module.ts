@@ -19,4 +19,4 @@ import { VmDomainService } from './vm.domain.service';
     },
   ],
 })
-export class VmModule { }
+export class VmModule {}

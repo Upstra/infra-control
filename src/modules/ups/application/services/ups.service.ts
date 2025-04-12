@@ -11,7 +11,7 @@ export class UpsService implements UpsEndpointInterface {
   constructor(
     @Inject('UpsRepositoryInterface')
     private readonly upsRepository: UpsRepositoryInterface,
-  ) { }
+  ) {}
 
   async getAllUps(): Promise<UpsResponseDto[]> {
     try {
@@ -50,10 +50,7 @@ export class UpsService implements UpsEndpointInterface {
 
   async updateUps(id: string, upsDto: UpsUpdateDto): Promise<UpsResponseDto> {
     try {
-      const ups = await this.upsRepository.updateUps(
-        id,
-        upsDto,
-      );
+      const ups = await this.upsRepository.updateUps(id, upsDto);
       return new UpsResponseDto(ups);
     } catch (error: any) {
       this.handleError(error);

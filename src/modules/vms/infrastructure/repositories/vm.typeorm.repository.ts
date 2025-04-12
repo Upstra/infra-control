@@ -7,7 +7,8 @@ import { VmNotFoundException } from '../../domain/exceptions/vm.notfound.excepti
 @Injectable()
 export class VmTypeormRepository
   extends Repository<Vm>
-  implements VmRepositoryInterface {
+  implements VmRepositoryInterface
+{
   constructor(private readonly dataSource: DataSource) {
     super(Vm, dataSource.createEntityManager());
   }
@@ -28,8 +29,6 @@ export class VmTypeormRepository
     }
     return vm;
   }
-
-
 
   async deleteVm(id: string): Promise<void> {
     await this.findVmById(id);

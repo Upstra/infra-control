@@ -13,7 +13,7 @@ export class VmService implements VmEndpointInterface {
     @Inject('VmRepositoryInterface')
     private readonly vmRepository: VmRepositoryInterface,
     private readonly vmDomain: VmDomainService,
-  ) { }
+  ) {}
 
   async getAllVms(): Promise<VmResponseDto[]> {
     try {
@@ -35,7 +35,6 @@ export class VmService implements VmEndpointInterface {
 
   async createVm(vmDto: VmCreationDto): Promise<VmResponseDto> {
     try {
-
       const entity = this.vmDomain.createVmEntity(vmDto);
       const vm = await this.vmRepository.save(entity);
 
@@ -49,9 +48,7 @@ export class VmService implements VmEndpointInterface {
     try {
       const vmExists = await this.vmRepository.findVmById(id);
 
-      const entity = this.vmDomain.updateVmEntity(
-        vmExists,
-        vmDto);
+      const entity = this.vmDomain.updateVmEntity(vmExists, vmDto);
       const vm = await this.vmRepository.save(entity);
       return new VmResponseDto(vm);
     } catch (error: any) {

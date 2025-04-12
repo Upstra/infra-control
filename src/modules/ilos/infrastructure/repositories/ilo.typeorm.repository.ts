@@ -7,7 +7,8 @@ import { IloNotFoundException } from '../../domain/exceptions/ilo.exception';
 @Injectable()
 export class IloTypeormRepository
   extends Repository<Ilo>
-  implements IloRepositoryInterface {
+  implements IloRepositoryInterface
+{
   constructor(private readonly dataSource: DataSource) {
     super(Ilo, dataSource.createEntityManager());
   }
