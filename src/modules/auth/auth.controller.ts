@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, UseFilters, Req } from '@nestjs/common';
 import { AuthService } from './application/services/auth.service';
 import { TwoFactorAuthService } from './application/services/twofa.service';
 import { LoginDto } from './dto/login.dto';
@@ -8,7 +8,6 @@ import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
-import { UseFilters } from '@nestjs/common';
 import { InvalidQueryExceptionFilter } from '@/core/exceptions/repository.exception';
 import { TwoFAGuard } from './guards/twofa.guard';
 
