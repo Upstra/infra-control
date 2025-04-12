@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsString, IsNotEmpty } from 'class-validator';
 
 export class TwoFADto {
   @ApiProperty({
@@ -7,6 +7,7 @@ export class TwoFADto {
     example: '123456',
     required: true,
   })
+  @IsNotEmpty()
   @IsString()
   code: string;
 }

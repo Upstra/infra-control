@@ -36,8 +36,6 @@ export class UserDomainService {
     user.createdAt = new Date();
     user.updatedAt = new Date();
 
-    console.log('User created:', user);
-
     return user;
   }
 }

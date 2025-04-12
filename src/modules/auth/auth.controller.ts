@@ -7,6 +7,10 @@ import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { CurrentUser } from '@/core/decorators/current-user.decorator';
+import { UseFilters } from '@nestjs/common';
+import { InvalidQueryExceptionFilter } from '@/core/exceptions/repository.exception';
+import { TwoFAGuard } from './guards/twofa.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -14,9 +18,10 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly twoFAService: TwoFactorAuthService,
-  ) {}
+  ) { }
 
   @Post('login')
+  @UseFilters(InvalidQueryExceptionFilter)
   @ApiOperation({
     summary: 'Connexion d’un utilisateur',
     description:
@@ -32,6 +37,7 @@ export class AuthController {
   }
 
   @Post('register')
+  @UseFilters(InvalidQueryExceptionFilter)
   @ApiOperation({
     summary: 'Inscription d’un nouvel utilisateur',
     description:
@@ -52,10 +58,11 @@ export class AuthController {
     description:
       'Génère un QR Code pour configurer la double authentification via une application type Google Authenticator.',
   })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, TwoFAGuard)
   @ApiBearerAuth()
-  generate(@Req() req) {
-    return this.twoFAService.generate(req.user.email);
+  @UseFilters(InvalidQueryExceptionFilter)
+  generate(@CurrentUser() user: JwtPayload) {
+    return this.twoFAService.generate(user.email);
   }
 
   @Post('2fa/verify')
@@ -64,6 +71,7 @@ export class AuthController {
     description:
       'Vérifie le code fourni par l’utilisateur pour activer ou valider le 2FA.',
   })
+  @UseFilters(InvalidQueryExceptionFilter)
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiBody({
@@ -71,8 +79,8 @@ export class AuthController {
     description: '2FA verification DTO',
     required: true,
   })
-  verify(@Req() req, @Body() dto: TwoFADto) {
-    return this.twoFAService.verify(req.user, dto);
+  verify(@CurrentUser() user: JwtPayload, @Body() dto: TwoFADto) {
+    return this.twoFAService.verify(user, dto);
   }
 
   @Post('2fa/disable')
@@ -81,6 +89,7 @@ export class AuthController {
     description:
       'Désactive la double authentification pour l’utilisateur connecté après vérification.',
   })
+  @UseFilters(InvalidQueryExceptionFilter)
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiBody({

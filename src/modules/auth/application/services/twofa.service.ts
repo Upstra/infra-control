@@ -9,13 +9,14 @@ import {
 import { UserService } from '@/modules/users/application/services/user.service';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
+import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.notfound.exception';
 
 @Injectable()
 export class TwoFactorAuthService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
   async generate(email: string) {
     const user = await this.userService.findRawByEmail(email);
     if (!user) throw new Error('User not found');
@@ -24,8 +25,10 @@ export class TwoFactorAuthService {
       name: `InfraControl (${email})`,
     });
 
-    user.twoFactorSecret = secret.base32;
-    await this.userService.updateUserSecret(user.id, secret.base32);
+    await this.userService.updateUserFields(user.id, {
+      isTwoFactorEnabled: false,
+      twoFactorSecret: secret.base32,
+    });
 
     const qrCode = await qrcode.toDataURL(secret.otpauth_url);
 
@@ -37,7 +40,7 @@ export class TwoFactorAuthService {
 
   async verify(userJwtPayload: JwtPayload, dto: TwoFADto) {
     const user = await this.userService.findRawByEmail(userJwtPayload.email);
-    if (!user) throw new Error('User not found');
+    if (!user) throw new UserNotFoundException();
 
     const isValid: boolean = speakeasy.totp.verify({
       secret: user.twoFactorSecret,

@@ -25,7 +25,7 @@ export class UserService implements UserEndpointInterface {
     private readonly userDomain: UserDomainService,
     @Inject(forwardRef(() => RoleService))
     private readonly roleService: RoleService,
-  ) {}
+  ) { }
 
   async getMe(user: JwtPayload): Promise<UserResponseDto> {
     return this.getUserById(user.id);
@@ -54,8 +54,7 @@ export class UserService implements UserEndpointInterface {
     return user;
   }
 
-  async updateUserSecret(userId: string, secret: string): Promise<void> {
-    const user = await this.userRepository.findOneByField('id', userId);
+  async updateUserSecret(user: User, secret: string): Promise<void> {
     user.twoFactorSecret = secret;
     await this.userRepository.save(user);
   }

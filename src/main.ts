@@ -11,6 +11,11 @@ async function bootstrap() {
   app.useLogger(logger);
 
   app.useGlobalPipes(setupValidationPipe());
+  app.enableCors({
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    preflightContinue: false,
+  });
 
   setupSwagger(app);
 

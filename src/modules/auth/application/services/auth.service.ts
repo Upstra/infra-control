@@ -4,6 +4,10 @@ import { UserDomainService } from '../../../users/domain/services/user.domain.se
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../../../users/application/services/user.service';
 import { RegisterDto } from '../../dto/register.dto';
+import {
+  AuthNotFoundException,
+  AuthPasswordNotValidException,
+} from '../../domain/exceptions/auth.exception';
 
 @Injectable()
 export class AuthService {
@@ -11,22 +15,25 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly userDomain: UserDomainService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   async login(dto: LoginDto) {
     const user = await this.userService.findRawByUsername(dto.username);
+    if (!user) throw new AuthNotFoundException();
 
     const isValidPassword = await this.userDomain.validatePassword(
       user.password,
       dto.password,
     );
 
-    if (!isValidPassword)
-      throw new UnauthorizedException('Invalid credentials');
+    if (!isValidPassword) throw new AuthPasswordNotValidException();
 
     if (this.userDomain.isTwoFactorEnabled(user)) {
       const tempToken = this.jwtService.sign(
-        { userId: user.id, step: '2fa' },
+        {
+          userId: user.id, step: '2fa'
+          , email: user.email, isTwoFactorEnabled: user.isTwoFactorEnabled
+        },
         { expiresIn: '5m' },
       );
 
@@ -36,7 +43,12 @@ export class AuthService {
       };
     }
 
-    const finalToken = this.jwtService.sign({ userId: user.id });
+    const finalToken = this.jwtService.sign({
+      userId: user.id,
+      email: user.email,
+      isTwoFactorEnabled: user.isTwoFactorEnabled,
+    });
+
     return { accessToken: finalToken };
   }
 
