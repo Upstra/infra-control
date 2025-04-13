@@ -54,8 +54,7 @@ export class UserService implements UserEndpointInterface {
     return user;
   }
 
-  async updateUserSecret(userId: string, secret: string): Promise<void> {
-    const user = await this.userRepository.findOneByField('id', userId);
+  async updateUserSecret(user: User, secret: string): Promise<void> {
     user.twoFactorSecret = secret;
     await this.userRepository.save(user);
   }

@@ -79,39 +79,57 @@ export class RoleService implements RoleEndpointInterface {
       this.userService.getUserCount(),
     ]);
 
-    const noRolesExist = roles.length === 0;
-    const noUsersExist = userCount === 0;
-
-    if (noRolesExist && noUsersExist) {
-      this.logger.warn(
-        'Aucun rôle et aucun utilisateur trouvés. Création du rôle ADMIN par défaut...',
-      );
-      const adminRole = await this.roleRepository.createRole('ADMIN');
-      adminRole.canCreateServer = true;
-      return this.roleRepository.save(adminRole);
+    if (this.shouldCreateAdminRole(roles, userCount)) {
+      return this.createDefaultAdminRole();
     }
 
-    if (noUsersExist) {
-      try {
-        const existingAdmin = await this.roleRepository.findByName('ADMIN');
-        if (!existingAdmin.canCreateServer) {
-          this.logger.warn(
-            'ADMIN existe mais n’a pas les droits pour créer un serveur. Mise à jour...',
-          );
-          existingAdmin.canCreateServer = true;
-          return this.roleRepository.save(existingAdmin);
-        }
-        return existingAdmin;
-      } catch (error) {
-        this.logger.error(
-          'Impossible de trouver ADMIN alors qu’il n’y a pas encore d’utilisateurs.',
-          error,
-        );
-        const fallbackAdmin = await this.roleRepository.createRole('ADMIN');
-        fallbackAdmin.canCreateServer = true;
-        return this.roleRepository.save(fallbackAdmin);
+    if (this.shouldUpdateAdminRole(userCount)) {
+      return this.ensureAdminHasServerRights();
+    }
+
+    return this.ensureGuestRoleExists();
+  }
+
+  private shouldCreateAdminRole(roles: Role[], userCount: number): boolean {
+    return roles.length === 0 && userCount === 0;
+  }
+
+  private shouldUpdateAdminRole(userCount: number): boolean {
+    return userCount === 0;
+  }
+
+  private async createDefaultAdminRole(): Promise<Role> {
+    this.logger.warn('Aucun rôle et utilisateur... création ADMIN');
+    const admin = await this.roleRepository.createRole('ADMIN');
+    admin.canCreateServer = true;
+    return this.roleRepository.save(admin);
+  }
+
+  private async ensureAdminHasServerRights(): Promise<Role> {
+    try {
+      const admin = await this.roleRepository.findByName('ADMIN');
+      if (!admin.canCreateServer) {
+        this.logger.warn('ADMIN n’a pas les droits, on corrige...');
+        admin.canCreateServer = true;
+        return this.roleRepository.save(admin);
       }
+      return admin;
+    } catch (e) {
+      this.logger.error('ADMIN introuvable, fallback', e);
+      const fallback = await this.roleRepository.createRole('ADMIN');
+      fallback.canCreateServer = true;
+      return this.roleRepository.save(fallback);
     }
+  }
+
+  private async ensureGuestRoleExists(): Promise<Role> {
+    const guest = await this.roleRepository.findByName('GUEST');
+    if (!guest) {
+      this.logger.warn('GUEST inexistant, on le crée...');
+      const newGuest = await this.roleRepository.createRole('GUEST');
+      return this.roleRepository.save(newGuest);
+    }
+    return guest;
   }
 
   private handleError(error: any): void {

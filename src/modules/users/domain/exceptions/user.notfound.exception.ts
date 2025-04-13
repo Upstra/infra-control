@@ -1,6 +1,7 @@
-export class UserNotFoundException extends Error {
-  constructor(id: string) {
-    super(`User with ID ${id} not found`);
-    this.name = 'UserNotFoundException';
+import { HttpException, HttpStatus } from '@nestjs/common';
+
+export class UserNotFoundException extends HttpException {
+  constructor() {
+    super('User not found', HttpStatus.NOT_FOUND);
   }
 }
