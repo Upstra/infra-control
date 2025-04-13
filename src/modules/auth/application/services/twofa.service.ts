@@ -10,13 +10,14 @@ import { UserService } from '@/modules/users/application/services/user.service';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
 import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.notfound.exception';
+import { TwoFAInvalidCodeException } from '../../domain/exceptions/twofa.exception';
 
 @Injectable()
 export class TwoFactorAuthService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
   async generate(email: string) {
     const user = await this.userService.findRawByEmail(email);
     if (!user) throw new Error('User not found');
@@ -48,7 +49,7 @@ export class TwoFactorAuthService {
       token: dto.code,
     });
 
-    if (!isValid) return new TwoFAResponseDto(isValid, null);
+    if (!isValid) throw new TwoFAInvalidCodeException();
 
     if (!user.isTwoFactorEnabled) {
       await this.userService.updateUserFields(user.id, {

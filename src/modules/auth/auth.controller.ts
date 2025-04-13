@@ -1,9 +1,22 @@
-import { Controller, Post, Body, UseGuards, UseFilters, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  UseFilters,
+  Req,
+} from '@nestjs/common';
 import { AuthService } from './application/services/auth.service';
 import { TwoFactorAuthService } from './application/services/twofa.service';
 import { LoginDto } from './dto/login.dto';
-import { TwoFADto } from './dto/twofa.dto';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { TwoFADto, TwoFAResponseDto } from './dto/twofa.dto';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
@@ -17,7 +30,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly twoFAService: TwoFactorAuthService,
-  ) { }
+  ) {}
 
   @Post('login')
   @UseFilters(InvalidQueryExceptionFilter)
@@ -69,6 +82,11 @@ export class AuthController {
     summary: 'Vérifier un code 2FA',
     description:
       'Vérifie le code fourni par l’utilisateur pour activer ou valider le 2FA.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Échec de la vérification du code 2FA',
+    type: TwoFAResponseDto,
   })
   @UseFilters(InvalidQueryExceptionFilter)
   @UseGuards(JwtAuthGuard)

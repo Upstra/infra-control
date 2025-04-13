@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsNotEmpty } from 'class-validator';
 
 export class TwoFADto {
@@ -20,16 +20,24 @@ export class TwoFAResponseDto {
   })
   isValid: boolean;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Access token for the user',
     example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-    required: true,
+    required: false,
   })
   accessToken: string;
 
-  constructor(isValid: boolean, accessToken: string) {
+  @ApiPropertyOptional({
+    description: 'Message indicating the status of the verification',
+    example: '2FA is valid.',
+    required: false,
+  })
+  message?: string;
+
+  constructor(isValid: boolean, accessToken?: string | null, message?: string) {
     this.isValid = isValid;
-    this.accessToken = accessToken;
+    this.accessToken = accessToken ?? null;
+    if (message) this.message = message;
   }
 }
 

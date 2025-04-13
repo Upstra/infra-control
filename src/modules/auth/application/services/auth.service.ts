@@ -15,7 +15,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly userDomain: UserDomainService,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   async login(dto: LoginDto) {
     const user = await this.userService.findRawByUsername(dto.username);
@@ -31,8 +31,10 @@ export class AuthService {
     if (this.userDomain.isTwoFactorEnabled(user)) {
       const tempToken = this.jwtService.sign(
         {
-          userId: user.id, step: '2fa'
-          , email: user.email, isTwoFactorEnabled: user.isTwoFactorEnabled
+          userId: user.id,
+          step: '2fa',
+          email: user.email,
+          isTwoFactorEnabled: user.isTwoFactorEnabled,
         },
         { expiresIn: '5m' },
       );

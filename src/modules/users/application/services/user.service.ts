@@ -25,7 +25,7 @@ export class UserService implements UserEndpointInterface {
     private readonly userDomain: UserDomainService,
     @Inject(forwardRef(() => RoleService))
     private readonly roleService: RoleService,
-  ) { }
+  ) {}
 
   async getMe(user: JwtPayload): Promise<UserResponseDto> {
     return this.getUserById(user.id);
