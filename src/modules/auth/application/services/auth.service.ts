@@ -59,4 +59,9 @@ export class AuthService {
     const token = this.jwtService.sign({ userId: user.id });
     return { accessToken: token };
   }
+
+  async get2FAStatus(email: string) {
+    const user = await this.userService.findRawByEmail(email);
+    return { isTwoFactorEnabled: !!user?.isTwoFactorEnabled };
+  }
 }

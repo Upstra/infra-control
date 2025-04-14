@@ -5,6 +5,8 @@ import {
   UseGuards,
   UseFilters,
   Req,
+  Get,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthService } from './application/services/auth.service';
 import { TwoFactorAuthService } from './application/services/twofa.service';
@@ -116,5 +118,13 @@ export class AuthController {
   })
   disable(@Req() user: JwtPayload, @Body() dto: TwoFADto) {
     return this.twoFAService.disable(user, dto);
+  }
+
+  @Get('2fa/status')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(InvalidQueryExceptionFilter)
+  @ApiBearerAuth()
+  get2FAStatus(@CurrentUser() user: JwtPayload) {
+    return this.authService.get2FAStatus(user.email);
   }
 }
