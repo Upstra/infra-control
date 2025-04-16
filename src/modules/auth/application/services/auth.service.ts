@@ -18,7 +18,14 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginDto) {
-    const user = await this.userService.findRawByUsername(dto.username);
+    const { identifier, password } = dto;
+
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
+
+    const user = isEmail
+      ? await this.userService.findRawByEmail(identifier)
+      : await this.userService.findRawByUsername(identifier);
+
     if (!user) throw new AuthNotFoundException();
 
     const isValidPassword = await this.userDomain.validatePassword(
