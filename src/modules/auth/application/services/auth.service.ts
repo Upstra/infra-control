@@ -15,13 +15,12 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly userDomain: UserDomainService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   async login(dto: LoginDto) {
     const { identifier, password } = dto;
 
-    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
-
+    const isEmail = identifier.includes('@') && identifier.split('@').length === 2;
     const user = isEmail
       ? await this.userService.findRawByEmail(identifier)
       : await this.userService.findRawByUsername(identifier);
