@@ -15,10 +15,16 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly userDomain: UserDomainService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   async login(dto: LoginDto) {
-    const user = await this.userService.findRawByUsername(dto.username);
+    const { identifier, password } = dto;
+
+    const isEmail = identifier.includes('@') && identifier.split('@').length === 2;
+    const user = isEmail
+      ? await this.userService.findRawByEmail(identifier)
+      : await this.userService.findRawByUsername(identifier);
+
     if (!user) throw new AuthNotFoundException();
 
     const isValidPassword = await this.userDomain.validatePassword(
@@ -58,5 +64,10 @@ export class AuthService {
     const user = await this.userService.registerWithDefaultRole(dto);
     const token = this.jwtService.sign({ userId: user.id });
     return { accessToken: token };
+  }
+
+  async get2FAStatus(email: string) {
+    const user = await this.userService.findRawByEmail(email);
+    return { isTwoFactorEnabled: !!user?.isTwoFactorEnabled };
   }
 }

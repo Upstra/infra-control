@@ -28,8 +28,9 @@ export class UserService implements UserEndpointInterface {
   ) {}
 
   async getMe(user: JwtPayload): Promise<UserResponseDto> {
-    return this.getUserById(user.id);
+    return this.getUserById(user.userId);
   }
+
   async getUserById(id: string): Promise<UserResponseDto> {
     try {
       const user = await this.userRepository.findOneByField('id', id);

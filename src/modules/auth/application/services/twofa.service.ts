@@ -4,6 +4,7 @@ import * as qrcode from 'qrcode';
 import {
   TwoFADisableResponseDto,
   TwoFADto,
+  TwoFaGenerateQrCodeResponseDto,
   TwoFAResponseDto,
 } from '../../dto/twofa.dto';
 import { UserService } from '@/modules/users/application/services/user.service';
@@ -18,9 +19,9 @@ export class TwoFactorAuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
   ) {}
-  async generate(email: string) {
+  async generate(email: string): Promise<TwoFaGenerateQrCodeResponseDto> {
     const user = await this.userService.findRawByEmail(email);
-    if (!user) throw new Error('User not found');
+    if (!user) throw new UserNotFoundException();
 
     const secret = speakeasy.generateSecret({
       name: `InfraControl (${email})`,
@@ -32,14 +33,13 @@ export class TwoFactorAuthService {
     });
 
     const qrCode = await qrcode.toDataURL(secret.otpauth_url);
-
-    return {
-      secret: secret.base32,
-      qrCode,
-    };
+    return new TwoFaGenerateQrCodeResponseDto(secret.base32, qrCode);
   }
 
-  async verify(userJwtPayload: JwtPayload, dto: TwoFADto) {
+  async verify(
+    userJwtPayload: JwtPayload,
+    dto: TwoFADto,
+  ): Promise<TwoFAResponseDto> {
     const user = await this.userService.findRawByEmail(userJwtPayload.email);
     if (!user) throw new UserNotFoundException();
 

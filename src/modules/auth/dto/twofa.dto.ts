@@ -63,3 +63,25 @@ export class TwoFADisableResponseDto {
       : 'Invalid code. 2FA is still active.';
   }
 }
+
+export class TwoFaGenerateQrCodeResponseDto {
+  @ApiProperty({
+    description: 'Base32 encoded secret key for manual entry in 2FA apps',
+    example: 'JBSWY3DPEHPK3PXP',
+    required: true,
+  })
+  setupKey: string;
+
+  @ApiProperty({
+    description: 'QR code image URL (base64) for scanning with 2FA apps',
+    example:
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAAB... (truncated for brevity)',
+    required: true,
+  })
+  qrCode: string;
+
+  constructor(setupKey: string, qrCode: string) {
+    this.setupKey = setupKey;
+    this.qrCode = qrCode;
+  }
+}
