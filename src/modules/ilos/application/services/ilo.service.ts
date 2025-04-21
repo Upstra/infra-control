@@ -1,8 +1,7 @@
-import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { IloRepositoryInterface } from '../../domain/interfaces/ilo.repository.interface';
 import { IloResponseDto } from '../dto/ilo.response.dto';
 import { IloCreationDto } from '../dto/ilo.creation.dto';
-import { IloNotFoundException } from '../../domain/exceptions/ilo.exception';
 import { IloUpdateDto } from '../dto/ilo.update.dto';
 import { IloDomainService } from '../../domain/services/ilo.domain.service';
 
@@ -15,51 +14,24 @@ export class IloService {
   ) {}
 
   async getIloById(id: string): Promise<IloResponseDto> {
-    try {
-      const ilo = await this.iloRepository.findIloById(id);
-      return new IloResponseDto(ilo);
-    } catch (error) {
-      this.handleError(error);
-    }
+    const ilo = await this.iloRepository.findIloById(id);
+    return new IloResponseDto(ilo);
   }
 
   async createIlo(iloDto: IloCreationDto): Promise<IloResponseDto> {
-    try {
-      const iloEntity = this.iloDomain.createIloEntityFromDto(iloDto);
-      const ilo = await this.iloRepository.save(iloEntity);
-      return new IloResponseDto(ilo);
-    } catch (error: any) {
-      this.handleError(error);
-    }
+    const iloEntity = this.iloDomain.createIloEntityFromDto(iloDto);
+    const ilo = await this.iloRepository.save(iloEntity);
+    return new IloResponseDto(ilo);
   }
 
   async updateIlo(id: string, iloDto: IloUpdateDto): Promise<IloResponseDto> {
-    try {
-      const iloExists = await this.iloRepository.findIloById(id);
-      const entity = this.iloDomain.updateIloEntityFromDto(iloExists, iloDto);
-      const ilo = await this.iloRepository.save(entity);
-      return new IloResponseDto(ilo);
-    } catch (error: any) {
-      this.handleError(error);
-    }
+    const iloExists = await this.iloRepository.findIloById(id);
+    const entity = this.iloDomain.updateIloEntityFromDto(iloExists, iloDto);
+    const ilo = await this.iloRepository.save(entity);
+    return new IloResponseDto(ilo);
   }
 
   async deleteIlo(id: string): Promise<void> {
-    try {
-      await this.iloRepository.deleteIlo(id);
-    } catch (error: any) {
-      this.handleError(error);
-    }
-  }
-
-  private handleError(error: any): void {
-    if (error instanceof IloNotFoundException) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-    } else {
-      throw new HttpException(
-        'An error occurred while processing the request',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+    await this.iloRepository.deleteIlo(id);
   }
 }

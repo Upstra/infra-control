@@ -2,8 +2,6 @@ import { RoleService } from '../../../roles/application/services/role.service';
 import {
   Injectable,
   Inject,
-  HttpException,
-  HttpStatus,
   ConflictException,
   forwardRef,
 } from '@nestjs/common';
@@ -11,7 +9,6 @@ import { UserRepositoryInterface } from '../../domain/interfaces/user.repository
 import { UserResponseDto } from '../dto/user.response.dto';
 import { UserEndpointInterface } from '../interfaces/user.endpoint.interface';
 import { UserUpdateDto } from '../dto/user.update.dto';
-import { UserNotFoundException } from '../../domain/exceptions/user.notfound.exception';
 import { User } from '../../domain/entities/user.entity';
 import { UserDomainService } from '../../domain/services/user.domain.service';
 import { RegisterDto } from '../../../auth/dto/register.dto';
@@ -30,13 +27,10 @@ export class UserService implements UserEndpointInterface {
   async getMe(user: JwtPayload): Promise<UserResponseDto> {
     return this.getUserById(user.id);
   }
+
   async getUserById(id: string): Promise<UserResponseDto> {
-    try {
-      const user = await this.userRepository.findOneByField('id', id);
-      return new UserResponseDto(user);
-    } catch (error: any) {
-      this.handleError(error);
-    }
+    const user = await this.userRepository.findOneByField('id', id);
+    return new UserResponseDto(user);
   }
 
   async findByUsername(username: string): Promise<UserResponseDto> {
@@ -63,20 +57,16 @@ export class UserService implements UserEndpointInterface {
     id: string,
     updateUserDto: UserUpdateDto,
   ): Promise<UserResponseDto> {
-    try {
-      const user = await this.userRepository.updateUser(
-        id,
-        updateUserDto.username,
-        updateUserDto.password,
-        '', // TODO
-        '',
-        updateUserDto.email,
-        updateUserDto.roleId,
-      );
-      return new UserResponseDto(user);
-    } catch (error: any) {
-      this.handleError(error);
-    }
+    const user = await this.userRepository.updateUser(
+      id,
+      updateUserDto.username,
+      updateUserDto.password,
+      '', // TODO
+      '',
+      updateUserDto.email,
+      updateUserDto.roleId,
+    );
+    return new UserResponseDto(user);
   }
 
   async updateUserFields(
@@ -88,11 +78,7 @@ export class UserService implements UserEndpointInterface {
   }
 
   async deleteUser(id: string): Promise<void> {
-    try {
-      await this.userRepository.deleteUser(id);
-    } catch (error: any) {
-      this.handleError(error);
-    }
+    await this.userRepository.deleteUser(id);
   }
 
   async assertUsernameAndEmailAvailable(username: string, email: string) {
@@ -118,17 +104,6 @@ export class UserService implements UserEndpointInterface {
     );
 
     return this.userRepository.save(user);
-  }
-
-  private handleError(error: any): void {
-    if (error instanceof UserNotFoundException) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
-    } else {
-      throw new HttpException(
-        'An error occurred while processing the request',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
   }
 
   async getUserCount(): Promise<number> {

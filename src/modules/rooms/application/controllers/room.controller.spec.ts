@@ -9,7 +9,7 @@ describe('RoomController', () => {
   let controller: RoomController;
   let service: RoomService;
 
-  let mockRoom: RoomResponseDto = {
+  const mockRoom: RoomResponseDto = {
     id: uuidv4().toString(),
     name: 'Room 69',
   };
