@@ -20,10 +20,7 @@ export class PermissionVmDto implements PermissionDtoInterface {
   @IsBoolean()
   allowRead?: boolean;
 
-  constructor(permission: PermissionVm) {
-    this.vmId = permission.vmId;
-    this.roleId = permission.roleId;
-    this.allowWrite = permission.allowWrite;
-    this.allowRead = permission.allowRead;
+  constructor(partial?: Partial<PermissionVmDto>) {
+    Object.assign(this, partial);
   }
 }

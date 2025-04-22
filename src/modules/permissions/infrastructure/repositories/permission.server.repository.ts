@@ -1,8 +1,11 @@
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Repository, QueryFailedError } from 'typeorm';
 import { PermissionServer } from '../../domain/entities/permission.server.entity';
 import { PermissionRepositoryInterface } from '../../infrastructure/interfaces/permission.repository.interface';
 import { Injectable } from '@nestjs/common';
-import { PermissionNotFoundException } from '../../domain/exceptions/permission.exception';
+import {
+  PermissionCreationException,
+  PermissionNotFoundException,
+} from '../../domain/exceptions/permission.exception';
 
 @Injectable()
 export class PermissionServerRepository
@@ -41,12 +44,12 @@ export class PermissionServerRepository
     const permission = await this.findPermissionByIds(serverId, roleId);
     permission.allowWrite = allowWrite;
     permission.allowRead = allowRead;
-    await this.save(permission);
+    await super.save(permission);
     return permission;
   }
 
   async deletePermission(serverId: string, roleId: string): Promise<void> {
     await this.findPermissionByIds(serverId, roleId);
-    await this.delete({ serverId, roleId });
+    await super.delete({ serverId, roleId });
   }
 }
