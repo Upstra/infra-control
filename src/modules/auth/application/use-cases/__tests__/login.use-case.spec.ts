@@ -4,26 +4,13 @@ import { UserService } from '@/modules/users/application/services/user.service';
 import { UserDomainService } from '@/modules/users/domain/services/user.domain.service';
 import { AuthNotFoundException, AuthPasswordNotValidException } from '@/modules/auth/domain/exceptions/auth.exception';
 import { User } from '@/modules/users/domain/entities/user.entity';
-import { Role } from '@/modules/roles/domain/entities/role.entity';
+import { createMockRole } from '@/modules/auth/__mocks__/role.mock';
 
 describe('LoginUseCase', () => {
     let useCase: LoginUseCase;
     let userService: jest.Mocked<UserService>;
     let userDomain: jest.Mocked<UserDomainService>;
     let jwtService: jest.Mocked<JwtService>;
-
-
-    const mockRole = (overrides?: Partial<Role>): Role => {
-        return Object.assign(new Role(), {
-            id: '1',
-            name: 'user',
-            canCreateServer: false,
-            users: [],
-            permissionServers: [],
-            permissionVms: [],
-            ...overrides,
-        });
-    };
 
     const mockUser = (overrides?: Partial<User>): User => {
         return Object.assign(new User(), {
@@ -37,7 +24,7 @@ describe('LoginUseCase', () => {
             twoFactorSecret: 'SOME_SECRET',
             createdAt: new Date(),
             updatedAt: new Date(),
-            role: mockRole(),
+            role: createMockRole(),
             roleId: '1',
             ...overrides,
         });
