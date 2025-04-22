@@ -15,21 +15,21 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { LoginDto } from './application/dto/login.dto';
-import { RegisterDto } from './application/dto/register.dto';
-import { TwoFADto, TwoFAResponseDto } from './application/dto/twofa.dto';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { TwoFAGuard } from './guards/twofa.guard';
+import { LoginDto } from '../../application/dto/login.dto';
+import { RegisterDto } from '../../application/dto/register.dto';
+import { TwoFADto, TwoFAResponseDto } from '../../application/dto/twofa.dto';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { TwoFAGuard } from '../guards/twofa.guard';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { InvalidQueryExceptionFilter } from '@/core/exceptions/repository.exception';
 
-import { LoginUseCase } from './application/use-cases/login.use-case';
-import { RegisterUseCase } from './application/use-cases/register.use-case';
-import { Get2FAStatusUseCase } from './application/use-cases/get-2fa-status.use-case';
-import { Generate2FAUseCase } from './application/use-cases/generate-2fa.use-case';
-import { Verify2FAUseCase } from './application/use-cases/verify-2fa.use-case';
-import { Disable2FAUseCase } from './application/use-cases/disable-2fa.use-case';
+import { LoginUseCase } from '../../application/use-cases/login.use-case';
+import { RegisterUseCase } from '../../application/use-cases/register.use-case';
+import { Get2FAStatusUseCase } from '../../application/use-cases/get-2fa-status.use-case';
+import { Generate2FAUseCase } from '../../application/use-cases/generate-2fa.use-case';
+import { Verify2FAUseCase } from '../../application/use-cases/verify-2fa.use-case';
+import { Disable2FAUseCase } from '../../application/use-cases/disable-2fa.use-case';
 
 @ApiTags('Auth')
 @Controller('auth')

@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { GroupServerController } from './group.server.controller';
+import { GroupServerController } from '../group.server.controller';
 
 describe('GroupServerController', () => {
   let controller: GroupServerController;
