@@ -16,6 +16,7 @@ import { User } from '../../domain/entities/user.entity';
 import { UserDomainService } from '../../domain/services/user.domain.service';
 import { RegisterDto } from '../../../auth/application/dto/register.dto';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { EnsureDefaultRoleUseCase } from '@/modules/roles/application/use-cases';
 
 @Injectable()
 export class UserService implements UserEndpointInterface {
@@ -23,8 +24,7 @@ export class UserService implements UserEndpointInterface {
     @Inject('UserRepositoryInterface')
     private readonly userRepository: UserRepositoryInterface,
     private readonly userDomain: UserDomainService,
-    @Inject(forwardRef(() => RoleService))
-    private readonly roleService: RoleService,
+    private readonly ensureDefaultRoleUseCase: EnsureDefaultRoleUseCase,
   ) {}
 
   async getMe(user: JwtPayload): Promise<UserResponseDto> {
@@ -107,7 +107,7 @@ export class UserService implements UserEndpointInterface {
   async registerWithDefaultRole(dto: RegisterDto): Promise<User> {
     await this.assertUsernameAndEmailAvailable(dto.username, dto.email);
 
-    const role = await this.roleService.ensureDefaultRole();
+    const role = await this.ensureDefaultRoleUseCase.execute();
 
     const user = await this.userDomain.createUserEntity(
       dto.username,
