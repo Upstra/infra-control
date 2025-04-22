@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { TwoFAResponseDto } from '../../dto/twofa.dto';
+import { TwoFAResponseDto } from '../../application/dto/twofa.dto';
 
 export class TwoFAInvalidCodeException extends HttpException {
   constructor() {

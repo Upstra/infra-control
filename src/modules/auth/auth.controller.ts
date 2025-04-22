@@ -4,14 +4,9 @@ import {
   Body,
   UseGuards,
   UseFilters,
-  Req,
   Get,
   UseInterceptors,
 } from '@nestjs/common';
-import { AuthService } from './application/services/auth.service';
-import { TwoFactorAuthService } from './application/services/twofa.service';
-import { LoginDto } from './dto/login.dto';
-import { TwoFADto, TwoFAResponseDto } from './dto/twofa.dto';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -19,20 +14,34 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { RegisterDto } from './dto/register.dto';
+
+import { LoginDto } from './application/dto/login.dto';
+import { RegisterDto } from './application/dto/register.dto';
+import { TwoFADto, TwoFAResponseDto } from './application/dto/twofa.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { TwoFAGuard } from './guards/twofa.guard';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { InvalidQueryExceptionFilter } from '@/core/exceptions/repository.exception';
-import { TwoFAGuard } from './guards/twofa.guard';
+
+import { LoginUseCase } from './application/use-cases/login.use-case';
+import { RegisterUseCase } from './application/use-cases/register.use-case';
+import { Get2FAStatusUseCase } from './application/use-cases/get-2fa-status.use-case';
+import { Generate2FAUseCase } from './application/use-cases/generate-2fa.use-case';
+import { Verify2FAUseCase } from './application/use-cases/verify-2fa.use-case';
+import { Disable2FAUseCase } from './application/use-cases/disable-2fa.use-case';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(
-    private readonly authService: AuthService,
-    private readonly twoFAService: TwoFactorAuthService,
-  ) {}
+    private readonly loginUseCase: LoginUseCase,
+    private readonly registerUseCase: RegisterUseCase,
+    private readonly get2FAStatusUseCase: Get2FAStatusUseCase,
+    private readonly generate2FAUseCase: Generate2FAUseCase,
+    private readonly verify2FAUseCase: Verify2FAUseCase,
+    private readonly disable2FAUseCase: Disable2FAUseCase,
+  ) { }
 
   @Post('login')
   @UseFilters(InvalidQueryExceptionFilter)
@@ -47,7 +56,7 @@ export class AuthController {
     required: true,
   })
   login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+    return this.loginUseCase.execute(dto);
   }
 
   @Post('register')
@@ -63,7 +72,7 @@ export class AuthController {
     required: true,
   })
   register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+    return this.registerUseCase.execute(dto);
   }
 
   @Post('2fa/generate')
@@ -76,7 +85,7 @@ export class AuthController {
   @ApiBearerAuth()
   @UseFilters(InvalidQueryExceptionFilter)
   generate(@CurrentUser() user: JwtPayload) {
-    return this.twoFAService.generate(user.email);
+    return this.generate2FAUseCase.execute(user.email);
   }
 
   @Post('2fa/verify')
@@ -99,7 +108,7 @@ export class AuthController {
     required: true,
   })
   verify(@CurrentUser() user: JwtPayload, @Body() dto: TwoFADto) {
-    return this.twoFAService.verify(user, dto);
+    return this.verify2FAUseCase.execute(user, dto);
   }
 
   @Post('2fa/disable')
@@ -116,8 +125,8 @@ export class AuthController {
     description: '2FA disable DTO',
     required: true,
   })
-  disable(@Req() user: JwtPayload, @Body() dto: TwoFADto) {
-    return this.twoFAService.disable(user, dto);
+  disable(@CurrentUser() user: JwtPayload, @Body() dto: TwoFADto) {
+    return this.disable2FAUseCase.execute(user, dto);
   }
 
   @Get('2fa/status')
@@ -125,6 +134,6 @@ export class AuthController {
   @UseInterceptors(InvalidQueryExceptionFilter)
   @ApiBearerAuth()
   get2FAStatus(@CurrentUser() user: JwtPayload) {
-    return this.authService.get2FAStatus(user.email);
+    return this.get2FAStatusUseCase.execute(user.email);
   }
 }
