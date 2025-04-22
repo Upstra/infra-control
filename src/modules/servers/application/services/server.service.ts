@@ -5,15 +5,21 @@ import { ServerCreationDto } from '../dto/server.creation.dto';
 import { ServerEndpointInterface } from '../interfaces/server.endpoint.interface';
 import { ServerUpdateDto } from '../dto/server.update.dto';
 import { ServerNotFoundException } from '../../domain/exceptions/server.notfound.exception';
-import { IloService } from '../../../ilos/application/services/ilo.service';
 import { ServerDomainService } from '../../domain/services/server.domain.service';
+import {
+  DeleteIloUseCase,
+  UpdateIloUseCase,
+  CreateIloUseCase,
+} from '@/modules/ilos/application/use-cases/';
 
 @Injectable()
 export class ServerService implements ServerEndpointInterface {
   constructor(
     @Inject('ServerRepositoryInterface')
     private readonly serverRepository: ServerRepositoryInterface,
-    private readonly iloService: IloService,
+    private readonly createIloUsecase: CreateIloUseCase,
+    private readonly updateIloUsecase: UpdateIloUseCase,
+    private readonly deleteIloUsecase: DeleteIloUseCase,
     private readonly serverDomain: ServerDomainService,
   ) {}
 
@@ -40,7 +46,7 @@ export class ServerService implements ServerEndpointInterface {
       const serverEntity =
         this.serverDomain.createServerEntityFromDto(serverDto);
       const server = await this.serverRepository.save(serverEntity);
-      const ilo = await this.iloService.createIlo(serverDto.ilo);
+      const ilo = await this.createIloUsecase.execute(serverDto.ilo);
       return new ServerResponseDto(server, ilo);
     } catch (error: any) {
       this.handleError(error);
@@ -59,7 +65,7 @@ export class ServerService implements ServerEndpointInterface {
       );
 
       const server = await this.serverRepository.save(entity);
-      const ilo = await this.iloService.updateIlo(id, serverDto.ilo);
+      const ilo = await this.updateIloUsecase.execute(id, serverDto.ilo);
       return new ServerResponseDto(server, ilo);
     } catch (error: any) {
       this.handleError(error);
@@ -69,7 +75,7 @@ export class ServerService implements ServerEndpointInterface {
   async deleteServer(id: string): Promise<void> {
     try {
       await this.serverRepository.deleteServer(id);
-      await this.iloService.deleteIlo(id);
+      await this.deleteIloUsecase.execute(id);
     } catch (error: any) {
       this.handleError(error);
     }
