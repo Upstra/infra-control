@@ -9,37 +9,37 @@ import { TwoFAInvalidCodeException } from '../../domain/exceptions/twofa.excepti
 
 @Injectable()
 export class Verify2FAUseCase {
-    constructor(
-        private readonly userService: UserService,
-        private readonly jwtService: JwtService,
-    ) { }
+  constructor(
+    private readonly userService: UserService,
+    private readonly jwtService: JwtService,
+  ) {}
 
-    async execute(
-        userJwtPayload: JwtPayload,
-        dto: TwoFADto,
-    ): Promise<TwoFAResponseDto> {
-        const user = await this.userService.findRawByEmail(userJwtPayload.email);
-        if (!user) throw new UserNotFoundException();
+  async execute(
+    userJwtPayload: JwtPayload,
+    dto: TwoFADto,
+  ): Promise<TwoFAResponseDto> {
+    const user = await this.userService.findRawByEmail(userJwtPayload.email);
+    if (!user) throw new UserNotFoundException();
 
-        const isValid: boolean = speakeasy.totp.verify({
-            secret: user.twoFactorSecret,
-            encoding: 'base32',
-            token: dto.code,
-        });
+    const isValid: boolean = speakeasy.totp.verify({
+      secret: user.twoFactorSecret,
+      encoding: 'base32',
+      token: dto.code,
+    });
 
-        if (!isValid) throw new TwoFAInvalidCodeException();
+    if (!isValid) throw new TwoFAInvalidCodeException();
 
-        if (!user.isTwoFactorEnabled) {
-            await this.userService.updateUserFields(user.id, {
-                isTwoFactorEnabled: true,
-            });
-        }
-
-        const accessToken = this.jwtService.sign({
-            userId: user.id,
-            email: user.email,
-        });
-
-        return new TwoFAResponseDto(isValid, accessToken);
+    if (!user.isTwoFactorEnabled) {
+      await this.userService.updateUserFields(user.id, {
+        isTwoFactorEnabled: true,
+      });
     }
+
+    const accessToken = this.jwtService.sign({
+      userId: user.id,
+      email: user.email,
+    });
+
+    return new TwoFAResponseDto(isValid, accessToken);
+  }
 }

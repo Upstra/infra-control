@@ -8,7 +8,7 @@ export class RegisterUseCase {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   async execute(dto: RegisterDto) {
     const user = await this.userService.registerWithDefaultRole(dto);

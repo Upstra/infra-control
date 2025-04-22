@@ -7,7 +7,7 @@ import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.no
 
 @Injectable()
 export class Generate2FAUseCase {
-  constructor(private readonly userService: UserService) { }
+  constructor(private readonly userService: UserService) {}
 
   async execute(email: string): Promise<TwoFaGenerateQrCodeResponseDto> {
     const user = await this.userService.findRawByEmail(email);

@@ -7,7 +7,7 @@ import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.no
 
 @Injectable()
 export class Disable2FAUseCase {
-  constructor(private readonly userService: UserService) { }
+  constructor(private readonly userService: UserService) {}
 
   async execute(
     user: JwtPayload,
