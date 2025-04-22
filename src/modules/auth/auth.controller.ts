@@ -41,7 +41,7 @@ export class AuthController {
     private readonly generate2FAUseCase: Generate2FAUseCase,
     private readonly verify2FAUseCase: Verify2FAUseCase,
     private readonly disable2FAUseCase: Disable2FAUseCase,
-  ) { }
+  ) {}
 
   @Post('login')
   @UseFilters(InvalidQueryExceptionFilter)

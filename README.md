@@ -1,81 +1,166 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# 🛠️ Infra Control - Backend API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+> Gestion d’infrastructure pour les environnements critiques (laboratoires, VM, serveurs, salles)  
+> API REST modulaire, sécurisée, avec authentification JWT + 2FA, orientée Domain Driven Design (DDD)
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 🚀 À quoi sert ce projet ?
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+**Infra Control** est une API backend permettant :
 
-## Installation
+- 🔐 Authentification sécurisée (login/register + JWT + 2FA via QR Code)
+- 🏢 Gestion d’utilisateurs, rôles et permissions
+- 🖥️ Contrôle d’objets d’infrastructure (machines, VMs, serveurs, racks)
+- 🧩 Architecture modulaire et scalable (feature-first, DDD)
 
-```bash
-$ pnpm install
+---
+
+## 📦 Stack technique
+
+- **NestJS 11** avec `@nestjs/typeorm`
+- **TypeORM** + PostgreSQL
+- **Passport + JWT**
+- **2FA avec Speakeasy + QRCode**
+- **Swagger** auto-documenté
+- **Docker** ready
+
+---
+
+## ⚙️ Requirements
+
+### ✅ Local
+
+- Node.js `^20.x`
+- pnpm `^8.x`
+- PostgreSQL (ou Docker pour l’avoir intégré)
+- Docker (optionnel mais recommandé)
+
+### ✅ Variables d’environnement `.env`
+
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=infra
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
+APP_PORT=3000
+
+JWT_SECRET=jwt_secret
+JWT_EXPIRATION=1h
 ```
 
-## Start the DB with Docker (don't forget to fill the `.env` file)
+---
+
+## 🐳 Démarrage avec Docker
 
 ```bash
-$ docker-compose up -d postgres
+# Pour lancer toute l'infra (Nest + PostgreSQL)
+docker-compose up --build
 ```
 
-## Running the app
+Puis l’API est dispo sur `http://localhost:3000`  
+La doc Swagger est dispo sur `http://localhost:3000/api`
 
+---
 
+## 🧪 Tests
+
+Les tests sont organisés par **feature** avec :
+- ✅ tests unitaires (`*.spec.ts`) pour DTOs, guards, use cases
+- 🔒 tests e2e prévus pour `/auth`, `/users`, etc.
+
+### 📥 Installation des dépendances
 
 ```bash
-# development
-$ pnpm start
-
-# watch mode
-$ pnpm start:dev
-
-# production mode
-$ pnpm start:prod
+pnpm install
 ```
 
-## Test
+### ▶️ Lancer **tous** les tests
 
 ```bash
-# unit tests
-$ pnpm test
-
-# e2e tests
-$ pnpm test:e2e
-
-# test coverage
-$ pnpm test:cov
+pnpm test
 ```
 
-## Support
+### 🔁 Lancer les tests en **mode watch**
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+pnpm test:watch
+```
 
-## Stay in touch
+### 📊 Lancer les tests avec **couverture**
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+pnpm test:cov
+```
 
-## License
+### 🧪 Lancer les **tests e2e**
 
-Nest is [MIT licensed](LICENSE).
+```bash
+pnpm test:e2e
+```
+
+---
+
+## 🎯 Lancer uniquement les tests d’une feature (ex: `auth`)
+
+```bash
+pnpm test -- src/modules/auth
+```
+
+Ou même plus précis :
+
+```bash
+pnpm test -- src/modules/auth/__tests__/twofa.guard.spec.ts
+```
+
+---
+
+## ✨ Structure de test
+
+```bash
+src/
+└── modules/
+    └── auth/
+        ├── __tests__/                  # tests unitaires du controller, guards, etc.
+        │   └── auth.controller.spec.ts
+        ├── application/
+        │   ├── use-cases/
+        │   │   ├── login.use-case.ts
+        │   │   └── __tests__/          # tests unitaires métier (DDD)
+        │   │       └── login.use-case.spec.ts
+        │   └── dto/
+        │       ├── login.dto.ts
+        │       └── __tests__/          # tests de validation class-validator
+        │           └── login.dto.spec.ts
+        ├── __mocks__/                  # mocks réutilisables (user, jwt, etc.)
+        └── auth.controller.ts
+```
+
+---
+
+## 🧼 Lint & format
+
+```bash
+pnpm lint      # corrige automatiquement
+pnpm format    # beautifie le code
+```
+
+---
+
+## ❤️ Tips
+
+- Créer des mocks avec `__mocks__/createMockUser.ts` pour simplifier tes tests
+- Il est possible de lancer `pnpm start:dev` pour du hot reload local
+
+---
+
+## ✍️ Auteurs
+
+Projet réalisé dans le cadre du Master 2 en Architecture des Logiciels par :
+
+[James ABIB](https://www.linkedin.com/in/jamesabib/)
+
+[Ronan KIELT](https://www.linkedin.com/in/ronan-kielt/)
+
+[Charles CRETOIS](https://www.linkedin.com/in/charles-cretois-43882a17b/)

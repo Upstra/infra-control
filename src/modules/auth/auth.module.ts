@@ -40,4 +40,4 @@ import { Disable2FAUseCase } from './application/use-cases/disable-2fa.use-case'
   ],
   exports: [JwtModule],
 })
-export class AuthModule { }
+export class AuthModule {}
