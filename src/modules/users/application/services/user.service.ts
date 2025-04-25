@@ -1,11 +1,9 @@
-import { RoleService } from '../../../roles/application/services/role.service';
 import {
   Injectable,
   Inject,
   HttpException,
   HttpStatus,
   ConflictException,
-  forwardRef,
 } from '@nestjs/common';
 import { UserRepositoryInterface } from '../../domain/interfaces/user.repository.interface';
 import { UserResponseDto } from '../dto/user.response.dto';
