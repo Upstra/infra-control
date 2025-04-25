@@ -1,16 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import * as speakeasy from 'speakeasy';
 import { JwtService } from '@nestjs/jwt';
-import { UserService } from '@/modules/users/application/services/user.service';
+
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { TwoFADto, TwoFAResponseDto } from '../dto/twofa.dto';
-import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.notfound.exception';
 import { TwoFAInvalidCodeException } from '../../domain/exceptions/twofa.exception';
+
+import {
+  GetUserByEmailUseCase,
+  UpdateUserFieldsUseCase,
+} from '@/modules/users/application/use-cases';
+import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
 
 @Injectable()
 export class Verify2FAUseCase {
   constructor(
-    private readonly userService: UserService,
+    private readonly findUserByEmailUseCase: GetUserByEmailUseCase,
+    private readonly updateUserFieldsUseCase: UpdateUserFieldsUseCase,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -18,8 +24,10 @@ export class Verify2FAUseCase {
     userJwtPayload: JwtPayload,
     dto: TwoFADto,
   ): Promise<TwoFAResponseDto> {
-    const user = await this.userService.findRawByEmail(userJwtPayload.email);
-    if (!user) throw new UserNotFoundException();
+    const user = await this.findUserByEmailUseCase.execute(
+      userJwtPayload.email,
+    );
+    if (!user) throw new UserNotFoundException(userJwtPayload.email);
 
     const isValid: boolean = speakeasy.totp.verify({
       secret: user.twoFactorSecret,
@@ -30,7 +38,7 @@ export class Verify2FAUseCase {
     if (!isValid) throw new TwoFAInvalidCodeException();
 
     if (!user.isTwoFactorEnabled) {
-      await this.userService.updateUserFields(user.id, {
+      await this.updateUserFieldsUseCase.execute(user.id, {
         isTwoFactorEnabled: true,
       });
     }
@@ -40,6 +48,6 @@ export class Verify2FAUseCase {
       email: user.email,
     });
 
-    return new TwoFAResponseDto(isValid, accessToken);
+    return new TwoFAResponseDto(true, accessToken);
   }
 }

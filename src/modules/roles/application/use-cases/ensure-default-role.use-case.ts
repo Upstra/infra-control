@@ -1,8 +1,8 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { UserService } from '@/modules/users/application/services/user.service';
+import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { RoleRepositoryInterface } from '../../domain/interfaces/role.repository.interface';
 import { Role } from '../../domain/entities/role.entity';
-import { forwardRef } from '@nestjs/common/utils';
+import { GetUserCountUseCase } from '@/modules/users/application/use-cases';
+
 @Injectable()
 export class EnsureDefaultRoleUseCase {
   private readonly logger = new Logger(EnsureDefaultRoleUseCase.name);
@@ -10,14 +10,14 @@ export class EnsureDefaultRoleUseCase {
   constructor(
     @Inject('RoleRepositoryInterface')
     private readonly roleRepository: RoleRepositoryInterface,
-    @Inject(forwardRef(() => UserService))
-    private readonly userService: UserService,
+    @Inject(forwardRef(() => GetUserCountUseCase))
+    private readonly getUserCountUseCase: GetUserCountUseCase,
   ) {}
 
   async execute(): Promise<Role> {
     const [roles, userCount] = await Promise.all([
       this.roleRepository.findAll(),
-      this.userService.getUserCount(),
+      this.getUserCountUseCase.execute(),
     ]);
 
     if (roles.length === 0 && userCount === 0) {

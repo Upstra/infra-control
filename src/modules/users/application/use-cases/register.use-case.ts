@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { RegisterDto } from '../dto/register.dto';
 import { RegisterUserUseCase } from '@/modules/users/application/use-cases';
+import { RegisterDto } from '@/modules/auth/application/dto/register.dto';
 
 @Injectable()
 export class RegisterUseCase {

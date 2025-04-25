@@ -8,25 +8,37 @@ import {
   Patch,
   UseGuards,
 } from '@nestjs/common';
-import { UserService } from '../services/user.service';
-import { UserResponseDto } from '../dto/user.response.dto';
-import { UserEndpointInterface } from '../interfaces/user.endpoint.interface';
-import { UserUpdateDto } from '../dto/user.update.dto';
 import {
   ApiBearerAuth,
   ApiBody,
-  ApiParam,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
+import { UserResponseDto } from '../../application/dto/user.response.dto';
+import { UserUpdateDto } from '../../application/dto/user.update.dto';
+
+import {
+  GetMeUseCase,
+  GetUserByIdUseCase,
+  UpdateUserUseCase,
+  DeleteUserUseCase,
+} from '../../application/use-cases';
+
 @ApiTags('User')
 @Controller('user')
-export class UserController implements UserEndpointInterface {
-  constructor(private readonly userService: UserService) {}
+export class UserController {
+  constructor(
+    private readonly getMeUseCase: GetMeUseCase,
+    private readonly getUserByIdUseCase: GetUserByIdUseCase,
+    private readonly updateUserUseCase: UpdateUserUseCase,
+    private readonly deleteUserUseCase: DeleteUserUseCase,
+  ) {}
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
@@ -34,10 +46,10 @@ export class UserController implements UserEndpointInterface {
   @ApiOperation({
     summary: 'Récupérer son propre profil utilisateur',
     description:
-      'Renvoie les informations du profil utilisateur actuellement connecté via le JWT.',
+      'Renvoie les informations du profil utilisateur connecté via le JWT.',
   })
   async getMe(@CurrentUser() user: JwtPayload): Promise<UserResponseDto> {
-    return this.userService.getMe(user);
+    return this.getMeUseCase.execute(user);
   }
 
   @Get(':id')
@@ -46,18 +58,17 @@ export class UserController implements UserEndpointInterface {
   @ApiParam({
     name: 'id',
     type: String,
-    description: 'UUID de l’utilisateur à récupérer',
+    description: "UUID de l'utilisateur à récupérer",
     required: true,
   })
   @ApiOperation({
     summary: 'Récupérer un utilisateur par son ID',
-    description:
-      'Renvoie les informations de l’utilisateur correspondant à l’ID fourni. Requiert une authentification.',
+    description: "Renvoie les informations de l'utilisateur par son UUID.",
   })
   async getUserById(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<UserResponseDto> {
-    return this.userService.getUserById(id);
+    return this.getUserByIdUseCase.execute(id);
   }
 
   @Patch(':id')
@@ -66,24 +77,23 @@ export class UserController implements UserEndpointInterface {
   @ApiParam({
     name: 'id',
     type: String,
-    description: 'UUID de l’utilisateur à mettre à jour',
+    description: "UUID de l'utilisateur à mettre à jour",
     required: true,
   })
   @ApiBody({
     type: UserUpdateDto,
-    description: 'Données pour mettre à jour un utilisateur',
+    description: 'Données nécessaires pour mettre à jour un utilisateur',
     required: true,
   })
   @ApiOperation({
     summary: 'Mettre à jour un utilisateur',
-    description:
-      'Met à jour les informations d’un utilisateur spécifique à partir de son UUID. Authentification requise.',
+    description: 'Modifie un utilisateur existant en fonction de son UUID.',
   })
   async updateUser(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UserUpdateDto,
   ): Promise<UserResponseDto> {
-    return this.userService.updateUser(id, updateUserDto);
+    return this.updateUserUseCase.execute(id, updateUserDto);
   }
 
   @Delete(':id')
@@ -92,15 +102,14 @@ export class UserController implements UserEndpointInterface {
   @ApiParam({
     name: 'id',
     type: String,
-    description: 'UUID de l’utilisateur à supprimer',
+    description: "UUID de l'utilisateur à supprimer",
     required: true,
   })
   @ApiOperation({
     summary: 'Supprimer un utilisateur',
-    description:
-      'Supprime un utilisateur en fonction de son UUID. Cette action est irréversible. Authentification requise.',
+    description: 'Supprime un utilisateur via son UUID. Action irréversible.',
   })
   async deleteUser(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    return this.userService.deleteUser(id);
+    return this.deleteUserUseCase.execute(id);
   }
 }

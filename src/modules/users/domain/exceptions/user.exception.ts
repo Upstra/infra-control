@@ -1,0 +1,37 @@
+export class UserNotFoundException extends Error {
+  constructor(id: string) {
+    super(`Utilisateur avec l'ID ${id} introuvable.`);
+  }
+}
+
+export class UserUpdateException extends Error {
+  constructor(message = 'Erreur lors de la mise à jour de l’utilisateur') {
+    super(message);
+  }
+}
+
+export class UserDeletionException extends Error {
+  constructor(message = 'Erreur lors de la suppression de l’utilisateur') {
+    super(message);
+  }
+}
+
+export class UserRetrievalException extends Error {
+  constructor(
+    message = 'Erreur lors de la récupération des données utilisateur',
+  ) {
+    super(message);
+  }
+}
+
+export class UserConflictException extends Error {
+  constructor(message = 'Nom d’utilisateur ou email déjà utilisé') {
+    super(message);
+  }
+}
+
+export class UserRegistrationException extends Error {
+  constructor(message = 'Erreur lors de l’inscription de l’utilisateur') {
+    super(message);
+  }
+}

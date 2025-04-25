@@ -1,16 +1,20 @@
 import { Disable2FAUseCase } from '../disable-2fa.use-case';
-import { UserService } from '@/modules/users/application/services/user.service';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { TwoFADto } from '../../dto/twofa.dto';
-import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.notfound.exception';
+import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
 import * as speakeasy from 'speakeasy';
+import {
+  GetUserByEmailUseCase,
+  UpdateUserFieldsUseCase,
+} from '@/modules/users/application/use-cases';
 
 jest.mock('speakeasy');
 
 describe('Disable2FAUseCase', () => {
   let useCase: Disable2FAUseCase;
-  let userService: jest.Mocked<UserService>;
+  let findUserByEmailUseCase: jest.Mocked<GetUserByEmailUseCase>;
+  let updateUserFieldsUseCase: jest.Mocked<UpdateUserFieldsUseCase>;
 
   const mockPayload: JwtPayload = {
     userId: 'user-123',
@@ -20,25 +24,32 @@ describe('Disable2FAUseCase', () => {
   const dto: TwoFADto = { code: '123456' };
 
   beforeEach(() => {
-    userService = {
-      findRawByEmail: jest.fn(),
-      updateUserFields: jest.fn(),
+    findUserByEmailUseCase = {
+      execute: jest.fn(),
     } as any;
 
-    useCase = new Disable2FAUseCase(userService);
+    updateUserFieldsUseCase = {
+      execute: jest.fn(),
+    } as any;
+
+    useCase = new Disable2FAUseCase(
+      findUserByEmailUseCase,
+      updateUserFieldsUseCase,
+    );
   });
 
   it('should disable 2FA if code is valid', async () => {
     const mockUser = createMockUser({ isTwoFactorEnabled: true });
-    userService.findRawByEmail.mockResolvedValue(mockUser);
+    findUserByEmailUseCase.execute.mockResolvedValue(mockUser);
     (speakeasy.totp.verify as jest.Mock).mockReturnValue(true);
 
     const result = await useCase.execute(mockPayload, dto);
 
-    expect(userService.updateUserFields).toHaveBeenCalledWith(mockUser.id, {
+    expect(updateUserFieldsUseCase.execute).toHaveBeenCalledWith(mockUser.id, {
       isTwoFactorEnabled: false,
       twoFactorSecret: null,
     });
+
     expect(result).toEqual({
       isDisabled: true,
       message: '2FA has been disabled successfully.',
@@ -47,12 +58,12 @@ describe('Disable2FAUseCase', () => {
 
   it('should not disable 2FA if code is invalid', async () => {
     const mockUser = createMockUser({ isTwoFactorEnabled: true });
-    userService.findRawByEmail.mockResolvedValue(mockUser);
+    findUserByEmailUseCase.execute.mockResolvedValue(mockUser);
     (speakeasy.totp.verify as jest.Mock).mockReturnValue(false);
 
     const result = await useCase.execute(mockPayload, dto);
 
-    expect(userService.updateUserFields).not.toHaveBeenCalled();
+    expect(updateUserFieldsUseCase.execute).not.toHaveBeenCalled();
     expect(result).toEqual({
       isDisabled: false,
       message: 'Invalid code. 2FA is still active.',
@@ -60,7 +71,7 @@ describe('Disable2FAUseCase', () => {
   });
 
   it('should throw UserNotFoundException if user is not found', async () => {
-    userService.findRawByEmail.mockResolvedValue(null);
+    findUserByEmailUseCase.execute.mockResolvedValue(null);
 
     await expect(useCase.execute(mockPayload, dto)).rejects.toThrow(
       UserNotFoundException,

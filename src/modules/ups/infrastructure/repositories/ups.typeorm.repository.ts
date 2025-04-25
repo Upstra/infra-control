@@ -8,7 +8,8 @@ import { UpsNotFoundException } from '../../domain/exceptions/ups.exception';
 @Injectable()
 export class UpsTypeormRepository
   extends Repository<Ups>
-  implements UpsRepositoryInterface {
+  implements UpsRepositoryInterface
+{
   constructor(private readonly dataSource: DataSource) {
     super(Ups, dataSource.createEntityManager());
   }
