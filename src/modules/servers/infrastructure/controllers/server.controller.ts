@@ -1,4 +1,3 @@
-import { ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import {
   Body,
   Controller,
@@ -9,16 +8,30 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { ServerService } from '../services/server.service';
-import { ServerResponseDto } from '../dto/server.response.dto';
-import { ServerCreationDto } from '../dto/server.creation.dto';
-import { ServerEndpointInterface } from '../interfaces/server.endpoint.interface';
-import { ServerUpdateDto } from '../dto/server.update.dto';
+import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
+
+import {
+  GetAllServersUseCase,
+  GetServerByIdUseCase,
+  CreateServerUseCase,
+  UpdateServerUseCase,
+  DeleteServerUseCase,
+} from '@/modules/servers/application/use-cases';
+
+import { ServerResponseDto } from '../../application/dto/server.response.dto';
+import { ServerCreationDto } from '../../application/dto/server.creation.dto';
+import { ServerUpdateDto } from '../../application/dto/server.update.dto';
 
 @ApiTags('Server')
 @Controller('server')
-export class ServerController implements ServerEndpointInterface {
-  constructor(private readonly serverService: ServerService) {}
+export class ServerController {
+  constructor(
+    private readonly getAllServersUseCase: GetAllServersUseCase,
+    private readonly getServerByIdUseCase: GetServerByIdUseCase,
+    private readonly createServerUseCase: CreateServerUseCase,
+    private readonly updateServerUseCase: UpdateServerUseCase,
+    private readonly deleteServerUseCase: DeleteServerUseCase,
+  ) {}
 
   @Get()
   @ApiOperation({
@@ -27,7 +40,7 @@ export class ServerController implements ServerEndpointInterface {
       'Renvoie la liste de tous les serveurs enregistrés dans le système.',
   })
   async getAllServers(): Promise<ServerResponseDto[]> {
-    return this.serverService.getAllServers();
+    return this.getAllServersUseCase.execute();
   }
 
   @Get(':id')
@@ -45,7 +58,7 @@ export class ServerController implements ServerEndpointInterface {
   async getServerById(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<ServerResponseDto> {
-    return this.serverService.getServerById(id);
+    return this.getServerByIdUseCase.execute(id);
   }
 
   @Post()
@@ -62,7 +75,7 @@ export class ServerController implements ServerEndpointInterface {
   async createServer(
     @Body() serverDto: ServerCreationDto,
   ): Promise<ServerResponseDto> {
-    return this.serverService.createServer(serverDto);
+    return this.createServerUseCase.execute(serverDto);
   }
 
   @Patch(':id')
@@ -86,7 +99,7 @@ export class ServerController implements ServerEndpointInterface {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() serverDto: ServerUpdateDto,
   ): Promise<ServerResponseDto> {
-    return this.serverService.updateServer(id, serverDto);
+    return this.updateServerUseCase.execute(id, serverDto);
   }
 
   @Delete(':id')
@@ -102,6 +115,6 @@ export class ServerController implements ServerEndpointInterface {
       'Supprime un serveur du système à partir de son UUID. Action irréversible.',
   })
   async deleteServer(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    return this.serverService.deleteServer(id);
+    return this.deleteServerUseCase.execute(id);
   }
 }

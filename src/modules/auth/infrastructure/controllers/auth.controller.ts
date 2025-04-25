@@ -29,7 +29,7 @@ import { Get2FAStatusUseCase } from '../../application/use-cases/get-2fa-status.
 import { Generate2FAUseCase } from '../../application/use-cases/generate-2fa.use-case';
 import { Verify2FAUseCase } from '../../application/use-cases/verify-2fa.use-case';
 import { Disable2FAUseCase } from '../../application/use-cases/disable-2fa.use-case';
-import { InvalidQueryExceptionFilter } from '@/core/filters/repository/invalid-query.exception.filter';
+import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.exception.filter';
 
 @ApiTags('Auth')
 @Controller('auth')

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Server } from '../../domain/entities/server.entity';
 import { ServerRepositoryInterface } from '../../domain/interfaces/server.repository.interface';
 import { DataSource, Repository } from 'typeorm';
-import { ServerNotFoundException } from '../../domain/exceptions/server.notfound.exception';
+import { ServerNotFoundException } from '../../domain/exceptions/server.exception';
 
 @Injectable()
 export class ServerTypeormRepository
