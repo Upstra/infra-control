@@ -1,17 +1,17 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { VmController } from './application/controllers/vm.controller';
-import { VmService } from './application/services/vm.service';
+import { VmController } from './infrastructure/controllers/vm.controller';
 import { VmTypeormRepository } from './infrastructure/repositories/vm.typeorm.repository';
 import { Vm } from './domain/entities/vm.entity';
 import { VmDomainService } from './vm.domain.service';
+import { VmUseCase } from './application/use-cases';
 
 @Module({
   controllers: [VmController],
-  exports: [VmService],
+  exports: [...VmUseCase],
   imports: [TypeOrmModule.forFeature([Vm])],
   providers: [
-    VmService,
+    ...VmUseCase,
     VmDomainService,
     {
       provide: 'VmRepositoryInterface',

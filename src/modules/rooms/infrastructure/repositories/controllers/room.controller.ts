@@ -19,7 +19,6 @@ import {
   GetRoomByIdUseCase,
   UpdateRoomUseCase,
 } from '@/modules/rooms/application/use-cases';
-import { RoomCreationException } from '@/modules/rooms/domain/exceptions/room.exception';
 
 @ApiTags('Room')
 @Controller('room')
@@ -30,7 +29,7 @@ export class RoomController {
     private readonly createRoomUseCase: CreateRoomUseCase,
     private readonly updateRoomUseCase: UpdateRoomUseCase,
     private readonly deleteRoomUseCase: DeleteRoomUseCase,
-  ) {}
+  ) { }
 
   @Get()
   @ApiOperation({

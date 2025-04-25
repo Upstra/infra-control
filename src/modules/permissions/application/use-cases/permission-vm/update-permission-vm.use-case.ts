@@ -4,7 +4,7 @@ import { PermissionVmDto } from '../../dto/permission.vm.dto';
 
 @Injectable()
 export class UpdatePermissionVmUseCase {
-  constructor(private readonly repository: PermissionVmRepository) {}
+  constructor(private readonly repository: PermissionVmRepository) { }
 
   async execute(dto: PermissionVmDto): Promise<PermissionVmDto> {
     try {
@@ -16,6 +16,7 @@ export class UpdatePermissionVmUseCase {
       );
       return new PermissionVmDto(updated);
     } catch (error) {
+
       throw new Error('Erreur lors de la mise à jour de la permission VM');
     }
   }

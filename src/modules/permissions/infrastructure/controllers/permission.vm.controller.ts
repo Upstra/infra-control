@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 import {
   CreatePermissionVmUseCase,
   GetPermissionsVmByRoleUseCase,
@@ -16,7 +16,7 @@ export class PermissionVmController {
     private readonly updateUseCase: UpdatePermissionVmUseCase,
     private readonly getByIdsUseCase: GetPermissionVmByIdsUseCase,
     private readonly getByRoleUseCase: GetPermissionsVmByRoleUseCase,
-  ) {}
+  ) { }
 
   @Post()
   @ApiOperation({ summary: 'Créer une permission VM' })

@@ -31,10 +31,10 @@ function getAllFilterFiles(baseDir: string): string[] {
   for (const entry of entries) {
     const fullPath = path.join(baseDir, entry.name);
     if (entry.isDirectory()) {
-      files.push(...getAllFilterFiles(fullPath)); // 👈 recurse here (déjà bon !)
+      files.push(...getAllFilterFiles(fullPath));
     } else if (
       entry.name.endsWith('.exception.filter.ts') ||
-      entry.name.endsWith('.exception.filter.js') // 👈 ajoute ce cas pour build
+      entry.name.endsWith('.exception.filter.js')
     ) {
       files.push(fullPath);
     }
