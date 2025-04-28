@@ -10,6 +10,6 @@ export class GetGroupVmByIdUseCase {
   ) {}
 
   async execute(id: string): Promise<GroupVmDto> {
-    throw new Error('Method not implemented.');
+    throw new Error(`Method not implemented: ${id}`);
   }
 }

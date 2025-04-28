@@ -37,7 +37,9 @@ export class EnsureDefaultRoleUseCase {
         }
         return admin;
       } catch (e) {
-        this.logger.error('ADMIN introuvable, fallback');
+        this.logger.error(
+          `ADMIN introuvable, fallback à la création, erreur: ${e}`,
+        );
         const fallback = await this.roleRepository.createRole('ADMIN');
         fallback.canCreateServer = true;
         return this.roleRepository.save(fallback);

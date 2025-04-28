@@ -22,7 +22,7 @@ import { GetAllGroupServerUseCase } from '../use-cases/group-server/get-all-grou
 import { UpdateGroupServerUseCase } from '../use-cases/group-server/update-group-server.use-case';
 import { DeleteGroupServerUseCase } from '../use-cases/group-server/delete-group-server.use-case';
 import { GroupServerDto } from '../dto/group.server.dto';
-import { GetGroupServerByIdUseCase } from '../use-cases/group-server/get-group-server-by-id.use-case';
+import { GetGroupServerByIdUseCase } from '../use-cases/group-server/get-group-server-by-id.use-case copy 2';
 
 @ApiTags('Group Server')
 @Controller('group/server')
@@ -33,7 +33,7 @@ export class GroupServerController {
     private readonly getGroupServerById: GetGroupServerByIdUseCase,
     private readonly updateGroupServer: UpdateGroupServerUseCase,
     private readonly deleteGroupServer: DeleteGroupServerUseCase,
-  ) { }
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Récupérer tous les groupes de serveurs' })
