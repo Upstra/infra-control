@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UserRepositoryInterface } from '../../domain/interfaces/user.repository.interface';
 import { User } from '../../domain/entities/user.entity';
-import { UserNotFoundException } from '../../domain/exceptions/user.exception';
 
 @Injectable()
 export class UpdateUserFieldsUseCase {
@@ -13,7 +12,6 @@ export class UpdateUserFieldsUseCase {
   async execute(id: string, partialUser: Partial<User>): Promise<User> {
     await this.repo.updateFields(id, partialUser);
     const updated = await this.repo.findOneByField('id', id);
-    if (!updated) throw new UserNotFoundException(id);
     return updated;
   }
 }

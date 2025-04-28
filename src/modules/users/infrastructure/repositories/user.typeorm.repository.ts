@@ -1,8 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { User } from '../../domain/entities/user.entity';
 import { UserRepositoryInterface } from '../../domain/interfaces/user.repository.interface';
 import { DataSource, Repository } from 'typeorm';
 import { InvalidQueryValueException } from '@/core/exceptions/repository.exception';
+import {
+  UserDeletionException,
+  UserNotFoundException,
+  UserRetrievalException,
+} from '../../domain/exceptions/user.exception';
 
 @Injectable()
 export class UserTypeormRepository
@@ -20,7 +25,15 @@ export class UserTypeormRepository
     if (value === undefined || value === null) {
       throw new InvalidQueryValueException(String(field), value);
     }
-    return await super.findOne({ where: { [field]: value } as any });
+    try {
+      return await this.findOneOrFail({ where: { [field]: value } as any });
+    } catch (error) {
+      if (error.name === 'EntityNotFoundError') {
+        throw new UserNotFoundException(String(value));
+      }
+      Logger.error('Error retrieving user by field:', error);
+      throw new UserRetrievalException();
+    }
   }
 
   async count(): Promise<number> {
@@ -50,7 +63,11 @@ export class UserTypeormRepository
   }
 
   async deleteUser(id: string): Promise<void> {
-    await this.findOneByField('id', id);
-    await this.delete(id);
+    try {
+      await this.delete(id);
+    } catch (error) {
+      Logger.error('Error deleting user:', error);
+      throw new UserDeletionException();
+    }
   }
 }

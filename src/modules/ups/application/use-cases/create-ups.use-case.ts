@@ -10,10 +10,11 @@ export class CreateUpsUseCase {
     @Inject('UpsRepositoryInterface')
     private readonly upsRepository: UpsRepositoryInterface,
     private readonly upsDomainService: UpsDomainService,
-  ) { }
+  ) {}
 
   async execute(dto: UpsCreationDto): Promise<UpsResponseDto> {
-    const entity = await this.upsDomainService.createUpsEntityFromCreateDto(dto);
+    const entity =
+      await this.upsDomainService.createUpsEntityFromCreateDto(dto);
     const saved = await this.upsRepository.save(entity);
 
     const ups = Array.isArray(saved) ? saved[0] : saved;
