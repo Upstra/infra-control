@@ -7,6 +7,7 @@ import {
   Post,
   Patch,
   Delete,
+  HttpCode,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -15,42 +16,48 @@ import {
   ApiParam,
   ApiBody,
 } from '@nestjs/swagger';
+
+import { CreateGroupServerUseCase } from '../use-cases/group-server/create-group-server.use-case';
+import { GetAllGroupServerUseCase } from '../use-cases/group-server/get-all-group-server.use-case';
+import { UpdateGroupServerUseCase } from '../use-cases/group-server/update-group-server.use-case';
+import { DeleteGroupServerUseCase } from '../use-cases/group-server/delete-group-server.use-case';
 import { GroupServerDto } from '../dto/group.server.dto';
-import { GroupServerService } from '../services/group.server.service';
-import { GroupController } from '../interfaces/group.controller';
+import { GetGroupServerByIdUseCase } from '../use-cases/group-server/get-group-server-by-id.use-case';
 
 @ApiTags('Group Server')
 @Controller('group/server')
-export class GroupServerController extends GroupController<GroupServerDto> {
-  constructor(protected readonly groupService: GroupServerService) {
-    super(groupService);
-  }
+export class GroupServerController {
+  constructor(
+    private readonly createGroupServer: CreateGroupServerUseCase,
+    private readonly getAllGroupsServer: GetAllGroupServerUseCase,
+    private readonly getGroupServerById: GetGroupServerByIdUseCase,
+    private readonly updateGroupServer: UpdateGroupServerUseCase,
+    private readonly deleteGroupServer: DeleteGroupServerUseCase,
+  ) { }
 
   @Get()
   @ApiOperation({ summary: 'Récupérer tous les groupes de serveurs' })
   @ApiResponse({ status: 200, type: [GroupServerDto] })
-  override async getAllGroups(): Promise<GroupServerDto[]> {
-    return super.getAllGroups();
+  async getAllGroups(): Promise<GroupServerDto[]> {
+    return this.getAllGroupsServer.execute();
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Récupérer un groupe serveur par ID' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
   @ApiResponse({ status: 200, type: GroupServerDto })
-  override async getGroupById(
+  async getGroupById(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<GroupServerDto> {
-    return super.getGroupById(id);
+    return this.getGroupServerById.execute(id);
   }
 
   @Post()
   @ApiOperation({ summary: 'Créer un nouveau groupe serveur' })
   @ApiBody({ type: GroupServerDto })
   @ApiResponse({ status: 201, type: GroupServerDto })
-  override async createGroup(
-    @Body() groupDto: GroupServerDto,
-  ): Promise<GroupServerDto> {
-    return super.createGroup(groupDto);
+  async createGroup(@Body() dto: GroupServerDto): Promise<GroupServerDto> {
+    return this.createGroupServer.execute(dto);
   }
 
   @Patch(':id')
@@ -58,20 +65,19 @@ export class GroupServerController extends GroupController<GroupServerDto> {
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
   @ApiBody({ type: GroupServerDto })
   @ApiResponse({ status: 200, type: GroupServerDto })
-  override async updateGroup(
+  async updateGroup(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() groupDto: GroupServerDto,
+    @Body() dto: GroupServerDto,
   ): Promise<GroupServerDto> {
-    return super.updateGroup(id, groupDto);
+    return this.updateGroupServer.execute(id, dto);
   }
 
   @Delete(':id')
+  @HttpCode(204)
   @ApiOperation({ summary: 'Supprimer un groupe serveur' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
-  @ApiResponse({ status: 204 })
-  override async deleteGroup(
-    @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<void> {
-    return super.deleteGroup(id);
+  @ApiResponse({ status: 204, description: 'Groupe supprimé avec succès' })
+  async deleteGroup(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    return this.deleteGroupServer.execute(id);
   }
 }

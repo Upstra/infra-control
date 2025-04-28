@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UpsController } from './application/controllers/ups.controller';
-import { UpsService } from './application/services/ups.service';
 import { Ups } from './domain/entities/ups.entity';
 import { UpsTypeormRepository } from './infrastructure/repositories/ups.typeorm.repository';
+import { UpsUseCases } from './application/use-cases';
 
 @Module({
   controllers: [UpsController],
-  exports: [UpsService],
+  exports: [...UpsUseCases],
   imports: [TypeOrmModule.forFeature([Ups])],
   providers: [
-    UpsService,
+    ...UpsUseCases,
     {
       provide: 'UpsRepositoryInterface',
       useClass: UpsTypeormRepository,

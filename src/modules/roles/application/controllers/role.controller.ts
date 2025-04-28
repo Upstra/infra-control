@@ -8,16 +8,30 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { RoleService } from '../services/role.service';
-import { RoleResponseDto } from '../dto/role.response.dto';
-import { RoleEndpointInterface } from '../interfaces/role.endpoint.interface';
-import { RoleCreationDto } from '../dto/role.creation.dto';
 import { ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+
+import {
+  RoleCreationDto,
+  RoleResponseDto,
+} from '@/modules/roles/application/dto/index';
+import {
+  CreateRoleUseCase,
+  DeleteRoleUseCase,
+  GetAllRolesUseCase,
+  GetRoleByIdUseCase,
+  UpdateRoleUseCase,
+} from '@/modules/roles/application/use-cases';
 
 @ApiTags('Role')
 @Controller('role')
-export class RoleController implements RoleEndpointInterface {
-  constructor(private readonly roleService: RoleService) {}
+export class RoleController {
+  constructor(
+    private readonly createRoleUseCase: CreateRoleUseCase,
+    private readonly getAllRolesUseCase: GetAllRolesUseCase,
+    private readonly getRoleByIdUseCase: GetRoleByIdUseCase,
+    private readonly updateRoleUseCase: UpdateRoleUseCase,
+    private readonly deleteRoleUseCase: DeleteRoleUseCase,
+  ) {}
 
   @Get()
   @ApiOperation({
@@ -26,7 +40,7 @@ export class RoleController implements RoleEndpointInterface {
       'Renvoie la liste complète des rôles disponibles dans le système.',
   })
   async getAllRoles(): Promise<RoleResponseDto[]> {
-    return this.roleService.getAllRoles();
+    return this.getAllRolesUseCase.execute();
   }
 
   @Get(':id')
@@ -44,7 +58,7 @@ export class RoleController implements RoleEndpointInterface {
   async getRoleById(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<RoleResponseDto> {
-    return this.roleService.getRoleById(id);
+    return this.getRoleByIdUseCase.execute(id);
   }
 
   @Post()
@@ -59,7 +73,7 @@ export class RoleController implements RoleEndpointInterface {
       'Crée un rôle avec les données spécifiées dans le `RoleCreationDto`.',
   })
   async createRole(@Body() roleDto: RoleCreationDto): Promise<RoleResponseDto> {
-    return this.roleService.createRole(roleDto);
+    return this.createRoleUseCase.execute(roleDto);
   }
 
   @Patch(':id')
@@ -83,7 +97,7 @@ export class RoleController implements RoleEndpointInterface {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() roleDto: RoleCreationDto,
   ): Promise<RoleResponseDto> {
-    return this.roleService.updateRole(id, roleDto);
+    return this.updateRoleUseCase.execute(id, roleDto);
   }
 
   @Delete(':id')
@@ -99,6 +113,6 @@ export class RoleController implements RoleEndpointInterface {
       'Supprime un rôle spécifique selon son UUID. Action irréversible.',
   })
   async deleteRole(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    return this.roleService.deleteRole(id);
+    return this.deleteRoleUseCase.execute(id);
   }
 }

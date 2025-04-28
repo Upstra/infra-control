@@ -1,17 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from '../dto/login.dto';
-import { UserService } from '../../../users/application/services/user.service';
 import { UserDomainService } from '../../../users/domain/services/user.domain.service';
 import {
   AuthNotFoundException,
   AuthPasswordNotValidException,
 } from '../../domain/exceptions/auth.exception';
+import {
+  GetUserByEmailUseCase,
+  GetUserByUsernameUseCase,
+} from '@/modules/users/application/use-cases';
 
 @Injectable()
 export class LoginUseCase {
   constructor(
-    private readonly userService: UserService,
+    private readonly findByUsername: GetUserByUsernameUseCase,
+    private readonly findByEmail: GetUserByEmailUseCase,
     private readonly userDomain: UserDomainService,
     private readonly jwtService: JwtService,
   ) {}
@@ -22,8 +26,8 @@ export class LoginUseCase {
       identifier.includes('@') && identifier.split('@').length === 2;
 
     const user = isEmail
-      ? await this.userService.findRawByEmail(identifier)
-      : await this.userService.findRawByUsername(identifier);
+      ? await this.findByEmail.execute(identifier)
+      : await this.findByUsername.execute(identifier);
 
     if (!user) throw new AuthNotFoundException();
 

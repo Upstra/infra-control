@@ -1,18 +1,22 @@
 import { Verify2FAUseCase } from '../verify-2fa.use-case';
 import { JwtService } from '@nestjs/jwt';
-import { UserService } from '@/modules/users/application/services/user.service';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
-import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.notfound.exception';
+import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
 import { TwoFAInvalidCodeException } from '@/modules/auth/domain/exceptions/twofa.exception';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { TwoFADto } from '../../dto/twofa.dto';
 import * as speakeasy from 'speakeasy';
+import {
+  GetUserByEmailUseCase,
+  UpdateUserFieldsUseCase,
+} from '@/modules/users/application/use-cases';
 
 jest.mock('speakeasy');
 
 describe('Verify2FAUseCase', () => {
   let useCase: Verify2FAUseCase;
-  let userService: jest.Mocked<UserService>;
+  let getUserByEmailUseCase: jest.Mocked<GetUserByEmailUseCase>;
+  let updateUserFieldsUseCase: jest.Mocked<UpdateUserFieldsUseCase>;
   let jwtService: jest.Mocked<JwtService>;
 
   const userPayload: JwtPayload = {
@@ -25,46 +29,53 @@ describe('Verify2FAUseCase', () => {
   };
 
   beforeEach(() => {
-    userService = {
-      findRawByEmail: jest.fn(),
-      updateUserFields: jest.fn(),
+    getUserByEmailUseCase = {
+      execute: jest.fn(),
+    } as any;
+
+    updateUserFieldsUseCase = {
+      execute: jest.fn(),
     } as any;
 
     jwtService = {
       sign: jest.fn(),
     } as any;
 
-    useCase = new Verify2FAUseCase(userService, jwtService);
+    useCase = new Verify2FAUseCase(
+      getUserByEmailUseCase,
+      updateUserFieldsUseCase,
+      jwtService,
+    );
   });
 
   it('should return an access token if code is valid and 2FA is already enabled', async () => {
     const user = createMockUser({ isTwoFactorEnabled: true });
-    userService.findRawByEmail.mockResolvedValue(user);
+    getUserByEmailUseCase.execute.mockResolvedValue(user);
     (speakeasy.totp.verify as jest.Mock).mockReturnValue(true);
     jwtService.sign.mockReturnValue('access.token');
 
     const result = await useCase.execute(userPayload, dto);
 
     expect(result).toEqual({ isValid: true, accessToken: 'access.token' });
-    expect(userService.updateUserFields).not.toHaveBeenCalled();
+    expect(updateUserFieldsUseCase.execute).not.toHaveBeenCalled();
   });
 
   it('should enable 2FA and return token if code is valid and 2FA is not enabled', async () => {
     const user = createMockUser({ isTwoFactorEnabled: false });
-    userService.findRawByEmail.mockResolvedValue(user);
+    getUserByEmailUseCase.execute.mockResolvedValue(user);
     (speakeasy.totp.verify as jest.Mock).mockReturnValue(true);
     jwtService.sign.mockReturnValue('enabled.token');
 
     const result = await useCase.execute(userPayload, dto);
 
-    expect(userService.updateUserFields).toHaveBeenCalledWith(user.id, {
+    expect(updateUserFieldsUseCase.execute).toHaveBeenCalledWith(user.id, {
       isTwoFactorEnabled: true,
     });
     expect(result).toEqual({ isValid: true, accessToken: 'enabled.token' });
   });
 
   it('should throw UserNotFoundException if user not found', async () => {
-    userService.findRawByEmail.mockResolvedValue(null);
+    getUserByEmailUseCase.execute.mockResolvedValue(null);
 
     await expect(useCase.execute(userPayload, dto)).rejects.toThrow(
       UserNotFoundException,
@@ -73,7 +84,7 @@ describe('Verify2FAUseCase', () => {
 
   it('should throw TwoFAInvalidCodeException if code is invalid', async () => {
     const user = createMockUser();
-    userService.findRawByEmail.mockResolvedValue(user);
+    getUserByEmailUseCase.execute.mockResolvedValue(user);
     (speakeasy.totp.verify as jest.Mock).mockReturnValue(false);
 
     await expect(useCase.execute(userPayload, dto)).rejects.toThrow(

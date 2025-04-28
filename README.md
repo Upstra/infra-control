@@ -67,6 +67,7 @@ La doc Swagger est dispo sur `http://localhost:3000/api`
 ## 🧪 Tests
 
 Les tests sont organisés par **feature** avec :
+
 - ✅ tests unitaires (`*.spec.ts`) pour DTOs, guards, use cases
 - 🔒 tests e2e prévus pour `/auth`, `/users`, etc.
 

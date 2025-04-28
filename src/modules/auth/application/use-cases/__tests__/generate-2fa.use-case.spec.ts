@@ -1,29 +1,39 @@
 import { Generate2FAUseCase } from '../generate-2fa.use-case';
-import { UserService } from '@/modules/users/application/services/user.service';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
-import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.notfound.exception';
+import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
 import * as speakeasy from 'speakeasy';
 import * as qrcode from 'qrcode';
+import {
+  GetUserByEmailUseCase,
+  UpdateUserFieldsUseCase,
+} from '@/modules/users/application/use-cases';
 
 jest.mock('speakeasy');
 jest.mock('qrcode');
 
 describe('Generate2FAUseCase', () => {
   let useCase: Generate2FAUseCase;
-  let userService: jest.Mocked<UserService>;
+  let getUserByEmailUseCase: jest.Mocked<GetUserByEmailUseCase>;
+  let updateUserFieldsUseCase: jest.Mocked<UpdateUserFieldsUseCase>;
 
   beforeEach(() => {
-    userService = {
-      findRawByEmail: jest.fn(),
-      updateUserFields: jest.fn(),
+    getUserByEmailUseCase = {
+      execute: jest.fn(),
     } as any;
 
-    useCase = new Generate2FAUseCase(userService);
+    updateUserFieldsUseCase = {
+      execute: jest.fn(),
+    } as any;
+
+    useCase = new Generate2FAUseCase(
+      getUserByEmailUseCase,
+      updateUserFieldsUseCase,
+    );
   });
 
   it('should generate a secret and QR code if user exists', async () => {
     const mockUser = createMockUser();
-    userService.findRawByEmail.mockResolvedValue(mockUser);
+    getUserByEmailUseCase.execute.mockResolvedValue(mockUser);
 
     (speakeasy.generateSecret as jest.Mock).mockReturnValue({
       base32: 'MOCK_SECRET',
@@ -36,8 +46,8 @@ describe('Generate2FAUseCase', () => {
 
     const result = await useCase.execute(mockUser.email);
 
-    expect(userService.findRawByEmail).toHaveBeenCalledWith(mockUser.email);
-    expect(userService.updateUserFields).toHaveBeenCalledWith(mockUser.id, {
+    expect(getUserByEmailUseCase.execute).toHaveBeenCalledWith(mockUser.email);
+    expect(updateUserFieldsUseCase.execute).toHaveBeenCalledWith(mockUser.id, {
       isTwoFactorEnabled: false,
       twoFactorSecret: 'MOCK_SECRET',
     });
@@ -47,7 +57,7 @@ describe('Generate2FAUseCase', () => {
   });
 
   it('should throw UserNotFoundException if user does not exist', async () => {
-    userService.findRawByEmail.mockResolvedValue(null);
+    getUserByEmailUseCase.execute.mockResolvedValue(null);
 
     await expect(useCase.execute('notfound@mail.com')).rejects.toThrow(
       UserNotFoundException,

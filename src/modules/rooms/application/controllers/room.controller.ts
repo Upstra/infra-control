@@ -8,16 +8,28 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { RoomService } from '../services/room.service';
-import { RoomResponseDto } from '../dto/room.response.dto';
-import { RoomEndpointInterface } from '../interfaces/room.endpoint.interface';
-import { RoomCreationDto } from '../dto/room.creation.dto';
 import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
+
+import { RoomCreationDto } from '../dto/room.creation.dto';
+import { RoomResponseDto } from '../dto/room.response.dto';
+import {
+  CreateRoomUseCase,
+  DeleteRoomUseCase,
+  GetAllRoomsUseCase,
+  GetRoomByIdUseCase,
+  UpdateRoomUseCase,
+} from '@/modules/rooms/application/use-cases';
 
 @ApiTags('Room')
 @Controller('room')
-export class RoomController implements RoomEndpointInterface {
-  constructor(private readonly roomService: RoomService) {}
+export class RoomController {
+  constructor(
+    private readonly getAllRoomsUseCase: GetAllRoomsUseCase,
+    private readonly getRoomByIdUseCase: GetRoomByIdUseCase,
+    private readonly createRoomUseCase: CreateRoomUseCase,
+    private readonly updateRoomUseCase: UpdateRoomUseCase,
+    private readonly deleteRoomUseCase: DeleteRoomUseCase,
+  ) {}
 
   @Get()
   @ApiOperation({
@@ -25,7 +37,7 @@ export class RoomController implements RoomEndpointInterface {
     description: 'Renvoie la liste de toutes les salles disponibles.',
   })
   async getAllRooms(): Promise<RoomResponseDto[]> {
-    return this.roomService.getAllRooms();
+    return this.getAllRoomsUseCase.execute();
   }
 
   @Get(':id')
@@ -43,7 +55,7 @@ export class RoomController implements RoomEndpointInterface {
   async getRoomById(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<RoomResponseDto> {
-    return this.roomService.getRoomById(id);
+    return this.getRoomByIdUseCase.execute(id);
   }
 
   @Post()
@@ -58,7 +70,7 @@ export class RoomController implements RoomEndpointInterface {
       'Crée une salle dans le système à partir des données du `RoomCreationDto`.',
   })
   async createRoom(@Body() roomDto: RoomCreationDto): Promise<RoomResponseDto> {
-    return this.roomService.createRoom(roomDto);
+    return this.createRoomUseCase.execute(roomDto);
   }
 
   @Patch(':id')
@@ -82,7 +94,7 @@ export class RoomController implements RoomEndpointInterface {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() roomDto: RoomCreationDto,
   ): Promise<RoomResponseDto> {
-    return this.roomService.updateRoom(id, roomDto);
+    return this.updateRoomUseCase.execute(id, roomDto);
   }
 
   @Delete(':id')
@@ -97,6 +109,6 @@ export class RoomController implements RoomEndpointInterface {
     description: 'Supprime une salle du système de manière permanente.',
   })
   async deleteRoom(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    return this.roomService.deleteRoom(id);
+    return this.deleteRoomUseCase.execute(id);
   }
 }

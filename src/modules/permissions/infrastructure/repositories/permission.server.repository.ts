@@ -41,12 +41,12 @@ export class PermissionServerRepository
     const permission = await this.findPermissionByIds(serverId, roleId);
     permission.allowWrite = allowWrite;
     permission.allowRead = allowRead;
-    await this.save(permission);
+    await super.save(permission);
     return permission;
   }
 
   async deletePermission(serverId: string, roleId: string): Promise<void> {
     await this.findPermissionByIds(serverId, roleId);
-    await this.delete({ serverId, roleId });
+    await super.delete({ serverId, roleId });
   }
 }

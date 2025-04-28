@@ -8,17 +8,30 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { UpsService } from '../services/ups.service';
+import { ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+
+import {
+  CreateUpsUseCase,
+  DeleteUpsUseCase,
+  GetAllUpsUseCase,
+  GetUpsByIdUseCase,
+  UpdateUpsUseCase,
+} from '@/modules/ups/application/use-cases';
+
 import { UpsResponseDto } from '../dto/ups.response.dto';
 import { UpsCreationDto } from '../dto/ups.creation.dto';
-import { UpsEndpointInterface } from '../interfaces/ups.endpoint.interface';
 import { UpsUpdateDto } from '../dto/ups.update.dto';
-import { ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('UPS')
 @Controller('ups')
-export class UpsController implements UpsEndpointInterface {
-  constructor(private readonly upsService: UpsService) {}
+export class UpsController {
+  constructor(
+    private readonly getAllUpsUseCase: GetAllUpsUseCase,
+    private readonly getUpsByIdUseCase: GetUpsByIdUseCase,
+    private readonly createUpsUseCase: CreateUpsUseCase,
+    private readonly updateUpsUseCase: UpdateUpsUseCase,
+    private readonly deleteUpsUseCase: DeleteUpsUseCase,
+  ) {}
 
   @Get()
   @ApiOperation({
@@ -27,7 +40,7 @@ export class UpsController implements UpsEndpointInterface {
       'Renvoie la liste complète de tous les équipements UPS disponibles.',
   })
   async getAllUps(): Promise<UpsResponseDto[]> {
-    return this.upsService.getAllUps();
+    return this.getAllUpsUseCase.execute();
   }
 
   @Get(':id')
@@ -45,7 +58,7 @@ export class UpsController implements UpsEndpointInterface {
   async getUpsById(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<UpsResponseDto> {
-    return this.upsService.getUpsById(id);
+    return this.getUpsByIdUseCase.execute(id);
   }
 
   @Post()
@@ -60,7 +73,7 @@ export class UpsController implements UpsEndpointInterface {
       'Crée un nouvel UPS dans le système à partir des informations fournies.',
   })
   async createUps(@Body() upsDto: UpsCreationDto): Promise<UpsResponseDto> {
-    return this.upsService.createUps(upsDto);
+    return this.createUpsUseCase.execute(upsDto);
   }
 
   @Patch(':id')
@@ -84,7 +97,7 @@ export class UpsController implements UpsEndpointInterface {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() upsDto: UpsUpdateDto,
   ): Promise<UpsResponseDto> {
-    return this.upsService.updateUps(id, upsDto);
+    return this.updateUpsUseCase.execute(id, upsDto);
   }
 
   @Delete(':id')
@@ -100,6 +113,6 @@ export class UpsController implements UpsEndpointInterface {
       'Supprime un UPS du système en utilisant son UUID. Action définitive.',
   })
   async deleteUps(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    return this.upsService.deleteUps(id);
+    return this.deleteUpsUseCase.execute(id);
   }
 }

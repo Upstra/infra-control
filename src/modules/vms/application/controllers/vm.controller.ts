@@ -6,18 +6,31 @@ import {
   Param,
   Patch,
   Post,
+  ParseUUIDPipe,
 } from '@nestjs/common';
-import { VmService } from '../services/vm.service';
 import { VmCreationDto } from '../dto/vm.creation.dto';
 import { VmResponseDto } from '../dto/vm.response.dto';
 import { VmEndpointInterface } from '../interfaces/vm.endpoint.interface';
 import { VmUpdateDto } from '../dto/vm.update.dto';
 import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
+import {
+  CreateVmUseCase,
+  DeleteVmUseCase,
+  GetAllVmsUseCase,
+  GetVmByIdUseCase,
+  UpdateVmUseCase,
+} from '@/modules/vms/application/use-cases';
 
 @ApiTags('VM')
 @Controller('vm')
 export class VmController implements VmEndpointInterface {
-  constructor(private readonly vmService: VmService) {}
+  constructor(
+    private readonly getAllVmsUseCase: GetAllVmsUseCase,
+    private readonly getVmByIdUseCase: GetVmByIdUseCase,
+    private readonly createVmUseCase: CreateVmUseCase,
+    private readonly updateVmUseCase: UpdateVmUseCase,
+    private readonly deleteVmUseCase: DeleteVmUseCase,
+  ) {}
 
   @Get()
   @ApiOperation({
@@ -26,7 +39,7 @@ export class VmController implements VmEndpointInterface {
       'Renvoie toutes les machines virtuelles enregistrées dans le système.',
   })
   async getAllVms(): Promise<VmResponseDto[]> {
-    return this.vmService.getAllVms();
+    return this.getAllVmsUseCase.execute();
   }
 
   @Get(':id')
@@ -41,8 +54,10 @@ export class VmController implements VmEndpointInterface {
     description:
       'Retourne les informations détaillées d’une machine virtuelle en fonction de son identifiant.',
   })
-  async getVmById(@Param('id') id: string): Promise<VmResponseDto> {
-    return this.vmService.getVmById(id);
+  async getVmById(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<VmResponseDto> {
+    return this.getVmByIdUseCase.execute(id);
   }
 
   @Post()
@@ -57,7 +72,7 @@ export class VmController implements VmEndpointInterface {
       'Crée une machine virtuelle en utilisant les données spécifiées dans le `VmCreationDto`.',
   })
   async createVm(@Body() vmDto: VmCreationDto): Promise<VmResponseDto> {
-    return this.vmService.createVm(vmDto);
+    return this.createVmUseCase.execute(vmDto);
   }
 
   @Patch(':id')
@@ -78,10 +93,10 @@ export class VmController implements VmEndpointInterface {
       'Met à jour les informations d’une machine virtuelle existante.',
   })
   async updateVm(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() vmDto: VmUpdateDto,
   ): Promise<VmResponseDto> {
-    return this.vmService.updateVm(id, vmDto);
+    return this.updateVmUseCase.execute(id, vmDto);
   }
 
   @Delete(':id')
@@ -96,7 +111,7 @@ export class VmController implements VmEndpointInterface {
     description:
       'Supprime une machine virtuelle du système à partir de son identifiant. Action irréversible.',
   })
-  async deleteVm(@Param('id') id: string): Promise<void> {
-    return this.vmService.deleteVm(id);
+  async deleteVm(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    return this.deleteVmUseCase.execute(id);
   }
 }

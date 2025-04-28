@@ -1,9 +1,9 @@
-import { JwtStrategy } from './infrastructure/jwt.strategy';
+import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
-import { AuthController } from './auth.controller';
+import { AuthController } from './application/controllers/auth.controller';
 import { UserModule } from '../users/user.module';
 import { PassportModule } from '@nestjs/passport';
 import { LoginUseCase } from './application/use-cases/login.use-case';

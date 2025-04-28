@@ -1,22 +1,22 @@
 import { Get2FAStatusUseCase } from '../get-2fa-status.use-case';
-import { UserService } from '@/modules/users/application/services/user.service';
+import { GetUserByEmailUseCase } from '@/modules/users/application/use-cases';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 
 describe('Get2FAStatusUseCase', () => {
   let useCase: Get2FAStatusUseCase;
-  let userService: jest.Mocked<UserService>;
+  let getUserByEmailUseCase: jest.Mocked<GetUserByEmailUseCase>;
 
   beforeEach(() => {
-    userService = {
-      findRawByEmail: jest.fn(),
+    getUserByEmailUseCase = {
+      execute: jest.fn(),
     } as any;
 
-    useCase = new Get2FAStatusUseCase(userService);
+    useCase = new Get2FAStatusUseCase(getUserByEmailUseCase);
   });
 
   it('should return true if 2FA is enabled', async () => {
     const user = createMockUser({ isTwoFactorEnabled: true });
-    userService.findRawByEmail.mockResolvedValue(user);
+    getUserByEmailUseCase.execute.mockResolvedValue(user);
 
     const result = await useCase.execute(user.email);
 
@@ -25,7 +25,7 @@ describe('Get2FAStatusUseCase', () => {
 
   it('should return false if 2FA is disabled', async () => {
     const user = createMockUser({ isTwoFactorEnabled: false });
-    userService.findRawByEmail.mockResolvedValue(user);
+    getUserByEmailUseCase.execute.mockResolvedValue(user);
 
     const result = await useCase.execute(user.email);
 
@@ -33,7 +33,7 @@ describe('Get2FAStatusUseCase', () => {
   });
 
   it('should return false if user is not found', async () => {
-    userService.findRawByEmail.mockResolvedValue(null);
+    getUserByEmailUseCase.execute.mockResolvedValue(null);
 
     const result = await useCase.execute('nonexistent@example.com');
 

@@ -1,23 +1,28 @@
+// 📁 src/modules/auth/application/use-cases/generate-2fa.use-case.ts
 import { Injectable } from '@nestjs/common';
 import * as speakeasy from 'speakeasy';
 import * as qrcode from 'qrcode';
-import { UserService } from '@/modules/users/application/services/user.service';
 import { TwoFaGenerateQrCodeResponseDto } from '../dto/twofa.dto';
-import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.notfound.exception';
+import {
+  GetUserByEmailUseCase,
+  UpdateUserFieldsUseCase,
+} from '@/modules/users/application/use-cases';
 
 @Injectable()
 export class Generate2FAUseCase {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly findUserByEmail: GetUserByEmailUseCase,
+    private readonly updateUserFields: UpdateUserFieldsUseCase,
+  ) {}
 
   async execute(email: string): Promise<TwoFaGenerateQrCodeResponseDto> {
-    const user = await this.userService.findRawByEmail(email);
-    if (!user) throw new UserNotFoundException();
+    const user = await this.findUserByEmail.execute(email);
 
     const secret = speakeasy.generateSecret({
       name: `InfraControl (${email})`,
     });
 
-    await this.userService.updateUserFields(user.id, {
+    await this.updateUserFields.execute(user.id, {
       isTwoFactorEnabled: false,
       twoFactorSecret: secret.base32,
     });

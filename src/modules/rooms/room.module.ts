@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RoomController } from './application/controllers/room.controller';
-import { RoomService } from './application/services/room.service';
 import { Room } from './domain/entities/room.entity';
 import { RoomTypeormRepository } from './infrastructure/repositories/room.typeorm.repository';
+import { RoomUseCases } from './application/use-cases';
 
 @Module({
   controllers: [RoomController],
-  exports: [RoomService],
+  exports: [...RoomUseCases],
   imports: [TypeOrmModule.forFeature([Room])],
   providers: [
-    RoomService,
+    ...RoomUseCases,
     {
       provide: 'RoomRepositoryInterface',
       useClass: RoomTypeormRepository,
