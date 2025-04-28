@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RoomController } from './infrastructure/repositories/controllers/room.controller';
+import { RoomController } from './application/controllers/room.controller';
 import { Room } from './domain/entities/room.entity';
 import { RoomTypeormRepository } from './infrastructure/repositories/room.typeorm.repository';
 import { RoomUseCases } from './application/use-cases';

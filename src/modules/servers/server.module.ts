@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ServerController } from './infrastructure/controllers/server.controller';
+import { ServerController } from './application/controllers/server.controller';
 import { Server } from './domain/entities/server.entity';
 import { ServerTypeormRepository } from './infrastructure/repositories/server.typeorm.repository';
 import { IloModule } from '../ilos/ilo.module';

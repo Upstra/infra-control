@@ -4,9 +4,9 @@ import {
   GetPermissionsVmByRoleUseCase,
   GetPermissionVmByIdsUseCase,
   UpdatePermissionVmUseCase,
-} from '../../application/use-cases/permission-vm';
+} from '../use-cases/permission-vm';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { PermissionVmDto } from '../../application/dto/permission.vm.dto';
+import { PermissionVmDto } from '../dto/permission.vm.dto';
 
 @ApiTags('Permission - VM')
 @Controller('permission/vm')
@@ -16,7 +16,7 @@ export class PermissionVmController {
     private readonly updateUseCase: UpdatePermissionVmUseCase,
     private readonly getByIdsUseCase: GetPermissionVmByIdsUseCase,
     private readonly getByRoleUseCase: GetPermissionsVmByRoleUseCase,
-  ) { }
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Créer une permission VM' })

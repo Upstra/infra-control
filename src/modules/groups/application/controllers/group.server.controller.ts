@@ -17,12 +17,12 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 
-import { CreateGroupServerUseCase } from '../../application/use-cases/group-server/create-group-server.use-case';
-import { GetAllGroupServerUseCase } from '../../application/use-cases/group-server/get-all-group-server.use-case';
-import { UpdateGroupServerUseCase } from '../../application/use-cases/group-server/update-group-server.use-case';
-import { DeleteGroupServerUseCase } from '../../application/use-cases/group-server/delete-group-server.use-case';
-import { GroupServerDto } from '../../application/dto/group.server.dto';
-import { GetGroupServerByIdUseCase } from '../../application/use-cases/group-server/get-group-server-by-id.use-case copy 2';
+import { CreateGroupServerUseCase } from '../use-cases/group-server/create-group-server.use-case';
+import { GetAllGroupServerUseCase } from '../use-cases/group-server/get-all-group-server.use-case';
+import { UpdateGroupServerUseCase } from '../use-cases/group-server/update-group-server.use-case';
+import { DeleteGroupServerUseCase } from '../use-cases/group-server/delete-group-server.use-case';
+import { GroupServerDto } from '../dto/group.server.dto';
+import { GetGroupServerByIdUseCase } from '../use-cases/group-server/get-group-server-by-id.use-case copy 2';
 
 @ApiTags('Group Server')
 @Controller('group/server')

@@ -2,14 +2,13 @@ import { DataSource, Repository } from 'typeorm';
 import { PermissionServer } from '../../domain/entities/permission.server.entity';
 import { PermissionRepositoryInterface } from '../../infrastructure/interfaces/permission.repository.interface';
 import { Injectable } from '@nestjs/common';
-import {
-  PermissionNotFoundException,
-} from '../../domain/exceptions/permission.exception';
+import { PermissionNotFoundException } from '../../domain/exceptions/permission.exception';
 
 @Injectable()
 export class PermissionServerRepository
   extends Repository<PermissionServer>
-  implements PermissionRepositoryInterface {
+  implements PermissionRepositoryInterface
+{
   constructor(private readonly dataSource: DataSource) {
     super(PermissionServer, dataSource.createEntityManager());
   }

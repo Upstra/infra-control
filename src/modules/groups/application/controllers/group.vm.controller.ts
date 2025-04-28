@@ -17,12 +17,12 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 
-import { CreateGroupVmUseCase } from '../../application/use-cases/group-vm/create-group-vm.use-case';
-import { GetAllGroupVmUseCase } from '../../application/use-cases/group-vm/get-all-group-vm.use-case';
-import { UpdateGroupVmUseCase } from '../../application/use-cases/group-vm/update-group-vm.use-case';
-import { DeleteGroupVmUseCase } from '../../application/use-cases/group-vm/delete-group-vm.use-case';
-import { GroupVmDto } from '../../application/dto/group.vm.dto';
-import { GetGroupVmByIdUseCase } from '../../application/use-cases/group-vm/get-group-vm-by-id.use-case';
+import { CreateGroupVmUseCase } from '../use-cases/group-vm/create-group-vm.use-case';
+import { GetAllGroupVmUseCase } from '../use-cases/group-vm/get-all-group-vm.use-case';
+import { UpdateGroupVmUseCase } from '../use-cases/group-vm/update-group-vm.use-case';
+import { DeleteGroupVmUseCase } from '../use-cases/group-vm/delete-group-vm.use-case';
+import { GroupVmDto } from '../dto/group.vm.dto';
+import { GetGroupVmByIdUseCase } from '../use-cases/group-vm/get-group-vm-by-id.use-case';
 
 @ApiTags('Group VM')
 @Controller('group/vm')

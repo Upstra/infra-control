@@ -18,9 +18,9 @@ import {
   UpdateUpsUseCase,
 } from '@/modules/ups/application/use-cases';
 
-import { UpsResponseDto } from '../../application/dto/ups.response.dto';
-import { UpsCreationDto } from '../../application/dto/ups.creation.dto';
-import { UpsUpdateDto } from '../../application/dto/ups.update.dto';
+import { UpsResponseDto } from '../dto/ups.response.dto';
+import { UpsCreationDto } from '../dto/ups.creation.dto';
+import { UpsUpdateDto } from '../dto/ups.update.dto';
 
 @ApiTags('UPS')
 @Controller('ups')

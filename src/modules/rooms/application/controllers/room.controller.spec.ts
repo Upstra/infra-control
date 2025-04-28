@@ -1,6 +1,6 @@
 import { RoomController } from './room.controller';
-import { RoomCreationDto } from '../../../application/dto/room.creation.dto';
-import { RoomResponseDto } from '../../../application/dto/room.response.dto';
+import { RoomCreationDto } from '../dto/room.creation.dto';
+import { RoomResponseDto } from '../dto/room.response.dto';
 import { RoomService } from '../../../application/services/room.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { v4 as uuidv4 } from 'uuid';

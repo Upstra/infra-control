@@ -10,8 +10,8 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
 
-import { RoomCreationDto } from '../../../application/dto/room.creation.dto';
-import { RoomResponseDto } from '../../../application/dto/room.response.dto';
+import { RoomCreationDto } from '../dto/room.creation.dto';
+import { RoomResponseDto } from '../dto/room.response.dto';
 import {
   CreateRoomUseCase,
   DeleteRoomUseCase,
@@ -29,7 +29,7 @@ export class RoomController {
     private readonly createRoomUseCase: CreateRoomUseCase,
     private readonly updateRoomUseCase: UpdateRoomUseCase,
     private readonly deleteRoomUseCase: DeleteRoomUseCase,
-  ) { }
+  ) {}
 
   @Get()
   @ApiOperation({

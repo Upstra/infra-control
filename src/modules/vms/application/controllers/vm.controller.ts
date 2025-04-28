@@ -8,10 +8,10 @@ import {
   Post,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { VmCreationDto } from '../../application/dto/vm.creation.dto';
-import { VmResponseDto } from '../../application/dto/vm.response.dto';
-import { VmEndpointInterface } from '../../application/interfaces/vm.endpoint.interface';
-import { VmUpdateDto } from '../../application/dto/vm.update.dto';
+import { VmCreationDto } from '../dto/vm.creation.dto';
+import { VmResponseDto } from '../dto/vm.response.dto';
+import { VmEndpointInterface } from '../interfaces/vm.endpoint.interface';
+import { VmUpdateDto } from '../dto/vm.update.dto';
 import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
 import {
   CreateVmUseCase,

@@ -16,12 +16,12 @@ import {
   ApiParam,
   ApiBody,
 } from '@nestjs/swagger';
-import { PermissionServerDto } from '../../application/dto/permission.server.dto';
-import { CreatePermissionServerUseCase } from '../../application/use-cases/permission-server/create-permission-server.use-case';
-import { GetPermissionsServerByRoleUseCase } from '../../application/use-cases/permission-server/get-permission-server-by-role.use-case';
-import { GetPermissionServerByIdsUseCase } from '../../application/use-cases/permission-server/get-permission-server-by-ids.use-case';
-import { UpdatePermissionServerUseCase } from '../../application/use-cases/permission-server/update-permission-server.use-case';
-import { DeletePermissionServerUseCase } from '../../application/use-cases/permission-server/delete-permission-server.use-case';
+import { PermissionServerDto } from '../dto/permission.server.dto';
+import { CreatePermissionServerUseCase } from '../use-cases/permission-server/create-permission-server.use-case';
+import { GetPermissionsServerByRoleUseCase } from '../use-cases/permission-server/get-permission-server-by-role.use-case';
+import { GetPermissionServerByIdsUseCase } from '../use-cases/permission-server/get-permission-server-by-ids.use-case';
+import { UpdatePermissionServerUseCase } from '../use-cases/permission-server/update-permission-server.use-case';
+import { DeletePermissionServerUseCase } from '../use-cases/permission-server/delete-permission-server.use-case';
 
 @ApiTags('Permissions - Serveur')
 @Controller('permissions/server')

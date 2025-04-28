@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UpsController } from './infrastructure/controllers/ups.controller';
+import { UpsController } from './application/controllers/ups.controller';
 import { Ups } from './domain/entities/ups.entity';
 import { UpsTypeormRepository } from './infrastructure/repositories/ups.typeorm.repository';
 import { UpsUseCases } from './application/use-cases';

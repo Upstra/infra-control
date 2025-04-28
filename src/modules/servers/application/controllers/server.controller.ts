@@ -18,9 +18,9 @@ import {
   DeleteServerUseCase,
 } from '@/modules/servers/application/use-cases';
 
-import { ServerResponseDto } from '../../application/dto/server.response.dto';
-import { ServerCreationDto } from '../../application/dto/server.creation.dto';
-import { ServerUpdateDto } from '../../application/dto/server.update.dto';
+import { ServerResponseDto } from '../dto/server.response.dto';
+import { ServerCreationDto } from '../dto/server.creation.dto';
+import { ServerUpdateDto } from '../dto/server.update.dto';
 
 @ApiTags('Server')
 @Controller('server')

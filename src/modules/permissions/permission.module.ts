@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { PermissionVmController } from './infrastructure/controllers/permission.vm.controller';
-import { PermissionServerController } from './infrastructure/controllers/permission.server.controller';
+import { PermissionVmController } from './application/controllers/permission.vm.controller';
+import { PermissionServerController } from './application/controllers/permission.server.controller';
 
 import { PermissionDomainServerService } from './domain/services/permission.domain.server.service';
 import { PermissionDomainVmService } from './domain/services/permission.domain.vm.service';

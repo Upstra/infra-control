@@ -1,6 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RoleController } from './infrastructure/controllers/role.controller';
+import { RoleController } from './application/controllers/role.controller';
 import { Role } from './domain/entities/role.entity';
 import { RoleTypeormRepository } from './infrastructure/repositories/role.typeorm.repository';
 import { PermissionModule } from '../permissions/permission.module';
@@ -25,4 +25,4 @@ import { RoleUseCases } from './application/use-cases';
   ],
   exports: [...RoleUseCases, RoleDomainService],
 })
-export class RoleModule {}
+export class RoleModule { }
