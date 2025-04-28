@@ -25,4 +25,4 @@ import { RoleUseCases } from './application/use-cases';
   ],
   exports: [...RoleUseCases, RoleDomainService],
 })
-export class RoleModule { }
+export class RoleModule {}

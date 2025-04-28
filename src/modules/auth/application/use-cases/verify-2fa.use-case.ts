@@ -15,7 +15,7 @@ import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.ex
 @Injectable()
 export class Verify2FAUseCase {
   constructor(
-    private readonly findUserByEmailUseCase: GetUserByEmailUseCase,
+    private readonly getUserByEmailUseCase: GetUserByEmailUseCase,
     private readonly updateUserFieldsUseCase: UpdateUserFieldsUseCase,
     private readonly jwtService: JwtService,
   ) {}
@@ -24,9 +24,7 @@ export class Verify2FAUseCase {
     userJwtPayload: JwtPayload,
     dto: TwoFADto,
   ): Promise<TwoFAResponseDto> {
-    const user = await this.findUserByEmailUseCase.execute(
-      userJwtPayload.email,
-    );
+    const user = await this.getUserByEmailUseCase.execute(userJwtPayload.email);
     if (!user) throw new UserNotFoundException(userJwtPayload.email);
 
     const isValid: boolean = speakeasy.totp.verify({

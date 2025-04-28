@@ -15,7 +15,7 @@ export class RegisterUserUseCase {
     private readonly repo: UserRepositoryInterface,
     private readonly domain: UserDomainService,
     private readonly ensureDefaultRoleUseCase: EnsureDefaultRoleUseCase,
-  ) { }
+  ) {}
 
   async execute(dto: RegisterDto): Promise<User> {
     const usernameExists = await this.repo.findOneByField(

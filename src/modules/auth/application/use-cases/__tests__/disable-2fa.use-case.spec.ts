@@ -13,7 +13,7 @@ jest.mock('speakeasy');
 
 describe('Disable2FAUseCase', () => {
   let useCase: Disable2FAUseCase;
-  let findUserByEmailUseCase: jest.Mocked<GetUserByEmailUseCase>;
+  let getUserByEmailUseCase: jest.Mocked<GetUserByEmailUseCase>;
   let updateUserFieldsUseCase: jest.Mocked<UpdateUserFieldsUseCase>;
 
   const mockPayload: JwtPayload = {
@@ -24,7 +24,7 @@ describe('Disable2FAUseCase', () => {
   const dto: TwoFADto = { code: '123456' };
 
   beforeEach(() => {
-    findUserByEmailUseCase = {
+    getUserByEmailUseCase = {
       execute: jest.fn(),
     } as any;
 
@@ -33,14 +33,14 @@ describe('Disable2FAUseCase', () => {
     } as any;
 
     useCase = new Disable2FAUseCase(
-      findUserByEmailUseCase,
+      getUserByEmailUseCase,
       updateUserFieldsUseCase,
     );
   });
 
   it('should disable 2FA if code is valid', async () => {
     const mockUser = createMockUser({ isTwoFactorEnabled: true });
-    findUserByEmailUseCase.execute.mockResolvedValue(mockUser);
+    getUserByEmailUseCase.execute.mockResolvedValue(mockUser);
     (speakeasy.totp.verify as jest.Mock).mockReturnValue(true);
 
     const result = await useCase.execute(mockPayload, dto);
@@ -58,7 +58,7 @@ describe('Disable2FAUseCase', () => {
 
   it('should not disable 2FA if code is invalid', async () => {
     const mockUser = createMockUser({ isTwoFactorEnabled: true });
-    findUserByEmailUseCase.execute.mockResolvedValue(mockUser);
+    getUserByEmailUseCase.execute.mockResolvedValue(mockUser);
     (speakeasy.totp.verify as jest.Mock).mockReturnValue(false);
 
     const result = await useCase.execute(mockPayload, dto);
@@ -71,7 +71,7 @@ describe('Disable2FAUseCase', () => {
   });
 
   it('should throw UserNotFoundException if user is not found', async () => {
-    findUserByEmailUseCase.execute.mockResolvedValue(null);
+    getUserByEmailUseCase.execute.mockResolvedValue(null);
 
     await expect(useCase.execute(mockPayload, dto)).rejects.toThrow(
       UserNotFoundException,
