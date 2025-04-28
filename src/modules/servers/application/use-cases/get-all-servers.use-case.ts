@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
-import { ServerRetrievalException } from '@/modules/servers/domain/exceptions/server.exception';
 import { ServerResponseDto } from '../dto/server.response.dto';
 
 @Injectable()
@@ -11,11 +10,7 @@ export class GetAllServersUseCase {
   ) {}
 
   async execute(): Promise<ServerResponseDto[]> {
-    try {
-      const servers = await this.serverRepository.findAll();
-      return servers.map((s) => new ServerResponseDto(s, s.ilo));
-    } catch (error) {
-      throw new ServerRetrievalException(error.message);
-    }
+    const servers = await this.serverRepository.findAll();
+    return servers.map((s) => new ServerResponseDto(s, s.ilo));
   }
 }

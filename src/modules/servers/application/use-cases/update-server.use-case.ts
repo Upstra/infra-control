@@ -2,10 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 import { ServerDomainService } from '@/modules/servers/domain/services/server.domain.service';
 import { UpdateIloUseCase } from '@/modules/ilos/application/use-cases';
-import {
-  ServerNotFoundException,
-  ServerUpdateException,
-} from '@/modules/servers/domain/exceptions/server.exception';
+
 import { ServerUpdateDto } from '../dto/server.update.dto';
 import { ServerResponseDto } from '../dto/server.response.dto';
 
@@ -19,15 +16,10 @@ export class UpdateServerUseCase {
   ) {}
 
   async execute(id: string, dto: ServerUpdateDto): Promise<ServerResponseDto> {
-    try {
-      const existing = await this.serverRepository.findServerById(id);
-      const entity = this.serverDomain.updateServerEntityFromDto(existing, dto);
-      const updated = await this.serverRepository.save(entity);
-      const ilo = await this.updateIloUsecase.execute(id, dto.ilo);
-      return new ServerResponseDto(updated, ilo);
-    } catch (error) {
-      if (error instanceof ServerNotFoundException) throw error;
-      throw new ServerUpdateException(error.message);
-    }
+    const existing = await this.serverRepository.findServerById(id);
+    const entity = this.serverDomain.updateServerEntityFromDto(existing, dto);
+    const updated = await this.serverRepository.save(entity);
+    const ilo = await this.updateIloUsecase.execute(id, dto.ilo);
+    return new ServerResponseDto(updated, ilo);
   }
 }
