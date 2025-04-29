@@ -4,10 +4,7 @@ import { UserDomainService } from '../../domain/services/user.domain.service';
 import { EnsureDefaultRoleUseCase } from '@/modules/roles/application/use-cases';
 import { RegisterDto } from '@/modules/auth/application/dto/register.dto';
 import { User } from '../../domain/entities/user.entity';
-import {
-  UserConflictException,
-  UserRegistrationException,
-} from '../../domain/exceptions/user.exception';
+import { UserConflictException } from '../../domain/exceptions/user.exception';
 
 export class RegisterUserUseCase {
   constructor(
@@ -37,14 +34,6 @@ export class RegisterUserUseCase {
       dto.firstName,
       dto.lastName,
     );
-
-    try {
-      return await this.repo.save(user);
-    } catch (e) {
-      if (e instanceof UserConflictException) {
-        throw e;
-      }
-      throw new UserRegistrationException();
-    }
+    return await this.repo.save(user);
   }
 }

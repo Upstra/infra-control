@@ -2,8 +2,6 @@ import { INestApplication, Logger } from '@nestjs/common';
 import * as path from 'path';
 import { readdirSync } from 'fs';
 
-const logger = new Logger('GlobalFilterLoader');
-
 export function registerAllGlobalFilters(app: INestApplication): void {
   const filtersDir = path.join(__dirname, '..', 'filters');
   const modulePaths = getAllFilterFiles(filtersDir);

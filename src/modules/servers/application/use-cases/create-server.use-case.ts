@@ -3,7 +3,6 @@ import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/s
 
 import { ServerDomainService } from '@/modules/servers/domain/services/server.domain.service';
 import { CreateIloUseCase } from '@/modules/ilos/application/use-cases';
-import { ServerCreationException } from '@/modules/servers/domain/exceptions/server.exception';
 import { ServerCreationDto } from '../dto/server.creation.dto';
 import { ServerResponseDto } from '../dto/server.response.dto';
 
@@ -17,13 +16,9 @@ export class CreateServerUseCase {
   ) {}
 
   async execute(dto: ServerCreationDto): Promise<ServerResponseDto> {
-    try {
-      const entity = this.serverDomain.createServerEntityFromDto(dto);
-      const server = await this.serverRepository.save(entity);
-      const ilo = await this.createIloUsecase.execute(dto.ilo);
-      return new ServerResponseDto(server, ilo);
-    } catch (error) {
-      throw new ServerCreationException(error.message);
-    }
+    const entity = this.serverDomain.createServerEntityFromDto(dto);
+    const server = await this.serverRepository.save(entity);
+    const ilo = await this.createIloUsecase.execute(dto.ilo);
+    return new ServerResponseDto(server, ilo);
   }
 }

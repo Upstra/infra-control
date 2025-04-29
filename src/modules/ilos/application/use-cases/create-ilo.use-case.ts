@@ -1,4 +1,4 @@
-import { Injectable, HttpException, HttpStatus, Inject } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { IloRepositoryInterface } from '../../domain/interfaces/ilo.repository.interface';
 import { IloCreationDto } from '../dto/ilo.creation.dto';
 import { IloResponseDto } from '../dto/ilo.response.dto';
@@ -13,15 +13,8 @@ export class CreateIloUseCase {
   ) {}
 
   async execute(iloDto: IloCreationDto): Promise<IloResponseDto> {
-    try {
-      const entity = this.iloDomain.createIloEntityFromDto(iloDto);
-      const ilo = await this.iloRepository.save(entity);
-      return new IloResponseDto(ilo);
-    } catch {
-      throw new HttpException(
-        'Internal server error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+    const entity = this.iloDomain.createIloEntityFromDto(iloDto);
+    const ilo = await this.iloRepository.save(entity);
+    return new IloResponseDto(ilo);
   }
 }

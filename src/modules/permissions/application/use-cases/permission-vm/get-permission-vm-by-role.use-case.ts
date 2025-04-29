@@ -7,13 +7,7 @@ export class GetPermissionsVmByRoleUseCase {
   constructor(private readonly repository: PermissionVmRepository) {}
 
   async execute(roleId: string): Promise<PermissionVmDto[]> {
-    try {
-      const permissions = await this.repository.findAllByRole(roleId);
-      return permissions.map((p) => new PermissionVmDto(p));
-    } catch (error) {
-      throw new Error(
-        'Erreur lors de la récupération des permissions VM par rôle',
-      );
-    }
+    const permissions = await this.repository.findAllByRole(roleId);
+    return permissions.map((p) => new PermissionVmDto(p));
   }
 }

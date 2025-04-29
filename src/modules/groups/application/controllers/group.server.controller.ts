@@ -33,7 +33,7 @@ export class GroupServerController {
     private readonly getGroupServerById: GetGroupServerByIdUseCase,
     private readonly updateGroupServer: UpdateGroupServerUseCase,
     private readonly deleteGroupServer: DeleteGroupServerUseCase,
-  ) { }
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Récupérer tous les groupes de serveurs' })

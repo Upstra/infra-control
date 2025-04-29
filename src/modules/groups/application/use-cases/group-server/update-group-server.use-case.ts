@@ -10,6 +10,6 @@ export class UpdateGroupServerUseCase {
   ) {}
 
   async execute(id: string, groupDto: GroupServerDto): Promise<GroupServerDto> {
-    throw new Error('Method not implemented.');
+    throw new Error(`Method not implemented: ${id}, ${groupDto}`);
   }
 }

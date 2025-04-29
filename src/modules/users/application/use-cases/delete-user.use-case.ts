@@ -1,8 +1,5 @@
 import { Inject } from '@nestjs/common';
-import {
-  UserDeletionException,
-  UserNotFoundException,
-} from '../../domain/exceptions/user.exception';
+
 import { UserRepositoryInterface } from '../../domain/interfaces/user.repository.interface';
 
 export class DeleteUserUseCase {
@@ -12,13 +9,7 @@ export class DeleteUserUseCase {
   ) {}
 
   async execute(id: string): Promise<void> {
-    try {
-      await this.repo.deleteUser(id);
-    } catch (e) {
-      if (e instanceof UserNotFoundException) {
-        throw e;
-      }
-      throw new UserDeletionException();
-    }
+    await this.repo.findOneByField('id', id);
+    await this.repo.deleteUser(id);
   }
 }

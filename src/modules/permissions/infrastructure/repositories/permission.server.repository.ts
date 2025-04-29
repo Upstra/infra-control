@@ -1,7 +1,7 @@
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, QueryFailedError, Repository } from 'typeorm';
 import { PermissionServer } from '../../domain/entities/permission.server.entity';
 import { PermissionRepositoryInterface } from '../../infrastructure/interfaces/permission.repository.interface';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PermissionNotFoundException } from '../../domain/exceptions/permission.exception';
 
 @Injectable()
@@ -14,9 +14,21 @@ export class PermissionServerRepository
   }
 
   async findAllByRole(roleId: string): Promise<PermissionServer[]> {
-    return await this.find({
-      where: { roleId },
-    });
+    try {
+      return await super.find({
+        where: { roleId },
+      });
+    } catch (error) {
+      Logger.error('Error retrieving permissions:', error);
+      if (error instanceof QueryFailedError) {
+        throw new PermissionNotFoundException(
+          `Erreur lors de la récupération de la permission pour le rôle ${roleId}.`,
+        );
+      }
+      throw new PermissionNotFoundException(
+        `Error retrieving permissions for role ${roleId}}`,
+      );
+    }
   }
 
   async findPermissionByIds(

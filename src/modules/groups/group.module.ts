@@ -46,4 +46,4 @@ import { GetGroupServerByIdUseCase } from './application/use-cases/group-server/
     },
   ],
 })
-export class GroupModule { }
+export class GroupModule {}

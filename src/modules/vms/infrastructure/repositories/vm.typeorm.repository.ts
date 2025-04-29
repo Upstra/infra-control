@@ -1,8 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Vm } from '../../domain/entities/vm.entity';
 import { VmRepositoryInterface } from '../../domain/interfaces/vm.repository.interface';
 import { DataSource, Repository } from 'typeorm';
-import { VmNotFoundException } from '../../domain/exceptions/vm.exception';
+import {
+  VmDeletionException,
+  VmNotFoundException,
+  VmRetrievalException,
+} from '../../domain/exceptions/vm.exception';
 
 @Injectable()
 export class VmTypeormRepository
@@ -14,9 +18,14 @@ export class VmTypeormRepository
   }
 
   async findAll(): Promise<Vm[]> {
-    return await this.find({
-      relations: ['permissions'],
-    });
+    try {
+      return await super.find({
+        relations: ['permissions'],
+      });
+    } catch (error) {
+      Logger.error('Error retrieving all VMs:', error);
+      throw new VmRetrievalException();
+    }
   }
 
   async findVmById(id: string): Promise<Vm> {
@@ -31,7 +40,11 @@ export class VmTypeormRepository
   }
 
   async deleteVm(id: string): Promise<void> {
-    await this.findVmById(id);
-    await this.delete(id);
+    try {
+      await super.delete(id);
+    } catch (error) {
+      Logger.error('Error deleting VM:', error);
+      throw new VmDeletionException();
+    }
   }
 }

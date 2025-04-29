@@ -3,7 +3,6 @@ import { VmRepositoryInterface } from '../../domain/interfaces/vm.repository.int
 import { VmDomainService } from '../../vm.domain.service';
 import { VmCreationDto } from '../dto/vm.creation.dto';
 import { VmResponseDto } from '../dto/vm.response.dto';
-import { VmCreationException } from '../../domain/exceptions/vm.exception';
 
 @Injectable()
 export class CreateVmUseCase {
@@ -14,12 +13,8 @@ export class CreateVmUseCase {
   ) {}
 
   async execute(dto: VmCreationDto): Promise<VmResponseDto> {
-    try {
-      const entity = this.domain.createVmEntity(dto);
-      const vm = await this.repo.save(entity);
-      return new VmResponseDto(vm);
-    } catch {
-      throw new VmCreationException();
-    }
+    const entity = this.domain.createVmEntity(dto);
+    const vm = await this.repo.save(entity);
+    return new VmResponseDto(vm);
   }
 }

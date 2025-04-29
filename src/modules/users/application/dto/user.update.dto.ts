@@ -10,6 +10,16 @@ export class UserUpdateDto {
   @ApiProperty()
   @IsOptional()
   @IsString()
+  readonly firstName?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  readonly lastName?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
   readonly password?: string;
 
   @ApiProperty()

@@ -11,13 +11,7 @@ export class CreateFullPermissionVmUseCase {
   ) {}
 
   async execute(): Promise<PermissionVm> {
-    try {
-      const entity = this.domainService.createFullPermissionEntity();
-      return await this.repository.save(entity);
-    } catch (error) {
-      throw new Error(
-        'Erreur lors de la création de la permission VM full access',
-      );
-    }
+    const entity = this.domainService.createFullPermissionEntity();
+    return await this.repository.save(entity);
   }
 }
