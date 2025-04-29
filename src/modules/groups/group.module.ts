@@ -20,7 +20,7 @@ import { CreateGroupServerUseCase } from './application/use-cases/group-server/c
 import { GetAllGroupServerUseCase } from './application/use-cases/group-server/get-all-group-server.use-case';
 import { UpdateGroupServerUseCase } from './application/use-cases/group-server/update-group-server.use-case';
 import { DeleteGroupServerUseCase } from './application/use-cases/group-server/delete-group-server.use-case';
-import { GetGroupServerByIdUseCase } from './application/use-cases/group-server/get-group-server-by-id.use-case copy 2';
+import { GetGroupServerByIdUseCase } from './application/use-cases/group-server/get-group-server-by-id.use-case';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Group, GroupServer, GroupVm])],
@@ -46,4 +46,4 @@ import { GetGroupServerByIdUseCase } from './application/use-cases/group-server/
     },
   ],
 })
-export class GroupModule {}
+export class GroupModule { }
