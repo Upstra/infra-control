@@ -1,3 +1,4 @@
+import { RecoveryCodeService } from './../../domain/services/recovery-code.domain.service';
 import { Injectable } from '@nestjs/common';
 import * as speakeasy from 'speakeasy';
 import { JwtService } from '@nestjs/jwt';
@@ -17,6 +18,7 @@ export class Verify2FAUseCase {
   constructor(
     private readonly getUserByEmailUseCase: GetUserByEmailUseCase,
     private readonly updateUserFieldsUseCase: UpdateUserFieldsUseCase,
+    private readonly recoveryCodeService: RecoveryCodeService,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -24,6 +26,8 @@ export class Verify2FAUseCase {
     userJwtPayload: JwtPayload,
     dto: TwoFADto,
   ): Promise<TwoFAResponseDto> {
+    let message: string;
+
     const user = await this.getUserByEmailUseCase.execute(userJwtPayload.email);
     if (!user) throw new UserNotFoundException(userJwtPayload.email);
 
@@ -35,17 +39,28 @@ export class Verify2FAUseCase {
 
     if (!isValid) throw new TwoFAInvalidCodeException();
 
+    let recoveryCodes: string[] | undefined;
     if (!user.isTwoFactorEnabled) {
+      recoveryCodes = this.recoveryCodeService.generate();
+      const hashedCodes = await this.recoveryCodeService.hash(recoveryCodes);
+
       await this.updateUserFieldsUseCase.execute(user.id, {
         isTwoFactorEnabled: true,
+        recoveryCodes: hashedCodes,
       });
+
+      message =
+        '2FA activated successfully. Store your recovery codes securely.';
     }
 
     const accessToken = this.jwtService.sign({
       userId: user.id,
       email: user.email,
+      isTwoFactorAuthenticated: true,
     });
 
-    return new TwoFAResponseDto(true, accessToken);
+    message = message || '2FA verified successfully.';
+
+    return new TwoFAResponseDto(true, accessToken, message, recoveryCodes);
   }
 }
