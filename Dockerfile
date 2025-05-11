@@ -1,21 +1,25 @@
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS base
+
+RUN npm i -g pnpm
+
+FROM base AS dependencies
 
 WORKDIR /app
-
-COPY . .
-
-RUN corepack enable && corepack prepare pnpm@latest --activate
+COPY package.json pnpm-lock.yaml ./
 RUN pnpm install
-RUN pnpm build
 
-FROM node:18-alpine
+FROM base AS build
 
 WORKDIR /app
+COPY . .
+COPY --from=dependencies /app/node_modules ./node_modules
+RUN pnpm build
+RUN pnpm prune --prod
 
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+FROM base AS deploy
 
-ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=build /app/dist/ ./dist/
+COPY --from=build /app/node_modules ./node_modules
 
-CMD ["node", "dist/main"]
+CMD [ "node", "dist/main.js" ]
