@@ -21,6 +21,7 @@ import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 import { UserResponseDto } from '../dto/user.response.dto';
+
 import { UserUpdateDto } from '../dto/user.update.dto';
 
 import {
