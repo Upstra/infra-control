@@ -15,7 +15,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { TwoFADto, TwoFAResponseDto } from '../dto/twofa.dto';
+import { TwoFADto, TwoFARecoveryDto, TwoFAResponseDto } from '../dto/twofa.dto';
 import { JwtAuthGuard } from '../../infrastructure/guards/jwt-auth.guard';
 import { TwoFAGuard } from '../../infrastructure/guards/twofa.guard';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
@@ -26,6 +26,7 @@ import { Generate2FAUseCase } from '../use-cases/generate-2fa.use-case';
 import { Verify2FAUseCase } from '../use-cases/verify-2fa.use-case';
 import { Disable2FAUseCase } from '../use-cases/disable-2fa.use-case';
 import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.exception.filter';
+import { Verify2FARecoveryUseCase } from '../use-cases';
 
 @ApiTags('2FA')
 @Controller('auth/2fa')
@@ -38,6 +39,7 @@ export class TwoFAController {
     private readonly verify2FAUseCase: Verify2FAUseCase,
     private readonly disable2FAUseCase: Disable2FAUseCase,
     private readonly get2FAStatusUseCase: Get2FAStatusUseCase,
+    private readonly verify2FARecoveryUseCase: Verify2FARecoveryUseCase,
   ) {}
 
   @Post('generate')
@@ -92,6 +94,20 @@ export class TwoFAController {
   })
   disable(@CurrentUser() user: JwtPayload, @Body() dto: TwoFADto) {
     return this.disable2FAUseCase.execute(user, dto);
+  }
+
+  @Post('recovery')
+  @ApiOperation({
+    summary: 'Connexion via un code de récupération 2FA',
+    description:
+      'Permet de se connecter si le téléphone 2FA est perdu, en utilisant un recovery code.',
+  })
+  @UseFilters(InvalidQueryExceptionFilter)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiBody({ type: TwoFARecoveryDto })
+  recover(@CurrentUser() user: JwtPayload, @Body() dto: TwoFARecoveryDto) {
+    return this.verify2FARecoveryUseCase.execute(user, dto);
   }
 
   @Get('status')

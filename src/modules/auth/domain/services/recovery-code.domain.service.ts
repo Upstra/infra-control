@@ -23,4 +23,11 @@ export class RecoveryCodeService {
     const saltRounds = 10;
     return Promise.all(codes.map((code) => bcrypt.hash(code, saltRounds)));
   }
+
+  async compare(code: string, hashedCodes: string[]): Promise<boolean> {
+    const bcrypt = await import('bcrypt');
+    return Promise.any(
+      hashedCodes.map((hashedCode) => bcrypt.compare(code, hashedCode)),
+    );
+  }
 }

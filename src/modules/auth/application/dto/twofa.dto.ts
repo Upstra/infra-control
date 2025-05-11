@@ -97,3 +97,13 @@ export class TwoFaGenerateQrCodeResponseDto {
     this.qrCode = qrCode;
   }
 }
+
+export class TwoFARecoveryDto {
+  @ApiProperty({
+    description: 'Un des recovery codes 2FA fournis à l’activation',
+    example: 'VJC7-SKSP',
+  })
+  @IsNotEmpty()
+  @IsString()
+  recoveryCode: string;
+}
