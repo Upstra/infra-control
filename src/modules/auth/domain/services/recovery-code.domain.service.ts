@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { randomInt } from 'crypto';
 
 @Injectable()
 export class RecoveryCodeService {
@@ -9,7 +10,7 @@ export class RecoveryCodeService {
     for (let i = 0; i < 10; i++) {
       let code = '';
       for (let j = 0; j < 8; j++) {
-        const index = Math.floor(Math.random() * characters.length);
+        const index = randomInt(characters.length);
         code += characters[index];
       }
       codes.push(code.match(/.{1,4}/g)?.join('-') ?? code);
