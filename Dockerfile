@@ -1,5 +1,6 @@
 FROM node:20-alpine AS base
 
+RUN addgroup -g 1001 -S nodegroup && adduser -S nodeuser -G nodegroup
 RUN npm i -g pnpm
 
 FROM base AS dependencies
@@ -19,7 +20,8 @@ RUN pnpm prune --prod
 FROM base AS deploy
 
 WORKDIR /app
-COPY --from=build /app/dist/ ./dist/
+COPY --from=build /app/dist ./dist
 COPY --from=build /app/node_modules ./node_modules
+USER nodeuser
 
-CMD [ "node", "dist/main.js" ]
+CMD ["node", "dist/main.js"]
