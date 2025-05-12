@@ -26,7 +26,7 @@ export class Verify2FAUseCase {
     userJwtPayload: JwtPayload,
     dto: TwoFADto,
   ): Promise<TwoFAResponseDto> {
-    let message: string;
+    let message: string = '2FA verified successfully.';
 
     const user = await this.getUserByEmailUseCase.execute(userJwtPayload.email);
     if (!user) throw new UserNotFoundException(userJwtPayload.email);
