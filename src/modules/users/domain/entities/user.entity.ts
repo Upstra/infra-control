@@ -46,4 +46,7 @@ export class User extends BaseEntity {
 
   @Column()
   roleId!: string;
+
+  @Column('text', { array: true, nullable: true })
+  recoveryCodes?: string[];
 }
