@@ -13,8 +13,10 @@ export class RoomResponseDto {
   @IsString()
   readonly name: string;
 
-  constructor(room: Room) {
-    this.id = room.id;
-    this.name = room.name;
+  static from(room: Room): RoomResponseDto {
+    return {
+      id: room.id,
+      name: room.name,
+    };
   }
 }
