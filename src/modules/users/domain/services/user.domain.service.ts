@@ -24,7 +24,7 @@ export class UserDomainService {
     firstName?: string,
     lastName?: string,
   ): Promise<User> {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await this.hashPassword(password);
     const user = new User();
     user.username = username;
     user.password = hashedPassword;
@@ -50,5 +50,9 @@ export class UserDomainService {
       user.password = await bcrypt.hash(dto.password, 10);
     }
     return user;
+  }
+
+  async hashPassword(password: string): Promise<string> {
+    return await bcrypt.hash(password, 10);
   }
 }

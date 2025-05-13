@@ -15,14 +15,21 @@ export class RegisterUserUseCase {
   ) {}
 
   async execute(dto: RegisterDto): Promise<User> {
-    const usernameExists = await this.repo.findOneByField(
-      'username',
-      dto.username,
-    );
+    const usernameExists = await this.repo.findOneByField({
+      field: 'username',
+      value: dto.username,
+      disableThrow: true,
+    });
+    console.log('usernameExists', usernameExists);
     if (usernameExists)
       throw new UserConflictException('Nom d’utilisateur déjà utilisé');
 
-    const emailExists = await this.repo.findOneByField('email', dto.email);
+    const emailExists = await this.repo.findOneByField({
+      field: 'email',
+      value: dto.email,
+      disableThrow: true,
+    });
+
     if (emailExists) throw new UserConflictException('Email déjà utilisé');
 
     const role = await this.ensureDefaultRoleUseCase.execute();

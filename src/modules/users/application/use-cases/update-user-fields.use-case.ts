@@ -11,7 +11,10 @@ export class UpdateUserFieldsUseCase {
 
   async execute(id: string, partialUser: Partial<User>): Promise<User> {
     await this.repo.updateFields(id, partialUser);
-    const updated = await this.repo.findOneByField('id', id);
+    const updated = await this.repo.findOneByField({
+      field: 'id',
+      value: id,
+    });
     return updated;
   }
 }
