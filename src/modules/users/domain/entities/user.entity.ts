@@ -42,6 +42,9 @@ export class User extends BaseEntity {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 
+  @Column({ type: 'timestamp', nullable: true })
+  lastLoggedIn?: Date;
+
   /* Rôle */
   @ManyToOne(() => Role, (role) => role.users)
   @JoinColumn({ name: 'roleId' })
