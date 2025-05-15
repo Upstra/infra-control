@@ -20,7 +20,6 @@ export class RegisterUserUseCase {
       value: dto.username,
       disableThrow: true,
     });
-    console.log('usernameExists', usernameExists);
     if (usernameExists)
       throw new UserConflictException('Nom d’utilisateur déjà utilisé');
 

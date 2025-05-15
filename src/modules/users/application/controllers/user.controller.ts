@@ -111,7 +111,6 @@ export class UserController {
     @CurrentUser() user: JwtPayload,
     @Body() dto: ResetPasswordDto,
   ): Promise<UserResponseDto> {
-    console.log('pute');
     return this.resetPasswordUseCase.execute(user.userId, dto);
   }
 
