@@ -3,8 +3,8 @@ import { PresenceService } from './application/services/presence.service';
 import { UserGateway } from './application/gateway/user.gateway';
 import { UserModule } from '../users/user.module';
 import { RedisModule } from '@/modules/redis/redis.module';
-import { PresenceController } from './controllers/presence.controller';
 import { AuthModule } from '../auth/auth.module';
+import { PresenceController } from './application/controllers/presence.controller';
 
 @Module({
   controllers: [PresenceController],

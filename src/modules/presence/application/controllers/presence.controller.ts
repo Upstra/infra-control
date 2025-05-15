@@ -1,8 +1,8 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { PresenceService } from '../application/services/presence.service';
 import { ParseUUIDPipe } from '@nestjs/common/pipes/parse-uuid.pipe';
 import { GetUserByIdUseCase } from '@/modules/users/application/use-cases';
+import { PresenceService } from '../services/presence.service';
 @ApiTags('Presence')
 @Controller('presence')
 export class PresenceController {
