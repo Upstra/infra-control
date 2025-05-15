@@ -13,7 +13,10 @@ export class UpdateUserUseCase {
   ) {}
 
   async execute(id: string, dto: UserUpdateDto): Promise<UserResponseDto> {
-    let user = await this.repo.findOneByField('id', id);
+    let user = await this.repo.findOneByField({
+      field: 'id',
+      value: id,
+    });
 
     user = await this.userDomainService.updateUserEntity(user, dto);
     user = await this.repo.save(user);

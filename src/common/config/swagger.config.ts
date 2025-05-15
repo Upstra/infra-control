@@ -10,5 +10,11 @@ export const swaggerConfig = new DocumentBuilder()
 
 export function setupSwagger(app: INestApplication): void {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('docs', app, document);
+
+  SwaggerModule.setup('docs', app, document, {
+    swaggerOptions: {
+      tagsSorter: 'alpha',
+      operationsSorter: 'alpha',
+    },
+  });
 }

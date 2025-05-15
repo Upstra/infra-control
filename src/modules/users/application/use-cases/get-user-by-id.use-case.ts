@@ -9,7 +9,10 @@ export class GetUserByIdUseCase {
   ) {}
 
   async execute(id: string): Promise<UserResponseDto> {
-    const user = await this.repo.findOneByField('id', id);
+    const user = await this.repo.findOneByField({
+      field: 'id',
+      value: id,
+    });
     return new UserResponseDto(user);
   }
 }

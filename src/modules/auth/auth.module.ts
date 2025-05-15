@@ -6,12 +6,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './application/controllers/auth.controller';
 import { UserModule } from '../users/user.module';
 import { PassportModule } from '@nestjs/passport';
-import { LoginUseCase } from './application/use-cases/login.use-case';
-import { RegisterUseCase } from './application/use-cases/register.use-case';
-import { Get2FAStatusUseCase } from './application/use-cases/get-2fa-status.use-case';
-import { Generate2FAUseCase } from './application/use-cases/generate-2fa.use-case';
-import { Verify2FAUseCase } from './application/use-cases/verify-2fa.use-case';
-import { Disable2FAUseCase } from './application/use-cases/disable-2fa.use-case';
+import { TwoFAController } from './application/controllers/twofa.controller';
+import { RecoveryCodeService } from './domain/services/recovery-code.domain.service';
+import { AuthUseCases } from './application/use-cases';
 
 @Module({
   imports: [
@@ -28,16 +25,8 @@ import { Disable2FAUseCase } from './application/use-cases/disable-2fa.use-case'
       }),
     }),
   ],
-  controllers: [AuthController],
-  providers: [
-    JwtStrategy,
-    LoginUseCase,
-    RegisterUseCase,
-    Get2FAStatusUseCase,
-    Generate2FAUseCase,
-    Verify2FAUseCase,
-    Disable2FAUseCase,
-  ],
+  controllers: [AuthController, TwoFAController],
+  providers: [JwtStrategy, RecoveryCodeService, ...AuthUseCases],
   exports: [JwtModule],
 })
 export class AuthModule {}

@@ -1,6 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { User } from '../../domain/entities/user.entity';
-import { UserRepositoryInterface } from '../../domain/interfaces/user.repository.interface';
+import {
+  FindOneByFieldOptions,
+  UserRepositoryInterface,
+} from '../../domain/interfaces/user.repository.interface';
 import { DataSource, Repository } from 'typeorm';
 import { InvalidQueryValueException } from '@/core/exceptions/repository.exception';
 import {
@@ -18,10 +21,11 @@ export class UserTypeormRepository
     super(User, dataSource.createEntityManager());
   }
 
-  async findOneByField<T extends keyof User>(
-    field: T,
-    value: User[T],
-  ): Promise<User | null> {
+  async findOneByField<T extends keyof User>({
+    field,
+    value,
+    disableThrow = false,
+  }: FindOneByFieldOptions<T>): Promise<User | null> {
     if (value === undefined || value === null) {
       throw new InvalidQueryValueException(String(field), value);
     }
@@ -29,6 +33,9 @@ export class UserTypeormRepository
       return await this.findOneOrFail({ where: { [field]: value } as any });
     } catch (error) {
       if (error.name === 'EntityNotFoundError') {
+        if (disableThrow) {
+          return null;
+        }
         throw new UserNotFoundException(String(value));
       }
       Logger.error('Error retrieving user by field:', error);
@@ -59,7 +66,10 @@ export class UserTypeormRepository
 
   async updateFields(id: string, partialUser: Partial<User>): Promise<User> {
     await super.update(id, partialUser);
-    return await this.findOneByField('id', id);
+    return await this.findOneByField({
+      field: 'id',
+      value: id,
+    });
   }
 
   async deleteUser(id: string): Promise<void> {

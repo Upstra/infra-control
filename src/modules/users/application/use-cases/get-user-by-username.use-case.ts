@@ -12,7 +12,10 @@ export class GetUserByUsernameUseCase {
   ) {}
 
   async execute(username: string): Promise<User> {
-    const user = await this.userRepo.findOneByField('username', username);
+    const user = await this.userRepo.findOneByField({
+      field: 'username',
+      value: username,
+    });
     return user;
   }
 }

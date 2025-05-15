@@ -15,7 +15,12 @@ export interface UserRepositoryInterface {
   ): Promise<User>;
   deleteUser(id: string): Promise<void>;
   findOneByField<T extends keyof User>(
-    field: T,
-    value: User[T],
+    options: FindOneByFieldOptions<T>,
   ): Promise<User | null>;
+}
+
+export interface FindOneByFieldOptions<T extends keyof User> {
+  field: T;
+  value: User[T];
+  disableThrow?: boolean;
 }

@@ -13,6 +13,8 @@ import { ServerModule } from './modules/servers/server.module';
 import { UpsModule } from './modules/ups/ups.module';
 import { UserModule } from './modules/users/user.module';
 import { VmModule } from './modules/vms/vm.module';
+import { RedisModule } from './modules/redis/redis.module';
+import { PresenceModule } from './modules/presence/presence.module';
 
 @Module({
   controllers: [],
@@ -29,6 +31,8 @@ import { VmModule } from './modules/vms/vm.module';
     ServerModule,
     UserModule,
     VmModule,
+    RedisModule,
+    PresenceModule,
   ],
   providers: [Logger],
 })

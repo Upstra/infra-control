@@ -13,7 +13,10 @@ export class GetUserByEmailUseCase {
   ) {}
 
   async execute(email: string): Promise<User> {
-    const user = await this.userRepo.findOneByField('email', email);
+    const user = await this.userRepo.findOneByField({
+      field: 'email',
+      value: email,
+    });
     if (!user) throw new AuthNotFoundException();
     return user;
   }
