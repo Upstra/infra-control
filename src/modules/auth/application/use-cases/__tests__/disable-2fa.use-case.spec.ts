@@ -3,7 +3,6 @@ import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { TwoFADto } from '../../dto/twofa.dto';
 import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
-import * as speakeasy from 'speakeasy';
 import {
   GetUserByEmailUseCase,
   UpdateUserFieldsUseCase,
@@ -38,35 +37,21 @@ describe('Disable2FAUseCase', () => {
     );
   });
 
-  it('should disable 2FA if code is valid', async () => {
+  it('should disable 2FA', async () => {
     const mockUser = createMockUser({ isTwoFactorEnabled: true });
     getUserByEmailUseCase.execute.mockResolvedValue(mockUser);
-    (speakeasy.totp.verify as jest.Mock).mockReturnValue(true);
 
-    const result = await useCase.execute(mockPayload, dto);
+    const result = await useCase.execute(mockPayload);
 
     expect(updateUserFieldsUseCase.execute).toHaveBeenCalledWith(mockUser.id, {
       isTwoFactorEnabled: false,
       twoFactorSecret: null,
+      recoveryCodes: null,
     });
 
     expect(result).toEqual({
       isDisabled: true,
       message: '2FA has been disabled successfully.',
-    });
-  });
-
-  it('should not disable 2FA if code is invalid', async () => {
-    const mockUser = createMockUser({ isTwoFactorEnabled: true });
-    getUserByEmailUseCase.execute.mockResolvedValue(mockUser);
-    (speakeasy.totp.verify as jest.Mock).mockReturnValue(false);
-
-    const result = await useCase.execute(mockPayload, dto);
-
-    expect(updateUserFieldsUseCase.execute).not.toHaveBeenCalled();
-    expect(result).toEqual({
-      isDisabled: false,
-      message: 'Invalid code. 2FA is still active.',
     });
   });
 
