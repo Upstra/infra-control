@@ -1,11 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { User } from '../entities/user.entity';
 import { Role } from '../../../roles/domain/entities/role.entity';
 import { UserUpdateDto } from '../../application/dto/user.update.dto';
+import { UserRepositoryInterface } from '../interfaces/user.repository.interface';
+import { UserConflictException } from '../exceptions/user.exception';
 
 @Injectable()
 export class UserDomainService {
+  constructor(
+    @Inject('UserRepositoryInterface')
+    private readonly repo: UserRepositoryInterface,
+  ) {}
+
   async validatePassword(
     userPassword: string,
     plainPassword: string,
@@ -54,5 +61,28 @@ export class UserDomainService {
 
   async hashPassword(password: string): Promise<string> {
     return await bcrypt.hash(password, 10);
+  }
+
+  async ensureUniqueEmail(email: string, userId: string): Promise<void> {
+    await this.ensureUniqueField('email', email, userId);
+  }
+
+  async ensureUniqueUsername(username: string, userId: string): Promise<void> {
+    await this.ensureUniqueField('username', username, userId);
+  }
+
+  async ensureUniqueField(
+    field: string,
+    value: string,
+    userId: string,
+  ): Promise<void> {
+    const existing = await this.repo.findOneByField({
+      field: field as keyof User,
+      value: value,
+      disableThrow: true,
+    });
+    if (existing && existing.id !== userId) {
+      throw new UserConflictException(undefined, field as 'username' | 'email');
+    }
   }
 }

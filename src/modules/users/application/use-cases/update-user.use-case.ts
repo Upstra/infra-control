@@ -18,6 +18,8 @@ export class UpdateUserUseCase {
       value: id,
     });
 
+    await this.userDomainService.ensureUniqueEmail(dto.email, id);
+    await this.userDomainService.ensureUniqueUsername(dto.username, id);
     user = await this.userDomainService.updateUserEntity(user, dto);
     user = await this.repo.save(user);
     return new UserResponseDto(user);

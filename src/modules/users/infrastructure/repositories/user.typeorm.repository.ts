@@ -25,7 +25,7 @@ export class UserTypeormRepository
     field,
     value,
     disableThrow = false,
-  }: FindOneByFieldOptions<T>): Promise<User | null> {
+  }: FindOneByFieldOptions<User, T>): Promise<User | null> {
     if (value === undefined || value === null) {
       throw new InvalidQueryValueException(String(field), value);
     }

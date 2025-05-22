@@ -4,3 +4,10 @@ export class RoleNotFoundException extends Error {
     this.name = 'RoleNotFoundException';
   }
 }
+
+export class RoleRetrievalException extends Error {
+  constructor() {
+    super(`Error retrieving role`);
+    this.name = 'RoleRetrievalException';
+  }
+}

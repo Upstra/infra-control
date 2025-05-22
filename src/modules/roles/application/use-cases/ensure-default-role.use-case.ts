@@ -29,7 +29,13 @@ export class EnsureDefaultRoleUseCase {
 
     if (userCount === 0) {
       try {
-        const admin = await this.roleRepository.findByName('ADMIN');
+        const admin = await this.roleRepository.findOneByField({
+          field: 'name',
+          value: 'ADMIN',
+          disableThrow: true,
+          relations: ['users', 'permissionServers', 'permissionVms'],
+        });
+
         if (!admin.canCreateServer) {
           this.logger.warn('Correction des droits ADMIN');
           admin.canCreateServer = true;
@@ -46,11 +52,16 @@ export class EnsureDefaultRoleUseCase {
       }
     }
 
-    let guest = await this.roleRepository.findByName('GUEST');
+    let guest = await this.roleRepository.findOneByField({
+      field: 'name',
+      value: 'GUEST',
+      disableThrow: true,
+      relations: ['users', 'permissionServers', 'permissionVms'],
+    });
+
     if (!guest) {
       this.logger.warn('Création du rôle GUEST');
       guest = await this.roleRepository.createRole('GUEST');
-      guest = await this.roleRepository.save(guest);
     }
 
     return guest;

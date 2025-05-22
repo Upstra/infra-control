@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { RoleRepositoryInterface } from '../../domain/interfaces/role.repository.interface';
 import { RoleResponseDto } from '../dto/role.response.dto';
 
@@ -10,8 +10,11 @@ export class GetRoleByIdUseCase {
   ) {}
 
   async execute(id: string): Promise<RoleResponseDto> {
-    const role = await this.roleRepository.findRoleById(id);
-    if (!role) throw new NotFoundException('Role not found');
+    const role = await this.roleRepository.findOneByField({
+      field: 'id',
+      value: id,
+      relations: ['users', 'permissionServers', 'permissionVms'],
+    });
     return new RoleResponseDto(role);
   }
 }

@@ -75,7 +75,7 @@ export class UserController {
     return this.getUserByIdUseCase.execute(id);
   }
 
-  @Patch(':id')
+  @Patch('update-account/:id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({
@@ -98,6 +98,20 @@ export class UserController {
     @Body() updateUserDto: UserUpdateDto,
   ): Promise<UserResponseDto> {
     return this.updateUserUseCase.execute(id, updateUserDto);
+  }
+
+  @Patch('me/update-account')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiBody({ type: UserUpdateDto })
+  @ApiOperation({
+    summary: 'Mettre à jour son propre compte',
+  })
+  async updateCurrentUser(
+    @CurrentUser() user: JwtPayload,
+    @Body() updateUserDto: UserUpdateDto,
+  ): Promise<UserResponseDto> {
+    return this.updateUserUseCase.execute(user.userId, updateUserDto);
   }
 
   @Patch('me/reset-password')

@@ -21,7 +21,10 @@ export class RegisterUserUseCase {
       disableThrow: true,
     });
     if (usernameExists)
-      throw new UserConflictException('Nom d’utilisateur déjà utilisé');
+      throw new UserConflictException(
+        'Nom d’utilisateur déjà utilisé',
+        'username',
+      );
 
     const emailExists = await this.repo.findOneByField({
       field: 'email',
@@ -29,7 +32,8 @@ export class RegisterUserUseCase {
       disableThrow: true,
     });
 
-    if (emailExists) throw new UserConflictException('Email déjà utilisé');
+    if (emailExists)
+      throw new UserConflictException('Email déjà utilisé', 'email');
 
     const role = await this.ensureDefaultRoleUseCase.execute();
     const user = await this.domain.createUserEntity(
