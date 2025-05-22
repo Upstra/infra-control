@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { RoleRepositoryInterface } from '../../domain/interfaces/role.repository.interface';
 import { DataSource, Repository } from 'typeorm';
 import { Role } from '../../domain/entities/role.entity';
@@ -7,7 +7,6 @@ import {
   RoleRetrievalException,
 } from '../../domain/exceptions/role.exception';
 import { FindOneByFieldOptions } from '@/modules/users/domain/interfaces/user.repository.interface';
-import { Logger } from '@nestjs/common';
 import { InvalidQueryValueException } from '@/core/exceptions/repository.exception';
 @Injectable()
 export class RoleTypeormRepository

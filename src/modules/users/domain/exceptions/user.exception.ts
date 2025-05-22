@@ -25,7 +25,7 @@ export class UserRetrievalException extends Error {
 }
 
 export class UserConflictException extends Error {
-  constructor(message = 'déjà utilisé', type: 'username' | 'email') {
+  constructor(type: 'username' | 'email', message = 'déjà utilisé') {
     let typeLabel = type === 'username' ? 'Nom d’utilisateur' : 'Email';
     super(`${typeLabel} ${message}`);
   }
