@@ -53,9 +53,6 @@ export class UserDomainService {
     user.lastName = dto.lastName ?? user.lastName;
     user.email = dto.email?.toLowerCase() ?? user.email;
     user.roleId = dto.roleId ?? user.roleId;
-    if (dto.password) {
-      user.password = await bcrypt.hash(dto.password, 10);
-    }
     return user;
   }
 
