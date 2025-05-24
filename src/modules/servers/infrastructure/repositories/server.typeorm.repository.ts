@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Server } from '../../domain/entities/server.entity';
 import { ServerRepositoryInterface } from '../../domain/interfaces/server.repository.interface';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import {
   ServerNotFoundException,
   ServerRetrievalException,
@@ -55,6 +55,17 @@ export class ServerTypeormRepository
       Logger.error(`Error deleting server with id ${id}:`, error);
       throw new ServerNotFoundException(id);
     }
+  }
+
+  async findByIds(ids: string[]): Promise<Server[]> {
+    if (!ids?.length) return [];
+    const servers = await this.findBy({ id: In(ids) });
+    const foundIds = new Set(servers.map((s) => s.id));
+    const missing = ids.filter((id) => !foundIds.has(id));
+    if (missing.length > 0) {
+      throw new ServerNotFoundException(`${missing.join(', ')}`);
+    }
+    return servers;
   }
 
   async findOneByField<T extends keyof Server>({

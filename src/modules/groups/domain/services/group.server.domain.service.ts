@@ -30,4 +30,11 @@ export class GroupServerDomainService {
 
     return vm;
   }
+
+  updateGroupEntityFromDto(existing: GroupServer, groupDto: GroupServerDto) {
+    existing.name = groupDto.name ?? existing.name;
+    existing.priority = groupDto.priority ?? existing.priority;
+
+    return existing;
+  }
 }
