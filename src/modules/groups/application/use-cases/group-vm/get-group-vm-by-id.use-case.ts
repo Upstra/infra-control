@@ -10,6 +10,12 @@ export class GetGroupVmByIdUseCase {
   ) {}
 
   async execute(id: string): Promise<GroupVmDto> {
-    throw new Error(`Method not implemented: ${id}`);
+    const group = await this.groupRepository.findOneByField({
+      field: 'id',
+      value: id,
+      relations: ['vms'],
+    });
+
+    return new GroupVmDto(group);
   }
 }

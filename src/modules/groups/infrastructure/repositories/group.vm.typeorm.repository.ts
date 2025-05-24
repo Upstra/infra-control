@@ -12,12 +12,25 @@ export class GroupVmTypeormRepository
   constructor(private readonly dataSource: DataSource) {
     super(GroupVm, dataSource.createEntityManager());
   }
-  findOneByField<K extends keyof GroupVm>(
-    options: FindOneByFieldOptions<GroupVm, K>,
-  ): Promise<GroupVm> {
-    return super.findOne(options);
+  async findOneByField<K extends keyof GroupVm>({
+    field,
+    value,
+    disableThrow = false,
+    relations = ['vms'],
+  }: FindOneByFieldOptions<GroupVm, K>): Promise<GroupVm | null> {
+    if (value === undefined || value === null) {
+      throw new Error(`Invalid value for ${String(field)}`);
+    }
+    try {
+      return await this.findOneOrFail({
+        where: { [field]: value } as any,
+        relations,
+      });
+    } catch {
+      if (disableThrow) return null;
+      throw new GroupNotFoundException('vm', JSON.stringify(value));
+    }
   }
-
   async findAll(): Promise<GroupVm[]> {
     return await this.find({
       relations: ['vms'],

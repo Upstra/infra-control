@@ -41,6 +41,7 @@ export class GroupServerTypeormRepository
   async findGroupById(id: string): Promise<GroupServer | null> {
     return await this.findOne({ where: { id }, relations: ['servers'] });
   }
+
   async createGroup(name: string, priority: number): Promise<GroupServer> {
     const group = this.create({ name, priority });
     return await this.save(group);
