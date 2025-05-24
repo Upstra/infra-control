@@ -1,15 +1,15 @@
 import { GroupServer } from '../domain/entities/group.server.entity';
 
-export const mockGroupServer = (
+export const createMockGroupServer = (
   overrides?: Partial<GroupServer>,
 ): GroupServer => {
   const base: Partial<GroupServer> = {
     id: 'group-123',
-    name: 'Serveur critique',
+    name: 'Groupe Serveur',
     priority: 1,
     servers: [],
     ...overrides,
   };
-  const group = Object.setPrototypeOf(base, GroupServer.prototype);
-  return group as GroupServer;
+  const group = Object.assign(new GroupServer(), base);
+  return group;
 };
