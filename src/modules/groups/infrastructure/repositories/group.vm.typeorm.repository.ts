@@ -46,7 +46,7 @@ export class GroupVmTypeormRepository
   ): Promise<GroupVm> {
     const group = await this.findGroupById(id);
     if (!group) {
-      throw new Error('Group not found');
+      throw new GroupNotFoundException('vm', id);
     }
     group.name = name;
     group.priority = priority;
@@ -56,7 +56,7 @@ export class GroupVmTypeormRepository
   async deleteGroup(id: string): Promise<void> {
     const group = await this.findGroupById(id);
     if (!group) {
-      throw new Error('Group not found');
+      throw new GroupNotFoundException('vm', id);
     }
     await this.delete(id);
   }
