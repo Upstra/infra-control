@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 import { GroupDtoInterface } from '../interfaces/group.dto.interface';
 
 export class GroupServerDto implements GroupDtoInterface {
@@ -11,7 +17,9 @@ export class GroupServerDto implements GroupDtoInterface {
   @IsNumber()
   priority?: number;
 
-  @ApiProperty()
-  @IsNumber()
-  serverId?: number;
+  @ApiProperty({ type: [String], required: false })
+  @IsArray()
+  @IsUUID('all', { each: true })
+  @IsOptional()
+  serverIds?: string[];
 }

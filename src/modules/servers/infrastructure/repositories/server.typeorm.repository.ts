@@ -6,6 +6,8 @@ import {
   ServerNotFoundException,
   ServerRetrievalException,
 } from '../../domain/exceptions/server.exception';
+import { FindOneByFieldOptions } from '@/modules/users/domain/interfaces/user.repository.interface';
+import { InvalidQueryValueException } from '@/core/exceptions/repository.exception';
 
 @Injectable()
 export class ServerTypeormRepository
@@ -52,6 +54,28 @@ export class ServerTypeormRepository
     } catch (error) {
       Logger.error(`Error deleting server with id ${id}:`, error);
       throw new ServerNotFoundException(id);
+    }
+  }
+
+  async findOneByField<T extends keyof Server>({
+    field,
+    value,
+    disableThrow = false,
+  }: FindOneByFieldOptions<Server, T>): Promise<Server | null> {
+    if (value === undefined || value === null) {
+      throw new InvalidQueryValueException(String(field), value);
+    }
+    try {
+      return await this.findOneOrFail({ where: { [field]: value } as any });
+    } catch (error) {
+      if (error.name === 'EntityNotFoundError') {
+        if (disableThrow) {
+          return null;
+        }
+        throw new ServerNotFoundException();
+      }
+      Logger.error('Error retrieving server by field:', error);
+      throw new ServerRetrievalException();
     }
   }
 }
