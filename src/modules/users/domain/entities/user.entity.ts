@@ -28,18 +28,24 @@ export class User extends BaseEntity {
   @Column({ type: 'varchar', nullable: true })
   email?: string;
 
+  /* 2FA */
   @Column({ default: false })
   isTwoFactorEnabled: boolean;
 
   @Column({ nullable: true })
   twoFactorSecret: string;
 
+  /* Timestamps */
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 
+  @Column({ type: 'timestamp', nullable: true })
+  lastLoggedIn?: Date;
+
+  /* Rôle */
   @ManyToOne(() => Role, (role) => role.users)
   @JoinColumn({ name: 'roleId' })
   role: Role;
@@ -49,4 +55,7 @@ export class User extends BaseEntity {
 
   @Column('text', { array: true, nullable: true })
   recoveryCodes?: string[];
+
+  @Column({ default: false })
+  active!: boolean;
 }

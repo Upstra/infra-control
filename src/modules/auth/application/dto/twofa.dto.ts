@@ -72,7 +72,7 @@ export class TwoFADisableResponseDto {
     this.isDisabled = isDisabled;
     this.message = isDisabled
       ? '2FA has been disabled successfully.'
-      : 'Invalid code. 2FA is still active.';
+      : '2FA is not enabled.';
   }
 }
 

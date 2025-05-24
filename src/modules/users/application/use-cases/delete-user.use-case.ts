@@ -9,7 +9,10 @@ export class DeleteUserUseCase {
   ) {}
 
   async execute(id: string): Promise<void> {
-    await this.repo.findOneByField('id', id);
+    await this.repo.findOneByField({
+      field: 'id',
+      value: id,
+    });
     await this.repo.deleteUser(id);
   }
 }

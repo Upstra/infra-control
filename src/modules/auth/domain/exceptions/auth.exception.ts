@@ -10,3 +10,9 @@ export class AuthPasswordNotValidException extends HttpException {
     super('Password or username not valid', HttpStatus.UNAUTHORIZED);
   }
 }
+
+export class JwtNotValid extends Error {
+  constructor(message: string = 'Le token fourni est invalide ou manquant') {
+    super(message);
+  }
+}

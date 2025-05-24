@@ -87,13 +87,8 @@ export class TwoFAController {
   @UseFilters(InvalidQueryExceptionFilter)
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiBody({
-    type: TwoFADto,
-    description: '2FA disable DTO',
-    required: true,
-  })
-  disable(@CurrentUser() user: JwtPayload, @Body() dto: TwoFADto) {
-    return this.disable2FAUseCase.execute(user, dto);
+  disable(@CurrentUser() user: JwtPayload) {
+    return this.disable2FAUseCase.execute(user);
   }
 
   @Post('recovery')
