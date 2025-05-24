@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { GroupRepositoryInterface } from '../../../domain/interfaces/group.repository.interface';
+import { GroupRepositoryInterface } from '../../../domain/interfaces/group-vm.repository.interface';
 
 @Injectable()
 export class DeleteGroupVmUseCase {

@@ -1,13 +1,13 @@
 import { CreateGroupServerUseCase } from '../create-group-server.use-case';
-import { GroupRepositoryInterface } from '@/modules/groups/domain/interfaces/group.repository.interface';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 import { GroupServerDomainService } from '@/modules/groups/domain/services/group.server.domain.service';
 import { GroupServerDto } from '@/modules/groups/application/dto/group.server.dto';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
+import { GroupServerTypeormRepository } from '@/modules/groups/infrastructure/repositories/group.server.typeorm.repository';
 
 describe('CreateGroupServerUseCase', () => {
   let useCase: CreateGroupServerUseCase;
-  let groupRepository: jest.Mocked<GroupRepositoryInterface>;
+  let groupRepository: jest.Mocked<GroupServerTypeormRepository>;
   let serverRepository: jest.Mocked<ServerRepositoryInterface>;
   let domain: GroupServerDomainService;
 

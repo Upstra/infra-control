@@ -1,12 +1,12 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { GroupRepositoryInterface } from '../../../domain/interfaces/group.repository.interface';
 import { GroupServerDto } from '../../dto/group.server.dto';
+import { GroupServerTypeormRepository } from '@/modules/groups/infrastructure/repositories/group.server.typeorm.repository';
 
 @Injectable()
 export class GetGroupServerByIdUseCase {
   constructor(
-    @Inject('GroupRepositoryInterface')
-    private readonly groupRepository: GroupRepositoryInterface,
+    @Inject('GroupServerRepositoryInterface')
+    private readonly groupRepository: GroupServerTypeormRepository,
   ) {}
 
   async execute(id: string): Promise<GroupServerDto> {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { GroupVm } from '../../domain/entities/group.vm.entity';
-import { GroupRepositoryInterface } from '../../domain/interfaces/group.repository.interface';
+import { GroupRepositoryInterface } from '../../domain/interfaces/group-vm.repository.interface';
 import { DataSource, Repository } from 'typeorm';
 
 @Injectable()

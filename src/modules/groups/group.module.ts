@@ -18,11 +18,11 @@ import { GroupUseCases } from './application/use-cases';
   providers: [
     ...GroupUseCases,
     {
-      provide: 'GroupRepositoryInterface',
+      provide: 'GroupServerRepositoryInterface',
       useClass: GroupServerTypeormRepository,
     },
     {
-      provide: 'GroupRepositoryInterface',
+      provide: 'GroupVmRepositoryInterface',
       useClass: GroupVmTypeormRepository,
     },
   ],
