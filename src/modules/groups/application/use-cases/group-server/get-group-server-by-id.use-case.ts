@@ -1,15 +1,21 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { GroupRepositoryInterface } from '../../../domain/interfaces/group.repository.interface';
 import { GroupServerDto } from '../../dto/group.server.dto';
+import { GroupServerRepositoryInterface } from '@/modules/groups/domain/interfaces/group-server.repository.interface';
 
 @Injectable()
 export class GetGroupServerByIdUseCase {
   constructor(
-    @Inject('GroupRepositoryInterface')
-    private readonly groupRepository: GroupRepositoryInterface,
+    @Inject('GroupServerRepositoryInterface')
+    private readonly groupRepository: GroupServerRepositoryInterface,
   ) {}
 
   async execute(id: string): Promise<GroupServerDto> {
-    throw new Error(`Method not implemented: ${id}`);
+    const group = await this.groupRepository.findOneByField({
+      field: 'id',
+      value: id,
+      relations: ['servers'],
+    });
+
+    return new GroupServerDto(group);
   }
 }

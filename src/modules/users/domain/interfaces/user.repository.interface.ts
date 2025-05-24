@@ -1,3 +1,4 @@
+import { FindOneByFieldOptions } from '@/core/utils/find-one-by-field-options';
 import { User } from '../entities/user.entity';
 
 export interface UserRepositoryInterface {
@@ -18,10 +19,4 @@ export interface UserRepositoryInterface {
     options: FindOneByFieldOptions<User, T>,
   ): Promise<User | null>;
 }
-
-export interface FindOneByFieldOptions<Entity, Field extends keyof Entity> {
-  field: Field;
-  value: Entity[Field];
-  disableThrow?: boolean;
-  relations?: string[];
-}
+export { FindOneByFieldOptions };

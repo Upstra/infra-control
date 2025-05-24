@@ -1,6 +1,6 @@
 export class ServerNotFoundException extends Error {
-  constructor(id: string) {
-    super(`Le serveur avec l'ID ${id} est introuvable.`);
+  constructor(id?: string) {
+    super(`Le serveur ` + (id ? `avec l'ID ${id}` : '') + `est introuvable.`);
   }
 }
 
