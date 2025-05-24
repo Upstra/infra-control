@@ -7,6 +7,7 @@ import {
   IsUUID,
 } from 'class-validator';
 import { GroupDtoInterface } from '../interfaces/group.dto.interface';
+import { GroupServer } from '../../domain/entities/group.server.entity';
 
 export class GroupServerDto implements GroupDtoInterface {
   @ApiProperty()
@@ -22,4 +23,10 @@ export class GroupServerDto implements GroupDtoInterface {
   @IsUUID('all', { each: true })
   @IsOptional()
   serverIds?: string[];
+
+  constructor(entity: GroupServer) {
+    this.name = entity.name;
+    this.priority = entity.priority;
+    this.serverIds = entity.servers?.map((s) => s.id) ?? [];
+  }
 }

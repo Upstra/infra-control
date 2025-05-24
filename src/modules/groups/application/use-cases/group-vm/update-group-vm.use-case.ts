@@ -1,12 +1,12 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { GroupRepositoryInterface } from '../../../domain/interfaces/group-vm.repository.interface';
+import { GroupVmRepositoryInterface } from '@/modules/groups/domain/interfaces/group-vm.repository.interface';
 import { GroupVmDto } from '../../dto/group.vm.dto';
 
 @Injectable()
 export class UpdateGroupVmUseCase {
   constructor(
-    @Inject('GroupRepositoryInterface')
-    private readonly groupRepository: GroupRepositoryInterface,
+    @Inject('GroupVmRepositoryInterface')
+    private readonly groupRepository: GroupVmRepositoryInterface,
   ) {}
 
   async execute(id: string, groupDto: GroupVmDto): Promise<GroupVmDto> {

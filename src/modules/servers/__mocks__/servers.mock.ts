@@ -1,3 +1,8 @@
+import { createMockGroupServer } from '@/modules/groups/__mocks__/group.server.mock';
+import { createMockRoom } from '@/modules/rooms/__mocks__/rooms.mock';
+import { createMockUps } from '@/modules/ups/__mocks__/ups.mock';
+import { createMockVm } from '@/modules/vms/__mocks__/vms.mock';
+import { createMockIlo } from '@/modules/ilos/__mocks__/ilos.mock';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
 
 export const createMockServer = (overrides?: Partial<Server>): Server => {

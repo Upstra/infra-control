@@ -1,15 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { GroupVm } from '../../domain/entities/group.vm.entity';
-import { GroupRepositoryInterface } from '../../domain/interfaces/group-vm.repository.interface';
+import { GroupVmRepositoryInterface } from '../../domain/interfaces/group-vm.repository.interface';
 import { DataSource, Repository } from 'typeorm';
+import { FindOneByFieldOptions } from '@/core/utils/find-one-by-field-options';
 
 @Injectable()
 export class GroupVmTypeormRepository
   extends Repository<GroupVm>
-  implements GroupRepositoryInterface
+  implements GroupVmRepositoryInterface
 {
   constructor(private readonly dataSource: DataSource) {
     super(GroupVm, dataSource.createEntityManager());
+  }
+  findOneByField<K extends keyof GroupVm>(
+    options: FindOneByFieldOptions<GroupVm, K>,
+  ): Promise<GroupVm> {
+    return super.findOne(options);
   }
 
   async findAll(): Promise<GroupVm[]> {
