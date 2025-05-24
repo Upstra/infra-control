@@ -10,4 +10,10 @@ export class GroupVmDomainService {
     groupVm.priority = dto.priority;
     return groupVm;
   }
+
+  updateGroupEntityFromDto(group: GroupVm, dto: GroupVmDto): GroupVm {
+    group.name = dto.name;
+    group.priority = dto.priority;
+    return group;
+  }
 }

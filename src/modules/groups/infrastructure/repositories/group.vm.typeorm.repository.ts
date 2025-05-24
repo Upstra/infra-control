@@ -3,6 +3,7 @@ import { GroupVm } from '../../domain/entities/group.vm.entity';
 import { GroupVmRepositoryInterface } from '../../domain/interfaces/group-vm.repository.interface';
 import { DataSource, Repository } from 'typeorm';
 import { FindOneByFieldOptions } from '@/core/utils/find-one-by-field-options';
+import { GroupNotFoundException } from '../../domain/exceptions/group.exception';
 
 @Injectable()
 export class GroupVmTypeormRepository
