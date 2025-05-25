@@ -20,3 +20,18 @@ export const createMockPermissionVm = (overrides?: Partial<PermissionVm>) =>
     allowWrite: true,
     ...overrides,
   });
+
+export const createMockPermissionServerDto = (overrides = {}) => ({
+  roleId: 'role-uuid',
+  serverId: 'server-uuid',
+  allowRead: true,
+  allowWrite: false,
+  ...overrides,
+});
+export const createMockPermissionVmDto = (overrides = {}) => ({
+  roleId: 'role-uuid',
+  vmId: 'vm-uuid',
+  allowRead: true,
+  allowWrite: true,
+  ...overrides,
+});
