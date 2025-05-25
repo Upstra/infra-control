@@ -1,19 +1,3 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { RoleRepositoryInterface } from '../../domain/interfaces/role.repository.interface';
-import { RoleCreationDto, RoleResponseDto } from '../dto';
-
-@Injectable()
-export class CreateRoleUseCase {
-  constructor(
-    @Inject('RoleRepositoryInterface')
-    private readonly roleRepository: RoleRepositoryInterface,
-  ) {}
-
-  async execute(dto: RoleCreationDto): Promise<RoleResponseDto> {
-    const role = await this.roleRepository.createRole(dto.name);
-    return new RoleResponseDto(role);
-  }
-}
 import { CreateRoleUseCase } from '../create-role.use-case';
 import { RoleRepositoryInterface } from '@/modules/roles/domain/interfaces/role.repository.interface';
 import { RoleCreationDto } from '../../dto/role.creation.dto';
@@ -40,7 +24,6 @@ describe('CreateRoleUseCase', () => {
   beforeEach(() => {
     roleRepository = {
       createRole: jest.fn(),
-      // Tu ajoutes ici d'autres méthodes mockées si besoin pour d'autres tests de use case
     } as any;
 
     useCase = new CreateRoleUseCase(roleRepository);
