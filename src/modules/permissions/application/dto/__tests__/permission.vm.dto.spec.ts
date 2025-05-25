@@ -1,18 +1,13 @@
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { PermissionVmDto } from '../permission.vm.dto';
-
-const createMockPermissionVmDto = (overrides?: Partial<PermissionVmDto>) => ({
-  roleId: 'fedcba98-7654-4321-abcd-1234567890ef',
-  vmId: '01234567-89ab-cdef-0123-456789abcdef',
-  allowWrite: true,
-  allowRead: false,
-  ...overrides,
-});
+import { createMockPermissionVmDto } from '@/modules/permissions/__mocks__/permissions.mock';
 
 describe('PermissionVmDto', () => {
   it('should be valid when all fields correct', async () => {
-    const dto = plainToInstance(PermissionVmDto, createMockPermissionVmDto());
+    const dto = plainToInstance(PermissionVmDto, createMockPermissionVmDto(), {
+      enableImplicitConversion: true,
+    });
     const errors = await validate(dto);
     expect(errors.length).toBe(0);
   });
@@ -24,6 +19,7 @@ describe('PermissionVmDto', () => {
         allowWrite: undefined,
         allowRead: undefined,
       }),
+      { enableImplicitConversion: true },
     );
     const errors = await validate(dto);
     expect(errors.length).toBe(0);
@@ -36,6 +32,7 @@ describe('PermissionVmDto', () => {
         roleId: 'bad-uuid',
         vmId: 'not-a-uuid',
       }),
+      { enableImplicitConversion: true },
     );
     const errors = await validate(dto);
     expect(errors.some((e) => e.property === 'roleId')).toBe(true);
@@ -43,13 +40,16 @@ describe('PermissionVmDto', () => {
   });
 
   it('should be invalid if allowWrite/allowRead are not boolean', async () => {
-    const dto = plainToInstance(
-      PermissionVmDto,
-      createMockPermissionVmDto({
-        allowWrite: 'non' as any,
-        allowRead: 'yes' as any,
-      }),
-    );
+    const raw = {
+      ...createMockPermissionVmDto(),
+      allowWrite: 'non',
+      allowRead: 'oui',
+    };
+
+    const dto = plainToInstance(PermissionVmDto, raw, {
+      enableImplicitConversion: false,
+    });
+
     const errors = await validate(dto);
     expect(errors.some((e) => e.property === 'allowWrite')).toBe(true);
     expect(errors.some((e) => e.property === 'allowRead')).toBe(true);

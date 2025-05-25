@@ -1,6 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PermissionServerController } from '../permission.server.controller';
+
 import { createMockPermissionServerDto } from '@/modules/permissions/__mocks__/permissions.mock';
+import {
+  CreatePermissionServerUseCase,
+  DeletePermissionServerUseCase,
+  GetPermissionServerByIdsUseCase,
+  GetPermissionsServerByRoleUseCase,
+  UpdatePermissionServerUseCase,
+} from '../../use-cases/permission-server';
 
 describe('PermissionServerController', () => {
   let controller: PermissionServerController;
@@ -21,44 +29,29 @@ describe('PermissionServerController', () => {
       controllers: [PermissionServerController],
       providers: [
         {
-          provide: 'CreatePermissionServerUseCase',
+          provide: CreatePermissionServerUseCase,
           useValue: createPermissionUsecase,
         },
         {
-          provide: 'GetPermissionsServerByRoleUseCase',
+          provide: GetPermissionsServerByRoleUseCase,
           useValue: getAllByRoleUsecase,
         },
+        { provide: GetPermissionServerByIdsUseCase, useValue: getByIdsUsecase },
         {
-          provide: 'GetPermissionServerByIdsUseCase',
-          useValue: getByIdsUsecase,
-        },
-        {
-          provide: 'UpdatePermissionServerUseCase',
+          provide: UpdatePermissionServerUseCase,
           useValue: updatePermissionUsecase,
         },
         {
-          provide: 'DeletePermissionServerUseCase',
+          provide: DeletePermissionServerUseCase,
           useValue: deletePermissionUsecase,
         },
       ],
-    })
-      .overrideProvider(PermissionServerController)
-      .useValue(
-        new PermissionServerController(
-          createPermissionUsecase,
-          getAllByRoleUsecase,
-          getByIdsUsecase,
-          updatePermissionUsecase,
-          deletePermissionUsecase,
-        ),
-      )
-      .compile();
+    }).compile();
 
     controller = module.get<PermissionServerController>(
       PermissionServerController,
     );
   });
-
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });

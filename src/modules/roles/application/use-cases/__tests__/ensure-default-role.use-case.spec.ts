@@ -40,12 +40,16 @@ describe('EnsureDefaultRoleUseCase', () => {
 
   it('should update admin rights if userCount = 0 and admin canCreateServer is false', async () => {
     getUserCountUseCase.execute.mockResolvedValue(0);
+
     const admin = createMockRole({ name: 'ADMIN', canCreateServer: false });
     roleRepository.findAll.mockResolvedValue([admin]);
     roleRepository.findOneByField.mockResolvedValue(admin);
-    roleRepository.save.mockResolvedValue({ ...admin, canCreateServer: true });
+
+    const updatedAdmin = createMockRole({ ...admin, canCreateServer: true });
+    roleRepository.save.mockResolvedValue(updatedAdmin);
 
     const result = await useCase.execute();
+
     expect(roleRepository.save).toHaveBeenCalled();
     expect(result.canCreateServer).toBe(true);
   });

@@ -1,6 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PermissionVmController } from '../permission.vm.controller';
 import { createMockPermissionVmDto } from '@/modules/permissions/__mocks__/permissions.mock';
+import {
+  GetPermissionVmByIdsUseCase,
+  UpdatePermissionVmUseCase,
+} from '../../use-cases/permission-vm';
+import { GetPermissionsVmByRoleUseCase } from '../../use-cases/permission-vm';
+import { CreatePermissionVmUseCase } from '../../use-cases/permission-vm';
 
 describe('PermissionVmController', () => {
   let controller: PermissionVmController;
@@ -18,25 +24,12 @@ describe('PermissionVmController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PermissionVmController],
       providers: [
-        { provide: 'CreatePermissionVmUseCase', useValue: createUseCase },
-        { provide: 'UpdatePermissionVmUseCase', useValue: updateUseCase },
-        { provide: 'GetPermissionVmByIdsUseCase', useValue: getByIdsUseCase },
-        {
-          provide: 'GetPermissionsVmByRoleUseCase',
-          useValue: getByRoleUseCase,
-        },
+        { provide: CreatePermissionVmUseCase, useValue: createUseCase },
+        { provide: UpdatePermissionVmUseCase, useValue: updateUseCase },
+        { provide: GetPermissionVmByIdsUseCase, useValue: getByIdsUseCase },
+        { provide: GetPermissionsVmByRoleUseCase, useValue: getByRoleUseCase },
       ],
-    })
-      .overrideProvider(PermissionVmController)
-      .useValue(
-        new PermissionVmController(
-          createUseCase,
-          updateUseCase,
-          getByIdsUseCase,
-          getByRoleUseCase,
-        ),
-      )
-      .compile();
+    }).compile();
 
     controller = module.get<PermissionVmController>(PermissionVmController);
   });

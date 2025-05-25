@@ -26,7 +26,7 @@ export class Verify2FARecoveryUseCase {
       throw new ForbiddenException('Aucun code de récupération disponible.');
     }
 
-    const bcrypt = await import('bcrypt');
+    const bcrypt = await import('bcryptjs');
 
     const cleanedCode = dto.recoveryCode
       .replace(/[^A-Z0-9]/gi, '')

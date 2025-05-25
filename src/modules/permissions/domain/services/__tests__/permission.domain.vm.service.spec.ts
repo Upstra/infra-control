@@ -9,6 +9,8 @@ describe('PermissionDomainVmService', () => {
     const expected = createMockPermissionVm({
       allowRead: true,
       allowWrite: true,
+      vmId: undefined,
+      roleId: undefined,
     });
     expect(entity).toEqual(expected);
   });
@@ -18,6 +20,8 @@ describe('PermissionDomainVmService', () => {
     const expected = createMockPermissionVm({
       allowRead: true,
       allowWrite: false,
+      vmId: undefined,
+      roleId: undefined,
     });
     expect(entity).toEqual(expected);
   });

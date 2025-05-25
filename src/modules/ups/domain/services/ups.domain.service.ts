@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { Ups } from '../entities/ups.entity';
 import { UpsCreationDto } from '../../application/dto/ups.creation.dto';
 import { UpsUpdateDto } from '../../application/dto/ups.update.dto';

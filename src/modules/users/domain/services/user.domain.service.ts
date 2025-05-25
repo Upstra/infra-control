@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { User } from '../entities/user.entity';
 import { Role } from '../../../roles/domain/entities/role.entity';
 import { UserUpdateDto } from '../../application/dto/user.update.dto';
