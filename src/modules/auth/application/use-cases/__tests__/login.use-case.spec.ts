@@ -6,7 +6,7 @@ import {
   AuthPasswordNotValidException,
 } from '@/modules/auth/domain/exceptions/auth.exception';
 import { User } from '@/modules/users/domain/entities/user.entity';
-import { createMockRole } from '@/modules/auth/__mocks__/role.mock';
+import { createMockRole } from '@/modules/roles/__mocks__/role.mock';
 import {
   GetUserByEmailUseCase,
   GetUserByUsernameUseCase,

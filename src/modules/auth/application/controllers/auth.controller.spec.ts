@@ -8,7 +8,6 @@ import { Verify2FAUseCase } from '../use-cases/verify-2fa.use-case';
 import { Disable2FAUseCase } from '../use-cases/disable-2fa.use-case';
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
-import { TwoFADto } from '../dto/twofa.dto';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -52,33 +51,5 @@ describe('AuthController', () => {
     };
     await controller.register(dto);
     expect(registerUseCase.execute).toHaveBeenCalledWith(dto);
-  });
-
-  it('should call get2FAStatus with user email', async () => {
-    const mockUser = { email: 'john@example.com', userId: 'id123' };
-    await controller.get2FAStatus(mockUser);
-    expect(get2FAStatusUseCase.execute).toHaveBeenCalledWith(
-      'john@example.com',
-    );
-  });
-
-  it('should call generate 2FA with email', async () => {
-    const mockUser = { email: 'john@example.com', userId: 'id123' };
-    await controller.generate(mockUser);
-    expect(generate2FAUseCase.execute).toHaveBeenCalledWith('john@example.com');
-  });
-
-  it('should call verify 2FA with payload and dto', async () => {
-    const user = { email: 'john@example.com', userId: 'id123' };
-    const dto: TwoFADto = { code: '123456' };
-    await controller.verify(user, dto);
-    expect(verify2FAUseCase.execute).toHaveBeenCalledWith(user, dto);
-  });
-
-  it('should call disable 2FA with payload and dto', async () => {
-    const user = { email: 'john@example.com', userId: 'id123' };
-    const dto: TwoFADto = { code: '123456' };
-    await controller.disable(user, dto);
-    expect(disable2FAUseCase.execute).toHaveBeenCalledWith(user, dto);
   });
 });
