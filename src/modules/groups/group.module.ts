@@ -19,13 +19,19 @@ import { GroupVmUseCases } from './application/use-cases/group-vm';
     ...GroupVmUseCases,
     ...GroupServerUseCases,
     {
-      provide: 'GroupRepositoryInterface',
+      provide: 'GroupServerRepositoryInterface',
       useClass: GroupServerTypeormRepository,
     },
     {
-      provide: 'GroupRepositoryInterface',
+      provide: 'GroupVmRepositoryInterface',
       useClass: GroupVmTypeormRepository,
     },
+    {
+      provide: 'ServerRepositoryInterface',
+      useClass: ServerTypeormRepository,
+    },
+    GroupServerDomainService,
+    GroupVmDomainService,
   ],
 })
 export class GroupModule {}
