@@ -1,8 +1,8 @@
 import { CreateGroupVmUseCase } from '../create-group-vm.use-case';
 import { GroupVmRepositoryInterface } from '@/modules/groups/domain/interfaces/group-vm.repository.interface';
 import { GroupVmDomainService } from '@/modules/groups/domain/services/group.vm.domain.service';
-import { GroupVmDto } from '../../dto/group.vm.dto';
 import { GroupVm } from '@/modules/groups/domain/entities/group.vm.entity';
+import { GroupVmDto } from '../../../dto/group.vm.dto';
 
 describe('CreateGroupVmUseCase', () => {
   let useCase: CreateGroupVmUseCase;

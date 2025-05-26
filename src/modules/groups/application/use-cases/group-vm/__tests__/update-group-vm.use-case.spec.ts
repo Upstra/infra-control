@@ -1,9 +1,9 @@
 import { UpdateGroupVmUseCase } from '../update-group-vm.use-case';
 import { GroupVmRepositoryInterface } from '@/modules/groups/domain/interfaces/group-vm.repository.interface';
 import { GroupVmDomainService } from '@/modules/groups/domain/services/group.vm.domain.service';
-import { GroupVmDto } from '../../dto/group.vm.dto';
 import { GroupNotFoundException } from '@/modules/groups/domain/exceptions/group.exception';
 import { createMockGroupVm } from '@/modules/groups/__mocks__/group.vm.mock';
+import { GroupVmDto } from '../../../dto/group.vm.dto';
 
 describe('UpdateGroupVmUseCase', () => {
   let useCase: UpdateGroupVmUseCase;

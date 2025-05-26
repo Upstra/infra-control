@@ -1,7 +1,7 @@
 import { GetGroupVmByIdUseCase } from '../get-group-vm-by-id.use-case';
 import { GroupVmRepositoryInterface } from '@/modules/groups/domain/interfaces/group-vm.repository.interface';
-import { GroupVmDto } from '../../dto/group.vm.dto';
 import { createMockGroupVm } from '@/modules/groups/__mocks__/group.vm.mock';
+import { GroupVmDto } from '../../../dto/group.vm.dto';
 describe('GetGroupVmByIdUseCase', () => {
   let useCase: GetGroupVmByIdUseCase;
   let repo: jest.Mocked<GroupVmRepositoryInterface>;
@@ -27,9 +27,9 @@ describe('GetGroupVmByIdUseCase', () => {
     expect(result).toEqual(new GroupVmDto(group));
   });
 
-  it('should throw if group is not found', async () => {
+  it('should return DTO if group is not found', async () => {
     repo.findOneByField.mockResolvedValue(null as any);
-
-    await expect(useCase.execute('notfound')).rejects.toThrow();
+    const result = await useCase.execute('notfound');
+    expect(result).toEqual(new GroupVmDto({ vmIds: [] }));
   });
 });

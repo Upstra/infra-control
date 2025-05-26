@@ -24,9 +24,15 @@ export class GroupVmDto implements GroupDtoInterface {
   @IsOptional()
   vmIds?: string[];
 
-  constructor(entity: GroupVm) {
-    this.name = entity.name;
-    this.priority = entity.priority;
-    this.vmIds = entity.vms?.map((vm) => vm.id) ?? [];
+  constructor(partial?: Partial<GroupVmDto>) {
+    Object.assign(this, { vmIds: [], ...partial });
+  }
+
+  static fromEntity(entity: GroupVm): GroupVmDto {
+    return new GroupVmDto({
+      name: entity.name,
+      priority: entity.priority,
+      vmIds: entity.vms ? entity.vms.map((v) => v.id) : [],
+    });
   }
 }

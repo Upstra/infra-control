@@ -24,9 +24,15 @@ export class GroupServerDto implements GroupDtoInterface {
   @IsOptional()
   serverIds?: string[];
 
-  constructor(entity: GroupServer) {
-    this.name = entity.name;
-    this.priority = entity.priority;
-    this.serverIds = entity.servers?.map((s) => s.id) ?? [];
+  constructor(partial?: Partial<GroupServerDto>) {
+    Object.assign(this, partial);
+  }
+
+  static fromEntity(entity: GroupServer): GroupServerDto {
+    return new GroupServerDto({
+      name: entity.name,
+      priority: entity.priority,
+      serverIds: entity.servers?.map((s) => s.id) ?? [],
+    });
   }
 }

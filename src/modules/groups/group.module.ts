@@ -11,6 +11,9 @@ import { GroupServerTypeormRepository } from './infrastructure/repositories/grou
 import { GroupVmTypeormRepository } from './infrastructure/repositories/group.vm.typeorm.repository';
 import { GroupServerUseCases } from './application/use-cases/group-server';
 import { GroupVmUseCases } from './application/use-cases/group-vm';
+import { GroupVmDomainService } from './domain/services/group.vm.domain.service';
+import { GroupServerDomainService } from './domain/services/group.server.domain.service';
+import { ServerTypeormRepository } from '../servers/infrastructure/repositories/server.typeorm.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Group, GroupServer, GroupVm])],

@@ -1,6 +1,5 @@
 import { GetAllGroupVmUseCase } from '../get-all-group-vm.use-case';
 import { GroupVmRepositoryInterface } from '@/modules/groups/domain/interfaces/group-vm.repository.interface';
-import { GroupVmDto } from '../../dto/group.vm.dto';
 import { createMockGroupVm } from '@/modules/groups/__mocks__/group.vm.mock';
 
 describe('GetAllGroupVmUseCase', () => {
@@ -17,17 +16,42 @@ describe('GetAllGroupVmUseCase', () => {
 
   it('should return all GroupVm as DTOs', async () => {
     const mockGroups = [
-      createMockGroupVm({ id: 'groupvm-1', name: 'Group 1', priority: 2 }),
-      createMockGroupVm({ id: 'groupvm-2', name: 'Group 2', priority: 5 }),
+      createMockGroupVm({
+        id: 'groupvm-1',
+        name: 'Group 1',
+        priority: 2,
+        vms: [],
+      }),
+      createMockGroupVm({
+        id: 'groupvm-2',
+        name: 'Group 2',
+        priority: 5,
+        vms: [],
+      }),
     ];
     repo.findAll.mockResolvedValue(mockGroups);
 
     const result = await useCase.execute();
 
     expect(repo.findAll).toHaveBeenCalled();
-    expect(result).toEqual([
-      new GroupVmDto(mockGroups[0]),
-      new GroupVmDto(mockGroups[1]),
+
+    const minimalResult = result.map((dto) => ({
+      name: dto.name,
+      priority: dto.priority,
+      vmIds: dto.vmIds,
+    }));
+
+    expect(minimalResult).toEqual([
+      {
+        name: 'Group 1',
+        priority: 2,
+        vmIds: [],
+      },
+      {
+        name: 'Group 2',
+        priority: 5,
+        vmIds: [],
+      },
     ]);
   });
 
