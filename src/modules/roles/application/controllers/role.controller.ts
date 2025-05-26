@@ -13,7 +13,7 @@ import { ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import {
   RoleCreationDto,
   RoleResponseDto,
-} from '@/modules/roles/application/dto/index';
+} from '@/modules/roles/application/dto';
 import {
   CreateRoleUseCase,
   DeleteRoleUseCase,

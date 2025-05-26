@@ -1,5 +1,4 @@
-import { RoomResponseDto } from '../dto/room.response.dto';
-import { RoomCreationDto } from '../dto/room.creation.dto';
+import { RoomResponseDto, RoomCreationDto } from '../dto';
 
 export interface RoomEndpointInterface {
   getAllRooms(): Promise<RoomResponseDto[]>;

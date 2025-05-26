@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { RoomRepositoryInterface } from '../../domain/interfaces/room.repository.interface';
-import { RoomResponseDto } from '../dto/room.response.dto';
+import { RoomResponseDto } from '../dto';
 
 @Injectable()
 export class GetAllRoomsUseCase {
@@ -11,6 +11,6 @@ export class GetAllRoomsUseCase {
 
   async execute(): Promise<RoomResponseDto[]> {
     const rooms = await this.roomRepository.findAll();
-    return rooms.map((room) => new RoomResponseDto(room));
+    return rooms.map((room) => RoomResponseDto.from(room));
   }
 }

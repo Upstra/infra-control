@@ -10,15 +10,14 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
 
-import { RoomCreationDto } from '../dto/room.creation.dto';
-import { RoomResponseDto } from '../dto/room.response.dto';
+import { RoomCreationDto, RoomResponseDto } from '../dto';
 import {
   CreateRoomUseCase,
   DeleteRoomUseCase,
   GetAllRoomsUseCase,
   GetRoomByIdUseCase,
   UpdateRoomUseCase,
-} from '@/modules/rooms/application/use-cases';
+} from '../use-cases';
 
 @ApiTags('Room')
 @Controller('room')
