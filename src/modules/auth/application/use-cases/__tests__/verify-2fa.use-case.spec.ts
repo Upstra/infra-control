@@ -41,9 +41,15 @@ describe('Verify2FAUseCase', () => {
       sign: jest.fn(),
     } as any;
 
+    const recoverCodeService = {
+      generate: jest.fn(),
+      hash: jest.fn(),
+    } as any;
+
     useCase = new Verify2FAUseCase(
       getUserByEmailUseCase,
       updateUserFieldsUseCase,
+      recoverCodeService,
       jwtService,
     );
   });

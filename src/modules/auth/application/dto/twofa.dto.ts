@@ -34,10 +34,22 @@ export class TwoFAResponseDto {
   })
   message?: string;
 
-  constructor(isValid: boolean, accessToken?: string | null, message?: string) {
+  @ApiPropertyOptional({
+    description: 'List of recovery codes for first-time activation',
+    example: ['RAKX-1EGR', 'VX84-ZK8G', '...'],
+  })
+  recoveryCodes?: string[];
+
+  constructor(
+    isValid: boolean,
+    accessToken?: string | null,
+    message?: string,
+    recoveryCodes?: string[],
+  ) {
     this.isValid = isValid;
     this.accessToken = accessToken ?? null;
     if (message) this.message = message;
+    if (recoveryCodes) this.recoveryCodes = recoveryCodes;
   }
 }
 
@@ -60,7 +72,7 @@ export class TwoFADisableResponseDto {
     this.isDisabled = isDisabled;
     this.message = isDisabled
       ? '2FA has been disabled successfully.'
-      : 'Invalid code. 2FA is still active.';
+      : '2FA is not enabled.';
   }
 }
 
@@ -84,4 +96,14 @@ export class TwoFaGenerateQrCodeResponseDto {
     this.setupKey = setupKey;
     this.qrCode = qrCode;
   }
+}
+
+export class TwoFARecoveryDto {
+  @ApiProperty({
+    description: 'Un des recovery codes 2FA fournis à l’activation',
+    example: 'VJC7-SKSP',
+  })
+  @IsNotEmpty()
+  @IsString()
+  recoveryCode: string;
 }

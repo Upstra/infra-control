@@ -7,6 +7,7 @@ import { GetUserByEmailUseCase } from './get-user-by-email.use-case';
 import { GetUserByUsernameUseCase } from './get-user-by-username.use-case';
 import { UpdateUserFieldsUseCase } from './update-user-fields.use-case';
 import { GetUserCountUseCase } from './get-user-count.use-case';
+import { ResetPasswordUseCase } from './reset-password.use-case';
 
 export const UserUseCase = [
   GetUserByIdUseCase,
@@ -18,6 +19,7 @@ export const UserUseCase = [
   UpdateUserFieldsUseCase,
   DeleteUserUseCase,
   RegisterUserUseCase,
+  ResetPasswordUseCase,
 ];
 
 export {
@@ -30,4 +32,5 @@ export {
   UpdateUserFieldsUseCase,
   DeleteUserUseCase,
   RegisterUserUseCase,
+  ResetPasswordUseCase,
 };

@@ -1,11 +1,18 @@
-import { Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import { Inject, Injectable } from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
 import { User } from '../entities/user.entity';
 import { Role } from '../../../roles/domain/entities/role.entity';
 import { UserUpdateDto } from '../../application/dto/user.update.dto';
+import { UserRepositoryInterface } from '../interfaces/user.repository.interface';
+import { UserConflictException } from '../exceptions/user.exception';
 
 @Injectable()
 export class UserDomainService {
+  constructor(
+    @Inject('UserRepositoryInterface')
+    private readonly repo: UserRepositoryInterface,
+  ) {}
+
   async validatePassword(
     userPassword: string,
     plainPassword: string,
@@ -24,7 +31,7 @@ export class UserDomainService {
     firstName?: string,
     lastName?: string,
   ): Promise<User> {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await this.hashPassword(password);
     const user = new User();
     user.username = username;
     user.password = hashedPassword;
@@ -46,9 +53,33 @@ export class UserDomainService {
     user.lastName = dto.lastName ?? user.lastName;
     user.email = dto.email?.toLowerCase() ?? user.email;
     user.roleId = dto.roleId ?? user.roleId;
-    if (dto.password) {
-      user.password = await bcrypt.hash(dto.password, 10);
-    }
     return user;
+  }
+
+  async hashPassword(password: string): Promise<string> {
+    return await bcrypt.hash(password, 10);
+  }
+
+  async ensureUniqueEmail(email: string, userId: string): Promise<void> {
+    await this.ensureUniqueField('email', email, userId);
+  }
+
+  async ensureUniqueUsername(username: string, userId: string): Promise<void> {
+    await this.ensureUniqueField('username', username, userId);
+  }
+
+  async ensureUniqueField(
+    field: string,
+    value: string,
+    userId: string,
+  ): Promise<void> {
+    const existing = await this.repo.findOneByField({
+      field: field as keyof User,
+      value: value,
+      disableThrow: true,
+    });
+    if (existing && existing.id !== userId) {
+      throw new UserConflictException(undefined, field as 'username' | 'email');
+    }
   }
 }

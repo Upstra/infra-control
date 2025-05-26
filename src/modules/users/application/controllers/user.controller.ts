@@ -21,6 +21,7 @@ import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 import { UserResponseDto } from '../dto/user.response.dto';
+
 import { UserUpdateDto } from '../dto/user.update.dto';
 
 import {
@@ -28,7 +29,9 @@ import {
   GetUserByIdUseCase,
   UpdateUserUseCase,
   DeleteUserUseCase,
+  ResetPasswordUseCase,
 } from '../use-cases';
+import { ResetPasswordDto } from '../dto';
 
 @ApiTags('User')
 @Controller('user')
@@ -37,6 +40,7 @@ export class UserController {
     private readonly getMeUseCase: GetMeUseCase,
     private readonly getUserByIdUseCase: GetUserByIdUseCase,
     private readonly updateUserUseCase: UpdateUserUseCase,
+    private readonly resetPasswordUseCase: ResetPasswordUseCase,
     private readonly deleteUserUseCase: DeleteUserUseCase,
   ) {}
 
@@ -71,7 +75,7 @@ export class UserController {
     return this.getUserByIdUseCase.execute(id);
   }
 
-  @Patch(':id')
+  @Patch('update-account/:id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({
@@ -94,6 +98,59 @@ export class UserController {
     @Body() updateUserDto: UserUpdateDto,
   ): Promise<UserResponseDto> {
     return this.updateUserUseCase.execute(id, updateUserDto);
+  }
+
+  @Patch('me/update-account')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiBody({ type: UserUpdateDto })
+  @ApiOperation({
+    summary: 'Mettre à jour son propre compte',
+  })
+  async updateCurrentUser(
+    @CurrentUser() user: JwtPayload,
+    @Body() updateUserDto: UserUpdateDto,
+  ): Promise<UserResponseDto> {
+    return this.updateUserUseCase.execute(user.userId, updateUserDto);
+  }
+
+  @Patch('me/reset-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiBody({ type: ResetPasswordDto })
+  @ApiOperation({
+    summary: 'Réinitialiser son propre mot de passe',
+  })
+  async resetCurrentUserPassword(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: ResetPasswordDto,
+  ): Promise<UserResponseDto> {
+    return this.resetPasswordUseCase.execute(user.userId, dto);
+  }
+
+  @Patch(':id/reset-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', type: String })
+  @ApiBody({ type: ResetPasswordDto })
+  @ApiOperation({ summary: 'Réinitialiser le mot de passe (admin)' })
+  async resetPassword(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ResetPasswordDto,
+  ): Promise<UserResponseDto> {
+    return this.resetPasswordUseCase.execute(id, dto);
+  }
+
+  @Delete('/me/delete-account')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: "Supprime l'utilisateur courant",
+    description:
+      "Supprime l'utilisateur courant via son token JWT. Action Irréversible",
+  })
+  async deleteCurrentUser(@CurrentUser() user: JwtPayload): Promise<void> {
+    return this.deleteUserUseCase.execute(user.userId);
   }
 
   @Delete(':id')

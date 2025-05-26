@@ -1,9 +1,5 @@
-import { ValidationPipe } from '@nestjs/common';
+import { CustomValidationPipe } from '@/core/pipes/custom-valiation.pipe';
 
-export function setupValidationPipe(): ValidationPipe {
-  return new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-  });
+export function setupValidationPipe(): CustomValidationPipe {
+  return new CustomValidationPipe();
 }
