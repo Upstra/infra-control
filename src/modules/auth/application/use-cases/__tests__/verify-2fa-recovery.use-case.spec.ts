@@ -9,9 +9,9 @@ import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { TwoFARecoveryDto } from '../../dto/twofa.dto';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
-jest.mock('bcrypt');
+jest.mock('bcryptjs');
 
 describe('Verify2FARecoveryUseCase', () => {
   let useCase: Verify2FARecoveryUseCase;

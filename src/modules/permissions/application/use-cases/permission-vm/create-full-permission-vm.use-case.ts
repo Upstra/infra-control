@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PermissionVmRepository } from '../../../infrastructure/repositories/permission.vm.repository';
 import { PermissionDomainVmService } from '../../../domain/services/permission.domain.vm.service';
-import { PermissionVm } from '../../../domain/entities/permission.vm.entity';
+import { PermissionVmDto } from '../../dto/permission.vm.dto';
 
 @Injectable()
 export class CreateFullPermissionVmUseCase {
@@ -10,8 +10,9 @@ export class CreateFullPermissionVmUseCase {
     private readonly domainService: PermissionDomainVmService,
   ) {}
 
-  async execute(): Promise<PermissionVm> {
+  async execute(): Promise<PermissionVmDto> {
     const entity = this.domainService.createFullPermissionEntity();
-    return await this.repository.save(entity);
+    const saved = await this.repository.save(entity);
+    return PermissionVmDto.fromEntity(saved);
   }
 }

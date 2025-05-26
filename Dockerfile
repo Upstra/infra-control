@@ -1,6 +1,6 @@
-FROM node:20-alpine AS base
+FROM node:20-slim AS base
 
-RUN addgroup -g 1001 -S nodegroup && adduser -S nodeuser -G nodegroup
+RUN addgroup --gid 1001 nodegroup && adduser --uid 1001 --ingroup nodegroup --disabled-password nodeuser
 RUN npm i -g pnpm
 
 FROM base AS dependencies

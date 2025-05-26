@@ -9,41 +9,32 @@ import { GroupVmController } from './application/controllers/group.vm.controller
 
 import { GroupServerTypeormRepository } from './infrastructure/repositories/group.server.typeorm.repository';
 import { GroupVmTypeormRepository } from './infrastructure/repositories/group.vm.typeorm.repository';
-
-import { CreateGroupVmUseCase } from './application/use-cases/group-vm/create-group-vm.use-case';
-import { GetAllGroupVmUseCase } from './application/use-cases/group-vm/get-all-group-vm.use-case';
-import { UpdateGroupVmUseCase } from './application/use-cases/group-vm/update-group-vm.use-case';
-import { DeleteGroupVmUseCase } from './application/use-cases/group-vm/delete-group-vm.use-case';
-import { GetGroupVmByIdUseCase } from './application/use-cases/group-vm/get-group-vm-by-id.use-case';
-
-import { CreateGroupServerUseCase } from './application/use-cases/group-server/create-group-server.use-case';
-import { GetAllGroupServerUseCase } from './application/use-cases/group-server/get-all-group-server.use-case';
-import { UpdateGroupServerUseCase } from './application/use-cases/group-server/update-group-server.use-case';
-import { DeleteGroupServerUseCase } from './application/use-cases/group-server/delete-group-server.use-case';
-import { GetGroupServerByIdUseCase } from './application/use-cases/group-server/get-group-server-by-id.use-case';
+import { GroupServerUseCases } from './application/use-cases/group-server';
+import { GroupVmUseCases } from './application/use-cases/group-vm';
+import { GroupVmDomainService } from './domain/services/group.vm.domain.service';
+import { GroupServerDomainService } from './domain/services/group.server.domain.service';
+import { ServerTypeormRepository } from '../servers/infrastructure/repositories/server.typeorm.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Group, GroupServer, GroupVm])],
   controllers: [GroupServerController, GroupVmController],
   providers: [
-    CreateGroupVmUseCase,
-    GetAllGroupVmUseCase,
-    UpdateGroupVmUseCase,
-    DeleteGroupVmUseCase,
-    GetGroupVmByIdUseCase,
-    CreateGroupServerUseCase,
-    GetAllGroupServerUseCase,
-    GetGroupServerByIdUseCase,
-    UpdateGroupServerUseCase,
-    DeleteGroupServerUseCase,
+    ...GroupVmUseCases,
+    ...GroupServerUseCases,
     {
-      provide: 'GroupRepositoryInterface',
+      provide: 'GroupServerRepositoryInterface',
       useClass: GroupServerTypeormRepository,
     },
     {
-      provide: 'GroupRepositoryInterface',
+      provide: 'GroupVmRepositoryInterface',
       useClass: GroupVmTypeormRepository,
     },
+    {
+      provide: 'ServerRepositoryInterface',
+      useClass: ServerTypeormRepository,
+    },
+    GroupServerDomainService,
+    GroupVmDomainService,
   ],
 })
 export class GroupModule {}
