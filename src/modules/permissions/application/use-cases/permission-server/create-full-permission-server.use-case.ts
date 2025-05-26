@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PermissionDomainServerService } from '../../../domain/services/permission.domain.server.service';
 import { PermissionServerRepository } from '../../../infrastructure/repositories/permission.server.repository';
-import { PermissionServer } from '../../../domain/entities/permission.server.entity';
+import { PermissionServerDto } from '../../dto/permission.server.dto';
 
 @Injectable()
 export class CreateFullPermissionServerUseCase {
@@ -10,8 +10,9 @@ export class CreateFullPermissionServerUseCase {
     private readonly domainService: PermissionDomainServerService,
   ) {}
 
-  async execute(): Promise<PermissionServer> {
+  async execute(): Promise<PermissionServerDto> {
     const entity = this.domainService.createFullPermissionEntity();
-    return await this.repository.save(entity);
+    const saved = await this.repository.save(entity);
+    return PermissionServerDto.fromEntity(saved);
   }
 }

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsOptional, IsUUID } from 'class-validator';
+import { PermissionVm } from '../../domain/entities/permission.vm.entity';
 
 export class PermissionVmDto {
   @ApiProperty()
@@ -24,5 +25,14 @@ export class PermissionVmDto {
 
   constructor(partial?: Partial<PermissionVmDto>) {
     Object.assign(this, partial);
+  }
+
+  static fromEntity(saved: PermissionVm): PermissionVmDto {
+    return new PermissionVmDto({
+      vmId: saved.vmId,
+      roleId: saved.roleId,
+      allowWrite: saved.allowWrite,
+      allowRead: saved.allowRead,
+    });
   }
 }

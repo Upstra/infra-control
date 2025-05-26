@@ -1,0 +1,86 @@
+import { GetPermissionVmByIdsUseCase } from '../get-permission-vm-by-ids.use-case';
+import { PermissionVmRepository } from '@/modules/permissions/infrastructure/repositories/permission.vm.repository';
+import { PermissionVm } from '@/modules/permissions/domain/entities/permission.vm.entity';
+import { PermissionVmDto } from '@/modules/permissions/application/dto/permission.vm.dto';
+import { PermissionNotFoundException } from '@/modules/permissions/domain/exceptions/permission.exception';
+
+describe('GetPermissionVmByIdsUseCase', () => {
+  let useCase: GetPermissionVmByIdsUseCase;
+  let repository: jest.Mocked<PermissionVmRepository>;
+
+  const mockPermissionVm = (
+    overrides?: Partial<PermissionVm>,
+  ): PermissionVm => {
+    const base: Partial<PermissionVm> = {
+      roleId: 'role-vm',
+      vmId: 'vm-1',
+      allowRead: true,
+      allowWrite: false,
+      ...overrides,
+    };
+    return Object.setPrototypeOf(base, PermissionVm.prototype) as PermissionVm;
+  };
+
+  beforeEach(() => {
+    repository = {
+      findPermissionByIds: jest.fn(),
+    } as any;
+
+    useCase = new GetPermissionVmByIdsUseCase(repository);
+  });
+
+  it('should return a PermissionVmDto from found entity', async () => {
+    const entity = mockPermissionVm();
+    repository.findPermissionByIds.mockResolvedValue(entity);
+
+    const dto = new PermissionVmDto({
+      vmId: 'vm-1',
+      roleId: 'role-vm',
+    });
+
+    const result = await useCase.execute(dto);
+
+    expect(repository.findPermissionByIds).toHaveBeenCalledWith(
+      'vm-1',
+      'role-vm',
+    );
+    expect(result).toEqual(new PermissionVmDto(entity));
+  });
+
+  it('should throw if permission not found', async () => {
+    repository.findPermissionByIds.mockRejectedValue(
+      new PermissionNotFoundException(),
+    );
+
+    const dto = new PermissionVmDto({
+      vmId: 'invalid-vm',
+      roleId: 'invalid-role',
+    });
+
+    await expect(useCase.execute(dto)).rejects.toThrow(
+      PermissionNotFoundException,
+    );
+  });
+
+  it('should map correct fields from entity to dto', async () => {
+    const permission = mockPermissionVm({
+      roleId: 'r2',
+      vmId: 'v2',
+      allowRead: true,
+      allowWrite: true,
+    });
+
+    repository.findPermissionByIds.mockResolvedValue(permission);
+
+    const result = await useCase.execute(
+      new PermissionVmDto({ vmId: 'v2', roleId: 'r2' }),
+    );
+
+    expect(result).toEqual({
+      roleId: 'r2',
+      vmId: 'v2',
+      allowRead: true,
+      allowWrite: true,
+    });
+  });
+});
