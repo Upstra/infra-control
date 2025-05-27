@@ -1,5 +1,3 @@
-// 📁 src/modules/users/application/use-cases/find-user-by-username.use-case.ts
-
 import { Inject, Injectable } from '@nestjs/common';
 import { UserRepositoryInterface } from '../../domain/interfaces/user.repository.interface';
 import { User } from '../../domain/entities/user.entity';
