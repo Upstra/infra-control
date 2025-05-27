@@ -19,7 +19,10 @@ export class UpdateServerUseCase {
     const existing = await this.serverRepository.findServerById(id);
     const entity = this.serverDomain.updateServerEntityFromDto(existing, dto);
     const updated = await this.serverRepository.save(entity);
-    const ilo = await this.updateIloUsecase.execute(id, dto.ilo);
+
+    const ilo = dto.ilo
+      ? await this.updateIloUsecase.execute(id, dto.ilo)
+      : updated.ilo;
     return new ServerResponseDto(updated, ilo);
   }
 }
