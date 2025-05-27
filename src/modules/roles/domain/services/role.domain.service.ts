@@ -11,8 +11,8 @@ export class RoleDomainService {
   ): Role {
     const role = new Role();
     role.name = 'ADMIN';
-    role.permissionServers = role.permissionServers.concat(permissionServer);
-    role.permissionVms = role.permissionVms.concat(permissionVm);
+    role.permissionServers = [permissionServer];
+    role.permissionVms = [permissionVm];
     return role;
   }
 
@@ -22,8 +22,8 @@ export class RoleDomainService {
   ): Role {
     const role = new Role();
     role.name = 'GUEST';
-    role.permissionServers = role.permissionServers.concat(permissionServer);
-    role.permissionVms = role.permissionVms.concat(permissionVm);
+    role.permissionServers = [permissionServer];
+    role.permissionVms = [permissionVm];
     return role;
   }
 }
