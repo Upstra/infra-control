@@ -36,7 +36,10 @@ describe('ResetPasswordUseCase', () => {
 
     const result = await useCase.execute('user-id', dto);
 
-    expect(repo.findOneByField).toHaveBeenCalledWith('id', 'user-id');
+    expect(repo.findOneByField).toHaveBeenCalledWith({
+      field: 'id',
+      value: 'user-id',
+    });
     expect(domainService.hashPassword).toHaveBeenCalledWith('newPassword123');
     expect(repo.save).toHaveBeenCalledWith({
       ...user,
