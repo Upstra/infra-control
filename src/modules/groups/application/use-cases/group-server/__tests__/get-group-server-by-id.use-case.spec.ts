@@ -38,7 +38,9 @@ describe('GetGroupServerByIdUseCase', () => {
   });
 
   it('should throw GroupNotFoundException if group does not exist', async () => {
-    groupRepository.findOneByField.mockResolvedValue(null);
+    groupRepository.findOneByField.mockImplementation(() => {
+      throw new GroupNotFoundException('server', 'notfound-id');
+    });
 
     await expect(useCase.execute('notfound-id')).rejects.toThrow(
       GroupNotFoundException,

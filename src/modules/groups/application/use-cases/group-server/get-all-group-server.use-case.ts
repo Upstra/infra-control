@@ -11,7 +11,6 @@ export class GetAllGroupServerUseCase {
 
   async execute(): Promise<GroupServerDto[]> {
     const groups = await this.groupRepository.findAll(['servers']);
-
-    return groups.map((group) => new GroupServerDto(group));
+    return groups.map((group) => GroupServerDto.fromEntity(group));
   }
 }
