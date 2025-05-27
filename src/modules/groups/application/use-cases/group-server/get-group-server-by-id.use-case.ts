@@ -16,6 +16,6 @@ export class GetGroupServerByIdUseCase {
       relations: ['servers'],
     });
 
-    return new GroupServerDto(group);
+    return GroupServerDto.fromEntity(group);
   }
 }
