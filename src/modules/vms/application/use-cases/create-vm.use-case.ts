@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { VmRepositoryInterface } from '../../domain/interfaces/vm.repository.interface';
-import { VmDomainService } from '../../vm.domain.service';
+import { VmDomainService } from '../../domain/services/vm.domain.service';
 import { VmCreationDto } from '../dto/vm.creation.dto';
 import { VmResponseDto } from '../dto/vm.response.dto';
 
