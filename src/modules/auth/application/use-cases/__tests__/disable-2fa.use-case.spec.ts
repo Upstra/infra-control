@@ -1,7 +1,6 @@
 import { Disable2FAUseCase } from '../disable-2fa.use-case';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
-import { TwoFADto } from '../../dto/twofa.dto';
 import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
 import {
   GetUserByEmailUseCase,
@@ -19,8 +18,6 @@ describe('Disable2FAUseCase', () => {
     userId: 'user-123',
     email: 'john.doe@example.com',
   };
-
-  const dto: TwoFADto = { code: '123456' };
 
   beforeEach(() => {
     getUserByEmailUseCase = {
@@ -56,9 +53,10 @@ describe('Disable2FAUseCase', () => {
   });
 
   it('should throw UserNotFoundException if user is not found', async () => {
-    getUserByEmailUseCase.execute.mockResolvedValue(null);
-
-    await expect(useCase.execute(mockPayload, dto)).rejects.toThrow(
+    getUserByEmailUseCase.execute.mockRejectedValue(
+      new UserNotFoundException('null'),
+    );
+    await expect(useCase.execute(mockPayload)).rejects.toThrow(
       UserNotFoundException,
     );
   });

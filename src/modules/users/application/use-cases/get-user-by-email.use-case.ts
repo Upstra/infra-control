@@ -17,7 +17,6 @@ export class GetUserByEmailUseCase {
       field: 'email',
       value: email,
     });
-    if (!user) throw new AuthNotFoundException();
     return user;
   }
 }

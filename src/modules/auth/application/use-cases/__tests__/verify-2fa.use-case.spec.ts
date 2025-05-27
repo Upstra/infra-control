@@ -62,7 +62,11 @@ describe('Verify2FAUseCase', () => {
 
     const result = await useCase.execute(userPayload, dto);
 
-    expect(result).toEqual({ isValid: true, accessToken: 'access.token' });
+    expect(result).toEqual({
+      isValid: true,
+      accessToken: 'access.token',
+      message: '2FA verified successfully.',
+    });
     expect(updateUserFieldsUseCase.execute).not.toHaveBeenCalled();
   });
 
@@ -77,7 +81,12 @@ describe('Verify2FAUseCase', () => {
     expect(updateUserFieldsUseCase.execute).toHaveBeenCalledWith(user.id, {
       isTwoFactorEnabled: true,
     });
-    expect(result).toEqual({ isValid: true, accessToken: 'enabled.token' });
+    expect(result).toEqual({
+      isValid: true,
+      accessToken: 'enabled.token',
+      message:
+        '2FA activated successfully. Store your recovery codes securely.',
+    });
   });
 
   it('should throw UserNotFoundException if user not found', async () => {

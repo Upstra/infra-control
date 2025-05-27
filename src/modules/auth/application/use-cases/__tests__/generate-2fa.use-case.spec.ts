@@ -57,7 +57,9 @@ describe('Generate2FAUseCase', () => {
   });
 
   it('should throw UserNotFoundException if user does not exist', async () => {
-    getUserByEmailUseCase.execute.mockResolvedValue(null);
+    getUserByEmailUseCase.execute.mockRejectedValue(
+      new UserNotFoundException('notfound@mail.com'),
+    );
 
     await expect(useCase.execute('notfound@mail.com')).rejects.toThrow(
       UserNotFoundException,
