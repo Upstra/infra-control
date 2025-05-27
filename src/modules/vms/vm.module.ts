@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { VmController } from './application/controllers/vm.controller';
 import { VmTypeormRepository } from './infrastructure/repositories/vm.typeorm.repository';
 import { Vm } from './domain/entities/vm.entity';
-import { VmDomainService } from './vm.domain.service';
+import { VmDomainService } from './domain/services/vm.domain.service';
 import { VmUseCase } from './application/use-cases';
 
 @Module({

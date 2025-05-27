@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { VmRepositoryInterface } from '../../domain/interfaces/vm.repository.interface';
 import { VmUpdateDto } from '../dto/vm.update.dto';
-import { VmDomainService } from '../../vm.domain.service';
+import { VmDomainService } from '../../domain/services/vm.domain.service';
 import { VmResponseDto } from '../dto/vm.response.dto';
 
 @Injectable()

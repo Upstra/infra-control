@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { Vm } from './domain/entities/vm.entity';
-import { VmCreationDto } from './application/dto/vm.creation.dto';
-import { VmUpdateDto } from './application/dto/vm.update.dto';
+import { Vm } from '../entities/vm.entity';
+import { VmCreationDto } from '../../application/dto/vm.creation.dto';
+import { VmUpdateDto } from '../../application/dto/vm.update.dto';
 
 @Injectable()
 export class VmDomainService {
