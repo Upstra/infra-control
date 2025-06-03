@@ -6,8 +6,12 @@ export class PermissionCreationException extends Error {
 }
 
 export class PermissionNotFoundException extends Error {
-  constructor(message = 'Permission not found') {
-    super(message);
+  constructor(type?: 'server' | 'vm', id?: string, message?: string) {
+    super(
+      message || id
+        ? `Permission ${type} not found (id=${id})`
+        : `Permission ${type} not found`,
+    );
     this.name = 'PermissionNotFoundException';
   }
 }

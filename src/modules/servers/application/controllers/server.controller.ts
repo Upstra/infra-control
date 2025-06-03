@@ -7,8 +7,15 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
 import {
   GetAllServersUseCase,
@@ -21,6 +28,10 @@ import {
 import { ServerResponseDto } from '../dto/server.response.dto';
 import { ServerCreationDto } from '../dto/server.creation.dto';
 import { ServerUpdateDto } from '../dto/server.update.dto';
+//import { PermissionGuard } from '@/core/guards/permission.guard';
+import { Permission } from '@/core/decorators/permission.decorator';
+import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
+import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 
 @ApiTags('Server')
 @Controller('server')
@@ -72,6 +83,9 @@ export class ServerController {
     description:
       'Crée un serveur avec les données spécifiées dans le `ServerCreationDto`.',
   })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard) //, PermissionGuard)
+  //@Permission('server', PermissionBit.WRITE)
   async createServer(
     @Body() serverDto: ServerCreationDto,
   ): Promise<ServerResponseDto> {

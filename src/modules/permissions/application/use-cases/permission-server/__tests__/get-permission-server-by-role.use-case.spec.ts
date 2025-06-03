@@ -3,6 +3,7 @@ import { PermissionServerRepository } from '@/modules/permissions/infrastructure
 import { PermissionServer } from '@/modules/permissions/domain/entities/permission.server.entity';
 import { PermissionServerDto } from '@/modules/permissions/application/dto/permission.server.dto';
 import { PermissionNotFoundException } from '@/modules/permissions/domain/exceptions/permission.exception';
+import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 
 describe('GetPermissionsServerByRoleUseCase', () => {
   let useCase: GetPermissionsServerByRoleUseCase;
@@ -14,8 +15,7 @@ describe('GetPermissionsServerByRoleUseCase', () => {
     const base: Partial<PermissionServer> = {
       roleId: 'role-1',
       serverId: 'server-1',
-      allowRead: true,
-      allowWrite: false,
+      bitmask: PermissionBit.READ,
       ...overrides,
     };
     return Object.setPrototypeOf(
@@ -35,7 +35,10 @@ describe('GetPermissionsServerByRoleUseCase', () => {
   it('should return an array of PermissionServerDto', async () => {
     const entities = [
       mockPermission({ serverId: 'srv-1' }),
-      mockPermission({ serverId: 'srv-2', allowWrite: true }),
+      mockPermission({
+        serverId: 'srv-2',
+        bitmask: PermissionBit.READ | PermissionBit.WRITE,
+      }),
     ];
 
     repository.findAllByRole.mockResolvedValue(entities);

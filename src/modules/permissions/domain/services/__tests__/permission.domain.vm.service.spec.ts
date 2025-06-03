@@ -1,5 +1,6 @@
 import { PermissionDomainVmService } from '../permission.domain.vm.service';
 import { createMockPermissionVm } from '@/modules/permissions/__mocks__/permissions.mock';
+import { PermissionBit } from '../../value-objects/permission-bit.enum';
 
 describe('PermissionDomainVmService', () => {
   const service = new PermissionDomainVmService();
@@ -7,8 +8,7 @@ describe('PermissionDomainVmService', () => {
   it('should create a full permission entity', () => {
     const entity = service.createFullPermissionEntity();
     const expected = createMockPermissionVm({
-      allowRead: true,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
       vmId: undefined,
       roleId: undefined,
     });
@@ -18,8 +18,7 @@ describe('PermissionDomainVmService', () => {
   it('should create a read-only permission entity', () => {
     const entity = service.createReadOnlyPermissionEntity();
     const expected = createMockPermissionVm({
-      allowRead: true,
-      allowWrite: false,
+      bitmask: PermissionBit.READ,
       vmId: undefined,
       roleId: undefined,
     });

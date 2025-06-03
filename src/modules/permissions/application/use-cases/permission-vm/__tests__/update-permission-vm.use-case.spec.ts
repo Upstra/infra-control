@@ -3,6 +3,7 @@ import { PermissionVmRepository } from '@/modules/permissions/infrastructure/rep
 import { PermissionVmDto } from '@/modules/permissions/application/dto/permission.vm.dto';
 import { PermissionVm } from '@/modules/permissions/domain/entities/permission.vm.entity';
 import { PermissionNotFoundException } from '@/modules/permissions/domain/exceptions/permission.exception';
+import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 
 describe('UpdatePermissionVmUseCase', () => {
   let useCase: UpdatePermissionVmUseCase;
@@ -14,8 +15,7 @@ describe('UpdatePermissionVmUseCase', () => {
     const base: Partial<PermissionVm> = {
       roleId: 'role-1',
       vmId: 'vm-1',
-      allowRead: true,
-      allowWrite: false,
+      bitmask: PermissionBit.READ,
       ...overrides,
     };
     return Object.setPrototypeOf(base, PermissionVm.prototype) as PermissionVm;
@@ -33,8 +33,7 @@ describe('UpdatePermissionVmUseCase', () => {
     const dto = new PermissionVmDto({
       roleId: 'role-1',
       vmId: 'vm-1',
-      allowRead: false,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
 
     const updated = mockPermissionVm(dto);
@@ -46,8 +45,7 @@ describe('UpdatePermissionVmUseCase', () => {
     expect(repository.updatePermission).toHaveBeenCalledWith(
       dto.vmId,
       dto.roleId,
-      dto.allowWrite,
-      dto.allowRead,
+      dto.bitmask,
     );
 
     expect(result).toEqual(new PermissionVmDto(updated));
@@ -57,8 +55,7 @@ describe('UpdatePermissionVmUseCase', () => {
     const dto = new PermissionVmDto({
       roleId: 'invalid-role',
       vmId: 'invalid-vm',
-      allowRead: true,
-      allowWrite: false,
+      bitmask: PermissionBit.READ,
     });
 
     repository.updatePermission.mockRejectedValue(
@@ -74,8 +71,7 @@ describe('UpdatePermissionVmUseCase', () => {
     const updated = mockPermissionVm({
       roleId: 'admin',
       vmId: 'vm-admin',
-      allowRead: true,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
 
     repository.updatePermission.mockResolvedValue(updated);
@@ -85,8 +81,7 @@ describe('UpdatePermissionVmUseCase', () => {
     expect(result).toEqual({
       roleId: 'admin',
       vmId: 'vm-admin',
-      allowRead: true,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
   });
 });

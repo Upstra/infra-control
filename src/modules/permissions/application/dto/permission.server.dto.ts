@@ -1,9 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsUUID } from 'class-validator';
-import { PermissionDtoInterface } from '../interfaces/permission.dto.interface';
+import { IsUUID, IsInt } from 'class-validator';
 import { PermissionServer } from '../../domain/entities/permission.server.entity';
 
-export class PermissionServerDto implements PermissionDtoInterface {
+export class PermissionServerDto {
   @ApiProperty()
   @IsUUID()
   roleId?: string;
@@ -13,12 +12,8 @@ export class PermissionServerDto implements PermissionDtoInterface {
   serverId?: string;
 
   @ApiProperty()
-  @IsBoolean()
-  allowWrite: boolean;
-
-  @ApiProperty()
-  @IsBoolean()
-  allowRead: boolean;
+  @IsInt()
+  bitmask: number;
 
   constructor(partial?: Partial<PermissionServerDto>) {
     Object.assign(this, partial);
@@ -28,8 +23,7 @@ export class PermissionServerDto implements PermissionDtoInterface {
     return new PermissionServerDto({
       roleId: saved.roleId,
       serverId: saved.serverId,
-      allowWrite: saved.allowWrite,
-      allowRead: saved.allowRead,
+      bitmask: saved.bitmask,
     });
   }
 }

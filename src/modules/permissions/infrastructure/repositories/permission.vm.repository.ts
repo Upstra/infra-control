@@ -1,22 +1,45 @@
 import { DataSource, Repository } from 'typeorm';
 import { PermissionVm } from '../../domain/entities/permission.vm.entity';
-import { PermissionRepositoryInterface } from '../interfaces/permission.repository.interface';
 import { Injectable } from '@nestjs/common';
 import { PermissionNotFoundException } from '../../domain/exceptions/permission.exception';
+import { FindOneByFieldOptions } from '@/core/utils/find-one-by-field-options';
+import { PermissionVmRepositoryInterface } from '../interfaces/permission.vm.repository.interface';
 
 @Injectable()
 export class PermissionVmRepository
   extends Repository<PermissionVm>
-  implements PermissionRepositoryInterface
+  implements PermissionVmRepositoryInterface
 {
   constructor(private readonly dataSource: DataSource) {
     super(PermissionVm, dataSource.createEntityManager());
   }
 
   async findAllByRole(roleId: string): Promise<PermissionVm[]> {
-    return await this.find({
-      where: { roleId },
-    });
+    return this.find({ where: { roleId } });
+  }
+
+  async findAll(relations?: string[]): Promise<PermissionVm[]> {
+    return this.find({ relations });
+  }
+
+  async findOneByField<K extends keyof PermissionVm>({
+    field,
+    value,
+    disableThrow = false,
+    relations = ['servers'],
+  }: FindOneByFieldOptions<PermissionVm, K>): Promise<PermissionVm | null> {
+    if (value === undefined || value === null) {
+      throw new Error(`Invalid value for ${String(field)}`);
+    }
+    try {
+      return await this.findOneOrFail({
+        where: { [field]: value } as any,
+        relations,
+      });
+    } catch {
+      if (disableThrow) return null;
+      throw new PermissionNotFoundException('vm', JSON.stringify(value));
+    }
   }
 
   async findPermissionByIds(
@@ -35,14 +58,12 @@ export class PermissionVmRepository
   async createPermission(
     vmId: string,
     roleId: string,
-    allowWrite: boolean,
-    allowRead: boolean,
+    bitmask: number,
   ): Promise<PermissionVm> {
     const permission = this.create({
       vmId,
       roleId,
-      allowWrite,
-      allowRead,
+      bitmask,
     });
     return await this.save(permission);
   }
@@ -50,12 +71,10 @@ export class PermissionVmRepository
   async updatePermission(
     vmId: string,
     roleId: string,
-    allowWrite: boolean,
-    allowRead: boolean,
+    bitmask: number,
   ): Promise<PermissionVm> {
     const permission = await this.findPermissionByIds(vmId, roleId);
-    permission.allowWrite = allowWrite;
-    permission.allowRead = allowRead;
+    permission.bitmask = bitmask;
     await this.save(permission);
     return permission;
   }

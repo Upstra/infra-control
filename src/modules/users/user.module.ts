@@ -9,7 +9,7 @@ import { UserUseCase } from './application/use-cases';
 
 @Module({
   controllers: [UserController],
-  exports: [...UserUseCase, UserDomainService],
+  exports: [...UserUseCase, UserDomainService, 'UserRepositoryInterface'],
   imports: [TypeOrmModule.forFeature([User]), forwardRef(() => RoleModule)],
   providers: [
     ...UserUseCase,
