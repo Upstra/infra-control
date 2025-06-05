@@ -107,5 +107,116 @@ describe('ServerController', () => {
     expect(result).toBeUndefined();
   });
 
-  //TODO: Add tests for permission checks and user-specific server retrieval
+  it('should return servers accessible to the user', async () => {
+    const dto = createMockServerDto();
+    const user: JwtPayload = {
+      userId: 'user-uuid',
+      email: 'john.doe@example.com',
+    };
+
+    getUserServersUseCase.execute.mockResolvedValue([dto]);
+
+    const result = await controller.getMyServers(user);
+    expect(result).toEqual([dto]);
+    expect(getUserServersUseCase.execute).toHaveBeenCalledWith('user-uuid');
+  });
+
+  it('should return a server by id (admin)', async () => {
+    const dto = createMockServerDto();
+    getServerByIdUseCase.execute.mockResolvedValue(dto);
+
+    const result = await controller.getServerByIdAdmin('server-uuid');
+    expect(result).toEqual(dto);
+    expect(getServerByIdUseCase.execute).toHaveBeenCalledWith('server-uuid');
+  });
+
+  it('should throw if server is not found (permission check route)', async () => {
+    const user: JwtPayload = {
+      userId: 'user-uuid',
+      email: 'john.doe@example.com',
+    };
+
+    getServerByIdWithPermissionCheckUseCase.execute.mockRejectedValue(
+      new Error('Server not found'),
+    );
+
+    await expect(
+      controller.getServerById('nonexistent-id', user),
+    ).rejects.toThrow('Server not found');
+  });
+
+  it('should throw if admin tries to fetch nonexistent server', async () => {
+    getServerByIdUseCase.execute.mockRejectedValue(
+      new Error('Server not found'),
+    );
+
+    await expect(
+      controller.getServerByIdAdmin('nonexistent-id'),
+    ).rejects.toThrow('Server not found');
+  });
+
+  it('should block access if PermissionGuard denies access', async () => {
+    const mockPermissionGuard = {
+      canActivate: jest.fn().mockReturnValue(false),
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [ServerController],
+      providers: [
+        { provide: GetAllServersUseCase, useValue: { execute: jest.fn() } },
+        { provide: GetServerByIdUseCase, useValue: { execute: jest.fn() } },
+        { provide: CreateServerUseCase, useValue: { execute: jest.fn() } },
+        { provide: UpdateServerUseCase, useValue: { execute: jest.fn() } },
+        { provide: DeleteServerUseCase, useValue: { execute: jest.fn() } },
+        {
+          provide: GetUserServersUseCase,
+          useValue: {
+            execute: jest.fn(() => {
+              throw new Error('Forbidden');
+            }),
+          },
+        },
+        {
+          provide: GetServerByIdWithPermissionCheckUseCase,
+          useValue: { execute: jest.fn() },
+        },
+        { provide: PermissionGuard, useValue: mockPermissionGuard },
+      ],
+    })
+      .overrideGuard(PermissionGuard)
+      .useValue(mockPermissionGuard)
+      .compile();
+
+    const localController = module.get(ServerController);
+    const user: JwtPayload = {
+      userId: 'user-uuid',
+      email: 'blocked@example.com',
+    };
+
+    await expect(localController.getMyServers(user)).rejects.toThrow(
+      'Forbidden',
+    );
+  });
+
+  it('should throw if update fails (e.g., server not found)', async () => {
+    updateServerUseCase.execute.mockRejectedValue(
+      new Error('Update failed: server not found'),
+    );
+
+    await expect(
+      controller.updateServer('invalid-id', { name: 'Updated' }),
+    ).rejects.toThrow('Update failed: server not found');
+  });
+
+  it('should throw if server creation fails', async () => {
+    createServerUseCase.execute.mockRejectedValue(
+      new Error('Server already exists'),
+    );
+
+    await expect(
+      controller.createServer({
+        name: 'Duplicate Server',
+      } as any),
+    ).rejects.toThrow('Server already exists');
+  });
 });
