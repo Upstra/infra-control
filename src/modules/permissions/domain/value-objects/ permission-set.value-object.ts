@@ -13,10 +13,6 @@ export class PermissionSet<T extends ResourcePermission> {
   }
 
   getAccessibleResourceIds(): string[] {
-    //TODO: error personnalisée
-    if (this.hasGlobalAccess()) {
-      throw new Error('User has global access, no specific resource IDs');
-    }
     return this.permissions
       .map((p) => this.getResourceId(p))
       .filter((id): id is string => id !== null && id !== undefined);

@@ -43,24 +43,18 @@ export class GetUserServersUseCase {
     this.logger.debug(`User ${userId} has ${permissions.length} permissions`);
 
     const permissionSet = new ServerPermissionSet(permissions);
-
     const readablePermissions = permissionSet.filterByBit(PermissionBit.READ);
 
-    //TODO: supprimer ca et remplacer par un tu nas pas le droit
-    if (readablePermissions.hasGlobalAccess()) {
-      this.logger.debug(`User ${userId} has global server access`);
-      const servers = await this.serverRepo.findAll();
-      return servers.map((s) => ServerResponseDto.fromEntity(s));
+    const serverIds = readablePermissions.getAccessibleResourceIds();
+
+    if (!serverIds.length) {
+      this.logger.debug(
+        `User ${userId} has no readable permissions or permissions only with null serverId`,
+      );
+      return [];
     }
 
     try {
-      const serverIds = readablePermissions.getAccessibleResourceIds();
-
-      if (serverIds.length === 0) {
-        this.logger.debug(`User ${userId} has no readable permissions`);
-        return [];
-      }
-
       const servers = await this.serverRepo.findAllByField({
         field: 'id',
         value: serverIds,
@@ -70,7 +64,6 @@ export class GetUserServersUseCase {
       this.logger.debug(
         `User ${userId} has access to ${servers.length} servers`,
       );
-
       this.logger.debug(`Servers: ${JSON.stringify(servers)}`);
 
       const serversResponse = servers.map((s) =>
