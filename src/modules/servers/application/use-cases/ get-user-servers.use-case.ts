@@ -61,7 +61,12 @@ export class GetUserServersUseCase {
         return [];
       }
 
-      const servers = await this.serverRepo.findByIds(serverIds);
+      const servers = await this.serverRepo.findAllByField({
+        field: 'id',
+        value: serverIds,
+        relations: ['ilo'],
+      });
+
       this.logger.debug(
         `User ${userId} has access to ${servers.length} servers`,
       );

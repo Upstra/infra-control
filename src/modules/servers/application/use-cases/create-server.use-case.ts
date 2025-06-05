@@ -13,7 +13,7 @@ export class CreateServerUseCase {
     private readonly serverRepository: ServerRepositoryInterface,
     private readonly createIloUsecase: CreateIloUseCase,
     private readonly serverDomain: ServerDomainService,
-  ) { }
+  ) {}
 
   async execute(dto: ServerCreationDto): Promise<ServerResponseDto> {
     const ilo = await this.createIloUsecase.execute(dto.ilo);
