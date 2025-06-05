@@ -11,7 +11,7 @@ import {
   PermissionTarget,
 } from '@/core/decorators/permission.decorator';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
-import { PermissionUtils } from '@/core/utils/permission.util';
+import { PermissionUtils } from '@/core/utils/index';
 import { ExpressRequestWithUser } from '../types/express-with-user.interface';
 import { GetUserServerPermissionsUseCase } from '@/modules/permissions/application/use-cases/permission-server/get-user-permission-server-use-case';
 

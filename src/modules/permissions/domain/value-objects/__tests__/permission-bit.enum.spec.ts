@@ -1,4 +1,4 @@
-import { PermissionUtils } from '@/core/utils/permission.utils';
+import { PermissionUtils } from '@/core/utils/index';
 import { PermissionBit } from '../permission-bit.enum';
 
 describe('PermissionBit', () => {

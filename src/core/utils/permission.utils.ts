@@ -1,7 +1,9 @@
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 
-export class PermissionUtils {
-  static has(bitmask: number, bit: PermissionBit): boolean {
-    return (bitmask & bit) === bit;
-  }
-}
+export const PermissionUtils = {
+  has: (mask: number, perm: PermissionBit): boolean => (mask & perm) === perm,
+
+  grant: (mask: number, perm: PermissionBit): number => mask | perm,
+
+  revoke: (mask: number, perm: PermissionBit): number => mask & ~perm,
+};

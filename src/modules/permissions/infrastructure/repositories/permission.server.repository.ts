@@ -2,7 +2,7 @@ import { DataSource, Repository } from 'typeorm';
 import { PermissionServer } from '../../domain/entities/permission.server.entity';
 import { Injectable } from '@nestjs/common';
 import { PermissionNotFoundException } from '../../domain/exceptions/permission.exception';
-import { FindOneByFieldOptions } from '@/core/utils/find-one-by-field-options';
+import { FindOneByFieldOptions } from '@/core/utils/index';
 import { PermissionServerRepositoryInterface } from '../interfaces/permission.server.repository.interface';
 
 @Injectable()

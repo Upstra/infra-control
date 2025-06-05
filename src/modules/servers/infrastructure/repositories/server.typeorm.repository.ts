@@ -6,8 +6,10 @@ import {
   ServerNotFoundException,
   ServerRetrievalException,
 } from '../../domain/exceptions/server.exception';
-import { FindOneByFieldOptions } from '@/core/utils/find-one-by-field-options';
-import { FindAllByFieldOptions } from '@/core/utils/find-all-by-field-options';
+import {
+  FindOneByFieldOptions,
+  FindAllByFieldOptions,
+} from '@/core/utils/index';
 import { InvalidQueryValueException } from '@/core/exceptions/repository.exception';
 import { PrimitiveFields } from '@/core/types/primitive-fields.interface';
 

@@ -1,4 +1,4 @@
-import { FindOneByFieldOptions } from '@/core/utils/find-one-by-field-options';
+import { FindOneByFieldOptions } from '@/core/utils/index';
 import { User } from '../entities/user.entity';
 
 export interface UserRepositoryInterface {

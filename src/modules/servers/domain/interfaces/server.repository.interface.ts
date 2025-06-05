@@ -1,5 +1,5 @@
-import { FindOneByFieldOptions } from '@/core/utils/find-one-by-field-options';
-import { FindAllByFieldOptions } from '@/core/utils/find-all-by-field-options';
+import { FindOneByFieldOptions } from '@/core/utils/index';
+import { FindAllByFieldOptions } from '@/core/utils/index';
 import { Server } from '../entities/server.entity';
 import { PrimitiveFields } from '@/core/types/primitive-fields.interface';
 
