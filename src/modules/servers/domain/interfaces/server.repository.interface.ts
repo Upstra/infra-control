@@ -4,7 +4,6 @@ import { Server } from '../entities/server.entity';
 import { PrimitiveFields } from '@/core/types/primitive-fields.interface';
 
 export interface ServerRepositoryInterface {
-  findByIds(ids: string[], relations?: string[]): Promise<Server[]>;
   findAllByField<T extends PrimitiveFields<Server>>(
     options: FindAllByFieldOptions<Server, T>,
   ): Promise<Server[]>;
