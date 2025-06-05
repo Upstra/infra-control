@@ -76,7 +76,6 @@ export class PermissionServerRepository
       where: { serverId, roleId },
     });
 
-    //TODO: reflechir au roleid est-il vraiment utile ou on ce focus sur le server/vm ID?
     if (!permission) {
       throw new PermissionNotFoundException('server', serverId);
     }

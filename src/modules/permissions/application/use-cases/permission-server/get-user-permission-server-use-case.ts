@@ -20,7 +20,6 @@ export class GetUserServerPermissionsUseCase {
     });
 
     const roleId = user.roleId;
-    //TODO: error personnalisée
     if (!roleId) throw new UnauthorizedException('User has no role assigned');
 
     const permissions = await this.permissionServerRepo.findAllByField({

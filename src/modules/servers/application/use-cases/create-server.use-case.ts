@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 
 import { ServerDomainService } from '@/modules/servers/domain/services/server.domain.service';
@@ -17,9 +17,10 @@ export class CreateServerUseCase {
 
   async execute(dto: ServerCreationDto): Promise<ServerResponseDto> {
     const ilo = await this.createIloUsecase.execute(dto.ilo);
-    //TODO: Handle the case where ilo is null or undefined
     if (!ilo) {
-      throw new Error('Failed to create or retrieve the iLO entity');
+      throw new NotFoundException(
+        'Failed to create or retrieve the iLO entity',
+      );
     }
 
     const entity = this.serverDomain.createServerEntityFromDto(dto, ilo.id);
