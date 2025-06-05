@@ -10,7 +10,10 @@ export class GetPermissionsServerByRoleUseCase {
   ) {}
 
   async execute(roleId: string): Promise<PermissionServerDto[]> {
-    const permissions = await this.repository.findAllByRole(roleId);
-    return permissions.map((p) => new PermissionServerDto(p));
+    const permissions = await this.repository.findAllByField({
+      field: 'roleId',
+      value: roleId,
+    });
+    return PermissionServerDto.fromEntities(permissions);
   }
 }

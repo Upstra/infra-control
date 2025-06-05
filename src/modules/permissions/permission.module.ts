@@ -43,6 +43,8 @@ import { UserModule } from '../users/user.module';
     ...PermissionServerUseCases,
     PermissionDomainVmService,
     PermissionDomainServerService,
+    'PermissionServerRepositoryInterface',
+    'PermissionVmRepositoryInterface',
   ],
 })
 export class PermissionModule {}

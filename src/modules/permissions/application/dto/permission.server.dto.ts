@@ -26,4 +26,8 @@ export class PermissionServerDto {
       bitmask: saved.bitmask,
     });
   }
+
+  static fromEntities(permissions: PermissionServer[]): PermissionServerDto[] {
+    return permissions.map((saved) => this.fromEntity(saved));
+  }
 }

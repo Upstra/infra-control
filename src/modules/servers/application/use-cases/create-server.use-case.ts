@@ -13,12 +13,18 @@ export class CreateServerUseCase {
     private readonly serverRepository: ServerRepositoryInterface,
     private readonly createIloUsecase: CreateIloUseCase,
     private readonly serverDomain: ServerDomainService,
-  ) {}
+  ) { }
 
   async execute(dto: ServerCreationDto): Promise<ServerResponseDto> {
-    const entity = this.serverDomain.createServerEntityFromDto(dto);
-    const server = await this.serverRepository.save(entity);
     const ilo = await this.createIloUsecase.execute(dto.ilo);
+    //TODO: Handle the case where ilo is null or undefined
+    if (!ilo) {
+      throw new Error('Failed to create or retrieve the iLO entity');
+    }
+
+    const entity = this.serverDomain.createServerEntityFromDto(dto, ilo.id);
+    const server = await this.serverRepository.save(entity);
+
     return new ServerResponseDto(server, ilo);
   }
 }

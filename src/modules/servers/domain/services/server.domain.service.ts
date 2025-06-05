@@ -5,7 +5,7 @@ import { ServerUpdateDto } from '../../application/dto/server.update.dto';
 
 @Injectable()
 export class ServerDomainService {
-  createServerEntityFromDto(dto: ServerCreationDto): Server {
+createServerEntityFromDto(dto: ServerCreationDto, iloId?: string): Server {
     const server = new Server();
 
     server.name = dto.name;
@@ -21,6 +21,7 @@ export class ServerDomainService {
     server.roomId = dto.roomId;
     server.groupId = dto.groupId;
     server.upsId = dto.upsId;
+    server.iloId = iloId || dto.ilo?.id;
 
     return server;
   }

@@ -14,8 +14,21 @@ export class PermissionVmRepository
     super(PermissionVm, dataSource.createEntityManager());
   }
 
-  async findAllByRole(roleId: string): Promise<PermissionVm[]> {
-    return this.find({ where: { roleId } });
+  async findAllByField<K extends keyof PermissionVm>({
+    field,
+    value,
+    disableThrow = false,
+    relations = ['vms'],
+  }: FindOneByFieldOptions<PermissionVm, K>): Promise<PermissionVm[]> {
+    if (value === undefined || value === null) {
+      throw new Error(`Invalid value for ${String(field)}`);
+    }
+    try {
+      return await this.find({ where: { [field]: value } as any, relations });
+    } catch {
+      if (disableThrow) return null;
+      throw new PermissionNotFoundException('vm', JSON.stringify(value));
+    }
   }
 
   async findAll(relations?: string[]): Promise<PermissionVm[]> {

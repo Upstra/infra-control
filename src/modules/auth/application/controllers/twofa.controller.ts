@@ -110,7 +110,6 @@ export class TwoFAController {
   @UseInterceptors(InvalidQueryExceptionFilter)
   @ApiBearerAuth()
   get2FAStatus(@CurrentUser() user: JwtPayload) {
-    console.log('user', user);
     return this.get2FAStatusUseCase.execute(user.email);
   }
 }

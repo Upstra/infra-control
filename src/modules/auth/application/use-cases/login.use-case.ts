@@ -54,8 +54,6 @@ export class LoginUseCase {
       };
     }
 
-    console.log(user.role);
-
     const finalToken = this.jwtService.sign({
       userId: user.id,
       email: user.email,

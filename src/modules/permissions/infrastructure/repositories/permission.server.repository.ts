@@ -1,6 +1,6 @@
-import { DataSource, QueryFailedError, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { PermissionServer } from '../../domain/entities/permission.server.entity';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PermissionNotFoundException } from '../../domain/exceptions/permission.exception';
 import { FindOneByFieldOptions } from '@/core/utils/find-one-by-field-options';
 import { PermissionServerRepositoryInterface } from '../interfaces/permission.server.repository.interface';
@@ -51,27 +51,20 @@ export class PermissionServerRepository
     }
   }
 
-  async findAllByRole(roleId: string): Promise<PermissionServer[]> {
+  async findAllByField<K extends keyof PermissionServer>({
+    field,
+    value,
+    disableThrow = false,
+    relations = ['server'],
+  }: FindOneByFieldOptions<PermissionServer, K>): Promise<PermissionServer[]> {
+    if (value === undefined || value === null) {
+      throw new Error(`Invalid value for ${String(field)}`);
+    }
     try {
-      return await super.find({
-        where: { roleId },
-      });
-    } catch (error) {
-      Logger.error('Error retrieving permissions:', error);
-      if (error instanceof QueryFailedError) {
-        //TODO: reflechir au roleid est-il vraiment utile ou on ce focus sur le server/vm ID?
-        throw new PermissionNotFoundException(
-          'server',
-          roleId,
-          `Erreur lors de la récupération de la permission pour le rôle ${roleId}.`,
-        );
-      }
-      //TODO: reflechir au roleid est-il vraiment utile ou on ce focus sur le server/vm ID?
-      throw new PermissionNotFoundException(
-        'server',
-        roleId,
-        `Error retrieving permissions for role ${roleId}}`,
-      );
+      return await this.find({ where: { [field]: value } as any, relations });
+    } catch {
+      if (disableThrow) return null;
+      throw new PermissionNotFoundException('server', JSON.stringify(value));
     }
   }
 
@@ -104,5 +97,18 @@ export class PermissionServerRepository
   async deletePermission(serverId: string, roleId: string): Promise<void> {
     await this.findPermissionByIds(serverId, roleId);
     await super.delete({ serverId, roleId });
+  }
+
+  async deleteByRoleAndServerIds(
+    roleId: string,
+    serverIds: string[],
+  ): Promise<void> {
+    if (!serverIds?.length) return;
+
+    await this.createQueryBuilder()
+      .delete()
+      .where('roleId = :roleId', { roleId })
+      .andWhere('serverId IN (:...serverIds)', { serverIds })
+      .execute();
   }
 }

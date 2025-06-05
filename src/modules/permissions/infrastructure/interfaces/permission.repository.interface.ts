@@ -1,9 +1,12 @@
 import { GenericRepositoryInterface } from '@/core/types/generic-repository.interface';
 import { Permission } from '../../domain/entities/permission.entity';
+import { FindOneByFieldOptions } from '@/core/utils/find-one-by-field-options';
 
 export interface PermissionRepositoryInterface<T extends Permission>
   extends GenericRepositoryInterface<T> {
-  findAllByRole(roleId: string): Promise<T[]>;
+  findAllByField<K extends keyof T>(
+    options: FindOneByFieldOptions<T, K>,
+  ): Promise<T[]>;
   findPermissionByIds(machineId: string, roleId: string): Promise<T>;
   updatePermission(
     machineId: string,

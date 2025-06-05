@@ -6,11 +6,18 @@ import { ServerTypeormRepository } from './infrastructure/repositories/server.ty
 import { IloModule } from '../ilos/ilo.module';
 import { ServerDomainService } from './domain/services/server.domain.service';
 import { ServerUseCases } from './application/use-cases';
+import { PermissionModule } from '../permissions/permission.module';
+import { UserModule } from '../users/user.module';
 
 @Module({
   controllers: [ServerController],
   exports: [...ServerUseCases],
-  imports: [TypeOrmModule.forFeature([Server]), IloModule],
+  imports: [
+    TypeOrmModule.forFeature([Server]),
+    IloModule,
+    PermissionModule,
+    UserModule,
+  ],
   providers: [
     ...ServerUseCases,
     ServerDomainService,

@@ -15,6 +15,7 @@ export const createMockIlo = (overrides: Partial<Ilo> = {}): Ilo => {
 export const createMockIloCreationDto = (
   overrides: Partial<IloCreationDto> = {},
 ): IloCreationDto => ({
+  id: 'ilo-id',
   name: 'ilo',
   ip: '10.0.0.1',
   login: 'root',

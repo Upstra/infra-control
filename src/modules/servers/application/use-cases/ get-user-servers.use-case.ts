@@ -1,0 +1,83 @@
+import { Injectable } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
+import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
+import { ServerResponseDto } from '../dto/server.response.dto';
+import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
+import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
+import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
+import { ServerPermissionSet } from '@/modules/permissions/domain/value-objects/server-permission-set.value-object';
+
+@Injectable()
+export class GetUserServersUseCase {
+  private readonly logger = new Logger(GetUserServersUseCase.name);
+
+  constructor(
+    @Inject('UserRepositoryInterface')
+    private readonly userRepo: UserRepositoryInterface,
+    @Inject('PermissionServerRepositoryInterface')
+    private readonly permissionRepo: PermissionServerRepositoryInterface,
+    @Inject('ServerRepositoryInterface')
+    private readonly serverRepo: ServerRepositoryInterface,
+  ) {}
+
+  async execute(userId: string): Promise<ServerResponseDto[]> {
+    const user = await this.userRepo.findOneByField({
+      field: 'id',
+      value: userId,
+      relations: ['role'],
+    });
+
+    if (!user?.roleId) {
+      this.logger.debug(`User ${userId} has no role assigned`);
+      return [];
+    }
+
+    this.logger.debug(`User ${userId} has roleId ${user.roleId}`);
+
+    const permissions = await this.permissionRepo.findAllByField({
+      field: 'roleId',
+      value: user.roleId,
+    });
+
+    this.logger.debug(`User ${userId} has ${permissions.length} permissions`);
+
+    const permissionSet = new ServerPermissionSet(permissions);
+
+    const readablePermissions = permissionSet.filterByBit(PermissionBit.READ);
+
+    //TODO: supprimer ca et remplacer par un tu nas pas le droit
+    if (readablePermissions.hasGlobalAccess()) {
+      this.logger.debug(`User ${userId} has global server access`);
+      const servers = await this.serverRepo.findAll();
+      return servers.map((s) => ServerResponseDto.fromEntity(s));
+    }
+
+    try {
+      const serverIds = readablePermissions.getAccessibleResourceIds();
+
+      if (serverIds.length === 0) {
+        this.logger.debug(`User ${userId} has no readable permissions`);
+        return [];
+      }
+
+      const servers = await this.serverRepo.findByIds(serverIds);
+      this.logger.debug(
+        `User ${userId} has access to ${servers.length} servers`,
+      );
+
+      this.logger.debug(`Servers: ${JSON.stringify(servers)}`);
+
+      const serversResponse = servers.map((s) =>
+        ServerResponseDto.fromEntity(s),
+      );
+
+      this.logger.debug(`User ${userId} has servers ${serversResponse}`);
+
+      return serversResponse;
+    } catch (error) {
+      this.logger.error(`Unexpected error: ${error.message}`);
+      return [];
+    }
+  }
+}

@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { PermissionVmRepository } from '../../../infrastructure/repositories/permission.vm.repository';
 import { PermissionVmDto } from '../../dto/permission.vm.dto';
 import { PermissionVmRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.vm.repository.interface';
 

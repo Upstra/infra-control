@@ -14,6 +14,8 @@ export class ServerTypeormRepository
   extends Repository<Server>
   implements ServerRepositoryInterface
 {
+  private readonly logger = new Logger(ServerTypeormRepository.name);
+
   constructor(private readonly dataSource: DataSource) {
     super(Server, dataSource.createEntityManager());
   }
@@ -59,11 +61,15 @@ export class ServerTypeormRepository
 
   async findByIds(ids: string[]): Promise<Server[]> {
     if (!ids?.length) return [];
+
     const servers = await this.findBy({ id: In(ids) });
-    const foundIds = new Set(servers.map((s) => s.id));
-    const missing = ids.filter((id) => !foundIds.has(id));
-    if (missing.length > 0) {
-      throw new ServerNotFoundException(`${missing.join(', ')}`);
+
+    if (servers.length < ids.length) {
+      const foundIds = new Set(servers.map((s) => s.id));
+      const missing = ids.filter((id) => !foundIds.has(id));
+      this.logger.warn(
+        `findByIds: ${missing.length} servers not found. Missing IDs: ${missing.join(', ')}`,
+      );
     }
     return servers;
   }

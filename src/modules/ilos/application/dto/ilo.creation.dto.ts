@@ -3,6 +3,10 @@ import { IsNotEmpty, IsString } from 'class-validator';
 
 export class IloCreationDto {
   @ApiProperty()
+  @IsString()
+  id!: string;
+
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   readonly name!: string;
