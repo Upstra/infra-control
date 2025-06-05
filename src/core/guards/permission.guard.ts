@@ -18,8 +18,8 @@ import { GetUserServerPermissionsUseCase } from '@/modules/permissions/applicati
 @Injectable()
 export class PermissionGuard implements CanActivate {
   constructor(
-    private reflector: Reflector,
-    private getUserServerPermissionsUseCase: GetUserServerPermissionsUseCase,
+    private readonly reflector: Reflector,
+    private readonly getUserServerPermissionsUseCase: GetUserServerPermissionsUseCase,
     //private getUserVmPermissionsUseCase: GetUserPermissionVmByIdsUseCase,
   ) {}
 
@@ -28,7 +28,7 @@ export class PermissionGuard implements CanActivate {
       this.reflector.get<{
         type: PermissionTarget;
         requiredBit: PermissionBit;
-      }>(PERMISSION_KEY, context.getHandler()) || {};
+      }>(PERMISSION_KEY, context.getHandler()) ?? {};
 
     const request: ExpressRequestWithUser = context.switchToHttp().getRequest();
     const user = request.user;

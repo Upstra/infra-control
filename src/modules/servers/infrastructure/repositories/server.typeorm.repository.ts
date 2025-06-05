@@ -54,7 +54,7 @@ export class ServerTypeormRepository
       }
 
       return await this.find({
-        where: whereClause as any,
+        where: whereClause,
         relations,
       });
     } catch (error) {

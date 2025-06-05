@@ -1,16 +1,13 @@
-import { NotFoundException } from '@nestjs/common';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 
-import { Inject } from '@nestjs/common';
 import { ServerRepositoryInterface } from '../../domain/interfaces/server.repository.interface';
 import { ServerResponseDto } from '../dto/server.response.dto';
-import { PermissionDomainServerService } from '@/modules/permissions/domain/services/permission.domain.server.service';
+
 @Injectable()
 export class GetServerByIdWithPermissionCheckUseCase {
   constructor(
     @Inject('ServerRepositoryInterface')
     private readonly serverRepo: ServerRepositoryInterface,
-    private readonly permissionDomainService: PermissionDomainServerService,
   ) {}
 
   async execute(
