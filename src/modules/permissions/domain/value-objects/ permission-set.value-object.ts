@@ -25,10 +25,18 @@ export class PermissionSet<T extends ResourcePermission> {
   }
 
   private getResourceId(permission: T): string | null | undefined {
-    if ('serverId' in permission) {
+    if (
+      'serverId' in permission &&
+      permission.serverId !== undefined &&
+      permission.serverId !== null
+    ) {
       return permission.serverId as string;
     }
-    if ('vmId' in permission) {
+    if (
+      'vmId' in permission &&
+      permission.vmId !== undefined &&
+      permission.vmId !== null
+    ) {
       return permission.vmId as string;
     }
     return null;

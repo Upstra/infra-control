@@ -117,5 +117,24 @@ describe('PermissionServerController', () => {
     );
   });
 
-  //TODO: Add tests for getUserServerPermissions
+  it('should call getUserPermissionsMe with current user', async () => {
+    const expected = [createMockPermissionServerDto()];
+    getUserServerPermissionsUseCase.execute.mockResolvedValue(expected);
+    const currentUser = { userId: 'user-123', email: 'test@example.com' };
+    const res = await controller.getUserPermissionsMe(currentUser);
+    expect(res).toEqual(expected);
+    expect(getUserServerPermissionsUseCase.execute).toHaveBeenCalledWith(
+      'user-123',
+    );
+  });
+
+  it('should call getUserPermissions with param userId', async () => {
+    const expected = [createMockPermissionServerDto()];
+    getUserServerPermissionsUseCase.execute.mockResolvedValue(expected);
+    const res = await controller.getUserPermissions('user-456');
+    expect(res).toEqual(expected);
+    expect(getUserServerPermissionsUseCase.execute).toHaveBeenCalledWith(
+      'user-456',
+    );
+  });
 });

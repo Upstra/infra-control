@@ -11,7 +11,7 @@ export class PermissionServer extends Permission {
 
   @ManyToOne(() => Server, (server) => server.permissions, {
     nullable: true,
-    onDelete: 'SET NULL',
+    onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'serverId' })
   server?: Server | null;

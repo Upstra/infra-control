@@ -3,6 +3,7 @@ import { PermissionVm } from '@/modules/permissions/domain/entities/permission.v
 import { PermissionVmDto } from '../application/dto/permission.vm.dto';
 import { PermissionBit } from '../domain/value-objects/permission-bit.enum';
 import { buildBitmask } from './permission-bitmask.helper';
+import { Permission } from '../domain/entities/permission.entity';
 
 export const createMockPermissionServer = (
   overrides?: Partial<PermissionServer>,
@@ -43,3 +44,19 @@ export const createMockPermissionVmDto = (
     Object.entries(base).filter(([_, v]) => v !== undefined),
   ) as PermissionVmDto;
 };
+
+export class DummyPermission extends Permission {
+  serverId?: string | null;
+  vmId?: string | null;
+
+  constructor(
+    bitmask: number,
+    opts: { serverId?: string | null; vmId?: string | null } = {},
+  ) {
+    super();
+    this.bitmask = bitmask;
+    this.serverId = opts.serverId;
+    this.vmId = opts.vmId;
+    this.roleId = 'fake-role';
+  }
+}

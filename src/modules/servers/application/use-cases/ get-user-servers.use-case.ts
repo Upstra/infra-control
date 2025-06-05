@@ -6,7 +6,7 @@ import { ServerResponseDto } from '../dto/server.response.dto';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
-import { ServerPermissionSet } from '@/modules/permissions/domain/value-objects/server-permission-set.value-object';
+import { PermissionSet } from '@/modules/permissions/domain/value-objects/ permission-set.value-object';
 
 @Injectable()
 export class GetUserServersUseCase {
@@ -42,7 +42,7 @@ export class GetUserServersUseCase {
 
     this.logger.debug(`User ${userId} has ${permissions.length} permissions`);
 
-    const permissionSet = new ServerPermissionSet(permissions);
+    const permissionSet = new PermissionSet(permissions);
     const readablePermissions = permissionSet.filterByBit(PermissionBit.READ);
 
     const serverIds = readablePermissions.getAccessibleResourceIds();
