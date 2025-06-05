@@ -25,7 +25,10 @@ describe('DeletePermissionServerUseCase', () => {
 
   it('should propagate error if deletion fails', async () => {
     repository.deletePermission.mockRejectedValue(
-      new PermissionNotFoundException('Permission not found'),
+      new PermissionNotFoundException(
+        'server',
+        '37d9d586-e49a-49e7-b743-d5f251b5236e',
+      ),
     );
 
     await expect(

@@ -8,6 +8,7 @@ import {
   GetPermissionServerByIdsUseCase,
   GetPermissionsServerByRoleUseCase,
   UpdatePermissionServerUseCase,
+  GetUserServerPermissionsUseCase,
 } from '../../use-cases/permission-server';
 
 describe('PermissionServerController', () => {
@@ -17,6 +18,7 @@ describe('PermissionServerController', () => {
   let getByIdsUsecase: any;
   let updatePermissionUsecase: any;
   let deletePermissionUsecase: any;
+  let getUserServerPermissionsUseCase: any;
 
   beforeEach(async () => {
     createPermissionUsecase = { execute: jest.fn() };
@@ -24,6 +26,7 @@ describe('PermissionServerController', () => {
     getByIdsUsecase = { execute: jest.fn() };
     updatePermissionUsecase = { execute: jest.fn() };
     deletePermissionUsecase = { execute: jest.fn() };
+    getUserServerPermissionsUseCase = { execute: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PermissionServerController],
@@ -44,6 +47,10 @@ describe('PermissionServerController', () => {
         {
           provide: DeletePermissionServerUseCase,
           useValue: deletePermissionUsecase,
+        },
+        {
+          provide: GetUserServerPermissionsUseCase,
+          useValue: getUserServerPermissionsUseCase,
         },
       ],
     }).compile();
@@ -109,4 +116,6 @@ describe('PermissionServerController', () => {
       'role-uuid',
     );
   });
+
+  //TODO: Add tests for getUserServerPermissions
 });

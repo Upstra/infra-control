@@ -20,7 +20,7 @@ describe('UpdateGroupServerUseCase', () => {
     } as any;
 
     serverRepository = {
-      findByIds: jest.fn(),
+      findAllByField: jest.fn(),
     } as any;
 
     domain = {
@@ -49,7 +49,7 @@ describe('UpdateGroupServerUseCase', () => {
     dto.serverIds = ['server-2', 'server-3'];
 
     groupRepository.findGroupById.mockResolvedValue(group);
-    serverRepository.findByIds.mockResolvedValue(newServers);
+    serverRepository.findAllByField.mockResolvedValue(newServers);
     domain.updateGroupEntityFromDto.mockImplementation((entity, dto) => {
       entity.name = dto.name;
       return entity;
@@ -59,10 +59,11 @@ describe('UpdateGroupServerUseCase', () => {
     const res = await useCase.execute('group-123', dto);
 
     expect(groupRepository.findGroupById).toHaveBeenCalledWith('group-123');
-    expect(serverRepository.findByIds).toHaveBeenCalledWith([
-      'server-2',
-      'server-3',
-    ]);
+    expect(serverRepository.findAllByField).toHaveBeenCalledWith({
+      field: 'id',
+      value: ['server-2', 'server-3'],
+      relations: ['group'],
+    });
     expect(domain.updateGroupEntityFromDto).toHaveBeenCalledWith(group, dto);
 
     expect(res).toEqual(new GroupServerDto(group));
@@ -87,7 +88,7 @@ describe('UpdateGroupServerUseCase', () => {
 
     const res = await useCase.execute('group-456', dto);
 
-    expect(serverRepository.findByIds).not.toHaveBeenCalled();
+    expect(serverRepository.findAllByField).not.toHaveBeenCalled();
     expect(res).toEqual(new GroupServerDto(group));
   });
 
@@ -109,13 +110,17 @@ describe('UpdateGroupServerUseCase', () => {
     dto.serverIds = [];
 
     groupRepository.findGroupById.mockResolvedValue(group);
-    serverRepository.findByIds.mockResolvedValue([]);
+    serverRepository.findAllByField.mockResolvedValue([]);
     domain.updateGroupEntityFromDto.mockImplementation((entity) => entity);
     groupRepository.save.mockImplementation(async (entity) => entity);
 
     const res = await useCase.execute('group-789', dto);
 
-    expect(serverRepository.findByIds).toHaveBeenCalledWith([]);
+    expect(serverRepository.findAllByField).toHaveBeenCalledWith({
+      field: 'id',
+      value: [],
+      relations: ['group'],
+    });
     expect(res).toEqual(new GroupServerDto(group));
   });
 });

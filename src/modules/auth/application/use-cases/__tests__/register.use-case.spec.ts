@@ -37,7 +37,11 @@ describe('RegisterUseCase', () => {
     const result = await useCase.execute(mockDto);
 
     expect(registerUserUseCase.execute).toHaveBeenCalledWith(mockDto);
-    expect(jwtService.sign).toHaveBeenCalledWith({ userId: fakeUser.id });
+    expect(jwtService.sign).toHaveBeenCalledWith({
+      email: fakeUser.email,
+      isTwoFactorEnabled: fakeUser.isTwoFactorEnabled,
+      userId: fakeUser.id,
+    });
     expect(result).toEqual({ accessToken: 'mock.jwt.token' });
   });
 });

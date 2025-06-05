@@ -5,9 +5,13 @@ import {
   DeleteServerUseCase,
   GetAllServersUseCase,
   GetServerByIdUseCase,
+  GetServerByIdWithPermissionCheckUseCase,
+  GetUserServersUseCase,
   UpdateServerUseCase,
 } from '@/modules/servers/application/use-cases';
 import { createMockServerDto } from '@/modules/servers/__mocks__/servers.mock';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { PermissionGuard } from '@/core/guards/permission.guard';
 
 describe('ServerController', () => {
   let controller: ServerController;
@@ -16,13 +20,21 @@ describe('ServerController', () => {
   let createServerUseCase: jest.Mocked<CreateServerUseCase>;
   let updateServerUseCase: jest.Mocked<UpdateServerUseCase>;
   let deleteServerUseCase: jest.Mocked<DeleteServerUseCase>;
+  let getUserServersUseCase: jest.Mocked<GetUserServersUseCase>;
+  let getServerByIdWithPermissionCheckUseCase: jest.Mocked<GetServerByIdWithPermissionCheckUseCase>;
 
   beforeEach(async () => {
+    const mockPermissionGuard = {
+      canActivate: jest.fn().mockReturnValue(true),
+    };
+
     getAllServersUseCase = { execute: jest.fn() } as any;
     getServerByIdUseCase = { execute: jest.fn() } as any;
     createServerUseCase = { execute: jest.fn() } as any;
     updateServerUseCase = { execute: jest.fn() } as any;
     deleteServerUseCase = { execute: jest.fn() } as any;
+    getUserServersUseCase = { execute: jest.fn() } as any;
+    getServerByIdWithPermissionCheckUseCase = { execute: jest.fn() } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ServerController],
@@ -32,8 +44,17 @@ describe('ServerController', () => {
         { provide: CreateServerUseCase, useValue: createServerUseCase },
         { provide: UpdateServerUseCase, useValue: updateServerUseCase },
         { provide: DeleteServerUseCase, useValue: deleteServerUseCase },
+        { provide: GetUserServersUseCase, useValue: getUserServersUseCase },
+        {
+          provide: GetServerByIdWithPermissionCheckUseCase,
+          useValue: getServerByIdWithPermissionCheckUseCase,
+        },
+        { provide: PermissionGuard, useValue: mockPermissionGuard },
       ],
-    }).compile();
+    })
+      .overrideGuard(PermissionGuard)
+      .useValue(mockPermissionGuard)
+      .compile();
 
     controller = module.get(ServerController);
   });
@@ -48,9 +69,13 @@ describe('ServerController', () => {
 
   it('should return a server by id', async () => {
     const dto = createMockServerDto();
-    getServerByIdUseCase.execute.mockResolvedValue(dto);
+    const user: JwtPayload = {
+      userId: 'user-uuid',
+      email: 'john.doe@example.com',
+    };
+    getServerByIdWithPermissionCheckUseCase.execute.mockResolvedValue(dto);
 
-    const result = await controller.getServerById('server-uuid');
+    const result = await controller.getServerById('server-uuid', user);
     expect(result).toEqual(dto);
   });
 
@@ -81,4 +106,6 @@ describe('ServerController', () => {
     const result = await controller.deleteServer('server-uuid');
     expect(result).toBeUndefined();
   });
+
+  //TODO: Add tests for permission checks and user-specific server retrieval
 });

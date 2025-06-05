@@ -24,6 +24,7 @@ export class UpdateGroupServerUseCase {
 
     let servers = existing.servers;
     if (groupDto.serverIds) {
+      //TODO: create a use case for this
       servers = await this.serverRepository.findAllByField({
         field: 'id',
         value: groupDto.serverIds,

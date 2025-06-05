@@ -23,7 +23,7 @@ describe('GetPermissionsVmByRoleUseCase', () => {
 
   beforeEach(() => {
     repository = {
-      findAllByRole: jest.fn(),
+      findAllByField: jest.fn(),
     } as any;
 
     useCase = new GetPermissionsVmByRoleUseCase(repository);
@@ -38,16 +38,19 @@ describe('GetPermissionsVmByRoleUseCase', () => {
       }),
     ];
 
-    repository.findAllByRole.mockResolvedValue(entities);
+    repository.findAllByField.mockResolvedValue(entities);
 
     const result = await useCase.execute('role-1');
 
-    expect(repository.findAllByRole).toHaveBeenCalledWith('role-1');
+    expect(repository.findAllByField).toHaveBeenCalledWith({
+      field: 'roleId',
+      value: 'role-1',
+    });
     expect(result).toEqual(entities.map((p) => new PermissionVmDto(p)));
   });
 
   it('should return an empty array if no permissions found', async () => {
-    repository.findAllByRole.mockResolvedValue([]);
+    repository.findAllByField.mockResolvedValue([]);
 
     const result = await useCase.execute('empty-role');
 
@@ -55,7 +58,7 @@ describe('GetPermissionsVmByRoleUseCase', () => {
   });
 
   it('should throw if repository throws an exception', async () => {
-    repository.findAllByRole.mockRejectedValue(
+    repository.findAllByField.mockRejectedValue(
       new PermissionNotFoundException(),
     );
 

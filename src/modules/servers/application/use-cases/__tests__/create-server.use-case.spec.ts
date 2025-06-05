@@ -51,9 +51,13 @@ describe('CreateServerUseCase', () => {
 
   it('should throw if save fails', async () => {
     const dto = createMockServerCreationDto();
-    repo.save.mockRejectedValue(new Error('DB Error'));
+    repo.save.mockRejectedValue(
+      new Error('Failed to create or retrieve the iLO entity'),
+    );
 
-    await expect(useCase.execute(dto)).rejects.toThrow('DB Error');
+    await expect(useCase.execute(dto)).rejects.toThrow(
+      'Failed to create or retrieve the iLO entity',
+    );
   });
 
   it('should throw if ilo creation fails', async () => {
