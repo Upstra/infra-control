@@ -13,7 +13,7 @@
  * Add a new permission :
  *   - Follow the logical sequence (1 << N), N being the next index.
  */
-// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+
 export enum PermissionBit {
   READ = 1 << 0, // 1
   WRITE = 1 << 1, // 2

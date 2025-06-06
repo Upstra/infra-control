@@ -14,13 +14,14 @@ import { PermissionBit } from '@/modules/permissions/domain/value-objects/permis
 import { PermissionUtils } from '@/core/utils/index';
 import { ExpressRequestWithUser } from '../types/express-with-user.interface';
 import { GetUserServerPermissionsUseCase } from '@/modules/permissions/application/use-cases/permission-server/get-user-permission-server-use-case';
+import { GetUserVmPermissionsUseCase } from '@/modules/permissions/application/use-cases/permission-vm';
 
 @Injectable()
 export class PermissionGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly getUserServerPermissionsUseCase: GetUserServerPermissionsUseCase,
-    //private getUserVmPermissionsUseCase: GetUserPermissionVmByIdsUseCase,
+    private readonly getUserVmPermissionsUseCase: GetUserVmPermissionsUseCase,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -40,9 +41,9 @@ export class PermissionGuard implements CanActivate {
         user.userId,
       );
     } else if (type === 'vm') {
-      /* userWithRole = await this.getUserVmPermissionsUseCase.execute(
+      userWithRole = await this.getUserVmPermissionsUseCase.execute(
         user.userId,
-      );*/
+      );
     } else {
       throw new ForbiddenException('Invalid permission type');
     }
