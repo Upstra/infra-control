@@ -17,7 +17,7 @@ export class ServerPermissionStrategy implements PermissionCheckStrategy {
     const permissionServers =
       await this.getUserServerPermissionsUseCase.execute(userId);
 
-    if (!permissionServers || !permissionServers) {
+    if (!permissionServers || permissionServers.length === 0) {
       return false;
     }
 

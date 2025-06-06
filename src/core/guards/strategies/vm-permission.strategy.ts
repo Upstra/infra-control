@@ -17,7 +17,7 @@ export class VmPermissionStrategy implements PermissionCheckStrategy {
     const permissionVms =
       await this.getUserVmPermissionsUseCase.execute(userId);
 
-    if (!permissionVms || !permissionVms) {
+    if (!permissionVms || permissionVms.length === 0) {
       return false;
     }
 
