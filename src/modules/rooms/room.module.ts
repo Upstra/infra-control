@@ -7,7 +7,6 @@ import { RoomUseCases } from './application/use-cases';
 
 @Module({
   controllers: [RoomController],
-  exports: [...RoomUseCases],
   imports: [TypeOrmModule.forFeature([Room])],
   providers: [
     ...RoomUseCases,
@@ -16,5 +15,6 @@ import { RoomUseCases } from './application/use-cases';
       useClass: RoomTypeormRepository,
     },
   ],
+  exports: [...RoomUseCases, 'RoomRepositoryInterface'],
 })
 export class RoomModule {}

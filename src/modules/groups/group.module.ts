@@ -36,5 +36,12 @@ import { ServerTypeormRepository } from '../servers/infrastructure/repositories/
     GroupServerDomainService,
     GroupVmDomainService,
   ],
+  exports: [
+    ...GroupVmUseCases,
+    ...GroupServerUseCases,
+    'GroupServerRepositoryInterface',
+    'GroupVmRepositoryInterface',
+    'ServerRepositoryInterface',
+  ],
 })
 export class GroupModule {}

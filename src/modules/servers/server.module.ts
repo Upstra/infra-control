@@ -8,6 +8,8 @@ import { ServerDomainService } from './domain/services/server.domain.service';
 import { ServerUseCases } from './application/use-cases';
 import { PermissionModule } from '../permissions/permission.module';
 import { UserModule } from '../users/user.module';
+import { RoomModule } from '../rooms/room.module';
+import { GroupModule } from '../groups/group.module';
 
 @Module({
   controllers: [ServerController],
@@ -17,6 +19,8 @@ import { UserModule } from '../users/user.module';
     IloModule,
     PermissionModule,
     UserModule,
+    RoomModule,
+    GroupModule,
   ],
   providers: [
     ...ServerUseCases,

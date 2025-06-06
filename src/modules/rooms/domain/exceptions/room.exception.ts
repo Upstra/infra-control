@@ -11,8 +11,8 @@ export class RoomUpdateException extends Error {
 }
 
 export class RoomNotFoundException extends Error {
-  constructor(message: string = 'Salle introuvable') {
-    super(message);
+  constructor(id?: string) {
+    super(id ? `Salle avec l'id (${id}) non trouvée` : 'Salle non trouvée');
   }
 }
 
