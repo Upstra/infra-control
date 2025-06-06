@@ -7,12 +7,20 @@ import {
   Patch,
   Post,
   ParseUUIDPipe,
+  UseGuards,
+  UseFilters,
 } from '@nestjs/common';
 import { VmCreationDto } from '../dto/vm.creation.dto';
 import { VmResponseDto } from '../dto/vm.response.dto';
 import { VmEndpointInterface } from '../interfaces/vm.endpoint.interface';
 import { VmUpdateDto } from '../dto/vm.update.dto';
-import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import {
   CreateVmUseCase,
   DeleteVmUseCase,
@@ -20,6 +28,11 @@ import {
   GetVmByIdUseCase,
   UpdateVmUseCase,
 } from '@/modules/vms/application/use-cases';
+import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
+import { RequireResourcePermission } from '@/core/decorators/ressource-permission.decorator';
+import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
+import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.exception.filter';
 
 @ApiTags('VM')
 @Controller('vm')
@@ -61,15 +74,24 @@ export class VmController implements VmEndpointInterface {
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard, ResourcePermissionGuard)
+  @RequireResourcePermission({
+    resourceType: 'server',
+    requiredBit: PermissionBit.WRITE,
+    resourceIdSource: 'body',
+    resourceIdField: 'serverId',
+  })
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiBearerAuth()
   @ApiBody({
     type: VmCreationDto,
-    description: 'Données nécessaires à la création d’une VM',
+    description: "Données nécessaires à la création d'une VM",
     required: true,
   })
   @ApiOperation({
     summary: 'Créer une nouvelle VM',
     description:
-      'Crée une machine virtuelle en utilisant les données spécifiées dans le `VmCreationDto`.',
+      'Crée une machine virtuelle sur un serveur spécifique. Nécessite la permission WRITE sur le serveur hôte.',
   })
   async createVm(@Body() vmDto: VmCreationDto): Promise<VmResponseDto> {
     return this.createVmUseCase.execute(vmDto);

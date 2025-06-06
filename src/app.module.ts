@@ -15,12 +15,14 @@ import { UserModule } from './modules/users/user.module';
 import { VmModule } from './modules/vms/vm.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { PresenceModule } from './modules/presence/presence.module';
+import { GuardsModule } from './core/guards.module';
 
 @Module({
   controllers: [],
   imports: [
     configModule,
     TypeOrmModule.forRoot(typeOrmConfig),
+    GuardsModule,
     AuthModule,
     GroupModule,
     IloModule,

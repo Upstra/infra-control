@@ -15,6 +15,7 @@ import { ExpressRequestWithUser } from '../types/express-with-user.interface';
 import { GetUserServerPermissionsUseCase } from '@/modules/permissions/application/use-cases/permission-server/get-user-permission-server-use-case';
 import { GetUserVmPermissionsUseCase } from '@/modules/permissions/application/use-cases/permission-vm';
 
+// TODO: ADMIN ROLES SHOULD BYPASS THIS GUARD
 @Injectable()
 export class PermissionGuard implements CanActivate {
   constructor(

@@ -8,8 +8,10 @@ import { VmExceptionFilter } from './vm.exception.filter';
 import { UpsExceptionFilter } from './ups.exception.filter';
 import { AuthFilters } from './auth';
 import { PermissionFilters } from './permission';
+import { GroupExceptionFilter } from './group.exception.filter';
 
 export const CoreFilters = [
+  GroupExceptionFilter,
   IloExceptionFilter,
   InvalidQueryExceptionFilter,
   RoleExceptionFilter,

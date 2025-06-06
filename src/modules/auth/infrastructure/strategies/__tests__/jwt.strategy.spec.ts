@@ -77,7 +77,7 @@ describe('JwtStrategy', () => {
         get: jest.fn().mockReturnValue(expectedSecret),
       };
 
-      const module = await Test.createTestingModule({
+      await Test.createTestingModule({
         providers: [
           JwtStrategy,
           {

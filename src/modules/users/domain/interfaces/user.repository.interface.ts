@@ -1,7 +1,10 @@
 import { FindOneByFieldOptions } from '@/core/utils/index';
 import { User } from '../entities/user.entity';
+import { GenericRepositoryInterface } from '@/core/types/generic-repository.interface';
 
-export interface UserRepositoryInterface {
+export interface UserRepositoryInterface
+  extends GenericRepositoryInterface<User> {
+  findOneById(id: string): Promise<User | null>;
   updateFields(id: string, partialUser: Partial<User>): Promise<User>;
   count(): Promise<number>;
   save(user: User): Promise<User>;
@@ -15,8 +18,5 @@ export interface UserRepositoryInterface {
     roleId: string,
   ): Promise<User>;
   deleteUser(id: string): Promise<void>;
-  findOneByField<T extends keyof User>(
-    options: FindOneByFieldOptions<User, T>,
-  ): Promise<User | null>;
 }
 export { FindOneByFieldOptions };

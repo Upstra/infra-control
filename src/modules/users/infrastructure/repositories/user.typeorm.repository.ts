@@ -20,17 +20,26 @@ export class UserTypeormRepository
   constructor(private readonly dataSource: DataSource) {
     super(User, dataSource.createEntityManager());
   }
+  findAll(relations?: string[]): Promise<User[]> {
+    return this.find({
+      relations: relations || ['role'],
+    });
+  }
 
   async findOneByField<T extends keyof User>({
     field,
     value,
     disableThrow = false,
+    relations = [],
   }: FindOneByFieldOptions<User, T>): Promise<User | null> {
     if (value === undefined || value === null) {
       throw new InvalidQueryValueException(String(field), value);
     }
     try {
-      return await this.findOneOrFail({ where: { [field]: value } as any });
+      return await this.findOneOrFail({
+        where: { [field]: value },
+        relations,
+      });
     } catch (error) {
       if (error.name === 'EntityNotFoundError') {
         if (disableThrow) {

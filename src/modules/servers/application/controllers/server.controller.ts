@@ -31,12 +31,13 @@ import {
 import { ServerResponseDto } from '../dto/server.response.dto';
 import { ServerCreationDto } from '../dto/server.creation.dto';
 import { ServerUpdateDto } from '../dto/server.update.dto';
-//import { PermissionGuard } from '@/core/guards/permission.guard';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
-import { PermissionGuard } from '@/core/guards/permission.guard';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.exception.filter';
+import { RoleGuard } from '@/core/guards/role.guard';
+import { RequireRole } from '@/core/decorators/role.decorator';
+import { PermissionGuard } from '@/core/guards';
 
 @ApiTags('Server')
 @Controller('server')
@@ -128,9 +129,8 @@ export class ServerController {
     description:
       'Crée un serveur avec les données spécifiées dans le `ServerCreationDto`.',
   })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard /*PermissionGuard*/)
-  // @Permission('server', PermissionBit.WRITE)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ canCreateServer: true })
   async createServer(
     @Body() serverDto: ServerCreationDto,
   ): Promise<ServerResponseDto> {
