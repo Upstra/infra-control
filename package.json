@@ -91,7 +91,7 @@
       "!**/__mocks__/**",
       "!**/*.mock.ts",
       "!main.ts",
-      "!**/src/common/config/**",
+      "!**/core/config/**",
       "!**/core/filters/**",
       "!**/core/decorators/**",
       "!**/core/pipes/**",

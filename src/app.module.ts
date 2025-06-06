@@ -1,8 +1,8 @@
-import { configModule } from './common/config/config.module';
+import { configModule } from './core/config/config.module';
 import { Logger, Module } from '@nestjs/common';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { typeOrmConfig } from './common/config/typeorm.config';
+import { typeOrmConfig } from './core/config/typeorm.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { GroupModule } from './modules/groups/group.module';
 import { IloModule } from './modules/ilos/ilo.module';
