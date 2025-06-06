@@ -3,6 +3,7 @@ import { PermissionServerRepository } from '@/modules/permissions/infrastructure
 import { PermissionDomainServerService } from '@/modules/permissions/domain/services/permission.domain.server.service';
 import { PermissionServerDto } from '@/modules/permissions/application/dto/permission.server.dto';
 import { PermissionServer } from '@/modules/permissions/domain/entities/permission.server.entity';
+import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 
 describe('CreateFullPermissionServerUseCase', () => {
   let useCase: CreateFullPermissionServerUseCase;
@@ -15,8 +16,7 @@ describe('CreateFullPermissionServerUseCase', () => {
     const base: Partial<PermissionServer> = {
       roleId: 'role-1',
       serverId: 'server-1',
-      allowRead: true,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
       ...overrides,
     };
     return Object.setPrototypeOf(
@@ -63,8 +63,7 @@ describe('CreateFullPermissionServerUseCase', () => {
     const saved = mockPermission({
       roleId: 'custom-role',
       serverId: 'custom-server',
-      allowRead: true,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
 
     domainService.createFullPermissionEntity.mockReturnValue(saved);
@@ -75,8 +74,7 @@ describe('CreateFullPermissionServerUseCase', () => {
     expect(result).toEqual({
       roleId: 'custom-role',
       serverId: 'custom-server',
-      allowRead: true,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
   });
 });

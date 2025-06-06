@@ -1,4 +1,4 @@
-import { FindOneByFieldOptions } from '../utils/find-one-by-field-options';
+import { FindOneByFieldOptions } from '../utils/index';
 
 export interface GenericRepositoryInterface<T> {
   save(entity: T): Promise<T>;

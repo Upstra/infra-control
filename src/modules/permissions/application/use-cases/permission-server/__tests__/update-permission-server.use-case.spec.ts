@@ -3,6 +3,7 @@ import { PermissionServerRepository } from '@/modules/permissions/infrastructure
 import { PermissionServer } from '@/modules/permissions/domain/entities/permission.server.entity';
 import { PermissionServerDto } from '@/modules/permissions/application/dto/permission.server.dto';
 import { PermissionNotFoundException } from '@/modules/permissions/domain/exceptions/permission.exception';
+import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 
 describe('UpdatePermissionServerUseCase', () => {
   let useCase: UpdatePermissionServerUseCase;
@@ -14,8 +15,7 @@ describe('UpdatePermissionServerUseCase', () => {
     const base: Partial<PermissionServer> = {
       roleId: 'role-1',
       serverId: 'server-1',
-      allowRead: true,
-      allowWrite: false,
+      bitmask: PermissionBit.READ,
       ...overrides,
     };
     return Object.setPrototypeOf(
@@ -34,15 +34,13 @@ describe('UpdatePermissionServerUseCase', () => {
 
   it('should update the permission and return the updated dto', async () => {
     const updatedPermission = mockPermission({
-      allowRead: false,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
 
     repository.updatePermission.mockResolvedValue(updatedPermission);
 
     const dto = new PermissionServerDto({
-      allowRead: false,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
 
     const result = await useCase.execute('server-1', 'role-1', dto);
@@ -50,8 +48,7 @@ describe('UpdatePermissionServerUseCase', () => {
     expect(repository.updatePermission).toHaveBeenCalledWith(
       'server-1',
       'role-1',
-      dto.allowWrite,
-      dto.allowRead,
+      dto.bitmask,
     );
     expect(result).toEqual(new PermissionServerDto(updatedPermission));
   });
@@ -62,8 +59,7 @@ describe('UpdatePermissionServerUseCase', () => {
     );
 
     const dto = new PermissionServerDto({
-      allowRead: true,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
 
     await expect(
@@ -75,15 +71,13 @@ describe('UpdatePermissionServerUseCase', () => {
     const updatedPermission = mockPermission({
       roleId: 'r1',
       serverId: 's1',
-      allowRead: true,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
 
     repository.updatePermission.mockResolvedValue(updatedPermission);
 
     const dto = new PermissionServerDto({
-      allowRead: true,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
 
     const result = await useCase.execute('s1', 'r1', dto);
@@ -91,8 +85,7 @@ describe('UpdatePermissionServerUseCase', () => {
     expect(result).toEqual({
       roleId: 'r1',
       serverId: 's1',
-      allowRead: true,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
   });
 });

@@ -5,12 +5,14 @@ import { DeletePermissionServerUseCase } from './delete-permission-server.use-ca
 import { GetPermissionServerByIdsUseCase } from './get-permission-server-by-ids.use-case';
 import { UpdatePermissionServerUseCase } from './update-permission-server.use-case';
 import { GetPermissionsServerByRoleUseCase } from './get-permission-server-by-role.use-case';
+import { GetUserServerPermissionsUseCase } from './get-user-permission-server-use-case';
 
 export const PermissionServerUseCases = [
   CreateFullPermissionServerUseCase,
   CreatePermissionServerUseCase,
   CreateReadOnlyPermissionServerUseCase,
   DeletePermissionServerUseCase,
+  GetUserServerPermissionsUseCase,
   GetPermissionServerByIdsUseCase,
   GetPermissionsServerByRoleUseCase,
   UpdatePermissionServerUseCase,
@@ -21,6 +23,7 @@ export {
   CreatePermissionServerUseCase,
   CreateReadOnlyPermissionServerUseCase,
   DeletePermissionServerUseCase,
+  GetUserServerPermissionsUseCase,
   GetPermissionsServerByRoleUseCase,
   GetPermissionServerByIdsUseCase,
   UpdatePermissionServerUseCase,

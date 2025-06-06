@@ -3,7 +3,11 @@ import { Get2FAStatusUseCase } from '../use-cases/get-2fa-status.use-case';
 import { Generate2FAUseCase } from '../use-cases/generate-2fa.use-case';
 import { Verify2FAUseCase } from '../use-cases/verify-2fa.use-case';
 import { Disable2FAUseCase } from '../use-cases/disable-2fa.use-case';
-import { TwoFADisableResponseDto, TwoFADto } from '../dto/twofa.dto';
+import {
+  TwoFADisableResponseDto,
+  TwoFADto,
+  TwoFARecoveryDto,
+} from '../dto/twofa.dto';
 import { TwoFAController } from './twofa.controller';
 import { Verify2FARecoveryUseCase } from '../use-cases/verify-2fa-recovery.use-case';
 
@@ -74,5 +78,60 @@ describe('TwoFAController', () => {
     const user = { email: 'john@example.com', userId: 'id123' };
     await controller.disable(user);
     expect(disable2FAUseCase.execute).toHaveBeenCalledWith(user);
+  });
+
+  describe('recover', () => {
+    it('should call verify2FARecoveryUseCase with user and dto', async () => {
+      const user = { email: 'john@example.com', userId: 'id123' };
+      const dto: TwoFARecoveryDto = { recoveryCode: 'RECOV123' };
+      verify2FARecoveryUseCase.execute.mockResolvedValue({ success: true });
+
+      const result = await controller.recover(user, dto);
+      expect(verify2FARecoveryUseCase.execute).toHaveBeenCalledWith(user, dto);
+      expect(result).toEqual({ success: true });
+    });
+
+    it('should return error if recovery code is invalid', async () => {
+      const user = { email: 'john@example.com', userId: 'id123' };
+      const dto: TwoFARecoveryDto = { recoveryCode: 'BADCODE' };
+      const error = new Error('Invalid recovery code');
+      verify2FARecoveryUseCase.execute.mockRejectedValue(error);
+
+      await expect(controller.recover(user, dto)).rejects.toThrow(
+        'Invalid recovery code',
+      );
+    });
+
+    it('should propagate exception if thrown by use case', async () => {
+      const user = { email: 'john@example.com', userId: 'id123' };
+      const dto: TwoFARecoveryDto = { recoveryCode: 'FAIL' };
+      verify2FARecoveryUseCase.execute.mockRejectedValue(
+        new Error('Unexpected error'),
+      );
+      await expect(controller.recover(user, dto)).rejects.toThrow(
+        'Unexpected error',
+      );
+    });
+  });
+
+  describe('generate', () => {
+    it('should call generate2FAUseCase with user email and return result', async () => {
+      const user = { email: 'john@example.com', userId: 'id123' };
+      const fakeQr = { qr: 'some-qr-code', secret: 'SECRET' };
+      generate2FAUseCase.execute.mockResolvedValue(fakeQr);
+
+      const result = await controller.generate(user);
+      expect(generate2FAUseCase.execute).toHaveBeenCalledWith(
+        'john@example.com',
+      );
+      expect(result).toEqual(fakeQr);
+    });
+
+    it('should throw if generate2FAUseCase throws', async () => {
+      const user = { email: 'john@example.com', userId: 'id123' };
+      generate2FAUseCase.execute.mockRejectedValue(new Error('Failed QR gen'));
+
+      await expect(controller.generate(user)).rejects.toThrow('Failed QR gen');
+    });
   });
 });

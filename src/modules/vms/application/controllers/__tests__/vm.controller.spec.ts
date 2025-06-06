@@ -10,6 +10,9 @@ import {
 import { createMockVm } from '../../../__mocks__/vms.mock';
 import { VmCreationDto } from '../../dto/vm.creation.dto';
 import { VmUpdateDto } from '../../dto/vm.update.dto';
+import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
+import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { Reflector } from '@nestjs/core';
 
 describe('VmController', () => {
   let controller: VmController;
@@ -20,6 +23,27 @@ describe('VmController', () => {
   let deleteVmUseCase: jest.Mocked<DeleteVmUseCase>;
 
   beforeEach(async () => {
+    const mockJwtAuthGuard = {
+      canActivate: jest.fn().mockReturnValue(true),
+    };
+
+    const mockResourcePermissionGuard = {
+      canActivate: jest.fn().mockReturnValue(true),
+    };
+
+    const mockPermissionStrategyFactory = {
+      getStrategy: jest.fn().mockReturnValue({
+        checkPermission: jest.fn().mockResolvedValue(true),
+      }),
+    };
+
+    const mockReflector = {
+      get: jest.fn(),
+      getAll: jest.fn(),
+      getAllAndMerge: jest.fn(),
+      getAllAndOverride: jest.fn(),
+    };
+
     getAllVmsUseCase = { execute: jest.fn() } as any;
     getVmByIdUseCase = { execute: jest.fn() } as any;
     createVmUseCase = { execute: jest.fn() } as any;
@@ -34,60 +58,148 @@ describe('VmController', () => {
         { provide: CreateVmUseCase, useValue: createVmUseCase },
         { provide: UpdateVmUseCase, useValue: updateVmUseCase },
         { provide: DeleteVmUseCase, useValue: deleteVmUseCase },
+
+        {
+          provide: 'PermissionStrategyFactory',
+          useValue: mockPermissionStrategyFactory,
+        },
+        { provide: Reflector, useValue: mockReflector },
       ],
-    }).compile();
+    })
+
+      .overrideGuard(JwtAuthGuard)
+      .useValue(mockJwtAuthGuard)
+      .overrideGuard(ResourcePermissionGuard)
+      .useValue(mockResourcePermissionGuard)
+      .compile();
 
     controller = module.get<VmController>(VmController);
   });
 
-  it('should return all VMs', async () => {
-    const vm = createMockVm();
-    getAllVmsUseCase.execute.mockResolvedValue([vm]);
-    const result = await controller.getAllVms();
-    expect(result).toEqual([vm]);
+  describe('getAllVms', () => {
+    it('should return all VMs', async () => {
+      const vm = createMockVm();
+      getAllVmsUseCase.execute.mockResolvedValue([vm]);
+
+      const result = await controller.getAllVms();
+
+      expect(result).toEqual([vm]);
+      expect(getAllVmsUseCase.execute).toHaveBeenCalledTimes(1);
+    });
   });
 
-  it('should return a VM by ID', async () => {
-    const vm = createMockVm();
-    getVmByIdUseCase.execute.mockResolvedValue(vm);
-    const result = await controller.getVmById('vm-1');
-    expect(result).toEqual(vm);
+  describe('getVmById', () => {
+    it('should return a VM by ID', async () => {
+      const vm = createMockVm();
+      getVmByIdUseCase.execute.mockResolvedValue(vm);
+
+      const result = await controller.getVmById('vm-1');
+
+      expect(result).toEqual(vm);
+      expect(getVmByIdUseCase.execute).toHaveBeenCalledWith('vm-1');
+    });
+
+    it('should throw if VM is not found', async () => {
+      getVmByIdUseCase.execute.mockRejectedValue(new Error('VM not found'));
+
+      await expect(controller.getVmById('nonexistent-vm')).rejects.toThrow(
+        'VM not found',
+      );
+    });
   });
 
-  it('should create a VM', async () => {
-    const vm = createMockVm();
-    const dto: VmCreationDto = {
-      name: vm.name,
-      state: vm.state,
-      grace_period_on: vm.grace_period_on,
-      grace_period_off: vm.grace_period_off,
-      os: vm.os,
-      adminUrl: vm.adminUrl,
-      ip: vm.ip,
-      login: vm.login,
-      password: vm.password,
-      priority: vm.priority,
-      serverId: vm.serverId,
-      groupId: vm.groupId,
-    };
-    createVmUseCase.execute.mockResolvedValue(vm);
-    const result = await controller.createVm(dto);
-    expect(result).toEqual(vm);
+  describe('createVm', () => {
+    it('should create a VM', async () => {
+      const vm = createMockVm();
+      const dto: VmCreationDto = {
+        name: vm.name,
+        state: vm.state,
+        grace_period_on: vm.grace_period_on,
+        grace_period_off: vm.grace_period_off,
+        os: vm.os,
+        adminUrl: vm.adminUrl,
+        ip: vm.ip,
+        login: vm.login,
+        password: vm.password,
+        priority: vm.priority,
+        serverId: vm.serverId,
+        groupId: vm.groupId,
+      };
+      createVmUseCase.execute.mockResolvedValue(vm);
+
+      const result = await controller.createVm(dto);
+
+      expect(result).toEqual(vm);
+      expect(createVmUseCase.execute).toHaveBeenCalledWith(dto);
+    });
+
+    it('should throw if VM creation fails', async () => {
+      const dto: VmCreationDto = {
+        name: 'Test VM',
+        state: 'active',
+        grace_period_on: 10,
+        grace_period_off: 10,
+        os: 'Ubuntu',
+        adminUrl: 'https://admin.example.com',
+        ip: '192.168.1.100',
+        login: 'admin',
+        password: 'password',
+        priority: 1,
+        serverId: 'server-123',
+        groupId: 'group-123',
+      };
+
+      createVmUseCase.execute.mockRejectedValue(
+        new Error('VM creation failed'),
+      );
+
+      await expect(controller.createVm(dto)).rejects.toThrow(
+        'VM creation failed',
+      );
+    });
   });
 
-  it('should update a VM', async () => {
-    const vm = createMockVm();
-    const dto: VmUpdateDto = {
-      name: 'Updated Name',
-    };
-    updateVmUseCase.execute.mockResolvedValue(vm);
-    const result = await controller.updateVm('vm-1', dto);
-    expect(result).toEqual(vm);
+  describe('updateVm', () => {
+    it('should update a VM', async () => {
+      const vm = createMockVm();
+      const dto: VmUpdateDto = {
+        name: 'Updated Name',
+      };
+      updateVmUseCase.execute.mockResolvedValue(vm);
+
+      const result = await controller.updateVm('vm-1', dto);
+
+      expect(result).toEqual(vm);
+      expect(updateVmUseCase.execute).toHaveBeenCalledWith('vm-1', dto);
+    });
+
+    it('should throw if VM update fails', async () => {
+      const dto: VmUpdateDto = {
+        name: 'Updated Name',
+      };
+      updateVmUseCase.execute.mockRejectedValue(new Error('VM not found'));
+
+      await expect(controller.updateVm('invalid-vm', dto)).rejects.toThrow(
+        'VM not found',
+      );
+    });
   });
 
-  it('should delete a VM', async () => {
-    deleteVmUseCase.execute.mockResolvedValue(undefined);
-    await controller.deleteVm('vm-1');
-    expect(deleteVmUseCase.execute).toHaveBeenCalledWith('vm-1');
+  describe('deleteVm', () => {
+    it('should delete a VM', async () => {
+      deleteVmUseCase.execute.mockResolvedValue(undefined);
+
+      await controller.deleteVm('vm-1');
+
+      expect(deleteVmUseCase.execute).toHaveBeenCalledWith('vm-1');
+    });
+
+    it('should throw if VM deletion fails', async () => {
+      deleteVmUseCase.execute.mockRejectedValue(new Error('VM not found'));
+
+      await expect(controller.deleteVm('invalid-vm')).rejects.toThrow(
+        'VM not found',
+      );
+    });
   });
 });

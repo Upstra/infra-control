@@ -1,10 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { PermissionServerRepository } from '../../../infrastructure/repositories/permission.server.repository';
+import { Inject, Injectable } from '@nestjs/common';
 import { PermissionServerDto } from '../../dto/permission.server.dto';
+import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
 
 @Injectable()
 export class GetPermissionServerByIdsUseCase {
-  constructor(private readonly repository: PermissionServerRepository) {}
+  constructor(
+    @Inject('PermissionServerRepositoryInterface')
+    private readonly repository: PermissionServerRepositoryInterface,
+  ) {}
 
   async execute(
     serverId: string,

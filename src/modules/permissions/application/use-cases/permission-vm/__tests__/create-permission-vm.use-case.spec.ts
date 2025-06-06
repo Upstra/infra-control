@@ -2,6 +2,7 @@ import { CreatePermissionVmUseCase } from '../create-permission-vm.use-case';
 import { PermissionVmRepository } from '@/modules/permissions/infrastructure/repositories/permission.vm.repository';
 import { PermissionVmDto } from '@/modules/permissions/application/dto/permission.vm.dto';
 import { PermissionVm } from '@/modules/permissions/domain/entities/permission.vm.entity';
+import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 
 describe('CreatePermissionVmUseCase', () => {
   let useCase: CreatePermissionVmUseCase;
@@ -13,8 +14,7 @@ describe('CreatePermissionVmUseCase', () => {
     const base: Partial<PermissionVm> = {
       roleId: 'role-vm',
       vmId: 'vm-10',
-      allowRead: true,
-      allowWrite: false,
+      bitmask: PermissionBit.READ,
       ...overrides,
     };
     return Object.setPrototypeOf(base, PermissionVm.prototype) as PermissionVm;
@@ -32,8 +32,7 @@ describe('CreatePermissionVmUseCase', () => {
     const dto = new PermissionVmDto({
       roleId: 'role-vm',
       vmId: 'vm-10',
-      allowRead: true,
-      allowWrite: false,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
 
     const permission = mockPermissionVm(dto);
@@ -45,8 +44,7 @@ describe('CreatePermissionVmUseCase', () => {
     expect(repository.createPermission).toHaveBeenCalledWith(
       dto.vmId,
       dto.roleId,
-      dto.allowWrite,
-      dto.allowRead,
+      dto.bitmask,
     );
 
     expect(result).toEqual(new PermissionVmDto(permission));
@@ -56,8 +54,7 @@ describe('CreatePermissionVmUseCase', () => {
     const dto = new PermissionVmDto({
       roleId: 'invalid-role',
       vmId: 'invalid-vm',
-      allowRead: false,
-      allowWrite: true,
+      bitmask: PermissionBit.READ,
     });
 
     repository.createPermission.mockRejectedValue(new Error('DB error'));
@@ -69,8 +66,7 @@ describe('CreatePermissionVmUseCase', () => {
     const permission = mockPermissionVm({
       roleId: 'role-x',
       vmId: 'vm-x',
-      allowRead: true,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
 
     repository.createPermission.mockResolvedValue(permission);

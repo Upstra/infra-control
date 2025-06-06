@@ -3,6 +3,7 @@ import { PermissionVmRepository } from '@/modules/permissions/infrastructure/rep
 import { PermissionVm } from '@/modules/permissions/domain/entities/permission.vm.entity';
 import { PermissionVmDto } from '@/modules/permissions/application/dto/permission.vm.dto';
 import { PermissionNotFoundException } from '@/modules/permissions/domain/exceptions/permission.exception';
+import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 
 describe('GetPermissionVmByIdsUseCase', () => {
   let useCase: GetPermissionVmByIdsUseCase;
@@ -14,8 +15,7 @@ describe('GetPermissionVmByIdsUseCase', () => {
     const base: Partial<PermissionVm> = {
       roleId: 'role-vm',
       vmId: 'vm-1',
-      allowRead: true,
-      allowWrite: false,
+      bitmask: PermissionBit.READ,
       ...overrides,
     };
     return Object.setPrototypeOf(base, PermissionVm.prototype) as PermissionVm;
@@ -66,8 +66,7 @@ describe('GetPermissionVmByIdsUseCase', () => {
     const permission = mockPermissionVm({
       roleId: 'r2',
       vmId: 'v2',
-      allowRead: true,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
 
     repository.findPermissionByIds.mockResolvedValue(permission);
@@ -79,8 +78,7 @@ describe('GetPermissionVmByIdsUseCase', () => {
     expect(result).toEqual({
       roleId: 'r2',
       vmId: 'v2',
-      allowRead: true,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
   });
 });

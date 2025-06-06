@@ -1,12 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { PermissionVmRepository } from '../../../infrastructure/repositories/permission.vm.repository';
+import { Inject, Injectable } from '@nestjs/common';
 import { PermissionDomainVmService } from '../../../domain/services/permission.domain.vm.service';
 import { PermissionVmDto } from '../../dto/permission.vm.dto';
+import { PermissionVmRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.vm.repository.interface';
 
 @Injectable()
 export class CreateFullPermissionVmUseCase {
   constructor(
-    private readonly repository: PermissionVmRepository,
+    @Inject('PermissionVmRepositoryInterface')
+    private readonly repository: PermissionVmRepositoryInterface,
     private readonly domainService: PermissionDomainVmService,
   ) {}
 

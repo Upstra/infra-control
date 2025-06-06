@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { GroupVm } from '../../domain/entities/group.vm.entity';
 import { GroupVmRepositoryInterface } from '../../domain/interfaces/group-vm.repository.interface';
 import { DataSource, Repository } from 'typeorm';
-import { FindOneByFieldOptions } from '@/core/utils/find-one-by-field-options';
+import { FindOneByFieldOptions } from '@/core/utils/index';
 import { GroupNotFoundException } from '../../domain/exceptions/group.exception';
 
 @Injectable()

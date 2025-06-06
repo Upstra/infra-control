@@ -1,13 +1,19 @@
-import { Injectable } from '@nestjs/common';
-import { PermissionVmRepository } from '../../../infrastructure/repositories/permission.vm.repository';
+import { Inject, Injectable } from '@nestjs/common';
 import { PermissionVmDto } from '../../dto/permission.vm.dto';
+import { PermissionVmRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.vm.repository.interface';
 
 @Injectable()
 export class GetPermissionsVmByRoleUseCase {
-  constructor(private readonly repository: PermissionVmRepository) {}
+  constructor(
+    @Inject('PermissionVmRepositoryInterface')
+    private readonly repository: PermissionVmRepositoryInterface,
+  ) {}
 
   async execute(roleId: string): Promise<PermissionVmDto[]> {
-    const permissions = await this.repository.findAllByRole(roleId);
-    return permissions.map((p) => new PermissionVmDto(p));
+    const permissions = await this.repository.findAllByField({
+      field: 'roleId',
+      value: roleId,
+    });
+    return PermissionVmDto.fromEntities(permissions);
   }
 }

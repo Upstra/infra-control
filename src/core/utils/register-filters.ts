@@ -1,42 +1,13 @@
 import { INestApplication, Logger } from '@nestjs/common';
-import * as path from 'path';
-import { readdirSync } from 'fs';
+import { CoreFilters } from '../filters/index';
 
 export function registerAllGlobalFilters(app: INestApplication): void {
-  const filtersDir = path.join(__dirname, '..', 'filters');
-  const modulePaths = getAllFilterFiles(filtersDir);
-
   const logger = new Logger('GlobalFilterLoader');
-  logger.log(`Filtres trouvés : ${modulePaths.length}`);
+  logger.log(`Filtres trouvés : ${CoreFilters.length}`);
 
-  for (const filterPath of modulePaths) {
-    const module = require(filterPath);
-    for (const exported of Object.values(module)) {
-      if (typeof exported === 'function') {
-        const instance = new (exported as any)();
-        app.useGlobalFilters(instance);
-        logger.log(`Global filter chargé : ${exported.name}`);
-      }
-    }
+  for (const FilterClass of CoreFilters) {
+    const instance = new FilterClass();
+    app.useGlobalFilters(instance);
+    logger.log(`Global filter chargé : ${FilterClass.name}`);
   }
-}
-
-function getAllFilterFiles(baseDir: string): string[] {
-  const entries = readdirSync(baseDir, { withFileTypes: true });
-
-  const files: string[] = [];
-
-  for (const entry of entries) {
-    const fullPath = path.join(baseDir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...getAllFilterFiles(fullPath));
-    } else if (
-      entry.name.endsWith('.exception.filter.ts') ||
-      entry.name.endsWith('.exception.filter.js')
-    ) {
-      files.push(fullPath);
-    }
-  }
-
-  return files;
 }

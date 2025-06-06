@@ -3,6 +3,7 @@ import { PermissionServerRepository } from '@/modules/permissions/infrastructure
 import { PermissionDomainServerService } from '@/modules/permissions/domain/services/permission.domain.server.service';
 import { PermissionServerDto } from '@/modules/permissions/application/dto/permission.server.dto';
 import { PermissionServer } from '@/modules/permissions/domain/entities/permission.server.entity';
+import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 
 describe('CreateReadOnlyPermissionServerUseCase', () => {
   let useCase: CreateReadOnlyPermissionServerUseCase;
@@ -15,8 +16,7 @@ describe('CreateReadOnlyPermissionServerUseCase', () => {
     const base: Partial<PermissionServer> = {
       roleId: 'role-1',
       serverId: 'server-1',
-      allowRead: true,
-      allowWrite: false,
+      bitmask: PermissionBit.READ,
       ...overrides,
     };
     return Object.setPrototypeOf(
@@ -64,8 +64,7 @@ describe('CreateReadOnlyPermissionServerUseCase', () => {
 
   it('should map saved entity with read only flag set', async () => {
     const saved = mockPermission({
-      allowRead: true,
-      allowWrite: false,
+      bitmask: PermissionBit.READ,
     });
 
     domainService.createReadOnlyPermissionEntity.mockReturnValue(saved);
@@ -73,7 +72,6 @@ describe('CreateReadOnlyPermissionServerUseCase', () => {
 
     const result = await useCase.execute();
 
-    expect(result.allowRead).toBe(true);
-    expect(result.allowWrite).toBe(false);
+    expect(result.bitmask).toBe(PermissionBit.READ);
   });
 });
