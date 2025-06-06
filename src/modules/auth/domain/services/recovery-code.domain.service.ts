@@ -27,8 +27,10 @@ export class RecoveryCodeService {
 
   async compare(code: string, hashedCodes: string[]): Promise<boolean> {
     const bcrypt = await import('bcryptjs');
-    return Promise.any(
-      hashedCodes.map((hashedCode) => bcrypt.compare(code, hashedCode)),
-    );
+    for (const hashedCode of hashedCodes) {
+      const match = await bcrypt.compare(code, hashedCode);
+      if (match) return true;
+    }
+    return false;
   }
 }
