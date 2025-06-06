@@ -3,7 +3,6 @@ import {
   ExecutionContext,
   Injectable,
   ForbiddenException,
-  Logger,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import {
@@ -47,8 +46,6 @@ export class PermissionGuard implements CanActivate {
     } else {
       throw new ForbiddenException('Invalid permission type');
     }
-
-    Logger.log(userWithRole);
 
     if (!userWithRole) throw new ForbiddenException('No role found');
 
