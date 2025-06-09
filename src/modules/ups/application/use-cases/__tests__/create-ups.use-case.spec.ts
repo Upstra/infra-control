@@ -40,7 +40,7 @@ describe('CreateUpsUseCase', () => {
     const entity = await createMockUps();
 
     mockDomain.createUpsEntityFromCreateDto.mockResolvedValue(entity);
-    mockRepo.save.mockResolvedValue([entity]);
+    mockRepo.save.mockResolvedValue(entity);
 
     const result = await useCase.execute(dto);
 

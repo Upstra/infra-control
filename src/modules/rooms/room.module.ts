@@ -1,13 +1,14 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RoomController } from './application/controllers/room.controller';
 import { Room } from './domain/entities/room.entity';
 import { RoomTypeormRepository } from './infrastructure/repositories/room.typeorm.repository';
 import { RoomUseCases } from './application/use-cases';
+import { SetupModule } from '../setup/setup.module';
 
 @Module({
   controllers: [RoomController],
-  imports: [TypeOrmModule.forFeature([Room])],
+  imports: [TypeOrmModule.forFeature([Room]), forwardRef(() => SetupModule)],
   providers: [
     ...RoomUseCases,
     {

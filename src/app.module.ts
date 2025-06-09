@@ -16,6 +16,7 @@ import { VmModule } from './modules/vms/vm.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { PresenceModule } from './modules/presence/presence.module';
 import { GuardsModule } from './core/guards.module';
+import { SetupModule } from './modules/setup/setup.module';
 
 @Module({
   controllers: [],
@@ -35,6 +36,7 @@ import { GuardsModule } from './core/guards.module';
     VmModule,
     RedisModule,
     PresenceModule,
+    SetupModule,
   ],
   providers: [Logger],
 })

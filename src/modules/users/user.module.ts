@@ -6,11 +6,16 @@ import { UserTypeormRepository } from './infrastructure/repositories/user.typeor
 import { UserDomainService } from './domain/services/user.domain.service';
 import { RoleModule } from '../roles/role.module';
 import { UserUseCase } from './application/use-cases';
+import { SetupModule } from '../setup/setup.module';
 
 @Module({
   controllers: [UserController],
   exports: [...UserUseCase, UserDomainService, 'UserRepositoryInterface'],
-  imports: [TypeOrmModule.forFeature([User]), forwardRef(() => RoleModule)],
+  imports: [
+    TypeOrmModule.forFeature([User]),
+    forwardRef(() => RoleModule),
+    forwardRef(() => SetupModule),
+  ],
   providers: [
     ...UserUseCase,
     UserDomainService,

@@ -4,6 +4,7 @@ import { RoomRepositoryInterface } from '../../domain/interfaces/room.repository
 import { Repository } from 'typeorm';
 import { RoomNotFoundException } from '../../domain/exceptions/room.exception';
 import { InjectRepository } from '@nestjs/typeorm';
+import { InvalidQueryValueException } from '@/core/exceptions/repository.exception';
 
 @Injectable()
 export class RoomTypeormRepository implements RoomRepositoryInterface {
@@ -11,6 +12,36 @@ export class RoomTypeormRepository implements RoomRepositoryInterface {
     @InjectRepository(Room)
     private readonly repo: Repository<Room>,
   ) {}
+
+  save(entity: Room): Promise<Room> {
+    return this.repo.save(entity);
+  }
+
+  count(): Promise<number> {
+    return this.repo.count();
+  }
+
+  async findOneByField({
+    field,
+    value,
+    disableThrow = false,
+    relations = [],
+  }): Promise<Room> {
+    if (value === undefined || value === null) {
+      throw new InvalidQueryValueException(String(field), value);
+    }
+    return this.repo
+      .findOne({
+        where: { [field]: value },
+        relations,
+      })
+      .then((room) => {
+        if (!room && !disableThrow) {
+          throw new RoomNotFoundException(String(value));
+        }
+        return room;
+      });
+  }
 
   async findAll(): Promise<Room[]> {
     return await this.repo.find({

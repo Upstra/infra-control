@@ -1,13 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Ups } from '../../domain/entities/ups.entity';
 import { UpsRepositoryInterface } from '../../domain/interfaces/ups.repository.interface';
-import { DataSource, DeepPartial, Repository, SaveOptions } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import {
-  UpsCreationException,
   UpsNotFoundException,
   UpsRetrievalException,
   UpsUpdateException,
 } from '../../domain/exceptions/ups.exception';
+import { FindOneByFieldOptions } from '@/core/utils';
 
 @Injectable()
 export class UpsTypeormRepository
@@ -18,20 +18,24 @@ export class UpsTypeormRepository
     super(Ups, dataSource.createEntityManager());
   }
 
-  async save<T extends DeepPartial<Ups>>(
-    entity: T | T[],
-    options?: SaveOptions,
-  ): Promise<T | T[]> {
-    try {
-      if (Array.isArray(entity)) {
-        return (await super.save(entity, options)) as T[];
-      } else {
-        return (await super.save(entity, options)) as T;
-      }
-    } catch (error) {
-      Logger.error('Error saving UPS entity:', error);
-      throw new UpsCreationException();
+  async findOneByField<T extends keyof Ups>({
+    field,
+    value,
+    disableThrow = false,
+    relations = [],
+  }: FindOneByFieldOptions<Ups, T>): Promise<Ups> {
+    if (value === undefined || value === null) {
+      throw new Error(`Invalid value for ${String(field)}`);
     }
+    return this.findOne({
+      where: { [field]: value },
+      relations,
+    }).then((ups) => {
+      if (!ups && !disableThrow) {
+        throw new UpsNotFoundException(String(value));
+      }
+      return ups;
+    });
   }
 
   async findAll(): Promise<Ups[]> {
