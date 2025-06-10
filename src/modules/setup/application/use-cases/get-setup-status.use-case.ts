@@ -8,8 +8,9 @@ import { SetupStatusMapper } from '../mappers/setup-status.mapper';
 import { SetupStatusDto } from '../dto/setup-status.dto';
 
 /**
- * Use Case responsable de récupérer le statut du setup.
- * Orchestre les appels aux repositories, au domain service et au mapper.
+ * Application Use Case responsible for retrieving the current setup status of the system.
+ * This class orchestrates repository queries, domain logic, and DTO mapping
+ * to provide a clear representation of the current setup phase and next steps.
  */
 @Injectable()
 export class GetSetupStatusUseCase {
@@ -27,8 +28,19 @@ export class GetSetupStatusUseCase {
   ) {}
 
   /**
-   * Execute le use case pour récupérer le statut du setup
-   * @param userId - ID de l'utilisateur courant (optionnel)
+   * Executes the use case to retrieve the current setup status.
+   *
+   * @param userId - (Optional) ID of the currently authenticated user.
+   *   Used to determine if the user has admin permissions (canCreateServer).
+   *
+   * @returns {Promise<SetupStatusDto>} - A DTO representing the system's current setup state,
+   *   including setup phase, available infrastructure, and required next steps.
+   *
+   * ## Workflow:
+   * 1. Counts the current entities in the system (users, rooms, UPS, servers)
+   * 2. Uses domain service to evaluate the global setup state
+   * 3. Optionally checks if the current user is an admin
+   * 4. Returns a structured DTO via the mapper
    */
   async execute(userId?: string): Promise<SetupStatusDto> {
     const counts = await this.getEntityCounts();
@@ -49,7 +61,10 @@ export class GetSetupStatusUseCase {
   }
 
   /**
-   * Récupère le nombre d'entités de chaque type
+   * Retrieves the total count of system entities necessary to assess setup progress.
+   *
+   * @returns {Promise<{ userCount: number; roomCount: number; upsCount: number; serverCount: number }>}
+   * - The aggregated count of users, rooms, UPS devices, and servers.
    */
   private async getEntityCounts() {
     const [userCount, roomCount, upsCount, serverCount] = await Promise.all([
@@ -63,7 +78,14 @@ export class GetSetupStatusUseCase {
   }
 
   /**
-   * Vérifie si un utilisateur a les droits admin
+   * Determines whether a specific user has administrative permissions.
+   *
+   * @param userId - ID of the user to check
+   * @returns {Promise<boolean>} - True if the user can create servers, false otherwise.
+   *
+   * ## Note:
+   * - This check is based on the user’s assigned role having `canCreateServer = true`.
+   * - It is safe-failed (returns false) if the user or role cannot be resolved.
    */
   private async checkUserAdminStatus(userId: string): Promise<boolean> {
     try {
