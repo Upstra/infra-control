@@ -21,6 +21,7 @@ import { GroupModule } from '../groups/group.module';
     forwardRef(() => UserModule),
     forwardRef(() => RoomModule),
     GroupModule,
+    PermissionModule,
   ],
   providers: [
     ...ServerUseCases,

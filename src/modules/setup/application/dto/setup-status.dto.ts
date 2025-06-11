@@ -6,6 +6,7 @@ export enum SetupStep {
   CREATE_ROOM = 'create-room',
   CREATE_UPS = 'create-ups',
   CREATE_SERVER = 'create-server',
+  VM_DISCOVERY = 'vm-discovery',
   COMPLETE = 'complete',
 }
 

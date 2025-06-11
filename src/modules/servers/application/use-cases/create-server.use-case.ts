@@ -7,6 +7,9 @@ import { ServerCreationDto } from '../dto/server.creation.dto';
 import { ServerResponseDto } from '../dto/server.response.dto';
 import { RoomRepositoryInterface } from '@/modules/rooms/domain/interfaces/room.repository.interface';
 import { GroupServerRepositoryInterface } from '@/modules/groups/domain/interfaces/group-server.repository.interface';
+import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
+import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
+import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
 
 @Injectable()
 export class CreateServerUseCase {
@@ -19,9 +22,16 @@ export class CreateServerUseCase {
     private readonly roomRepository: RoomRepositoryInterface,
     @Inject('GroupServerRepositoryInterface')
     private readonly groupRepository: GroupServerRepositoryInterface,
+    @Inject('UserRepositoryInterface')
+    private readonly userRepository: UserRepositoryInterface,
+    @Inject('PermissionServerRepositoryInterface')
+    private readonly permissionRepository: PermissionServerRepositoryInterface,
   ) {}
 
-  async execute(dto: ServerCreationDto): Promise<ServerResponseDto> {
+  async execute(
+    dto: ServerCreationDto,
+    userId: string,
+  ): Promise<ServerResponseDto> {
     await this.roomRepository.findRoomById(dto.roomId);
 
     if (dto.groupId) {
@@ -40,6 +50,27 @@ export class CreateServerUseCase {
 
     const entity = this.serverDomain.createServerEntityFromDto(dto, ilo.id);
     const server = await this.serverRepository.save(entity);
+
+    const user = await this.userRepository.findOneByField({
+      field: 'id',
+      value: userId,
+      relations: ['role'],
+    });
+
+    if (user?.roleId) {
+      console.log(
+        `Creating permissions for user ${userId} on server ${server.id}`,
+      );
+      await this.permissionRepository.createPermission(
+        server.id,
+        user.roleId,
+        PermissionBit.READ |
+          PermissionBit.WRITE |
+          PermissionBit.DELETE |
+          PermissionBit.SHUTDOWN |
+          PermissionBit.RESTART,
+      );
+    }
 
     return new ServerResponseDto(server, ilo);
   }

@@ -27,6 +27,11 @@ describe('ServerController', () => {
   let getUserServersUseCase: jest.Mocked<GetUserServersUseCase>;
   let getServerByIdWithPermissionCheckUseCase: jest.Mocked<GetServerByIdWithPermissionCheckUseCase>;
 
+  const mockPayload: JwtPayload = {
+    userId: 'user-123',
+    email: 'john.doe@example.com',
+  };
+
   beforeEach(async () => {
     const mockJwtAuthGuard = {
       canActivate: jest.fn().mockReturnValue(true),
@@ -142,11 +147,13 @@ describe('ServerController', () => {
       const dto = createMockServerDto();
       createServerUseCase.execute.mockResolvedValue(dto);
 
-      const result = await controller.createServer({
-        ...dto,
-        ilo: undefined,
-      } as any);
-
+      const result = await controller.createServer(
+        {
+          ...dto,
+          ilo: undefined,
+        } as any,
+        mockPayload,
+      );
       expect(result).toEqual(dto);
       expect(createServerUseCase.execute).toHaveBeenCalledTimes(1);
     });
@@ -157,9 +164,12 @@ describe('ServerController', () => {
       );
 
       await expect(
-        controller.createServer({
-          name: 'Duplicate Server',
-        } as any),
+        controller.createServer(
+          {
+            name: 'Duplicate Server',
+          } as any,
+          mockPayload,
+        ),
       ).rejects.toThrow('Server already exists');
     });
   });

@@ -49,7 +49,7 @@ export class SetupStatusMapper {
     dto.hasServers = counts.serverCount > 0;
 
     dto.isFirstSetup =
-      setupState.phase === SetupPhase.IN_PROGRESS && counts.userCount <= 1;
+      setupState.phase === SetupPhase.NOT_STARTED || counts.userCount === 0;
 
     dto.currentStep = this.mapNextStepToSetupStep(setupState.nextRequiredStep);
 
@@ -77,6 +77,7 @@ export class SetupStatusMapper {
    * - 'create-room'   → SetupStep.CREATE_ROOM
    * - 'create-ups'    → SetupStep.CREATE_UPS
    * - 'create-server' → SetupStep.CREATE_SERVER
+   * - 'vm-discovery'  → SetupStep.VM_DISCOVERY
    * - `null` or unknown → SetupStep.COMPLETE
    */
   private mapNextStepToSetupStep(nextStep: string | null): SetupStep {
@@ -85,6 +86,7 @@ export class SetupStatusMapper {
       'create-room': SetupStep.CREATE_ROOM,
       'create-ups': SetupStep.CREATE_UPS,
       'create-server': SetupStep.CREATE_SERVER,
+      'vm-discovery': SetupStep.VM_DISCOVERY,
     };
 
     return nextStep && stepMapping[nextStep]
