@@ -3,7 +3,6 @@ import { IloRepositoryInterface } from '../../domain/interfaces/ilo.repository.i
 import { IloCreationDto } from '../dto/ilo.creation.dto';
 import { IloResponseDto } from '../dto/ilo.response.dto';
 import { IloDomainService } from '../../domain/services/ilo.domain.service';
-
 @Injectable()
 export class CreateIloUseCase {
   constructor(

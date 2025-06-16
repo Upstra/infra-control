@@ -8,6 +8,7 @@ import {
   GetPermissionServerByIdsUseCase,
   GetPermissionsServerByRoleUseCase,
   UpdatePermissionServerUseCase,
+  GetUserServerPermissionsUseCase,
 } from '../../use-cases/permission-server';
 
 describe('PermissionServerController', () => {
@@ -17,6 +18,7 @@ describe('PermissionServerController', () => {
   let getByIdsUsecase: any;
   let updatePermissionUsecase: any;
   let deletePermissionUsecase: any;
+  let getUserServerPermissionsUseCase: any;
 
   beforeEach(async () => {
     createPermissionUsecase = { execute: jest.fn() };
@@ -24,6 +26,7 @@ describe('PermissionServerController', () => {
     getByIdsUsecase = { execute: jest.fn() };
     updatePermissionUsecase = { execute: jest.fn() };
     deletePermissionUsecase = { execute: jest.fn() };
+    getUserServerPermissionsUseCase = { execute: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PermissionServerController],
@@ -44,6 +47,10 @@ describe('PermissionServerController', () => {
         {
           provide: DeletePermissionServerUseCase,
           useValue: deletePermissionUsecase,
+        },
+        {
+          provide: GetUserServerPermissionsUseCase,
+          useValue: getUserServerPermissionsUseCase,
         },
       ],
     }).compile();
@@ -107,6 +114,27 @@ describe('PermissionServerController', () => {
     expect(deletePermissionUsecase.execute).toHaveBeenCalledWith(
       'server-uuid',
       'role-uuid',
+    );
+  });
+
+  it('should call getUserPermissionsMe with current user', async () => {
+    const expected = [createMockPermissionServerDto()];
+    getUserServerPermissionsUseCase.execute.mockResolvedValue(expected);
+    const currentUser = { userId: 'user-123', email: 'test@example.com' };
+    const res = await controller.getUserPermissionsMe(currentUser);
+    expect(res).toEqual(expected);
+    expect(getUserServerPermissionsUseCase.execute).toHaveBeenCalledWith(
+      'user-123',
+    );
+  });
+
+  it('should call getUserPermissions with param userId', async () => {
+    const expected = [createMockPermissionServerDto()];
+    getUserServerPermissionsUseCase.execute.mockResolvedValue(expected);
+    const res = await controller.getUserPermissions('user-456');
+    expect(res).toEqual(expected);
+    expect(getUserServerPermissionsUseCase.execute).toHaveBeenCalledWith(
+      'user-456',
     );
   });
 });

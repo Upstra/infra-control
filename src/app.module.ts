@@ -1,8 +1,8 @@
-import { configModule } from './common/config/config.module';
+import { configModule } from './core/config/config.module';
 import { Logger, Module } from '@nestjs/common';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { typeOrmConfig } from './common/config/typeorm.config';
+import { typeOrmConfig } from './core/config/typeorm.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { GroupModule } from './modules/groups/group.module';
 import { IloModule } from './modules/ilos/ilo.module';
@@ -15,12 +15,14 @@ import { UserModule } from './modules/users/user.module';
 import { VmModule } from './modules/vms/vm.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { PresenceModule } from './modules/presence/presence.module';
+import { GuardsModule } from './core/guards.module';
 
 @Module({
   controllers: [],
   imports: [
     configModule,
     TypeOrmModule.forRoot(typeOrmConfig),
+    GuardsModule,
     AuthModule,
     GroupModule,
     IloModule,

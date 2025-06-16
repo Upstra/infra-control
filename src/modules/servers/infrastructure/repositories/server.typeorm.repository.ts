@@ -6,14 +6,20 @@ import {
   ServerNotFoundException,
   ServerRetrievalException,
 } from '../../domain/exceptions/server.exception';
-import { FindOneByFieldOptions } from '@/modules/users/domain/interfaces/user.repository.interface';
+import {
+  FindOneByFieldOptions,
+  FindAllByFieldOptions,
+} from '@/core/utils/index';
 import { InvalidQueryValueException } from '@/core/exceptions/repository.exception';
+import { PrimitiveFields } from '@/core/types/primitive-fields.interface';
 
 @Injectable()
 export class ServerTypeormRepository
   extends Repository<Server>
   implements ServerRepositoryInterface
 {
+  private readonly logger = new Logger(ServerTypeormRepository.name);
+
   constructor(private readonly dataSource: DataSource) {
     super(Server, dataSource.createEntityManager());
   }
@@ -21,11 +27,47 @@ export class ServerTypeormRepository
   async findAll(): Promise<Server[]> {
     try {
       return await this.find({
-        relations: ['vms'],
+        relations: ['ilo', 'group', 'room', 'ups', 'vms'],
       });
     } catch (error) {
-      Logger.error('Error retrieving servers:', error);
+      this.logger.error('Error retrieving servers:', error);
       throw new ServerRetrievalException('Error retrieving servers.');
+    }
+  }
+
+  async findAllByField<T extends PrimitiveFields<Server>>({
+    field,
+    value,
+    disableThrow = false,
+    relations = [],
+  }: FindAllByFieldOptions<Server, T>): Promise<Server[]> {
+    if (value === undefined || value === null) {
+      throw new InvalidQueryValueException(String(field), value);
+    }
+
+    try {
+      let whereClause;
+
+      if (Array.isArray(value)) {
+        if (value.length === 0) return [];
+        whereClause = { [field]: In(value as any) };
+      } else {
+        whereClause = { [field]: value };
+      }
+
+      return await this.find({
+        where: whereClause,
+        relations,
+      });
+    } catch (error) {
+      if (disableThrow) return [];
+      this.logger.error(
+        `Error retrieving servers by field ${String(field)}:`,
+        error,
+      );
+      throw new ServerRetrievalException(
+        `Error retrieving servers by field ${String(field)}`,
+      );
     }
   }
 
@@ -33,14 +75,14 @@ export class ServerTypeormRepository
     try {
       const server = await this.findOne({
         where: { id },
-        relations: ['vms'],
+        relations: ['ilo', 'group', 'room', 'ups', 'vms'],
       });
       if (!server) {
         throw new ServerNotFoundException(id);
       }
       return server;
     } catch (error) {
-      Logger.error(`Error retrieving server with id ${id}:`, error);
+      this.logger.error(`Error retrieving server with id ${id}:`, error);
       throw new ServerRetrievalException(
         `Error retrieving server with id ${id}`,
       );
@@ -52,41 +94,56 @@ export class ServerTypeormRepository
     try {
       await this.delete(id);
     } catch (error) {
-      Logger.error(`Error deleting server with id ${id}:`, error);
+      this.logger.error(`Error deleting server with id ${id}:`, error);
       throw new ServerNotFoundException(id);
     }
   }
 
-  async findByIds(ids: string[]): Promise<Server[]> {
+  async findByIds(ids: string[], relations: string[] = []): Promise<Server[]> {
     if (!ids?.length) return [];
-    const servers = await this.findBy({ id: In(ids) });
-    const foundIds = new Set(servers.map((s) => s.id));
-    const missing = ids.filter((id) => !foundIds.has(id));
-    if (missing.length > 0) {
-      throw new ServerNotFoundException(`${missing.join(', ')}`);
+
+    try {
+      const servers = await this.find({
+        where: { id: In(ids) },
+        relations,
+      });
+
+      if (servers.length < ids.length) {
+        const foundIds = new Set(servers.map((s) => s.id));
+        const missing = ids.filter((id) => !foundIds.has(id));
+        this.logger.warn(
+          `findByIds: ${missing.length} servers not found. Missing IDs: ${missing.join(', ')}`,
+        );
+      }
+
+      return servers;
+    } catch (error) {
+      this.logger.error('Error in findByIds:', error);
+      throw new ServerRetrievalException('Error retrieving servers by IDs');
     }
-    return servers;
   }
 
   async findOneByField<T extends keyof Server>({
     field,
     value,
     disableThrow = false,
+    relations = [],
   }: FindOneByFieldOptions<Server, T>): Promise<Server | null> {
     if (value === undefined || value === null) {
       throw new InvalidQueryValueException(String(field), value);
     }
+
     try {
-      return await this.findOneOrFail({ where: { [field]: value } as any });
+      return await this.findOne({
+        where: { [field]: value } as any,
+        relations,
+      });
     } catch (error) {
-      if (error.name === 'EntityNotFoundError') {
-        if (disableThrow) {
-          return null;
-        }
-        throw new ServerNotFoundException();
+      if (disableThrow) {
+        return null;
       }
-      Logger.error('Error retrieving server by field:', error);
-      throw new ServerRetrievalException();
+      this.logger.error('Error retrieving server by field:', error);
+      throw new ServerRetrievalException('Error retrieving server by field');
     }
   }
 }

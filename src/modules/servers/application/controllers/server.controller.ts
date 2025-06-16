@@ -7,8 +7,16 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  UseFilters,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
 import {
   GetAllServersUseCase,
@@ -16,11 +24,20 @@ import {
   CreateServerUseCase,
   UpdateServerUseCase,
   DeleteServerUseCase,
+  GetUserServersUseCase,
+  GetServerByIdWithPermissionCheckUseCase,
 } from '@/modules/servers/application/use-cases';
 
 import { ServerResponseDto } from '../dto/server.response.dto';
 import { ServerCreationDto } from '../dto/server.creation.dto';
 import { ServerUpdateDto } from '../dto/server.update.dto';
+import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { CurrentUser } from '@/core/decorators/current-user.decorator';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.exception.filter';
+import { RoleGuard } from '@/core/guards/role.guard';
+import { RequireRole } from '@/core/decorators/role.decorator';
+import { PermissionGuard } from '@/core/guards';
 
 @ApiTags('Server')
 @Controller('server')
@@ -31,9 +48,14 @@ export class ServerController {
     private readonly createServerUseCase: CreateServerUseCase,
     private readonly updateServerUseCase: UpdateServerUseCase,
     private readonly deleteServerUseCase: DeleteServerUseCase,
+    private readonly getServerByIdWithPermissionCheckUseCase: GetServerByIdWithPermissionCheckUseCase,
+    private readonly getUserServersUseCase: GetUserServersUseCase,
   ) {}
 
-  @Get()
+  @Get('admin/all')
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, PermissionGuard)
   @ApiOperation({
     summary: 'Lister tous les serveurs',
     description:
@@ -43,7 +65,9 @@ export class ServerController {
     return this.getAllServersUseCase.execute();
   }
 
-  @Get(':id')
+  @Get('admin/:id')
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiBearerAuth()
   @ApiParam({
     name: 'id',
     type: String,
@@ -55,13 +79,46 @@ export class ServerController {
     description:
       'Renvoie les informations d’un serveur spécifique via son UUID.',
   })
-  async getServerById(
+  async getServerByIdAdmin(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<ServerResponseDto> {
     return this.getServerByIdUseCase.execute(id);
   }
 
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Lister mes serveurs accessibles' })
+  async getMyServers(
+    @CurrentUser() user: JwtPayload,
+  ): Promise<ServerResponseDto[]> {
+    return this.getUserServersUseCase.execute(user.userId);
+  }
+
+  @Get(':id')
+  @UseFilters(InvalidQueryExceptionFilter)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'UUID du serveur à récupérer',
+    required: true,
+  })
+  async getServerById(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<ServerResponseDto> {
+    return this.getServerByIdWithPermissionCheckUseCase.execute(
+      id,
+      user.userId,
+    );
+  }
+
   @Post()
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiBearerAuth()
   @ApiBody({
     type: ServerCreationDto,
     description: 'Données nécessaires pour créer un nouveau serveur',
@@ -72,6 +129,8 @@ export class ServerController {
     description:
       'Crée un serveur avec les données spécifiées dans le `ServerCreationDto`.',
   })
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ canCreateServer: true })
   async createServer(
     @Body() serverDto: ServerCreationDto,
   ): Promise<ServerResponseDto> {
@@ -79,6 +138,8 @@ export class ServerController {
   }
 
   @Patch(':id')
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiBearerAuth()
   @ApiParam({
     name: 'id',
     type: String,
@@ -90,6 +151,7 @@ export class ServerController {
     description: 'Données nécessaires pour mettre à jour un serveur',
     required: true,
   })
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Mettre à jour un serveur',
     description:
@@ -103,6 +165,8 @@ export class ServerController {
   }
 
   @Delete(':id')
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiBearerAuth()
   @ApiParam({
     name: 'id',
     type: String,

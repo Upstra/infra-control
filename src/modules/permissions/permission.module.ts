@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { PermissionVmController } from './application/controllers/permission.vm.controller';
@@ -16,25 +16,35 @@ import { PermissionServerRepository } from './infrastructure/repositories/permis
 
 import { PermissionVmUseCases } from './application/use-cases/permission-vm';
 import { PermissionServerUseCases } from './application/use-cases/permission-server';
+import { UserModule } from '../users/user.module';
 
 @Module({
   controllers: [PermissionVmController, PermissionServerController],
   imports: [
     TypeOrmModule.forFeature([Permission, PermissionServer, PermissionVm]),
+    forwardRef(() => UserModule),
   ],
   providers: [
     ...PermissionVmUseCases,
     ...PermissionServerUseCases,
     PermissionDomainVmService,
     PermissionDomainServerService,
-    PermissionVmRepository,
-    PermissionServerRepository,
+    {
+      provide: 'PermissionServerRepositoryInterface',
+      useClass: PermissionServerRepository,
+    },
+    {
+      provide: 'PermissionVmRepositoryInterface',
+      useClass: PermissionVmRepository,
+    },
   ],
   exports: [
     ...PermissionVmUseCases,
     ...PermissionServerUseCases,
     PermissionDomainVmService,
     PermissionDomainServerService,
+    'PermissionServerRepositoryInterface',
+    'PermissionVmRepositoryInterface',
   ],
 })
 export class PermissionModule {}

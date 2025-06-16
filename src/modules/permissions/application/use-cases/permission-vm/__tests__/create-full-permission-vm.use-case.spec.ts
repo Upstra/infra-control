@@ -3,6 +3,7 @@ import { PermissionDomainVmService } from '@/modules/permissions/domain/services
 import { PermissionVmRepository } from '@/modules/permissions/infrastructure/repositories/permission.vm.repository';
 import { PermissionVmDto } from '@/modules/permissions/application/dto/permission.vm.dto';
 import { PermissionVm } from '@/modules/permissions/domain/entities/permission.vm.entity';
+import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 
 describe('CreateFullPermissionVmUseCase', () => {
   let useCase: CreateFullPermissionVmUseCase;
@@ -15,8 +16,7 @@ describe('CreateFullPermissionVmUseCase', () => {
     const base: Partial<PermissionVm> = {
       roleId: 'role-vm',
       vmId: 'vm-42',
-      allowRead: true,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
       ...overrides,
     };
     return Object.setPrototypeOf(base, PermissionVm.prototype) as PermissionVm;
@@ -59,8 +59,7 @@ describe('CreateFullPermissionVmUseCase', () => {
     const saved = mockPermissionVm({
       roleId: 'r2',
       vmId: 'v2',
-      allowRead: true,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
 
     domainService.createFullPermissionEntity.mockReturnValue(saved);
@@ -71,8 +70,7 @@ describe('CreateFullPermissionVmUseCase', () => {
     expect(result).toEqual({
       roleId: 'r2',
       vmId: 'v2',
-      allowRead: true,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
   });
 });

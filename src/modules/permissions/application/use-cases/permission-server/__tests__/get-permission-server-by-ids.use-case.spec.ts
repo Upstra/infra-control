@@ -3,6 +3,7 @@ import { PermissionServerRepository } from '@/modules/permissions/infrastructure
 import { PermissionServer } from '@/modules/permissions/domain/entities/permission.server.entity';
 import { PermissionNotFoundException } from '@/modules/permissions/domain/exceptions/permission.exception';
 import { PermissionServerDto } from '@/modules/permissions/application/dto/permission.server.dto';
+import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 
 describe('GetPermissionServerByIdsUseCase', () => {
   let useCase: GetPermissionServerByIdsUseCase;
@@ -14,8 +15,7 @@ describe('GetPermissionServerByIdsUseCase', () => {
     const base: Partial<PermissionServer> = {
       roleId: 'role-1',
       serverId: 'server-1',
-      allowRead: true,
-      allowWrite: false,
+      bitmask: PermissionBit.READ,
       ...overrides,
     };
     return Object.setPrototypeOf(
@@ -59,8 +59,7 @@ describe('GetPermissionServerByIdsUseCase', () => {
     const permission = mockPermission({
       roleId: 'admin',
       serverId: 'srv-42',
-      allowRead: true,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
     repository.findPermissionByIds.mockResolvedValue(permission);
 
@@ -69,8 +68,7 @@ describe('GetPermissionServerByIdsUseCase', () => {
     expect(result).toEqual({
       roleId: 'admin',
       serverId: 'srv-42',
-      allowRead: true,
-      allowWrite: true,
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
   });
 });

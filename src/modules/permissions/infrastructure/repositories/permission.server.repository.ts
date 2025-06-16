@@ -1,33 +1,70 @@
-import { DataSource, QueryFailedError, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { PermissionServer } from '../../domain/entities/permission.server.entity';
-import { PermissionRepositoryInterface } from '../../infrastructure/interfaces/permission.repository.interface';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PermissionNotFoundException } from '../../domain/exceptions/permission.exception';
+import { FindOneByFieldOptions } from '@/core/utils/index';
+import { PermissionServerRepositoryInterface } from '../interfaces/permission.server.repository.interface';
 
 @Injectable()
 export class PermissionServerRepository
   extends Repository<PermissionServer>
-  implements PermissionRepositoryInterface
+  implements PermissionServerRepositoryInterface
 {
   constructor(private readonly dataSource: DataSource) {
     super(PermissionServer, dataSource.createEntityManager());
   }
 
-  async findAllByRole(roleId: string): Promise<PermissionServer[]> {
+  async createPermission(
+    machineId: string,
+    roleId: string,
+    bitmask: number,
+  ): Promise<PermissionServer> {
+    return this.save({ machineId, roleId, bitmask });
+  }
+
+  async findAll(
+    relations: string[] = ['servers'],
+  ): Promise<PermissionServer[]> {
+    return await this.find({ relations });
+  }
+
+  async findOneByField<K extends keyof PermissionServer>({
+    field,
+    value,
+    disableThrow = false,
+    relations = ['servers'],
+  }: FindOneByFieldOptions<
+    PermissionServer,
+    K
+  >): Promise<PermissionServer | null> {
+    if (value === undefined || value === null) {
+      throw new Error(`Invalid value for ${String(field)}`);
+    }
     try {
-      return await super.find({
-        where: { roleId },
+      return await this.findOneOrFail({
+        where: { [field]: value } as any,
+        relations,
       });
-    } catch (error) {
-      Logger.error('Error retrieving permissions:', error);
-      if (error instanceof QueryFailedError) {
-        throw new PermissionNotFoundException(
-          `Erreur lors de la récupération de la permission pour le rôle ${roleId}.`,
-        );
-      }
-      throw new PermissionNotFoundException(
-        `Error retrieving permissions for role ${roleId}}`,
-      );
+    } catch {
+      if (disableThrow) return null;
+      throw new PermissionNotFoundException('server', JSON.stringify(value));
+    }
+  }
+
+  async findAllByField<K extends keyof PermissionServer>({
+    field,
+    value,
+    disableThrow = false,
+    relations = ['server'],
+  }: FindOneByFieldOptions<PermissionServer, K>): Promise<PermissionServer[]> {
+    if (value === undefined || value === null) {
+      throw new Error(`Invalid value for ${String(field)}`);
+    }
+    try {
+      return await this.find({ where: { [field]: value } as any, relations });
+    } catch {
+      if (disableThrow) return null;
+      throw new PermissionNotFoundException('server', JSON.stringify(value));
     }
   }
 
@@ -38,8 +75,9 @@ export class PermissionServerRepository
     const permission = await this.findOne({
       where: { serverId, roleId },
     });
+
     if (!permission) {
-      throw new PermissionNotFoundException();
+      throw new PermissionNotFoundException('server', serverId);
     }
     return permission;
   }
@@ -47,12 +85,10 @@ export class PermissionServerRepository
   async updatePermission(
     serverId: string,
     roleId: string,
-    allowWrite: boolean,
-    allowRead: boolean,
+    bitmask: number,
   ): Promise<PermissionServer> {
     const permission = await this.findPermissionByIds(serverId, roleId);
-    permission.allowWrite = allowWrite;
-    permission.allowRead = allowRead;
+    permission.bitmask = bitmask;
     await super.save(permission);
     return permission;
   }
@@ -60,5 +96,18 @@ export class PermissionServerRepository
   async deletePermission(serverId: string, roleId: string): Promise<void> {
     await this.findPermissionByIds(serverId, roleId);
     await super.delete({ serverId, roleId });
+  }
+
+  async deleteByRoleAndServerIds(
+    roleId: string,
+    serverIds: string[],
+  ): Promise<void> {
+    if (!serverIds?.length) return;
+
+    await this.createQueryBuilder()
+      .delete()
+      .where('roleId = :roleId', { roleId })
+      .andWhere('serverId IN (:...serverIds)', { serverIds })
+      .execute();
   }
 }

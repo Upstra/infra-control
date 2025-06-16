@@ -68,7 +68,7 @@ export class Server extends BaseEntity {
   group: GroupServer;
 
   @ApiProperty()
-  @Column()
+  @Column({ nullable: true })
   groupId!: string;
 
   @ApiProperty({ type: () => Room, required: false })
@@ -97,6 +97,10 @@ export class Server extends BaseEntity {
   permissions: PermissionServer[];
 
   @ApiProperty({ type: () => Ilo })
-  @OneToOne(() => Ilo, { onDelete: 'CASCADE' })
-  ilo: Ilo;
+  @OneToOne(() => Ilo, { onDelete: 'CASCADE', nullable: true })
+  @JoinColumn({ name: 'iloId' })
+  ilo?: Ilo;
+
+  @Column({ nullable: true })
+  iloId?: string;
 }

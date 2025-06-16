@@ -2,6 +2,7 @@ import { CreateReadOnlyPermissionVmUseCase } from '../create-readonly-permission
 import { PermissionDomainVmService } from '@/modules/permissions/domain/services/permission.domain.vm.service';
 import { PermissionVmRepository } from '@/modules/permissions/infrastructure/repositories/permission.vm.repository';
 import { PermissionVm } from '@/modules/permissions/domain/entities/permission.vm.entity';
+import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 
 describe('CreateReadOnlyPermissionVmUseCase', () => {
   let useCase: CreateReadOnlyPermissionVmUseCase;
@@ -14,8 +15,7 @@ describe('CreateReadOnlyPermissionVmUseCase', () => {
     const base: Partial<PermissionVm> = {
       roleId: 'readonly-role',
       vmId: 'readonly-vm',
-      allowRead: true,
-      allowWrite: false,
+      bitmask: PermissionBit.READ,
       ...overrides,
     };
     return Object.setPrototypeOf(base, PermissionVm.prototype) as PermissionVm;
@@ -56,8 +56,7 @@ describe('CreateReadOnlyPermissionVmUseCase', () => {
 
   it('should return entity with allowWrite=false and allowRead=true', async () => {
     const permission = mockPermissionVm({
-      allowRead: true,
-      allowWrite: false,
+      bitmask: PermissionBit.READ,
     });
 
     domainService.createReadOnlyPermissionEntity.mockReturnValue(permission);
@@ -65,7 +64,6 @@ describe('CreateReadOnlyPermissionVmUseCase', () => {
 
     const result = await useCase.execute();
 
-    expect(result.allowRead).toBe(true);
-    expect(result.allowWrite).toBe(false);
+    expect(result.bitmask).toBe(PermissionBit.READ);
   });
 });

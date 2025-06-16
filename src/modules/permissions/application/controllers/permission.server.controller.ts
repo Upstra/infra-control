@@ -8,6 +8,7 @@ import {
   Body,
   ParseUUIDPipe,
   HttpCode,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -15,6 +16,7 @@ import {
   ApiResponse,
   ApiParam,
   ApiBody,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { PermissionServerDto } from '../dto/permission.server.dto';
 import { CreatePermissionServerUseCase } from '../use-cases/permission-server/create-permission-server.use-case';
@@ -22,6 +24,10 @@ import { GetPermissionsServerByRoleUseCase } from '../use-cases/permission-serve
 import { GetPermissionServerByIdsUseCase } from '../use-cases/permission-server/get-permission-server-by-ids.use-case';
 import { UpdatePermissionServerUseCase } from '../use-cases/permission-server/update-permission-server.use-case';
 import { DeletePermissionServerUseCase } from '../use-cases/permission-server/delete-permission-server.use-case';
+import { GetUserServerPermissionsUseCase } from '../use-cases/permission-server/get-user-permission-server-use-case';
+import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { CurrentUser } from '@/core/decorators/current-user.decorator';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 @ApiTags('Permissions - Serveur')
 @Controller('permissions/server')
@@ -32,6 +38,7 @@ export class PermissionServerController {
     private readonly getByIdsUsecase: GetPermissionServerByIdsUseCase,
     private readonly updatePermissionUsecase: UpdatePermissionServerUseCase,
     private readonly deletePermissionUsecase: DeletePermissionServerUseCase,
+    private readonly getUserServerPermissionsUseCase: GetUserServerPermissionsUseCase,
   ) {}
 
   @Get('role/:roleId')
@@ -93,5 +100,26 @@ export class PermissionServerController {
     @Param('roleId', ParseUUIDPipe) roleId: string,
   ): Promise<void> {
     return this.deletePermissionUsecase.execute(serverId, roleId);
+  }
+
+  @Get('user/me')
+  @ApiOperation({ summary: 'Récupérer les permissions d’un utilisateur' })
+  @ApiResponse({ status: 200, type: [PermissionServerDto] })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async getUserPermissionsMe(
+    @CurrentUser() user: JwtPayload,
+  ): Promise<PermissionServerDto[]> {
+    return this.getUserServerPermissionsUseCase.execute(user.userId);
+  }
+
+  @Get('user/:userId')
+  @ApiOperation({ summary: 'Récupérer les permissions d’un utilisateur' })
+  @ApiParam({ name: 'userId', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, type: [PermissionServerDto] })
+  async getUserPermissions(
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<PermissionServerDto[]> {
+    return this.getUserServerPermissionsUseCase.execute(userId);
   }
 }

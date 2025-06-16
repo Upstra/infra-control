@@ -140,5 +140,5 @@ export class ServerCreationDto {
     required: false,
   })
   @IsNotEmpty()
-  readonly ilo?: IloCreationDto;
+  ilo?: IloCreationDto;
 }

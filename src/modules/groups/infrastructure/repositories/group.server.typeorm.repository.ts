@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { GroupServer } from '../../domain/entities/group.server.entity';
 import { GroupServerRepositoryInterface } from '../../domain/interfaces/group-server.repository.interface';
 import { DataSource, Repository } from 'typeorm';
-import { FindOneByFieldOptions } from '@/core/utils/find-one-by-field-options';
+import { FindOneByFieldOptions } from '@/core/utils/index';
 import { GroupNotFoundException } from '../../domain/exceptions/group.exception';
 
 @Injectable()

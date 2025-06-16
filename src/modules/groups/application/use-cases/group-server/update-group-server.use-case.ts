@@ -24,7 +24,11 @@ export class UpdateGroupServerUseCase {
 
     let servers = existing.servers;
     if (groupDto.serverIds) {
-      servers = await this.serverRepository.findByIds(groupDto.serverIds);
+      servers = await this.serverRepository.findAllByField({
+        field: 'id',
+        value: groupDto.serverIds,
+        relations: ['group'],
+      });
     }
 
     const entity = this.domain.updateGroupEntityFromDto(existing, groupDto);

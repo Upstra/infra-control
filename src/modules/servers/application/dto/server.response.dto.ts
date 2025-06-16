@@ -82,4 +82,8 @@ export class ServerResponseDto {
     this.upsId = server.upsId;
     this.ilo = ilo;
   }
+
+  static fromEntity(s: Server): ServerResponseDto {
+    return new ServerResponseDto(s, new IloResponseDto(s.ilo));
+  }
 }

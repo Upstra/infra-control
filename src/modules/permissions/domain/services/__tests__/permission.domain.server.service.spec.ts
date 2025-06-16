@@ -1,6 +1,7 @@
 import { PermissionServerDto } from '@/modules/permissions/application/dto/permission.server.dto';
 import { PermissionDomainServerService } from '../permission.domain.server.service';
 import { createMockPermissionServer } from '@/modules/permissions/__mocks__/permissions.mock';
+import { PermissionBit } from '../../value-objects/permission-bit.enum';
 
 describe('PermissionDomainServerService', () => {
   const service = new PermissionDomainServerService();
@@ -9,8 +10,7 @@ describe('PermissionDomainServerService', () => {
     const entity = service.createFullPermissionEntity();
     expect(entity).toEqual(
       expect.objectContaining({
-        allowRead: true,
-        allowWrite: true,
+        bitmask: PermissionBit.READ | PermissionBit.WRITE,
       }),
     );
   });
@@ -19,8 +19,7 @@ describe('PermissionDomainServerService', () => {
     const entity = service.createReadOnlyPermissionEntity();
     expect(entity).toEqual(
       expect.objectContaining({
-        allowRead: true,
-        allowWrite: false,
+        bitmask: PermissionBit.READ,
       }),
     );
   });
@@ -29,14 +28,12 @@ describe('PermissionDomainServerService', () => {
     const dto: PermissionServerDto = {
       serverId: 'server-uuid',
       roleId: 'role-uuid',
-      allowRead: true,
-      allowWrite: false,
+      bitmask: PermissionBit.READ,
     };
     const expected = createMockPermissionServer({
       serverId: dto.serverId,
       roleId: dto.roleId,
-      allowRead: dto.allowRead,
-      allowWrite: dto.allowWrite,
+      bitmask: dto.bitmask,
     });
     const entity = service.createPermissionEntityFromDto(dto);
     expect(entity).toEqual(expected);
