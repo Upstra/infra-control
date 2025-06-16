@@ -9,6 +9,7 @@ describe('GetSetupStatusUseCase', () => {
   const roomRepo = { count: jest.fn() };
   const upsRepo = { count: jest.fn() };
   const serverRepo = { count: jest.fn() };
+  const setupprogressRepo = {};
 
   const setupDomainService = {
     determineSetupState: jest.fn(),
@@ -25,6 +26,7 @@ describe('GetSetupStatusUseCase', () => {
       roomRepo as any,
       serverRepo as any,
       upsRepo as any,
+      setupprogressRepo as any,
       setupDomainService as any,
       setupStatusMapper as any,
     );

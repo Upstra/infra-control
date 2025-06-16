@@ -5,7 +5,8 @@ import { UpsRepositoryInterface } from '@/modules/ups/domain/interfaces/ups.repo
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { SetupDomainService } from '../../domain/services/setup.domain.service';
 import { SetupStatusMapper } from '../mappers/setup-status.mapper';
-import { SetupStatusDto } from '../dto/setup-status.dto';
+import { SetupStatusDto, SetupStep } from '../dto/setup-status.dto';
+import { SetupProgressRepositoryInterface } from '../../domain/interfaces/setup.repository.interface';
 
 /**
  * Application Use Case responsible for retrieving the current setup status of the system.
@@ -23,6 +24,8 @@ export class GetSetupStatusUseCase {
     private readonly serverRepo: ServerRepositoryInterface,
     @Inject('UpsRepositoryInterface')
     private readonly upsRepo: UpsRepositoryInterface,
+    @Inject('SetupProgressRepositoryInterface')
+    private readonly setupProgressRepo: SetupProgressRepositoryInterface,
     private readonly setupDomainService: SetupDomainService,
     private readonly setupStatusMapper: SetupStatusMapper,
   ) {}
@@ -44,12 +47,14 @@ export class GetSetupStatusUseCase {
    */
   async execute(userId?: string): Promise<SetupStatusDto> {
     const counts = await this.getEntityCounts();
+    const hasSearchedForVms = await this.hasCompletedVmDiscovery();
 
     const setupState = this.setupDomainService.determineSetupState(
       counts.userCount,
       counts.roomCount,
       counts.upsCount,
       counts.serverCount,
+      hasSearchedForVms,
     );
 
     let isCurrentUserAdmin: boolean | undefined;
@@ -57,7 +62,12 @@ export class GetSetupStatusUseCase {
       isCurrentUserAdmin = await this.checkUserAdminStatus(userId);
     }
 
-    return this.setupStatusMapper.toDto(setupState, counts, isCurrentUserAdmin);
+    return this.setupStatusMapper.toDto(
+      setupState,
+      counts,
+      isCurrentUserAdmin,
+      hasSearchedForVms,
+    );
   }
 
   /**
@@ -99,5 +109,20 @@ export class GetSetupStatusUseCase {
     } catch {
       return false;
     }
+  }
+
+  /**
+   *
+   *
+   * @returns
+   */
+  private async hasCompletedVmDiscovery(): Promise<boolean> {
+    const vmDiscoveryStep = await this.setupProgressRepo.findOneByField({
+      field: 'step',
+      value: SetupStep.VM_DISCOVERY,
+      disableThrow: true,
+    });
+
+    return !!vmDiscoveryStep;
   }
 }
