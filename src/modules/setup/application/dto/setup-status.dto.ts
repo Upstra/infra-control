@@ -1,6 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsEnum, IsNumber, IsOptional } from 'class-validator';
 
+/**
+ * Enum representing the different steps in the setup process.
+ * Each step corresponds to a specific part of the initial configuration.
+ */
 export enum SetupStep {
   WELCOME = 'welcome',
   CREATE_ROOM = 'create-room',
@@ -10,6 +14,10 @@ export enum SetupStep {
   COMPLETE = 'complete',
 }
 
+/**
+ * DTO representing the current status of the setup process.
+ * Used to provide information about the setup state to the client.
+ */
 export class SetupStatusDto {
   @ApiProperty({
     description: "Indique si c'est la première configuration de l'application",
@@ -63,6 +71,15 @@ export class SetupStatusDto {
   @IsBoolean()
   @IsOptional()
   isCurrentUserAdmin?: boolean;
+
+  @ApiProperty({
+    description: 'Indique si la découverte des VMs a été effectuée',
+    example: true,
+    required: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  hasSearchedForVms?: boolean;
 
   @ApiProperty({
     description: "Nombre total d'étapes dans le setup",

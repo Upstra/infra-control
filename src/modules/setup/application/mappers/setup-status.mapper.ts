@@ -40,6 +40,7 @@ export class SetupStatusMapper {
       serverCount: number;
     },
     isCurrentUserAdmin?: boolean,
+    hasSearchedForVms?: boolean,
   ): SetupStatusDto {
     const dto = new SetupStatusDto();
 
@@ -59,6 +60,10 @@ export class SetupStatusMapper {
 
     if (isCurrentUserAdmin !== undefined) {
       dto.isCurrentUserAdmin = isCurrentUserAdmin;
+    }
+
+    if (hasSearchedForVms !== undefined) {
+      dto.hasSearchedForVms = hasSearchedForVms;
     }
 
     return dto;

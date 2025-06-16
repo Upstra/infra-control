@@ -53,7 +53,7 @@ describe('SetupDomainService', () => {
     });
 
     it('should return null when all conditions are met', () => {
-      const step = service['determineNextStep'](1, 1, 1, 1);
+      const step = service['determineNextStep'](1, 1, 1, 1, true);
       expect(step).toBeNull();
     });
   });

@@ -15,6 +15,7 @@ export class SetupDomainService {
    * @param roomCount - Number of created rooms
    * @param upsCount - Number of configured UPS devices
    * @param serverCount - Number of servers registered in the system
+   * @param hasSearchedForVms - Optional flag indicating if the user has searched for VMs
    *
    * @returns {SetupState} - Object describing:
    *   - current setup phase
@@ -36,16 +37,26 @@ export class SetupDomainService {
     roomCount: number,
     upsCount: number,
     serverCount: number,
+    hasSearchedForVms: boolean = false,
   ): SetupState {
     const hasAdminUser = userCount > 0;
     const hasInfrastructure = serverCount > 0;
 
-    if (hasInfrastructure) {
+    if (hasInfrastructure && hasSearchedForVms) {
       return {
         phase: SetupPhase.COMPLETED,
         hasAdminUser: true,
         hasInfrastructure: true,
         nextRequiredStep: null,
+      };
+    }
+
+    if (hasInfrastructure && !hasSearchedForVms) {
+      return {
+        phase: SetupPhase.IN_PROGRESS,
+        hasAdminUser: true,
+        hasInfrastructure: true,
+        nextRequiredStep: 'vm-discovery',
       };
     }
 
@@ -60,6 +71,7 @@ export class SetupDomainService {
           roomCount,
           upsCount,
           serverCount,
+          hasSearchedForVms,
         ),
       };
     }
@@ -73,6 +85,7 @@ export class SetupDomainService {
         roomCount,
         upsCount,
         serverCount,
+        hasSearchedForVms,
       ),
     };
   }
@@ -94,11 +107,13 @@ export class SetupDomainService {
     roomCount: number,
     upsCount: number,
     serverCount: number,
+    hasSearchedForVms: boolean,
   ): string | null {
     if (userCount === 0) return 'welcome';
     if (roomCount === 0) return 'create-room';
     if (upsCount === 0) return 'create-ups';
     if (serverCount === 0) return 'create-server';
+    if (!hasSearchedForVms) return 'vm-discovery';
     return null;
   }
 
