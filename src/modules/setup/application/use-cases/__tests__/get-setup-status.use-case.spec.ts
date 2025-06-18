@@ -9,7 +9,7 @@ describe('GetSetupStatusUseCase', () => {
   const roomRepo = { count: jest.fn() };
   const upsRepo = { count: jest.fn() };
   const serverRepo = { count: jest.fn() };
-  const setupprogressRepo = {};
+  const setupprogressRepo = { findOneByField: jest.fn() };
 
   const setupDomainService = {
     determineSetupState: jest.fn(),
@@ -67,6 +67,7 @@ describe('GetSetupStatusUseCase', () => {
       0,
       0,
       0,
+      false,
     );
     expect(setupStatusMapper.toDto).toHaveBeenCalledWith(
       setupState,
@@ -77,6 +78,7 @@ describe('GetSetupStatusUseCase', () => {
         serverCount: 0,
       },
       undefined,
+      false,
     );
 
     expect(result).toBe(expectedDto);
@@ -166,6 +168,7 @@ describe('GetSetupStatusUseCase', () => {
     expect(setupStatusMapper.toDto).toHaveBeenCalledWith(
       setupState,
       expect.objectContaining({ serverCount: 0 }),
+      false,
       false,
     );
   });

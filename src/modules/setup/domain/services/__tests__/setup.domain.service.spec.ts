@@ -28,7 +28,7 @@ describe('SetupDomainService', () => {
     });
 
     it('should return COMPLETED if at least one server is present', () => {
-      const result = service.determineSetupState(3, 2, 2, 1);
+      const result = service.determineSetupState(3, 2, 2, 1, true);
 
       expect(result.phase).toBe(SetupPhase.COMPLETED);
       expect(result.hasAdminUser).toBe(true);
