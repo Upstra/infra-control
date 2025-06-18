@@ -112,9 +112,10 @@ export class GetSetupStatusUseCase {
   }
 
   /**
+   * Check if the VM discovery step has already been completed.
    *
-   *
-   * @returns
+   * @returns `true` when a progress entry exists for the VM discovery step,
+   *   otherwise `false`.
    */
   private async hasCompletedVmDiscovery(): Promise<boolean> {
     const vmDiscoveryStep = await this.setupProgressRepo.findOneByField({
