@@ -7,6 +7,7 @@ import { SetupDomainService } from '../../domain/services/setup.domain.service';
 import { SetupStatusMapper } from '../mappers/setup-status.mapper';
 import { SetupStatusDto, SetupStep } from '../dto/setup-status.dto';
 import { SetupProgressRepositoryInterface } from '../../domain/interfaces/setup.repository.interface';
+import { SetupPhase } from '../types';
 
 /**
  * Application Use Case responsible for retrieving the current setup status of the system.
@@ -60,6 +61,19 @@ export class GetSetupStatusUseCase {
     let isCurrentUserAdmin: boolean | undefined;
     if (userId) {
       isCurrentUserAdmin = await this.checkUserAdminStatus(userId);
+    }
+
+    const hasPassedWelcomeStep = !!(await this.setupProgressRepo.findOneByField(
+      {
+        field: 'step',
+        value: SetupStep.WELCOME,
+        disableThrow: true,
+      },
+    ));
+
+    if (!hasPassedWelcomeStep) {
+      setupState.phase = SetupPhase.IN_PROGRESS;
+      setupState.nextRequiredStep = SetupStep.WELCOME;
     }
 
     return this.setupStatusMapper.toDto(

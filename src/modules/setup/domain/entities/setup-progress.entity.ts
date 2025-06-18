@@ -2,6 +2,9 @@ import { Column, PrimaryGeneratedColumn } from 'typeorm';
 import { SetupStep } from '../../application/dto/setup-status.dto';
 import { ApiProperty } from '@nestjs/swagger';
 
+import { Entity } from 'typeorm/decorator/entity/Entity';
+
+@Entity('setup_progress')
 export class SetupProgress {
   @ApiProperty({
     description: 'Unique identifier for the setup progress entry',
@@ -13,7 +16,7 @@ export class SetupProgress {
   @ApiProperty({
     description: 'The step of the setup process that has been completed',
     enum: SetupStep,
-    example: SetupStep.CREATE_ROOM,
+    example: SetupStep.WELCOME,
   })
   @Column({
     type: 'enum',
