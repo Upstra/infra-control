@@ -241,13 +241,13 @@ describe('CreateServerUseCase', () => {
       ip: '10.0.0.1',
     });
     // Simule un user AVEC roleId
-    const mockUser = { id: 'user-123', roleId: 'role-42' };
+    const mockUser = createMockUser({ id: 'user-123', roleId: 'role-42' });
 
     roomRepo.findRoomById.mockResolvedValue(mockRoom());
     groupRepo.findOneByField.mockResolvedValue(createMockGroupServer());
     iloUseCase.execute.mockResolvedValue(mockIloDto);
     repo.save.mockResolvedValue(mockServer);
-    userRepo.findOneByField.mockResolvedValue(createMockUser());
+    userRepo.findOneByField.mockResolvedValue(mockUser);
     permissionRepo.createPermission = jest.fn();
 
     await useCase.execute(dto, mockPayload.userId);
@@ -276,7 +276,9 @@ describe('CreateServerUseCase', () => {
     groupRepo.findOneByField.mockResolvedValue(createMockGroupServer());
     iloUseCase.execute.mockResolvedValue(mockIloDto);
     repo.save.mockResolvedValue(mockServer);
-    userRepo.findOneByField.mockResolvedValue(createMockUser());
+    userRepo.findOneByField.mockResolvedValue(
+      createMockUser({ roleId: undefined, role: undefined }),
+    );
     permissionRepo.createPermission = jest.fn();
 
     await useCase.execute(dto, mockPayload.userId);

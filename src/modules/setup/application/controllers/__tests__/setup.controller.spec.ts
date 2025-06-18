@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SetupController } from '../setup.controller';
-import { GetSetupStatusUseCase } from '../../use-cases';
+import { GetSetupStatusUseCase, CompleteVmDiscoveryUseCase } from '../../use-cases';
 
 describe('SetupController', () => {
   let controller: SetupController;
@@ -28,6 +28,10 @@ describe('SetupController', () => {
         {
           provide: GetSetupStatusUseCase,
           useValue: useCaseMock,
+        },
+        {
+          provide: CompleteVmDiscoveryUseCase,
+          useValue: { execute: jest.fn() },
         },
       ],
     }).compile();

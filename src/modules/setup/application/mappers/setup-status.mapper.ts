@@ -49,8 +49,7 @@ export class SetupStatusMapper {
     dto.hasUps = counts.upsCount > 0;
     dto.hasServers = counts.serverCount > 0;
 
-    dto.isFirstSetup =
-      setupState.phase === SetupPhase.NOT_STARTED || counts.userCount === 0;
+    dto.isFirstSetup = counts.serverCount === 0 && counts.userCount <= 1;
 
     dto.currentStep = this.mapNextStepToSetupStep(setupState.nextRequiredStep);
 
