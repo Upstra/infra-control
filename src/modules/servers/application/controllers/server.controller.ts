@@ -133,8 +133,9 @@ export class ServerController {
   @RequireRole({ canCreateServer: true })
   async createServer(
     @Body() serverDto: ServerCreationDto,
+    @CurrentUser() user: JwtPayload,
   ): Promise<ServerResponseDto> {
-    return this.createServerUseCase.execute(serverDto);
+    return this.createServerUseCase.execute(serverDto, user.userId);
   }
 
   @Patch(':id')

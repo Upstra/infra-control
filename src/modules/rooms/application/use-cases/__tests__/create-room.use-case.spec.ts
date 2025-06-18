@@ -5,10 +5,13 @@ import {
   mockRoom,
   mockRoomRepository,
 } from '@/modules/rooms/__mocks__';
+import { RoomRepositoryInterface } from '@/modules/rooms/domain/interfaces/room.repository.interface';
 
 describe('CreateRoomUseCase', () => {
   it('should create a room and return its response DTO', async () => {
-    const roomRepository = mockRoomRepository();
+    const roomRepository =
+      mockRoomRepository() as jest.Mocked<RoomRepositoryInterface>;
+
     const useCase = new CreateRoomUseCase(roomRepository);
     const room = mockRoom();
     const roomDto = mockRoomCreationDto();

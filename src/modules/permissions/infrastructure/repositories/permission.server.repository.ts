@@ -15,11 +15,15 @@ export class PermissionServerRepository
   }
 
   async createPermission(
-    machineId: string,
+    serverId: string,
     roleId: string,
     bitmask: number,
   ): Promise<PermissionServer> {
-    return this.save({ machineId, roleId, bitmask });
+    return this.save({
+      serverId,
+      roleId,
+      bitmask,
+    });
   }
 
   async findAll(

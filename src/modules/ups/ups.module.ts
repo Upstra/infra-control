@@ -8,7 +8,7 @@ import { UpsDomainService } from './domain/services/ups.domain.service';
 
 @Module({
   controllers: [UpsController],
-  exports: [...UpsUseCases],
+  exports: [...UpsUseCases, 'UpsRepositoryInterface'],
   imports: [TypeOrmModule.forFeature([Ups])],
   providers: [
     ...UpsUseCases,

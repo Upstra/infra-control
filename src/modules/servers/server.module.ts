@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ServerController } from './application/controllers/server.controller';
 import { Server } from './domain/entities/server.entity';
@@ -13,14 +13,15 @@ import { GroupModule } from '../groups/group.module';
 
 @Module({
   controllers: [ServerController],
-  exports: [...ServerUseCases],
+  exports: [...ServerUseCases, 'ServerRepositoryInterface'],
   imports: [
     TypeOrmModule.forFeature([Server]),
     IloModule,
     PermissionModule,
-    UserModule,
-    RoomModule,
+    forwardRef(() => UserModule),
+    forwardRef(() => RoomModule),
     GroupModule,
+    PermissionModule,
   ],
   providers: [
     ...ServerUseCases,

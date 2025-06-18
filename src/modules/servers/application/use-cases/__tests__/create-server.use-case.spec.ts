@@ -15,6 +15,10 @@ import { mockRoom } from '@/modules/rooms/__mocks__/room.mock';
 import { createMockGroupServer } from '@/modules/groups/__mocks__/group.server.mock';
 import { RoomNotFoundException } from '@/modules/rooms/domain/exceptions/room.exception';
 import { GroupNotFoundException } from '@/modules/groups/domain/exceptions/group.exception';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
+import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
+import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
 
 jest.mock('@/modules/ilos/application/use-cases');
 
@@ -25,6 +29,13 @@ describe('CreateServerUseCase', () => {
   let iloUseCase: jest.Mocked<CreateIloUseCase>;
   let roomRepo: jest.Mocked<RoomRepositoryInterface>;
   let groupRepo: jest.Mocked<GroupServerRepositoryInterface>;
+  let userRepo: jest.Mocked<UserRepositoryInterface>;
+  let permissionRepo: jest.Mocked<PermissionServerRepositoryInterface>;
+
+  const mockPayload: JwtPayload = {
+    userId: 'user-123',
+    email: 'john.doe@example.com',
+  };
 
   beforeEach(() => {
     repo = {
@@ -44,12 +55,22 @@ describe('CreateServerUseCase', () => {
       findOneByField: jest.fn().mockResolvedValue(createMockGroupServer()),
     } as any;
 
+    userRepo = {
+      findOneByField: jest.fn(),
+    } as any;
+
+    permissionRepo = {
+      findOneByField: jest.fn(),
+    } as any;
+
     useCase = new CreateServerUseCase(
       repo,
       iloUseCase,
       domain,
       roomRepo,
       groupRepo,
+      userRepo,
+      permissionRepo,
     );
   });
 
@@ -65,7 +86,7 @@ describe('CreateServerUseCase', () => {
       repo.save.mockResolvedValue(mockServer);
       iloUseCase.execute.mockResolvedValue(mockIloDto);
 
-      const result = await useCase.execute(dto);
+      const result = await useCase.execute(dto, mockPayload.userId);
 
       expect(roomRepo.findRoomById).toHaveBeenCalledWith(dto.roomId);
       expect(groupRepo.findOneByField).toHaveBeenCalledWith({
@@ -91,7 +112,7 @@ describe('CreateServerUseCase', () => {
       repo.save.mockResolvedValue(mockServer);
       iloUseCase.execute.mockResolvedValue(mockIloDto);
 
-      const result = await useCase.execute(dtoWithoutGroup);
+      const result = await useCase.execute(dtoWithoutGroup, mockPayload.userId);
 
       expect(roomRepo.findRoomById).toHaveBeenCalledWith(
         dtoWithoutGroup.roomId,
@@ -112,7 +133,9 @@ describe('CreateServerUseCase', () => {
 
       roomRepo.findRoomById.mockRejectedValue(roomError);
 
-      await expect(useCase.execute(dto)).rejects.toThrow(RoomNotFoundException);
+      await expect(useCase.execute(dto, mockPayload.userId)).rejects.toThrow(
+        RoomNotFoundException,
+      );
       expect(roomRepo.findRoomById).toHaveBeenCalledWith(dto.roomId);
       expect(groupRepo.findOneByField).not.toHaveBeenCalled();
       expect(iloUseCase.execute).not.toHaveBeenCalled();
@@ -128,7 +151,7 @@ describe('CreateServerUseCase', () => {
       roomRepo.findRoomById.mockResolvedValue(mockRoom());
       groupRepo.findOneByField.mockRejectedValue(groupError);
 
-      await expect(useCase.execute(dto)).rejects.toThrow(
+      await expect(useCase.execute(dto, mockPayload.userId)).rejects.toThrow(
         GroupNotFoundException,
       );
       expect(roomRepo.findRoomById).toHaveBeenCalledWith(dto.roomId);
@@ -149,8 +172,10 @@ describe('CreateServerUseCase', () => {
       groupRepo.findOneByField.mockResolvedValue(createMockGroupServer());
       iloUseCase.execute.mockResolvedValue(null);
 
-      await expect(useCase.execute(dto)).rejects.toThrow(NotFoundException);
-      await expect(useCase.execute(dto)).rejects.toThrow(
+      await expect(useCase.execute(dto, mockPayload.userId)).rejects.toThrow(
+        NotFoundException,
+      );
+      await expect(useCase.execute(dto, mockPayload.userId)).rejects.toThrow(
         'Failed to create or retrieve the iLO entity',
       );
 
@@ -171,7 +196,9 @@ describe('CreateServerUseCase', () => {
       groupRepo.findOneByField.mockResolvedValue(createMockGroupServer());
       iloUseCase.execute.mockRejectedValue(iloError);
 
-      await expect(useCase.execute(dto)).rejects.toThrow('ILO creation failed');
+      await expect(useCase.execute(dto, mockPayload.userId)).rejects.toThrow(
+        'ILO creation failed',
+      );
       expect(roomRepo.findRoomById).toHaveBeenCalledWith(dto.roomId);
       expect(groupRepo.findOneByField).toHaveBeenCalledWith({
         field: 'id',
@@ -193,7 +220,7 @@ describe('CreateServerUseCase', () => {
       iloUseCase.execute.mockResolvedValue(mockIloDto);
       repo.save.mockRejectedValue(saveError);
 
-      await expect(useCase.execute(dto)).rejects.toThrow(
+      await expect(useCase.execute(dto, mockPayload.userId)).rejects.toThrow(
         'Database save failed',
       );
       expect(roomRepo.findRoomById).toHaveBeenCalledWith(dto.roomId);
@@ -204,5 +231,59 @@ describe('CreateServerUseCase', () => {
       expect(iloUseCase.execute).toHaveBeenCalledWith(dto.ilo);
       expect(repo.save).toHaveBeenCalled();
     });
+  });
+
+  it('should create a permission for the user if user has roleId', async () => {
+    const dto = createMockServerCreationDto();
+    const mockServer = createMockServer();
+    const mockIloDto = createMockIloResponseDto({
+      name: 'ILO-Test',
+      ip: '10.0.0.1',
+    });
+    // Simule un user AVEC roleId
+    const mockUser = createMockUser({ id: 'user-123', roleId: 'role-42' });
+
+    roomRepo.findRoomById.mockResolvedValue(mockRoom());
+    groupRepo.findOneByField.mockResolvedValue(createMockGroupServer());
+    iloUseCase.execute.mockResolvedValue(mockIloDto);
+    repo.save.mockResolvedValue(mockServer);
+    userRepo.findOneByField.mockResolvedValue(mockUser);
+    permissionRepo.createPermission = jest.fn();
+
+    await useCase.execute(dto, mockPayload.userId);
+
+    expect(userRepo.findOneByField).toHaveBeenCalledWith({
+      field: 'id',
+      value: mockPayload.userId,
+      relations: ['role'],
+    });
+    expect(permissionRepo.createPermission).toHaveBeenCalledWith(
+      mockServer.id,
+      mockUser.roleId,
+      expect.any(Number),
+    );
+  });
+
+  it('should NOT create a permission if user has no roleId', async () => {
+    const dto = createMockServerCreationDto();
+    const mockServer = createMockServer();
+    const mockIloDto = createMockIloResponseDto({
+      name: 'ILO-Test',
+      ip: '10.0.0.1',
+    });
+
+    roomRepo.findRoomById.mockResolvedValue(mockRoom());
+    groupRepo.findOneByField.mockResolvedValue(createMockGroupServer());
+    iloUseCase.execute.mockResolvedValue(mockIloDto);
+    repo.save.mockResolvedValue(mockServer);
+    userRepo.findOneByField.mockResolvedValue(
+      createMockUser({ roleId: undefined, role: undefined }),
+    );
+    permissionRepo.createPermission = jest.fn();
+
+    await useCase.execute(dto, mockPayload.userId);
+
+    expect(userRepo.findOneByField).toHaveBeenCalled();
+    expect(permissionRepo.createPermission).not.toHaveBeenCalled();
   });
 });
