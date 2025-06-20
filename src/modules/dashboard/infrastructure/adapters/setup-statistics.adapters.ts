@@ -9,6 +9,9 @@ import { VmRepositoryInterface } from '@/modules/vms/domain/interfaces/vm.reposi
 
 @Injectable()
 export class SetupStatisticsAdapter implements StatisticsPort {
+  /**
+   * Construct the adapter using the underlying repositories.
+   */
   constructor(
     @Inject('UserRepositoryInterface')
     private readonly userRepo: UserRepositoryInterface,
@@ -26,6 +29,9 @@ export class SetupStatisticsAdapter implements StatisticsPort {
     private readonly vmRepo: VmRepositoryInterface,
   ) {}
 
+  /**
+   * Aggregate base counts across all infrastructure resources.
+   */
   async getStatistics() {
     const [totalUsers, adminUsers] = await Promise.all([
       this.userRepo.count(),

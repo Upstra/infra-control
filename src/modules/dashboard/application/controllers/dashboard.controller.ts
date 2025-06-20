@@ -12,6 +12,11 @@ import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guar
 @ApiTags('Dashboard')
 @Controller('dashboard')
 export class DashboardController {
+  /**
+   * Create a new controller instance.
+   *
+   * @param getDashboardFullStats - Use case retrieving aggregated dashboard statistics
+   */
   constructor(
     private readonly getDashboardFullStats: GetDashboardFullStatsUseCase,
   ) {}
@@ -21,6 +26,11 @@ export class DashboardController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiResponse({ status: 200, type: FullDashboardStatsDto })
+  /**
+   * Retrieve the full set of dashboard metrics.
+   *
+   * @returns aggregated statistics used to populate the dashboard view
+   */
   async getFullDashboard(): Promise<FullDashboardStatsDto> {
     return this.getDashboardFullStats.execute();
   }
