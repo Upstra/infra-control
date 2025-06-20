@@ -86,4 +86,23 @@ export class RedisSafeService {
       this.scheduleReconnect();
     }
   }
+
+  /**
+   * Retrieve all keys matching the provided pattern.
+   *
+   * @param pattern - Redis pattern to search for
+   * @returns array of matching keys, empty when Redis is unreachable
+   */
+  async keys(pattern: string): Promise<string[]> {
+    const client = this.redisClient;
+    if (!client) return [];
+    try {
+      return await client.keys(pattern);
+    } catch (e) {
+      this.online = false;
+      this.logger.error('Erreur Redis: ' + e.message);
+      this.scheduleReconnect();
+      return [];
+    }
+  }
 }

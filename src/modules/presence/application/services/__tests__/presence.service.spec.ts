@@ -1,7 +1,5 @@
 import { RedisSafeService } from '@/modules/redis/application/services/redis-safe.service';
 import { PresenceService } from '../presence.service';
-import { RedisService } from '@liaoliaots/nestjs-redis';
-import { Redis } from 'ioredis';
 
 describe('PresenceService', () => {
   let service: PresenceService;
@@ -50,5 +48,12 @@ describe('PresenceService', () => {
       'presence:user-123',
       60,
     );
+  });
+
+  it('should count connected users', async () => {
+    redisSafeService.keys = jest.fn().mockResolvedValue(['presence:u1', 'presence:u2']);
+    const count = await service.getConnectedUserCount();
+    expect(redisSafeService.keys).toHaveBeenCalledWith('presence:*');
+    expect(count).toBe(2);
   });
 });

@@ -2,13 +2,14 @@ import { RedisSafeService } from '../redis-safe.service';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
 
-const createRedisMock = (overrides: Partial<Redis> = {}): jest.Mocked<Redis> => ({
-  get: jest.fn(),
-  set: jest.fn(),
-  del: jest.fn(),
-  expire: jest.fn(),
-  ...overrides,
-} as any);
+const createRedisMock = (overrides: Partial<Redis> = {}): jest.Mocked<Redis> =>
+  ({
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+    expire: jest.fn(),
+    ...overrides,
+  }) as any;
 
 describe('RedisSafeService', () => {
   let service: RedisSafeService;
@@ -37,5 +38,30 @@ describe('RedisSafeService', () => {
     client.del.mockRejectedValue(new Error('oops'));
     await service.safeDel('k1');
     expect(service.isOnline()).toBe(false);
+  });
+
+  it('safeExpire calls expire when client available', async () => {
+    await service.safeExpire('k1', 60);
+    expect(client.expire).toHaveBeenCalledWith('k1', 60);
+  });
+
+  it('keys returns empty array when client unavailable', async () => {
+    redisService.getOrNil.mockReturnValue(null);
+    const result = await service.keys('pattern');
+    expect(result).toEqual([]);
+  });
+
+  it('keys returns results when client available', async () => {
+    client.keys = jest.fn().mockResolvedValue(['a', 'b']);
+    const result = await service.keys('p:*');
+    expect(client.keys).toHaveBeenCalledWith('p:*');
+    expect(result).toEqual(['a', 'b']);
+  });
+
+  it('keys handles redis error gracefully', async () => {
+    client.keys = jest.fn().mockRejectedValue(new Error('oops'));
+    const result = await service.keys('p:*');
+    expect(service.isOnline()).toBe(false);
+    expect(result).toEqual([]);
   });
 });

@@ -17,6 +17,7 @@ import { RedisModule } from './modules/redis/redis.module';
 import { PresenceModule } from './modules/presence/presence.module';
 import { GuardsModule } from './core/guards.module';
 import { SetupModule } from './modules/setup/setup.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   controllers: [],
@@ -37,6 +38,7 @@ import { SetupModule } from './modules/setup/setup.module';
     RedisModule,
     PresenceModule,
     SetupModule,
+    DashboardModule,
   ],
   providers: [Logger],
 })

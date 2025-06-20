@@ -1,6 +1,6 @@
 {
   "name": "infra-control",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "",
   "author": "",
   "private": true,
@@ -89,6 +89,8 @@
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s",
+      "!**/*.spec.ts",
+      "!**/*.test.ts",
       "!**/*.module.ts",
       "!**/__mocks__/**",
       "!**/*.mock.ts",

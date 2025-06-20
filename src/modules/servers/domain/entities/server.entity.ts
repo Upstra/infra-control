@@ -7,6 +7,8 @@ import {
   ManyToOne,
   JoinColumn,
   OneToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { GroupServer } from '../../../groups/domain/entities/group.server.entity';
@@ -103,4 +105,10 @@ export class Server extends BaseEntity {
 
   @Column({ nullable: true })
   iloId?: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

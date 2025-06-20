@@ -20,4 +20,14 @@ export class PresenceService {
   async refreshTTL(userId: string): Promise<void> {
     await this.redisSafeService.safeExpire(`presence:${userId}`, 60);
   }
+
+  /**
+   * Count currently connected users based on Redis presence keys.
+   *
+   * @returns number of user sessions marked as online
+   */
+  async getConnectedUserCount(): Promise<number> {
+    const keys = await this.redisSafeService.keys('presence:*');
+    return keys.length;
+  }
 }

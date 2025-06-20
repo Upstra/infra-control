@@ -2,7 +2,9 @@ import { validate } from 'class-validator';
 import { CompleteVmDiscoveryDto } from '../complete-vm-discovery.dto';
 
 describe('CompleteVmDiscoveryDto', () => {
-  const buildDto = (partial: Partial<CompleteVmDiscoveryDto> = {}): CompleteVmDiscoveryDto => {
+  const buildDto = (
+    partial: Partial<CompleteVmDiscoveryDto> = {},
+  ): CompleteVmDiscoveryDto => {
     return Object.assign(new CompleteVmDiscoveryDto(), {
       serverId: '550e8400-e29b-41d4-a716-446655440000',
       vmCount: 3,
