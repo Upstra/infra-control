@@ -1,24 +1,34 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { DashboardController } from './application/controllers/dashboard.controller';
-import { DashboardService } from './domain/services/dashboard.service';
-import { SetupStatisticsService } from './domain/services/setupStatistics.service';
-import { SetupStatusService } from './domain/services/setupStatus.service';
-import { PresenceService } from '../presence/application/services/presence.service';
-import { ServerTypeormRepository } from '../servers/infrastructure/repositories/server.typeorm.repository';
-import { VmTypeormRepository } from '../vms/infrastructure/repositories/vm.typeorm.repository';
 import { SetupModule } from '../setup/setup.module';
 import { RedisModule } from '../redis/redis.module';
+import { DashboardUseCases } from './application/use-cases';
+import { SetupStatisticsAdapter } from './infrastructure/adapters/setup-statistics.adapters';
+import { ServerModule } from '../servers/server.module';
+import { PresenceModule } from '../presence/presence.module';
+import { VmModule } from '../vms/vm.module';
+import { UserModule } from '../users/user.module';
+import { RoomModule } from '../rooms/room.module';
+import { UpsModule } from '../ups/ups.module';
 
 @Module({
   controllers: [DashboardController],
   providers: [
-    DashboardService,
-    SetupStatisticsService,
-    SetupStatusService,
-    PresenceService,
-    ServerTypeormRepository,
-    VmTypeormRepository,
+    ...DashboardUseCases,
+    {
+      provide: 'StatisticsPort',
+      useClass: SetupStatisticsAdapter,
+    },
   ],
-  imports: [forwardRef(() => SetupModule), RedisModule],
+  imports: [
+    forwardRef(() => SetupModule),
+    RedisModule,
+    ServerModule,
+    PresenceModule,
+    VmModule,
+    UserModule,
+    RoomModule,
+    UpsModule,
+  ],
 })
 export class DashboardModule {}

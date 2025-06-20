@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ServerResponseDto } from '@/modules/servers/application/dto/server.response.dto';
 
 export class DashboardStatsDto {
   @ApiProperty({ example: 12, description: 'Nombre total de serveurs' })

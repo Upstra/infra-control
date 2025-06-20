@@ -3,8 +3,14 @@ import { CompleteSetupStepDto } from '../complete-setup-step.dto';
 import { SetupStep } from '../setup-status.dto';
 
 describe('CompleteSetupStepDto', () => {
-  const buildDto = (partial: Partial<CompleteSetupStepDto> = {}): CompleteSetupStepDto => {
-    return Object.assign(new CompleteSetupStepDto(), { step: SetupStep.WELCOME, metadata: { note: 'ok' }, ...partial });
+  const buildDto = (
+    partial: Partial<CompleteSetupStepDto> = {},
+  ): CompleteSetupStepDto => {
+    return Object.assign(new CompleteSetupStepDto(), {
+      step: SetupStep.WELCOME,
+      metadata: { note: 'ok' },
+      ...partial,
+    });
   };
 
   it('validates a correct dto', async () => {

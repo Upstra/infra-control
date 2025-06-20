@@ -8,7 +8,7 @@ import { VmUseCase } from './application/use-cases';
 
 @Module({
   controllers: [VmController],
-  exports: [...VmUseCase],
+  exports: [...VmUseCase, 'VmRepositoryInterface'],
   imports: [TypeOrmModule.forFeature([Vm])],
   providers: [
     ...VmUseCase,

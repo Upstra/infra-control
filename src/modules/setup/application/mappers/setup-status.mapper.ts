@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { SetupStatusDto, SetupStep } from '../dto/setup-status.dto';
-import { SetupPhase, SetupState } from '../types';
+import { SetupState } from '../types';
 
 /**
  * Mapper responsable de transformer l'état du domaine en DTO pour l'API

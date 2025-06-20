@@ -94,11 +94,16 @@ describe('SetupController', () => {
     it('should delegate to CompleteVmDiscoveryUseCase and return status', async () => {
       const body = { serverId: 's1', vmCount: 1 } as any;
       const req = { user: { userId: 'u1' } };
-      (completeVmDiscoveryUseCase.execute as jest.Mock).mockResolvedValue(undefined);
+      (completeVmDiscoveryUseCase.execute as jest.Mock).mockResolvedValue(
+        undefined,
+      );
 
       const result = await controller.completeVmDiscovery(req, body);
 
-      expect(completeVmDiscoveryUseCase.execute).toHaveBeenCalledWith('u1', body);
+      expect(completeVmDiscoveryUseCase.execute).toHaveBeenCalledWith(
+        'u1',
+        body,
+      );
       expect(result).toEqual(mockSetupStatus);
     });
   });
@@ -111,7 +116,11 @@ describe('SetupController', () => {
 
       const result = await controller.completeSetupStep(req, body);
 
-      expect(completeSetupStepUseCase.execute).toHaveBeenCalledWith('welcome', 'u1', { a: 1 });
+      expect(completeSetupStepUseCase.execute).toHaveBeenCalledWith(
+        'welcome',
+        'u1',
+        { a: 1 },
+      );
       expect(result).toBe('ok');
     });
   });

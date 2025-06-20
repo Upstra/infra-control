@@ -1,7 +1,5 @@
 import { RedisSafeService } from '@/modules/redis/application/services/redis-safe.service';
 import { PresenceService } from '../presence.service';
-import { RedisService } from '@liaoliaots/nestjs-redis';
-import { Redis } from 'ioredis';
 
 describe('PresenceService', () => {
   let service: PresenceService;
