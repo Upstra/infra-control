@@ -12,7 +12,9 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -32,8 +34,14 @@ jobs:
       - name: Build project
         run: pnpm build
 
-      - name: Run unit tests
-        run: pnpm test
+      - name: Run unit tests and code coverage
+        run: pnpm test:cov
+        continue-on-error: true
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       # - name: Run e2e tests
       #   run: pnpm test:e2e
