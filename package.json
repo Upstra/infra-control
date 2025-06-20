@@ -1,6 +1,6 @@
 {
   "name": "infra-control",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "",
   "author": "",
   "private": true,
@@ -102,7 +102,9 @@
       "!**/core/utils/**",
       "!**/dto/*.ts",
       "!src/**/*.interface.ts",
-      "!src/**/*.entity.ts"
+      "!src/**/*.entity.ts",
+      "!**/index.ts",
+      "!**/repositories/**/*.ts"
     ],
     "coverageDirectory": "../coverage",
     "coverageThreshold": {
