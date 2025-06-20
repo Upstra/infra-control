@@ -17,16 +17,16 @@ export class CompleteVmDiscoveryUseCase {
   ) {}
 
   /**
-   * Completes the VM discovery step in the setup process.
-   * This method checks if the server exists and if the server creation step has been completed.
-   * If the server creation step is not completed, it throws a BadRequestException.
-   * If the server exists and the step is completed, it calls the completeSetupStepUseCase to mark the VM discovery step as completed.
+   * Finalize the VM discovery phase of the setup workflow.
    *
+   * Validates that the target server exists and that the server creation step
+   * has already been completed before recording the discovery results.
+   * If validation passes, the underlying `CompleteSetupStepUseCase` is invoked
+   * to store the completion information.
    *
-   * @param userId
-   * @param discoveryResult
-   *
-   * @returns {Promise<void>} - A promise that resolves when the VM discovery step is successfully completed.
+   * @param userId - ID of the user performing the discovery
+   * @param discoveryResult - Details about the discovered VMs
+   * @returns Resolves once the discovery results are saved
    */
   async execute(
     userId: string,

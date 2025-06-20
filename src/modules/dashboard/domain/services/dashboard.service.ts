@@ -1,11 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { SetupStatisticsService } from './setupStatistics.service';
 import { SetupStatusService } from './setupStatus.service';
 import { PresenceService } from '@/modules/presence/application/services/presence.service';
 import { ServerTypeormRepository } from '@/modules/servers/infrastructure/repositories/server.typeorm.repository';
 import { VmTypeormRepository } from '@/modules/vms/infrastructure/repositories/vm.typeorm.repository';
-import { SetupProgressRepository } from '../../infrastructure/repositories/setupProgress.repository';
 import { FullDashboardStatsDto } from '../../application/dto/fullDashboardStats.dto';
+import { SetupProgressRepositoryInterface } from '@/modules/setup/domain/interfaces/setup.repository.interface';
+import { SetupProgress } from '@/modules/setup/domain/entities/setup-progress.entity';
+import { SetupStep } from '@/modules/setup/application/dto';
 
 @Injectable()
 export class DashboardService {
@@ -15,7 +17,8 @@ export class DashboardService {
     private readonly presenceService: PresenceService,
     private readonly serverRepository: ServerTypeormRepository,
     private readonly vmRepository: VmTypeormRepository,
-    private readonly setupProgressRepository: SetupProgressRepository,
+    @Inject('SetupProgressRepositoryInterface')
+    private readonly setupProgressRepo: SetupProgressRepositoryInterface,
   ) {}
 
   async getFullStats(): Promise<FullDashboardStatsDto> {
@@ -31,7 +34,7 @@ export class DashboardService {
     const vmsUp = vms.filter((v) => v.state === 'UP').length;
     const vmsDown = vms.filter((v) => v.state === 'DOWN').length;
 
-    const setupProgressRecords = await this.setupProgressRepository.findAll();
+    const setupProgressRecords = await this.setupProgressRepo.findAll();
     const progressPercentage = this.calculateProgress(setupProgressRecords);
 
     return {
@@ -53,9 +56,15 @@ export class DashboardService {
     };
   }
 
-  private calculateProgress(records: { completed: boolean }[]): number {
-    const totalSteps = records.length;
-    const completed = records.filter((r) => r.completed).length;
-    return totalSteps === 0 ? 0 : (completed / totalSteps) * 100;
+  private calculateProgress(records: SetupProgress[]): number {
+    const completedSteps = new Set(records.map((record) => record.step));
+
+    const totalSteps = Object.values(SetupStep).filter(
+      (s) => s !== SetupStep.COMPLETE,
+    ).length;
+
+    return totalSteps === 0
+      ? 0
+      : Math.round((completedSteps.size / totalSteps) * 100);
   }
 }

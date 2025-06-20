@@ -22,12 +22,18 @@ export class SetupProgressRepository
     );
   }
 
+  /**
+   * Retrieve all setup progress records sorted by completion date.
+   */
   findAll(relations?: string[]): Promise<SetupProgress[]> {
     return this.setupProgressRepository.find({
       relations: relations || [],
       order: { completedAt: 'ASC' },
     });
   }
+  /**
+   * Find a single setup progress record by a given field.
+   */
   async findOneByField<K extends keyof SetupProgress>({
     field,
     value,
@@ -48,12 +54,18 @@ export class SetupProgressRepository
     }
   }
 
+  /**
+   * Retrieve the progress record for a specific setup step.
+   */
   async findByStep(step: SetupStep): Promise<SetupProgress | null> {
     return this.setupProgressRepository.findOne({
       where: { step },
     });
   }
 
+  /**
+   * Check whether a given setup step has already been completed.
+   */
   async hasCompletedStep(step: SetupStep): Promise<boolean> {
     const count = await this.setupProgressRepository.count({
       where: { step },
@@ -61,6 +73,9 @@ export class SetupProgressRepository
     return count > 0;
   }
 
+  /**
+   * Get all completed setup steps ordered chronologically.
+   */
   async findAllCompletedSteps(): Promise<SetupProgress[]> {
     return this.setupProgressRepository.find({
       order: { completedAt: 'ASC' },

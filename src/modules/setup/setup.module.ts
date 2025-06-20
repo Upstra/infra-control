@@ -31,5 +31,14 @@ import { SetupProgressRepository } from './infrastructure/repositories/setup.typ
       useClass: SetupProgressRepository,
     },
   ],
+  exports: [
+    ...SetupUseCases,
+    SetupDomainService,
+    SetupStatusMapper,
+    {
+      provide: 'SetupProgressRepositoryInterface',
+      useClass: SetupProgressRepository,
+    },
+  ],
 })
 export class SetupModule {}

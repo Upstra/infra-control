@@ -7,6 +7,7 @@ import { SetupDomainService } from '../../domain/services/setup.domain.service';
 import { SetupStatusMapper } from '../mappers/setup-status.mapper';
 import { SetupStatusDto, SetupStep } from '../dto/setup-status.dto';
 import { SetupProgressRepositoryInterface } from '../../domain/interfaces/setup.repository.interface';
+import { SetupPhase } from '../types';
 
 /**
  * Application Use Case responsible for retrieving the current setup status of the system.
@@ -62,6 +63,19 @@ export class GetSetupStatusUseCase {
       isCurrentUserAdmin = await this.checkUserAdminStatus(userId);
     }
 
+    const hasPassedWelcomeStep = !!(await this.setupProgressRepo.findOneByField(
+      {
+        field: 'step',
+        value: SetupStep.WELCOME,
+        disableThrow: true,
+      },
+    ));
+
+    if (!hasPassedWelcomeStep) {
+      setupState.phase = SetupPhase.IN_PROGRESS;
+      setupState.nextRequiredStep = SetupStep.WELCOME;
+    }
+
     return this.setupStatusMapper.toDto(
       setupState,
       counts,
@@ -112,9 +126,10 @@ export class GetSetupStatusUseCase {
   }
 
   /**
+   * Check if the VM discovery step has already been completed.
    *
-   *
-   * @returns
+   * @returns `true` when a progress entry exists for the VM discovery step,
+   *   otherwise `false`.
    */
   private async hasCompletedVmDiscovery(): Promise<boolean> {
     const vmDiscoveryStep = await this.setupProgressRepo.findOneByField({
