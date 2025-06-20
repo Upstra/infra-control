@@ -17,6 +17,14 @@ export class VmTypeormRepository
   constructor(private readonly dataSource: DataSource) {
     super(Vm, dataSource.createEntityManager());
   }
+  /**
+   * Find a VM entity by an arbitrary field.
+   *
+   * @param field - VM property to query by
+   * @param value - expected value for the given field
+   * @param disableThrow - when true, returns `null` instead of throwing on error
+   * @param relations - optional relations to eager load
+   */
   findOneByField<K extends keyof Vm>({
     field,
     value,
