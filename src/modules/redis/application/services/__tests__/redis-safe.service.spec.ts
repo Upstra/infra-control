@@ -50,4 +50,18 @@ describe('RedisSafeService', () => {
     const result = await service.keys('pattern');
     expect(result).toEqual([]);
   });
+
+  it('keys returns results when client available', async () => {
+    client.keys = jest.fn().mockResolvedValue(['a', 'b']);
+    const result = await service.keys('p:*');
+    expect(client.keys).toHaveBeenCalledWith('p:*');
+    expect(result).toEqual(['a', 'b']);
+  });
+
+  it('keys handles redis error gracefully', async () => {
+    client.keys = jest.fn().mockRejectedValue(new Error('oops'));
+    const result = await service.keys('p:*');
+    expect(service.isOnline()).toBe(false);
+    expect(result).toEqual([]);
+  });
 });
