@@ -1,41 +1,61 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Server } from '@/modules/servers/domain/entities/server.entity';
-import { Ups } from '@/modules/ups/domain/entities/ups.entity';
-import { Repository } from 'typeorm';
-import { DashboardStatsDto } from '../../application/dto/dashboardStats.dto';
+import { SetupStatisticsService } from './setupStatistics.service';
+import { SetupStatusService } from './setupStatus.service';
+import { PresenceService } from '@/modules/presence/application/services/presence.service';
+import { ServerTypeormRepository } from '@/modules/servers/infrastructure/repositories/server.typeorm.repository';
+import { VmTypeormRepository } from '@/modules/vms/infrastructure/repositories/vm.typeorm.repository';
+import { SetupProgressRepository } from '../../infrastructure/repositories/setupProgress.repository';
+import { FullDashboardStatsDto } from '../../application/dto/fullDashboardStats.dto';
 
 @Injectable()
 export class DashboardService {
   constructor(
-    @InjectRepository(Server)
-    private readonly serverRepository: Repository<Server>,
-    @InjectRepository(Ups)
-    private readonly upsRepository: Repository<Ups>,
+    private readonly setupStatisticsService: SetupStatisticsService,
+    private readonly setupStatusService: SetupStatusService,
+    private readonly presenceService: PresenceService,
+    private readonly serverRepository: ServerTypeormRepository,
+    private readonly vmRepository: VmTypeormRepository,
+    private readonly setupProgressRepository: SetupProgressRepository,
   ) {}
 
-  async getStats() {
-    const totalServers = await this.serverRepository.count();
-    const totalUps = await this.upsRepository.count();
+  async getFullStats(): Promise<FullDashboardStatsDto> {
+    const stats = await this.setupStatisticsService.getStatistics();
+    const setupStatus = await this.setupStatusService.getStatus();
+    const onlineUsers = await this.presenceService.getConnectedUserCount();
 
-    const criticalUpsCount = await this.upsRepository.count({
-      where: {
-        // to adapt ?
-        grace_period_off: 100,
-      },
-    });
+    const servers = await this.serverRepository.findAll();
+    const vms = await this.vmRepository.findAll();
 
-    const recentServers = await this.serverRepository.find({
-      order: { createdAt: 'DESC' },
-      take: 5,
-    });
+    const serversUp = servers.filter((s) => s.state === 'UP').length;
+    const serversDown = servers.filter((s) => s.state === 'DOWN').length;
+    const vmsUp = vms.filter((v) => v.state === 'UP').length;
+    const vmsDown = vms.filter((v) => v.state === 'DOWN').length;
 
-    const dashboardStats: DashboardStatsDto = {
-      totalServers,
-      totalUps,
-      criticalUpsCount,
+    const setupProgressRecords = await this.setupProgressRepository.findAll();
+    const progressPercentage = this.calculateProgress(setupProgressRecords);
+
+    return {
+      totalUsers: stats.totalUsers,
+      adminUsers: stats.adminUsers,
+      totalRooms: stats.totalRooms,
+      totalUps: stats.totalUps,
+      totalServers: stats.totalServers,
+      totalVms: stats.totalVms,
+
+      serversUp,
+      serversDown,
+      vmsUp,
+      vmsDown,
+
+      setupComplete: setupStatus.isComplete,
+      setupProgress: progressPercentage,
+      onlineUsers,
     };
+  }
 
-    return dashboardStats;
+  private calculateProgress(records: { completed: boolean }[]): number {
+    const totalSteps = records.length;
+    const completed = records.filter((r) => r.completed).length;
+    return totalSteps === 0 ? 0 : (completed / totalSteps) * 100;
   }
 }

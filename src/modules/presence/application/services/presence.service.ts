@@ -25,4 +25,9 @@ export class PresenceService {
   async refreshTTL(userId: string): Promise<void> {
     await this.redisClient.expire(`presence:${userId}`, 60);
   }
+
+  async getConnectedUserCount(): Promise<number> {
+    const keys = await this.redisClient.keys('presence:*');
+    return keys.length;
+  }
 }

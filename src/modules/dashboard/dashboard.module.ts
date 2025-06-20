@@ -1,13 +1,23 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { DashboardController } from '@/modules/dashboard/application/controllers/dashboard.controller';
-import { DashboardService } from '@/modules/dashboard/domain/services/dashboard.service';
-import { Server } from '@/modules/servers/domain/entities/server.entity';
-import { Ups } from '@/modules/ups/domain/entities/ups.entity';
+import { DashboardController } from './application/controllers/dashboard.controller';
+import { DashboardService } from './domain/services/dashboard.service';
+import { SetupStatisticsService } from './domain/services/setupStatistics.service';
+import { SetupStatusService } from './domain/services/setupStatus.service';
+import { PresenceService } from '../presence/application/services/presence.service';
+import { ServerTypeormRepository } from '../servers/infrastructure/repositories/server.typeorm.repository';
+import { VmTypeormRepository } from '../vms/infrastructure/repositories/vm.typeorm.repository';
+import { SetupProgressRepository } from './infrastructure/repositories/setupProgress.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Server, Ups])],
   controllers: [DashboardController],
-  providers: [DashboardService],
+  providers: [
+    DashboardService,
+    SetupStatisticsService,
+    SetupStatusService,
+    PresenceService,
+    ServerTypeormRepository,
+    VmTypeormRepository,
+    SetupProgressRepository,
+  ],
 })
 export class DashboardModule {}
