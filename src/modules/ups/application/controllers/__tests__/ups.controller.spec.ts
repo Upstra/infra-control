@@ -52,6 +52,14 @@ describe('UpsController', () => {
     expect(getListUseCase.execute).toHaveBeenCalledWith(1, 5);
   });
 
+  it('should use default pagination', async () => {
+    const mock = { items: [] } as any;
+    getListUseCase.execute.mockResolvedValue(mock);
+    const result = await controller.getUps();
+    expect(result).toBe(mock);
+    expect(getListUseCase.execute).toHaveBeenCalledWith(1, 10);
+  });
+
   it('should propagate error on paginated UPS list', async () => {
     getListUseCase.execute.mockRejectedValue(new Error('fail'));
     await expect(controller.getUps('1', '5')).rejects.toThrow('fail');
