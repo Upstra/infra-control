@@ -72,12 +72,7 @@ describe('UserController', () => {
 
   describe('getUsers', () => {
     it('should return paginated users', async () => {
-      const paginated = {
-        items: [],
-        totalItems: 0,
-        totalPages: 0,
-        currentPage: 1,
-      };
+      const paginated = { items: [], totalItems: 0, totalPages: 0, currentPage: 1 };
       getUserListUseCase.execute.mockResolvedValue(paginated as any);
 
       const result = await controller.getUsers('1', '10');
@@ -85,7 +80,6 @@ describe('UserController', () => {
       expect(getUserListUseCase.execute).toHaveBeenCalledWith(1, 10);
       expect(result).toBe(paginated);
     });
-
     it('should use default values when params missing', async () => {
       const paginated = {
         items: [],
