@@ -80,6 +80,29 @@ describe('UserController', () => {
       expect(getUserListUseCase.execute).toHaveBeenCalledWith(1, 10);
       expect(result).toBe(paginated);
     });
+    it('should use default values when params missing', async () => {
+      const paginated = {
+        items: [],
+        totalItems: 0,
+        totalPages: 0,
+        currentPage: 1,
+      };
+      getUserListUseCase.execute.mockResolvedValue(paginated as any);
+
+      const result = await controller.getUsers(
+        undefined as any,
+        undefined as any,
+      );
+
+      expect(getUserListUseCase.execute).toHaveBeenCalledWith(1, 10);
+      expect(result).toBe(paginated);
+    });
+
+    it('should propagate use case errors', async () => {
+      getUserListUseCase.execute.mockRejectedValue(new Error('oops'));
+
+      await expect(controller.getUsers('2', '5')).rejects.toThrow('oops');
+    });
   });
 
   describe('updateUser', () => {
