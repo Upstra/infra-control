@@ -26,6 +26,26 @@ export class UserTypeormRepository
     });
   }
 
+  /**
+   * Paginate users using TypeORM's find and count.
+   *
+   * @param page - current page starting from 1
+   * @param limit - number of users per page
+   * @param relations - optional relations to load
+   */
+  async paginate(
+    page: number,
+    limit: number,
+    relations: string[] = ['role'],
+  ): Promise<[User[], number]> {
+    return this.findAndCount({
+      relations,
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async findOneByField<T extends keyof User>({
     field,
     value,

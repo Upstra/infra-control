@@ -3,6 +3,7 @@ import { UserController } from './user.controller';
 
 import { GetMeUseCase } from '../use-cases/get-me.use-case';
 import { GetUserByIdUseCase } from '../use-cases/get-user-by-id.use-case';
+import { GetUserListUseCase } from '../use-cases/get-user-list.use-case';
 import { UpdateUserUseCase } from '../use-cases/update-user.use-case';
 import { ResetPasswordUseCase } from '../use-cases/reset-password.use-case';
 import { DeleteUserUseCase } from '../use-cases/delete-user.use-case';
@@ -25,6 +26,7 @@ describe('UserController', () => {
   // Mocks UseCases
   const getMeUseCase = { execute: jest.fn() };
   const getUserByIdUseCase = { execute: jest.fn() };
+  const getUserListUseCase = { execute: jest.fn() };
   const updateUserUseCase = { execute: jest.fn() };
   const resetPasswordUseCase = { execute: jest.fn() };
   const deleteUserUseCase = { execute: jest.fn() };
@@ -36,6 +38,7 @@ describe('UserController', () => {
       providers: [
         { provide: GetMeUseCase, useValue: getMeUseCase },
         { provide: GetUserByIdUseCase, useValue: getUserByIdUseCase },
+        { provide: GetUserListUseCase, useValue: getUserListUseCase },
         { provide: UpdateUserUseCase, useValue: updateUserUseCase },
         { provide: ResetPasswordUseCase, useValue: resetPasswordUseCase },
         { provide: DeleteUserUseCase, useValue: deleteUserUseCase },
@@ -64,6 +67,47 @@ describe('UserController', () => {
       const result = await controller.getUserById(mockUser.userId);
       expect(getUserByIdUseCase.execute).toHaveBeenCalledWith(mockUser.userId);
       expect(result).toBe(mockUser);
+    });
+  });
+
+  describe('getUsers', () => {
+    it('should return paginated users', async () => {
+      const paginated = {
+        items: [],
+        totalItems: 0,
+        totalPages: 0,
+        currentPage: 1,
+      };
+      getUserListUseCase.execute.mockResolvedValue(paginated as any);
+
+      const result = await controller.getUsers('1', '10');
+
+      expect(getUserListUseCase.execute).toHaveBeenCalledWith(1, 10);
+      expect(result).toBe(paginated);
+    });
+
+    it('should use default values when params missing', async () => {
+      const paginated = {
+        items: [],
+        totalItems: 0,
+        totalPages: 0,
+        currentPage: 1,
+      };
+      getUserListUseCase.execute.mockResolvedValue(paginated as any);
+
+      const result = await controller.getUsers(
+        undefined as any,
+        undefined as any,
+      );
+
+      expect(getUserListUseCase.execute).toHaveBeenCalledWith(1, 10);
+      expect(result).toBe(paginated);
+    });
+
+    it('should propagate use case errors', async () => {
+      getUserListUseCase.execute.mockRejectedValue(new Error('oops'));
+
+      await expect(controller.getUsers('2', '5')).rejects.toThrow('oops');
     });
   });
 
