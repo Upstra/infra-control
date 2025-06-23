@@ -9,6 +9,7 @@ import { UpdateUserFieldsUseCase } from './update-user-fields.use-case';
 import { GetUserCountUseCase } from './get-user-count.use-case';
 import { ResetPasswordUseCase } from './reset-password.use-case';
 import { GetUserWithRoleUseCase } from './get-user-with-role.use-case';
+import { GetUserListUseCase } from './get-user-list.use-case';
 
 export const UserUseCase = [
   GetUserByIdUseCase,
@@ -17,6 +18,7 @@ export const UserUseCase = [
   GetUserWithRoleUseCase,
   GetMeUseCase,
   GetUserCountUseCase,
+  GetUserListUseCase,
   UpdateUserUseCase,
   UpdateUserFieldsUseCase,
   DeleteUserUseCase,
@@ -31,6 +33,7 @@ export {
   GetUserWithRoleUseCase,
   GetMeUseCase,
   GetUserCountUseCase,
+  GetUserListUseCase,
   UpdateUserUseCase,
   UpdateUserFieldsUseCase,
   DeleteUserUseCase,
