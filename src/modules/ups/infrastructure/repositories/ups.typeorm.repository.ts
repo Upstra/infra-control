@@ -49,6 +49,21 @@ export class UpsTypeormRepository
     }
   }
 
+  /**
+   * Paginate UPS entities.
+   *
+   * @param page - page number starting at 1
+   * @param limit - items per page
+   */
+  async paginate(page: number, limit: number): Promise<[Ups[], number]> {
+    return this.findAndCount({
+      relations: ['servers'],
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { name: 'ASC' },
+    });
+  }
+
   async findUpsById(id: string): Promise<Ups> {
     try {
       return await this.findOneOrFail({

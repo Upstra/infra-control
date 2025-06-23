@@ -1,26 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsNumber, ValidateNested } from 'class-validator';
+import { IsArray, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { UserResponseDto } from './user.response.dto';
+import { PaginatedResponseDto } from '@/core/dto';
 
-export class UserListResponseDto {
+export class UserListResponseDto extends PaginatedResponseDto<UserResponseDto> {
   @ApiProperty({ type: () => UserResponseDto, isArray: true })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => UserResponseDto)
   readonly items: UserResponseDto[];
-
-  @ApiProperty()
-  @IsNumber()
-  readonly totalItems: number;
-
-  @ApiProperty()
-  @IsNumber()
-  readonly totalPages: number;
-
-  @ApiProperty()
-  @IsNumber()
-  readonly currentPage: number;
 
   constructor(
     items: UserResponseDto[],
@@ -28,9 +17,6 @@ export class UserListResponseDto {
     currentPage: number,
     pageSize: number,
   ) {
-    this.items = items;
-    this.totalItems = totalItems;
-    this.currentPage = currentPage;
-    this.totalPages = Math.ceil(totalItems / pageSize);
+    super(items, totalItems, currentPage, pageSize);
   }
 }

@@ -3,6 +3,7 @@ import { UpsController } from '../ups.controller';
 import { CreateUpsUseCase } from '@/modules/ups/application/use-cases/create-ups.use-case';
 import { DeleteUpsUseCase } from '@/modules/ups/application/use-cases/delete-ups.use-case';
 import { GetAllUpsUseCase } from '@/modules/ups/application/use-cases/get-all-ups.use-case';
+import { GetUpsListUseCase } from '@/modules/ups/application/use-cases/get-ups-list.use-case';
 import { GetUpsByIdUseCase } from '@/modules/ups/application/use-cases/get-ups-by-id.use-case';
 import { UpdateUpsUseCase } from '@/modules/ups/application/use-cases/update-ups.use-case';
 import {
@@ -14,6 +15,7 @@ import { UpsResponseDto } from '../../dto/ups.response.dto';
 describe('UpsController', () => {
   let controller: UpsController;
   let getAllUseCase: jest.Mocked<GetAllUpsUseCase>;
+  let getListUseCase: jest.Mocked<GetUpsListUseCase>;
   let getByIdUseCase: jest.Mocked<GetUpsByIdUseCase>;
   let createUseCase: jest.Mocked<CreateUpsUseCase>;
   let updateUseCase: jest.Mocked<UpdateUpsUseCase>;
@@ -21,6 +23,7 @@ describe('UpsController', () => {
 
   beforeEach(async () => {
     getAllUseCase = { execute: jest.fn() } as any;
+    getListUseCase = { execute: jest.fn() } as any;
     getByIdUseCase = { execute: jest.fn() } as any;
     createUseCase = { execute: jest.fn() } as any;
     updateUseCase = { execute: jest.fn() } as any;
@@ -30,6 +33,7 @@ describe('UpsController', () => {
       controllers: [UpsController],
       providers: [
         { provide: GetAllUpsUseCase, useValue: getAllUseCase },
+        { provide: GetUpsListUseCase, useValue: getListUseCase },
         { provide: GetUpsByIdUseCase, useValue: getByIdUseCase },
         { provide: CreateUpsUseCase, useValue: createUseCase },
         { provide: UpdateUpsUseCase, useValue: updateUseCase },
@@ -38,6 +42,14 @@ describe('UpsController', () => {
     }).compile();
 
     controller = module.get<UpsController>(UpsController);
+  });
+
+  it('should return paginated UPS list', async () => {
+    const mock = { items: [new UpsResponseDto(createMockUps())] } as any;
+    getListUseCase.execute.mockResolvedValue(mock);
+    const result = await controller.getUps('1', '5');
+    expect(result).toBe(mock);
+    expect(getListUseCase.execute).toHaveBeenCalledWith(1, 5);
   });
 
   it('should return all UPSs', async () => {

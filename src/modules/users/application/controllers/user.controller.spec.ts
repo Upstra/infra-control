@@ -4,6 +4,8 @@ import { UserController } from './user.controller';
 import { GetMeUseCase } from '../use-cases/get-me.use-case';
 import { GetUserByIdUseCase } from '../use-cases/get-user-by-id.use-case';
 import { GetUserListUseCase } from '../use-cases/get-user-list.use-case';
+import { GetUserCountUseCase } from '../use-cases/get-user-count.use-case';
+
 import { UpdateUserUseCase } from '../use-cases/update-user.use-case';
 import { ResetPasswordUseCase } from '../use-cases/reset-password.use-case';
 import { DeleteUserUseCase } from '../use-cases/delete-user.use-case';
@@ -27,6 +29,8 @@ describe('UserController', () => {
   const getMeUseCase = { execute: jest.fn() };
   const getUserByIdUseCase = { execute: jest.fn() };
   const getUserListUseCase = { execute: jest.fn() };
+  const getUserCountUseCase = { execute: jest.fn() };
+
   const updateUserUseCase = { execute: jest.fn() };
   const resetPasswordUseCase = { execute: jest.fn() };
   const deleteUserUseCase = { execute: jest.fn() };
@@ -39,6 +43,8 @@ describe('UserController', () => {
         { provide: GetMeUseCase, useValue: getMeUseCase },
         { provide: GetUserByIdUseCase, useValue: getUserByIdUseCase },
         { provide: GetUserListUseCase, useValue: getUserListUseCase },
+        { provide: GetUserCountUseCase, useValue: getUserCountUseCase },
+
         { provide: UpdateUserUseCase, useValue: updateUserUseCase },
         { provide: ResetPasswordUseCase, useValue: resetPasswordUseCase },
         { provide: DeleteUserUseCase, useValue: deleteUserUseCase },
@@ -72,7 +78,12 @@ describe('UserController', () => {
 
   describe('getUsers', () => {
     it('should return paginated users', async () => {
-      const paginated = { items: [], totalItems: 0, totalPages: 0, currentPage: 1 };
+      const paginated = {
+        items: [],
+        totalItems: 0,
+        totalPages: 0,
+        currentPage: 1,
+      };
       getUserListUseCase.execute.mockResolvedValue(paginated as any);
 
       const result = await controller.getUsers('1', '10');
@@ -102,6 +113,15 @@ describe('UserController', () => {
       getUserListUseCase.execute.mockRejectedValue(new Error('oops'));
 
       await expect(controller.getUsers('2', '5')).rejects.toThrow('oops');
+    });
+  });
+
+  describe('getUserCount', () => {
+    it('should return total users count', async () => {
+      getUserCountUseCase.execute.mockResolvedValue(42);
+      const result = await controller.getUserCount();
+      expect(getUserCountUseCase.execute).toHaveBeenCalled();
+      expect(result).toBe(42);
     });
   });
 
