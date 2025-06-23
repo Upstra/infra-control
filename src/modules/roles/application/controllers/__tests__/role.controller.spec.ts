@@ -5,6 +5,7 @@ import {
   DeleteRoleUseCase,
   GetAllRolesUseCase,
   GetRoleByIdUseCase,
+  GetRoleListUseCase,
   UpdateRoleUseCase,
 } from '../../use-cases';
 import { RoleCreationDto, RoleResponseDto } from '../../dto';
@@ -14,6 +15,7 @@ describe('RoleController', () => {
   let controller: RoleController;
   let createRoleUseCase: jest.Mocked<CreateRoleUseCase>;
   let getAllRolesUseCase: jest.Mocked<GetAllRolesUseCase>;
+  let getRoleListUseCase: jest.Mocked<GetRoleListUseCase>;
   let getRoleByIdUseCase: jest.Mocked<GetRoleByIdUseCase>;
   let updateRoleUseCase: jest.Mocked<UpdateRoleUseCase>;
   let deleteRoleUseCase: jest.Mocked<DeleteRoleUseCase>;
@@ -21,6 +23,7 @@ describe('RoleController', () => {
   beforeEach(async () => {
     createRoleUseCase = { execute: jest.fn() } as any;
     getAllRolesUseCase = { execute: jest.fn() } as any;
+    getRoleListUseCase = { execute: jest.fn() } as any;
     getRoleByIdUseCase = { execute: jest.fn() } as any;
     updateRoleUseCase = { execute: jest.fn() } as any;
     deleteRoleUseCase = { execute: jest.fn() } as any;
@@ -41,6 +44,29 @@ describe('RoleController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  describe('getRoles', () => {
+    it('should return paginated roles', async () => {
+      const mock = { items: [], total: 0 } as any;
+      getRoleListUseCase.execute.mockResolvedValue(mock);
+      const result = await controller.getRoles('1', '5');
+      expect(result).toBe(mock);
+      expect(getRoleListUseCase.execute).toHaveBeenCalledWith(1, 5);
+    });
+
+    it('should use default pagination values', async () => {
+      const mock = { items: [], total: 0 } as any;
+      getRoleListUseCase.execute.mockResolvedValue(mock);
+      const result = await controller.getRoles();
+      expect(result).toBe(mock);
+      expect(getRoleListUseCase.execute).toHaveBeenCalledWith(1, 10);
+    });
+
+    it('should propagate errors', async () => {
+      getRoleListUseCase.execute.mockRejectedValue(new Error('fail'));
+      await expect(controller.getRoles()).rejects.toThrow('fail');
+    });
   });
 
   describe('getAllRoles', () => {
@@ -111,6 +137,13 @@ describe('RoleController', () => {
       const result = await controller.updateRole('uuid', dto);
       expect(result).toEqual(role);
       expect(updateRoleUseCase.execute).toHaveBeenCalledWith('uuid', dto);
+    });
+
+    it('should propagate errors', async () => {
+      updateRoleUseCase.execute.mockRejectedValue(new Error('fail'));
+      await expect(
+        controller.updateRole('uuid', { name: 'x' }),
+      ).rejects.toThrow('fail');
     });
   });
 
