@@ -30,6 +30,7 @@ import { UserUpdateDto } from '../dto/user.update.dto';
 import {
   GetMeUseCase,
   GetUserByIdUseCase,
+  GetUserCountUseCase,
   GetUserListUseCase,
   UpdateUserUseCase,
   DeleteUserUseCase,
@@ -44,6 +45,7 @@ export class UserController {
     private readonly getMeUseCase: GetMeUseCase,
     private readonly getUserByIdUseCase: GetUserByIdUseCase,
     private readonly getUserListUseCase: GetUserListUseCase,
+    private readonly getUserCountUseCase: GetUserCountUseCase,
     private readonly updateUserUseCase: UpdateUserUseCase,
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
     private readonly deleteUserUseCase: DeleteUserUseCase,
@@ -72,6 +74,17 @@ export class UserController {
     @Query('limit') limit = '10',
   ): Promise<UserListResponseDto> {
     return this.getUserListUseCase.execute(Number(page), Number(limit));
+  }
+
+  /**
+   * Get total count of users.
+   */
+  @Get('count')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Nombre total d'utilisateurs" })
+  async getUserCount(): Promise<number> {
+    return this.getUserCountUseCase.execute();
   }
 
   @Get(':id')

@@ -7,38 +7,56 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 
 import {
   CreateUpsUseCase,
   DeleteUpsUseCase,
+  GetUpsListUseCase,
   GetAllUpsUseCase,
   GetUpsByIdUseCase,
   UpdateUpsUseCase,
 } from '@/modules/ups/application/use-cases';
 
-import { UpsResponseDto } from '../dto/ups.response.dto';
-import { UpsCreationDto } from '../dto/ups.creation.dto';
-import { UpsUpdateDto } from '../dto/ups.update.dto';
+import {
+  UpsCreationDto,
+  UpsListResponseDto,
+  UpsUpdateDto,
+  UpsResponseDto,
+} from '../dto';
 
 @ApiTags('UPS')
 @Controller('ups')
 export class UpsController {
   constructor(
     private readonly getAllUpsUseCase: GetAllUpsUseCase,
+    private readonly getUpsListUseCase: GetUpsListUseCase,
     private readonly getUpsByIdUseCase: GetUpsByIdUseCase,
     private readonly createUpsUseCase: CreateUpsUseCase,
     private readonly updateUpsUseCase: UpdateUpsUseCase,
     private readonly deleteUpsUseCase: DeleteUpsUseCase,
   ) {}
 
-  @Get()
-  @ApiOperation({
-    summary: 'Lister tous les équipements UPS',
-    description:
-      'Renvoie la liste complète de tous les équipements UPS disponibles.',
-  })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOperation({ summary: 'Lister les UPS paginés' })
+  async getUps(
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+  ): Promise<UpsListResponseDto> {
+    return this.getUpsListUseCase.execute(Number(page), Number(limit));
+  }
+
+  @Get('all')
+  @ApiOperation({ summary: 'Lister tous les équipements UPS' })
   async getAllUps(): Promise<UpsResponseDto[]> {
     return this.getAllUpsUseCase.execute();
   }
