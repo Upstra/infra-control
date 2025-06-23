@@ -24,10 +24,10 @@ export class RoleResponseDto {
   constructor(role: Role) {
     this.id = role.id;
     this.name = role.name;
-    this.permissionServers = role.permissionServers.map(
+    this.permissionServers = (role.permissionServers ?? []).map(
       (permission) => new PermissionServerDto(permission),
     );
-    this.permissionVms = role.permissionVms.map(
+    this.permissionVms = (role.permissionVms ?? []).map(
       (permission) => new PermissionVmDto(permission),
     );
   }
