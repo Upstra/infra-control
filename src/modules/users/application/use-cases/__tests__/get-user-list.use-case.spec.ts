@@ -23,6 +23,28 @@ describe('GetUserListUseCase', () => {
     expect(result.totalPages).toBe(1);
   });
 
+  it('should use default values when none are provided', async () => {
+    repo.paginate.mockResolvedValue([[], 0]);
+
+    const result = await useCase.execute();
+
+    expect(repo.paginate).toHaveBeenCalledWith(1, 10, ['role']);
+    expect(result.totalItems).toBe(0);
+    expect(result.totalPages).toBe(0);
+    expect(result.items).toEqual([]);
+  });
+
+  it('should compute total pages correctly', async () => {
+    const users = [createMockUser({ id: '1' }), createMockUser({ id: '2' })];
+    repo.paginate.mockResolvedValue([users, 3]);
+
+    const result = await useCase.execute(1, 2);
+
+    expect(repo.paginate).toHaveBeenCalledWith(1, 2, ['role']);
+    expect(result.totalPages).toBe(2);
+    expect(result.currentPage).toBe(1);
+  });
+  
   it('should propagate errors', async () => {
     repo.paginate.mockRejectedValue(new Error('fail'));
     await expect(useCase.execute()).rejects.toThrow('fail');
