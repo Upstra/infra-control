@@ -34,6 +34,19 @@ export class RoleTypeormRepository
     });
   }
 
+  async paginate(
+    page: number,
+    limit: number,
+    relations: string[] = [],
+  ): Promise<[Role[], number]> {
+    return this.findAndCount({
+      relations,
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { name: 'ASC' },
+    });
+  }
+
   async findOneByField<T extends keyof Role>({
     field,
     value,

@@ -55,6 +55,11 @@ describe('RoleController', () => {
       expect(result).toEqual(roles);
       expect(getAllRolesUseCase.execute).toHaveBeenCalled();
     });
+
+    it('should propagate error from usecase', async () => {
+      getAllRolesUseCase.execute.mockRejectedValue(new Error('boom'));
+      await expect(controller.getAllRoles()).rejects.toThrow('boom');
+    });
   });
 
   describe('getRoleById', () => {
@@ -87,6 +92,13 @@ describe('RoleController', () => {
       const result = await controller.createRole(dto);
       expect(result).toEqual(role);
       expect(createRoleUseCase.execute).toHaveBeenCalledWith(dto);
+    });
+
+    it('should propagate error from usecase', async () => {
+      createRoleUseCase.execute.mockRejectedValue(new Error('fail'));
+      await expect(controller.createRole({ name: 'A' })).rejects.toThrow(
+        'fail',
+      );
     });
   });
 
