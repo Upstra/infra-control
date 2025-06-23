@@ -18,5 +18,19 @@ export interface UserRepositoryInterface
     roleId: string,
   ): Promise<User>;
   deleteUser(id: string): Promise<void>;
+
+  /**
+   * Retrieve users with pagination support.
+   *
+   * @param page - page number starting at 1
+   * @param limit - number of users per page
+   * @param relations - optional relations to load
+   * @returns tuple containing users array and total user count
+   */
+  paginate(
+    page: number,
+    limit: number,
+    relations?: string[],
+  ): Promise<[User[], number]>;
 }
 export { FindOneByFieldOptions };

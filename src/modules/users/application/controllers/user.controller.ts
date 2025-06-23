@@ -6,11 +6,13 @@ import {
   Param,
   ParseUUIDPipe,
   Patch,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiQuery,
   ApiOperation,
   ApiParam,
   ApiTags,
@@ -21,12 +23,14 @@ import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 import { UserResponseDto } from '../dto/user.response.dto';
+import { UserListResponseDto } from '../dto/user.list.response.dto';
 
 import { UserUpdateDto } from '../dto/user.update.dto';
 
 import {
   GetMeUseCase,
   GetUserByIdUseCase,
+  GetUserListUseCase,
   UpdateUserUseCase,
   DeleteUserUseCase,
   ResetPasswordUseCase,
@@ -39,6 +43,7 @@ export class UserController {
   constructor(
     private readonly getMeUseCase: GetMeUseCase,
     private readonly getUserByIdUseCase: GetUserByIdUseCase,
+    private readonly getUserListUseCase: GetUserListUseCase,
     private readonly updateUserUseCase: UpdateUserUseCase,
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
     private readonly deleteUserUseCase: DeleteUserUseCase,
@@ -54,6 +59,19 @@ export class UserController {
   })
   async getMe(@CurrentUser() user: JwtPayload): Promise<UserResponseDto> {
     return this.getMeUseCase.execute(user);
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOperation({ summary: 'Récupérer la liste paginée des utilisateurs' })
+  async getUsers(
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+  ): Promise<UserListResponseDto> {
+    return this.getUserListUseCase.execute(Number(page), Number(limit));
   }
 
   @Get(':id')
