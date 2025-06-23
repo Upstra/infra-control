@@ -3,6 +3,7 @@ import { UpsController } from '../ups.controller';
 import { CreateUpsUseCase } from '@/modules/ups/application/use-cases/create-ups.use-case';
 import { DeleteUpsUseCase } from '@/modules/ups/application/use-cases/delete-ups.use-case';
 import { GetAllUpsUseCase } from '@/modules/ups/application/use-cases/get-all-ups.use-case';
+import { GetUpsListUseCase } from '@/modules/ups/application/use-cases/get-ups-list.use-case';
 import { GetUpsByIdUseCase } from '@/modules/ups/application/use-cases/get-ups-by-id.use-case';
 import { UpdateUpsUseCase } from '@/modules/ups/application/use-cases/update-ups.use-case';
 import {
@@ -14,6 +15,7 @@ import { UpsResponseDto } from '../../dto/ups.response.dto';
 describe('UpsController', () => {
   let controller: UpsController;
   let getAllUseCase: jest.Mocked<GetAllUpsUseCase>;
+  let getListUseCase: jest.Mocked<GetUpsListUseCase>;
   let getByIdUseCase: jest.Mocked<GetUpsByIdUseCase>;
   let createUseCase: jest.Mocked<CreateUpsUseCase>;
   let updateUseCase: jest.Mocked<UpdateUpsUseCase>;
@@ -21,6 +23,7 @@ describe('UpsController', () => {
 
   beforeEach(async () => {
     getAllUseCase = { execute: jest.fn() } as any;
+    getListUseCase = { execute: jest.fn() } as any;
     getByIdUseCase = { execute: jest.fn() } as any;
     createUseCase = { execute: jest.fn() } as any;
     updateUseCase = { execute: jest.fn() } as any;
@@ -30,6 +33,7 @@ describe('UpsController', () => {
       controllers: [UpsController],
       providers: [
         { provide: GetAllUpsUseCase, useValue: getAllUseCase },
+        { provide: GetUpsListUseCase, useValue: getListUseCase },
         { provide: GetUpsByIdUseCase, useValue: getByIdUseCase },
         { provide: CreateUpsUseCase, useValue: createUseCase },
         { provide: UpdateUpsUseCase, useValue: updateUseCase },
@@ -40,6 +44,19 @@ describe('UpsController', () => {
     controller = module.get<UpsController>(UpsController);
   });
 
+  it('should return paginated UPS list', async () => {
+    const mock = { items: [new UpsResponseDto(createMockUps())] } as any;
+    getListUseCase.execute.mockResolvedValue(mock);
+    const result = await controller.getUps('1', '5');
+    expect(result).toBe(mock);
+    expect(getListUseCase.execute).toHaveBeenCalledWith(1, 5);
+  });
+
+  it('should propagate error on paginated UPS list', async () => {
+    getListUseCase.execute.mockRejectedValue(new Error('fail'));
+    await expect(controller.getUps('1', '5')).rejects.toThrow('fail');
+  });
+
   it('should return all UPSs', async () => {
     const mock = [new UpsResponseDto(createMockUps())];
     getAllUseCase.execute.mockResolvedValue(mock);
@@ -48,12 +65,22 @@ describe('UpsController', () => {
     expect(getAllUseCase.execute).toHaveBeenCalled();
   });
 
+  it('should propagate error on getAllUps', async () => {
+    getAllUseCase.execute.mockRejectedValue(new Error('fail'));
+    await expect(controller.getAllUps()).rejects.toThrow('fail');
+  });
+
   it('should return a UPS by ID', async () => {
     const mock = new UpsResponseDto(createMockUps());
     getByIdUseCase.execute.mockResolvedValue(mock);
     const result = await controller.getUpsById('ups-123');
     expect(result).toEqual(mock);
     expect(getByIdUseCase.execute).toHaveBeenCalledWith('ups-123');
+  });
+
+  it('should propagate error on getUpsById', async () => {
+    getByIdUseCase.execute.mockRejectedValue(new Error('fail'));
+    await expect(controller.getUpsById('ups-123')).rejects.toThrow('fail');
   });
 
   it('should create a new UPS', async () => {
@@ -65,6 +92,12 @@ describe('UpsController', () => {
     expect(createUseCase.execute).toHaveBeenCalledWith(dto);
   });
 
+  it('should propagate error on createUps', async () => {
+    const dto = createMockUpsDto();
+    createUseCase.execute.mockRejectedValue(new Error('fail'));
+    await expect(controller.createUps(dto)).rejects.toThrow('fail');
+  });
+
   it('should update a UPS', async () => {
     const dto = { name: 'Updated UPS' };
     const mock = new UpsResponseDto(createMockUps({ name: 'Updated UPS' }));
@@ -74,9 +107,21 @@ describe('UpsController', () => {
     expect(updateUseCase.execute).toHaveBeenCalledWith('ups-123', dto);
   });
 
+  it('should propagate error on updateUps', async () => {
+    updateUseCase.execute.mockRejectedValue(new Error('fail'));
+    await expect(
+      controller.updateUps('ups-123', { name: 'fail' }),
+    ).rejects.toThrow('fail');
+  });
+
   it('should delete a UPS', async () => {
     deleteUseCase.execute.mockResolvedValue();
     await controller.deleteUps('ups-123');
     expect(deleteUseCase.execute).toHaveBeenCalledWith('ups-123');
+  });
+
+  it('should propagate error on deleteUps', async () => {
+    deleteUseCase.execute.mockRejectedValue(new Error('fail'));
+    await expect(controller.deleteUps('ups-123')).rejects.toThrow('fail');
   });
 });
