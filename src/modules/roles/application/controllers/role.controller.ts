@@ -7,11 +7,21 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  UseGuards,
+  Query,
 } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+  ApiQuery,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
 import {
   RoleCreationDto,
+  RoleListResponseDto,
   RoleResponseDto,
 } from '@/modules/roles/application/dto';
 import {
@@ -19,14 +29,17 @@ import {
   DeleteRoleUseCase,
   GetAllRolesUseCase,
   GetRoleByIdUseCase,
+  GetRoleListUseCase,
   UpdateRoleUseCase,
 } from '@/modules/roles/application/use-cases';
+import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 
 @ApiTags('Role')
 @Controller('role')
 export class RoleController {
   constructor(
     private readonly createRoleUseCase: CreateRoleUseCase,
+    private readonly getRoleListUseCase: GetRoleListUseCase,
     private readonly getAllRolesUseCase: GetAllRolesUseCase,
     private readonly getRoleByIdUseCase: GetRoleByIdUseCase,
     private readonly updateRoleUseCase: UpdateRoleUseCase,
@@ -34,10 +47,25 @@ export class RoleController {
   ) {}
 
   @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOperation({ summary: 'Récupérer la liste paginée des rôles' })
+  async getRoles(
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+  ): Promise<RoleListResponseDto> {
+    return this.getRoleListUseCase.execute(Number(page), Number(limit));
+  }
+
+  @Get('admin/all')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Récupérer tous les rôles',
     description:
-      'Renvoie la liste complète des rôles disponibles dans le système.',
+      'Renvoie la liste de tous les rôles disponibles dans le système, sans pagination.',
   })
   async getAllRoles(): Promise<RoleResponseDto[]> {
     return this.getAllRolesUseCase.execute();
