@@ -71,6 +71,6 @@ export class ResourcePermissionGuard implements CanActivate {
     metadata: ResourcePermissionMetadata,
   ): string | null {
     const source = request[metadata.resourceIdSource];
-    return source?.[metadata.resourceIdField] || null;
+    return source?.[metadata.resourceIdField] ?? null;
   }
 }

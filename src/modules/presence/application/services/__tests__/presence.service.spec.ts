@@ -51,7 +51,9 @@ describe('PresenceService', () => {
   });
 
   it('should count connected users', async () => {
-    redisSafeService.keys = jest.fn().mockResolvedValue(['presence:u1', 'presence:u2']);
+    redisSafeService.keys = jest
+      .fn()
+      .mockResolvedValue(['presence:u1', 'presence:u2']);
     const count = await service.getConnectedUserCount();
     expect(redisSafeService.keys).toHaveBeenCalledWith('presence:*');
     expect(count).toBe(2);

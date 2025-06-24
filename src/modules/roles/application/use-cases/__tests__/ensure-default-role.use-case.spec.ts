@@ -1,12 +1,12 @@
 import { createMockRole } from '@/modules/roles/__mocks__/role.mock';
 import { RoleRepositoryInterface } from '@/modules/roles/domain/interfaces/role.repository.interface';
-import { GetUserCountUseCase } from '@/modules/users/application/use-cases';
 import { EnsureDefaultRoleUseCase } from '../ensure-default-role.use-case';
+import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 
 describe('EnsureDefaultRoleUseCase', () => {
   let useCase: EnsureDefaultRoleUseCase;
   let roleRepository: jest.Mocked<RoleRepositoryInterface>;
-  let getUserCountUseCase: jest.Mocked<GetUserCountUseCase>;
+  let userRepository: jest.Mocked<UserRepositoryInterface>;
 
   beforeEach(() => {
     roleRepository = {
@@ -16,16 +16,15 @@ describe('EnsureDefaultRoleUseCase', () => {
       save: jest.fn(),
     } as any;
 
-    getUserCountUseCase = {
-      execute: jest.fn(),
+    userRepository = {
+      count: jest.fn(),
     } as any;
-
-    useCase = new EnsureDefaultRoleUseCase(roleRepository, getUserCountUseCase);
+    useCase = new EnsureDefaultRoleUseCase(roleRepository, userRepository);
   });
 
   it('should create admin if no role and no user', async () => {
     roleRepository.findAll.mockResolvedValue([]);
-    getUserCountUseCase.execute.mockResolvedValue(0);
+    userRepository.count.mockResolvedValue(0);
 
     const admin = createMockRole({ name: 'ADMIN', canCreateServer: true });
     roleRepository.createRole.mockResolvedValue(admin);
@@ -39,7 +38,7 @@ describe('EnsureDefaultRoleUseCase', () => {
   });
 
   it('should update admin rights if userCount = 0 and admin canCreateServer is false', async () => {
-    getUserCountUseCase.execute.mockResolvedValue(0);
+    userRepository.count.mockResolvedValue(0);
 
     const admin = createMockRole({ name: 'ADMIN', canCreateServer: false });
     roleRepository.findAll.mockResolvedValue([admin]);
@@ -55,7 +54,7 @@ describe('EnsureDefaultRoleUseCase', () => {
   });
 
   it('should create guest role if missing when users exist', async () => {
-    getUserCountUseCase.execute.mockResolvedValue(5);
+    userRepository.count.mockResolvedValue(5);
     roleRepository.findAll.mockResolvedValue([
       createMockRole({ name: 'ADMIN' }),
     ]);

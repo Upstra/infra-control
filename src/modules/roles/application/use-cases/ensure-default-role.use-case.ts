@@ -1,7 +1,7 @@
-import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { RoleRepositoryInterface } from '../../domain/interfaces/role.repository.interface';
 import { Role } from '../../domain/entities/role.entity';
-import { GetUserCountUseCase } from '@/modules/users/application/use-cases';
+import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 
 @Injectable()
 export class EnsureDefaultRoleUseCase {
@@ -10,17 +10,17 @@ export class EnsureDefaultRoleUseCase {
   constructor(
     @Inject('RoleRepositoryInterface')
     private readonly roleRepository: RoleRepositoryInterface,
-    @Inject(forwardRef(() => GetUserCountUseCase))
-    private readonly getUserCountUseCase: GetUserCountUseCase,
+    @Inject('UserRepositoryInterface')
+    private readonly userRepository: UserRepositoryInterface,
   ) {}
 
   async execute(): Promise<Role> {
     const [roles, userCount] = await Promise.all([
       this.roleRepository.findAll(),
-      this.getUserCountUseCase.execute(),
+      this.userRepository.count(),
     ]);
 
-    if (roles.length === 0 && userCount === 0) {
+    if (roles.length === 0) {
       this.logger.warn('Création rôle ADMIN par défaut');
       const admin = await this.roleRepository.createRole('ADMIN');
       admin.canCreateServer = true;
