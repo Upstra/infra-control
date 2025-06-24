@@ -5,6 +5,7 @@ import { Generate2FAUseCase } from './generate-2fa.use-case';
 import { Verify2FAUseCase } from './verify-2fa.use-case';
 import { Disable2FAUseCase } from './disable-2fa.use-case';
 import { Verify2FARecoveryUseCase } from './verify-2fa-recovery.use-case';
+import { RenewTokenUseCase } from './renew-token.use-case';
 
 export const AuthUseCases = [
   LoginUseCase,
@@ -14,6 +15,7 @@ export const AuthUseCases = [
   Verify2FAUseCase,
   Verify2FARecoveryUseCase,
   Disable2FAUseCase,
+  RenewTokenUseCase,
 ];
 
 export {
@@ -24,4 +26,5 @@ export {
   Verify2FAUseCase,
   Verify2FARecoveryUseCase,
   Disable2FAUseCase,
+  RenewTokenUseCase,
 };

@@ -32,6 +32,7 @@ describe('RoleController', () => {
       controllers: [RoleController],
       providers: [
         { provide: CreateRoleUseCase, useValue: createRoleUseCase },
+        { provide: GetRoleListUseCase, useValue: getRoleListUseCase },
         { provide: GetAllRolesUseCase, useValue: getAllRolesUseCase },
         { provide: GetRoleByIdUseCase, useValue: getRoleByIdUseCase },
         { provide: UpdateRoleUseCase, useValue: updateRoleUseCase },

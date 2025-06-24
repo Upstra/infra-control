@@ -6,6 +6,7 @@ import { Get2FAStatusUseCase } from '../use-cases/get-2fa-status.use-case';
 import { Generate2FAUseCase } from '../use-cases/generate-2fa.use-case';
 import { Verify2FAUseCase } from '../use-cases/verify-2fa.use-case';
 import { Disable2FAUseCase } from '../use-cases/disable-2fa.use-case';
+import { RenewTokenUseCase } from '../use-cases/renew-token.use-case';
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
 
@@ -18,6 +19,7 @@ describe('AuthController', () => {
   const generate2FAUseCase = { execute: jest.fn() };
   const verify2FAUseCase = { execute: jest.fn() };
   const disable2FAUseCase = { execute: jest.fn() };
+  const renewTokenUseCase = { execute: jest.fn() };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -29,6 +31,7 @@ describe('AuthController', () => {
         { provide: Generate2FAUseCase, useValue: generate2FAUseCase },
         { provide: Verify2FAUseCase, useValue: verify2FAUseCase },
         { provide: Disable2FAUseCase, useValue: disable2FAUseCase },
+        { provide: RenewTokenUseCase, useValue: renewTokenUseCase },
       ],
     }).compile();
 
@@ -51,5 +54,11 @@ describe('AuthController', () => {
     };
     await controller.register(dto);
     expect(registerUseCase.execute).toHaveBeenCalledWith(dto);
+  });
+
+  it('should call renew token use case with payload', async () => {
+    const user = { userId: 'id', email: 'e@test.com' } as any;
+    await controller.refresh(user);
+    expect(renewTokenUseCase.execute).toHaveBeenCalledWith(user);
   });
 });
