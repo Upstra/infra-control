@@ -22,6 +22,10 @@ describe('PresenceService', () => {
       'presence:user-123',
       'online',
     );
+    expect(redisSafeService.safeExpire).toHaveBeenCalledWith(
+      'presence:user-123',
+      60,
+    );
   });
 
   it('should mark user as offline', async () => {
