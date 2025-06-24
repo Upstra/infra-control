@@ -178,6 +178,17 @@ pnpm format    # beautifie le code
 
 ---
 
+## 🗄️ Migrations
+
+```bash
+pnpm migration:generate
+pnpm migration:run
+```
+
+Ces commandes utilisent `-r dotenv/config` pour charger automatiquement les variables d'environnement.
+
+---
+
 ## ❤️ Tips
 
 - Créer des mocks avec `__mocks__/createMockUser.ts` pour simplifier tes tests
