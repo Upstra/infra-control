@@ -19,7 +19,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "NODE_OPTIONS='-r tsconfig-paths/register' jest --config ./test/jest-e2e.json"
+    "test:e2e": "NODE_OPTIONS='-r tsconfig-paths/register' jest --config ./test/jest-e2e.json",
+    "migration:generate": "ts-node ./node_modules/typeorm/cli.js -d src/core/config/data-source.ts migration:generate",
+    "migration:run": "ts-node ./node_modules/typeorm/cli.js -d dist/core/config/data-source.js migration:run"
   },
   "dependencies": {
     "@liaoliaots/nestjs-redis": "^10.0.0",
