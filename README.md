@@ -79,6 +79,8 @@ JWT_SECRET=jwt_secret
 JWT_EXPIRATION=1h
 ```
 
+Copy `.env-example` to `.env` (or rename `.env-local` to `.env`) and fill in your database credentials before running commands.
+
 ---
 
 ## 🐳 Démarrage avec Docker
