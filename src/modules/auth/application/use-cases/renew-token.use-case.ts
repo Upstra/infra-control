@@ -33,7 +33,7 @@ export class RenewTokenUseCase {
       );
 
       return { accessToken, refreshToken: newRefreshToken };
-    } catch (err) {
+    } catch {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
   }

@@ -38,13 +38,30 @@ describe('AuthController', () => {
     controller = module.get<AuthController>(AuthController);
   });
 
-  it('should call login use case with dto', async () => {
+  it('should call login use case with dto and set cookie', async () => {
     const dto: LoginDto = { identifier: 'john', password: 'pass' };
-    await controller.login(dto, {} as any);
+    const res = { cookie: jest.fn() } as any;
+    loginUseCase.execute.mockResolvedValue({
+      accessToken: 'acc',
+      refreshToken: 'ref',
+    });
+
+    const result = await controller.login(dto, res);
+
     expect(loginUseCase.execute).toHaveBeenCalledWith(dto);
+    expect(res.cookie).toHaveBeenCalledWith(
+      'refreshToken',
+      'ref',
+      expect.objectContaining({
+        httpOnly: true,
+        sameSite: 'strict',
+        path: '/auth/refresh',
+      }),
+    );
+    expect(result).toEqual({ accessToken: 'acc' });
   });
 
-  it('should call register use case with dto', async () => {
+  it('should call register use case with dto and set cookie', async () => {
     const dto: RegisterDto = {
       firstName: 'John',
       lastName: 'Doe',
@@ -52,8 +69,25 @@ describe('AuthController', () => {
       username: 'johndoe',
       password: 'Password123!',
     };
-    await controller.register(dto, {} as any);
+    const res = { cookie: jest.fn() } as any;
+    registerUseCase.execute.mockResolvedValue({
+      accessToken: 'acc',
+      refreshToken: 'ref',
+    });
+
+    const result = await controller.register(dto, res);
+
     expect(registerUseCase.execute).toHaveBeenCalledWith(dto);
+    expect(res.cookie).toHaveBeenCalledWith(
+      'refreshToken',
+      'ref',
+      expect.objectContaining({
+        httpOnly: true,
+        sameSite: 'strict',
+        path: '/auth/refresh',
+      }),
+    );
+    expect(result).toEqual({ accessToken: 'acc' });
   });
 
   it('should call renew token use case with refreshToken from cookie', async () => {
