@@ -1,10 +1,14 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 @Injectable()
 export class RenewTokenUseCase {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+  ) {}
 
   execute(refreshToken: string) {
     try {
@@ -19,7 +23,11 @@ export class RenewTokenUseCase {
           isTwoFactorEnabled: payload.isTwoFactorEnabled,
           role: payload.role,
         },
-        { expiresIn: '15m' },
+        {
+          expiresIn: this.configService.get<string>(
+            'JWT_ACCESS_TOKEN_EXPIRATION',
+          ),
+        },
       );
 
       const newRefreshToken = this.jwtService.sign(
@@ -29,7 +37,11 @@ export class RenewTokenUseCase {
           isTwoFactorEnabled: payload.isTwoFactorEnabled,
           role: payload.role,
         },
-        { expiresIn: '7d' },
+        {
+          expiresIn: this.configService.get<string>(
+            'JWT_REFRESH_TOKEN_EXPIRATION',
+          ),
+        },
       );
 
       return { accessToken, refreshToken: newRefreshToken };

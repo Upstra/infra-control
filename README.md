@@ -77,6 +77,9 @@ APP_PORT=3000
 
 JWT_SECRET=jwt_secret
 JWT_EXPIRATION=1h
+JWT_2FA_TOKEN_EXPIRATION=5m
+JWT_ACCESS_TOKEN_EXPIRATION=15m
+JWT_REFRESH_TOKEN_EXPIRATION=7d
 ```
 
 Copy `.env-example` to `.env` (or rename `.env-local` to `.env`) and fill in your database credentials before running commands.
