@@ -1,5 +1,6 @@
 import { LoginUseCase } from '../login.use-case';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { UserDomainService } from '@/modules/users/domain/services/user.domain.service';
 import {
   AuthNotFoundException,
@@ -18,6 +19,7 @@ describe('LoginUseCase', () => {
   let getUserByUsernameUseCase: jest.Mocked<GetUserByUsernameUseCase>;
   let userDomain: jest.Mocked<UserDomainService>;
   let jwtService: jest.Mocked<JwtService>;
+  let configService: jest.Mocked<ConfigService>;
 
   const mockUser = (overrides?: Partial<User>): User =>
     Object.assign(new User(), {
@@ -49,11 +51,27 @@ describe('LoginUseCase', () => {
       sign: jest.fn(),
     } as any;
 
+    configService = {
+      get: jest.fn().mockImplementation((key: string) => {
+        switch (key) {
+          case 'JWT_2FA_TOKEN_EXPIRATION':
+            return '5m';
+          case 'JWT_ACCESS_TOKEN_EXPIRATION':
+            return '15m';
+          case 'JWT_REFRESH_TOKEN_EXPIRATION':
+            return '7d';
+          default:
+            return undefined;
+        }
+      }),
+    } as any;
+
     useCase = new LoginUseCase(
       getUserByUsernameUseCase,
       getUserByEmailUseCase,
       userDomain,
       jwtService,
+      configService,
     );
   });
 
