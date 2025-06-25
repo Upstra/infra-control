@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 import { RegisterDto } from '../dto/register.dto';
 import { RegisterUserUseCase } from '@/modules/users/application/use-cases';
 
@@ -9,7 +8,6 @@ export class RegisterUseCase {
   constructor(
     private readonly registerUserUseCase: RegisterUserUseCase,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
   ) {}
 
   async execute(dto: RegisterDto) {
@@ -20,9 +18,7 @@ export class RegisterUseCase {
         email: user.email,
         isTwoFactorEnabled: user.isTwoFactorEnabled,
       },
-      {
-        expiresIn: this.configService.get<string>('JWT_ACCESS_TOKEN_EXPIRATION'),
-      },
+      { expiresIn: '15m' },
     );
     const refreshToken = this.jwtService.sign(
       {
@@ -30,9 +26,7 @@ export class RegisterUseCase {
         email: user.email,
         isTwoFactorEnabled: user.isTwoFactorEnabled,
       },
-      {
-        expiresIn: this.configService.get<string>('JWT_REFRESH_TOKEN_EXPIRATION'),
-      },
+      { expiresIn: '7d' },
     );
     return { accessToken, refreshToken };
   }

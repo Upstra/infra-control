@@ -1,12 +1,10 @@
 import { RenewTokenUseCase } from '../renew-token.use-case';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 describe('RenewTokenUseCase', () => {
   let useCase: RenewTokenUseCase;
   let jwtService: jest.Mocked<JwtService>;
-  let configService: jest.Mocked<ConfigService>;
 
   beforeEach(() => {
     jwtService = {
@@ -14,20 +12,7 @@ describe('RenewTokenUseCase', () => {
       sign: jest.fn(),
     } as any;
 
-    configService = {
-      get: jest.fn().mockImplementation((key: string) => {
-        switch (key) {
-          case 'JWT_ACCESS_TOKEN_EXPIRATION':
-            return '15m';
-          case 'JWT_REFRESH_TOKEN_EXPIRATION':
-            return '7d';
-          default:
-            return undefined;
-        }
-      }),
-    } as any;
-
-    useCase = new RenewTokenUseCase(jwtService, configService);
+    useCase = new RenewTokenUseCase(jwtService);
   });
 
   it('should return a renewed token', () => {
