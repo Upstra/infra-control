@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 import { LoginDto } from '../dto/login.dto';
 import { UserDomainService } from '../../../users/domain/services/user.domain.service';
 import {
@@ -20,7 +19,6 @@ export class LoginUseCase {
     private readonly findByEmail: GetUserByEmailUseCase,
     private readonly userDomain: UserDomainService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
   ) {}
 
   async execute(dto: LoginDto): Promise<LoginResponseDto> {
@@ -48,7 +46,7 @@ export class LoginUseCase {
           email: user.email,
           isTwoFactorEnabled: user.isTwoFactorEnabled,
         },
-        { expiresIn: this.configService.get<string>('JWT_2FA_TOKEN_EXPIRATION') },
+        { expiresIn: '5m' },
       );
 
       return {
@@ -63,7 +61,7 @@ export class LoginUseCase {
         email: user.email,
         isTwoFactorEnabled: user.isTwoFactorEnabled,
       },
-      { expiresIn: this.configService.get<string>('JWT_ACCESS_TOKEN_EXPIRATION') },
+      { expiresIn: '15m' },
     );
     const refreshToken = this.jwtService.sign(
       {
@@ -71,7 +69,7 @@ export class LoginUseCase {
         email: user.email,
         isTwoFactorEnabled: user.isTwoFactorEnabled,
       },
-      { expiresIn: this.configService.get<string>('JWT_REFRESH_TOKEN_EXPIRATION') },
+      { expiresIn: '7d' },
     );
 
     return { accessToken, refreshToken };

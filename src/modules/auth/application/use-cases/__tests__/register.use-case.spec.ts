@@ -1,6 +1,5 @@
 import { RegisterUseCase } from '../register.use-case';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 import { RegisterDto } from '../../dto/register.dto';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 import { RegisterUserUseCase } from '@/modules/users/application/use-cases';
@@ -9,7 +8,6 @@ describe('RegisterUseCase', () => {
   let useCase: RegisterUseCase;
   let registerUserUseCase: jest.Mocked<RegisterUserUseCase>;
   let jwtService: jest.Mocked<JwtService>;
-  let configService: jest.Mocked<ConfigService>;
 
   const mockDto: RegisterDto = {
     firstName: 'John',
@@ -28,20 +26,7 @@ describe('RegisterUseCase', () => {
       sign: jest.fn(),
     } as any;
 
-    configService = {
-      get: jest.fn().mockImplementation((key: string) => {
-        switch (key) {
-          case 'JWT_ACCESS_TOKEN_EXPIRATION':
-            return '15m';
-          case 'JWT_REFRESH_TOKEN_EXPIRATION':
-            return '7d';
-          default:
-            return undefined;
-        }
-      }),
-    } as any;
-
-    useCase = new RegisterUseCase(registerUserUseCase, jwtService, configService);
+    useCase = new RegisterUseCase(registerUserUseCase, jwtService);
   });
 
   it('should register a new user and return access and refresh tokens', async () => {
