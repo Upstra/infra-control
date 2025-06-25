@@ -56,4 +56,12 @@ describe('RenewTokenUseCase', () => {
       refreshToken: 'new.refresh.token',
     });
   });
+
+  it('should throw UnauthorizedException when verification fails', () => {
+    jwtService.verify.mockImplementation(() => {
+      throw new Error('invalid');
+    });
+
+    expect(() => useCase.execute('bad.token')).toThrow('Invalid or expired refresh token');
+  });
 });
