@@ -40,7 +40,7 @@ describe('AuthController', () => {
 
   it('should call login use case with dto', async () => {
     const dto: LoginDto = { identifier: 'john', password: 'pass' };
-    await controller.login(dto);
+    await controller.login(dto, {} as any);
     expect(loginUseCase.execute).toHaveBeenCalledWith(dto);
   });
 
@@ -52,13 +52,28 @@ describe('AuthController', () => {
       username: 'johndoe',
       password: 'Password123!',
     };
-    await controller.register(dto);
+    await controller.register(dto, {} as any);
     expect(registerUseCase.execute).toHaveBeenCalledWith(dto);
   });
 
-  it('should call renew token use case with payload', async () => {
-    const user = { userId: 'id', email: 'e@test.com' } as any;
-    await controller.refresh(user);
-    expect(renewTokenUseCase.execute).toHaveBeenCalledWith(user);
+  it('should call renew token use case with refreshToken from cookie', async () => {
+    const mockReq = { cookies: { refreshToken: 'refresh.token' } } as any;
+    const mockRes = { cookie: jest.fn() } as any;
+    renewTokenUseCase.execute.mockReturnValue({
+      accessToken: 'acc',
+      refreshToken: 'newRef',
+    });
+
+    await controller.refresh(mockReq, mockRes);
+    expect(renewTokenUseCase.execute).toHaveBeenCalledWith('refresh.token');
+    expect(mockRes.cookie).toHaveBeenCalledWith(
+      'refreshToken',
+      'newRef',
+      expect.objectContaining({
+        httpOnly: true,
+        sameSite: 'strict',
+        path: '/auth/refresh',
+      }),
+    );
   });
 });

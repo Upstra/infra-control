@@ -12,11 +12,22 @@ export class RegisterUseCase {
 
   async execute(dto: RegisterDto) {
     const user = await this.registerUserUseCase.execute(dto);
-    const token = this.jwtService.sign({
-      userId: user.id,
-      email: user.email,
-      isTwoFactorEnabled: user.isTwoFactorEnabled,
-    });
-    return { accessToken: token };
+    const accessToken = this.jwtService.sign(
+      {
+        userId: user.id,
+        email: user.email,
+        isTwoFactorEnabled: user.isTwoFactorEnabled,
+      },
+      { expiresIn: '15m' },
+    );
+    const refreshToken = this.jwtService.sign(
+      {
+        userId: user.id,
+        email: user.email,
+        isTwoFactorEnabled: user.isTwoFactorEnabled,
+      },
+      { expiresIn: '7d' },
+    );
+    return { accessToken, refreshToken };
   }
 }

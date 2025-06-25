@@ -8,6 +8,7 @@ describe('RenewTokenUseCase', () => {
 
   beforeEach(() => {
     jwtService = {
+      verify: jest.fn(),
       sign: jest.fn(),
     } as any;
 
@@ -15,6 +16,7 @@ describe('RenewTokenUseCase', () => {
   });
 
   it('should return a renewed token', () => {
+    const refreshToken = 'refresh.token';
     const payload: JwtPayload & { isTwoFactorEnabled?: boolean; role?: any } = {
       userId: 'user-1',
       email: 'john@example.com',
@@ -22,13 +24,36 @@ describe('RenewTokenUseCase', () => {
       role: { id: '1', name: 'admin' },
     };
 
-    jwtService.sign.mockReturnValue('new.token');
+    jwtService.verify.mockReturnValue(payload);
 
-    const result = useCase.execute(payload);
+    jwtService.sign
+      .mockReturnValueOnce('new.access.token')
+      .mockReturnValueOnce('new.refresh.token');
 
-    expect(jwtService.sign).toHaveBeenCalledWith(payload, {
-      expiresIn: undefined,
+    const result = useCase.execute(refreshToken);
+
+    expect(jwtService.verify).toHaveBeenCalledWith(refreshToken);
+    expect(jwtService.sign).toHaveBeenCalledWith(
+      {
+        userId: payload.userId,
+        email: payload.email,
+        isTwoFactorEnabled: payload.isTwoFactorEnabled,
+        role: payload.role,
+      },
+      { expiresIn: '15m' },
+    );
+    expect(jwtService.sign).toHaveBeenCalledWith(
+      {
+        userId: payload.userId,
+        email: payload.email,
+        isTwoFactorEnabled: payload.isTwoFactorEnabled,
+        role: payload.role,
+      },
+      { expiresIn: '7d' },
+    );
+    expect(result).toEqual({
+      accessToken: 'new.access.token',
+      refreshToken: 'new.refresh.token',
     });
-    expect(result).toEqual({ accessToken: 'new.token' });
   });
 });

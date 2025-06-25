@@ -12,6 +12,9 @@ async function bootstrap() {
   app.useLogger(logger);
   registerAllGlobalFilters(app);
 
+  const cookieParser = require('cookie-parser');
+
+  app.use(cookieParser());
   app.useGlobalPipes(setupValidationPipe());
   app.enableCors({
     origin: '*',
