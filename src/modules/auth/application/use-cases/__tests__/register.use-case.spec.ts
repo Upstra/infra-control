@@ -29,19 +29,35 @@ describe('RegisterUseCase', () => {
     useCase = new RegisterUseCase(registerUserUseCase, jwtService);
   });
 
-  it('should register a new user and return an access token', async () => {
+  it('should register a new user and return access and refresh tokens', async () => {
     const fakeUser = createMockUser();
     registerUserUseCase.execute.mockResolvedValue(fakeUser);
-    jwtService.sign.mockReturnValue('mock.jwt.token');
+    jwtService.sign
+      .mockReturnValueOnce('access.jwt.token')
+      .mockReturnValueOnce('refresh.jwt.token');
 
     const result = await useCase.execute(mockDto);
 
     expect(registerUserUseCase.execute).toHaveBeenCalledWith(mockDto);
-    expect(jwtService.sign).toHaveBeenCalledWith({
-      email: fakeUser.email,
-      isTwoFactorEnabled: fakeUser.isTwoFactorEnabled,
-      userId: fakeUser.id,
+    expect(jwtService.sign).toHaveBeenCalledWith(
+      {
+        userId: fakeUser.id,
+        email: fakeUser.email,
+        isTwoFactorEnabled: fakeUser.isTwoFactorEnabled,
+      },
+      { expiresIn: '15m' },
+    );
+    expect(jwtService.sign).toHaveBeenCalledWith(
+      {
+        userId: fakeUser.id,
+        email: fakeUser.email,
+        isTwoFactorEnabled: fakeUser.isTwoFactorEnabled,
+      },
+      { expiresIn: '7d' },
+    );
+    expect(result).toEqual({
+      accessToken: 'access.jwt.token',
+      refreshToken: 'refresh.jwt.token',
     });
-    expect(result).toEqual({ accessToken: 'mock.jwt.token' });
   });
 });

@@ -10,6 +10,7 @@ import {
   GetUserByEmailUseCase,
   GetUserByUsernameUseCase,
 } from '@/modules/users/application/use-cases';
+import { LoginResponseDto } from '../dto';
 
 @Injectable()
 export class LoginUseCase {
@@ -20,7 +21,7 @@ export class LoginUseCase {
     private readonly jwtService: JwtService,
   ) {}
 
-  async execute(dto: LoginDto) {
+  async execute(dto: LoginDto): Promise<LoginResponseDto> {
     const { identifier, password } = dto;
     const isEmail =
       identifier.includes('@') && identifier.split('@').length === 2;
@@ -54,12 +55,23 @@ export class LoginUseCase {
       };
     }
 
-    const finalToken = this.jwtService.sign({
-      userId: user.id,
-      email: user.email,
-      isTwoFactorEnabled: user.isTwoFactorEnabled,
-    });
+    const accessToken = this.jwtService.sign(
+      {
+        userId: user.id,
+        email: user.email,
+        isTwoFactorEnabled: user.isTwoFactorEnabled,
+      },
+      { expiresIn: '15m' },
+    );
+    const refreshToken = this.jwtService.sign(
+      {
+        userId: user.id,
+        email: user.email,
+        isTwoFactorEnabled: user.isTwoFactorEnabled,
+      },
+      { expiresIn: '7d' },
+    );
 
-    return { accessToken: finalToken };
+    return { accessToken, refreshToken };
   }
 }

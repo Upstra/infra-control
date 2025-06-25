@@ -57,34 +57,46 @@ describe('LoginUseCase', () => {
     );
   });
 
-  it('should return accessToken when login with valid email and 2FA is disabled', async () => {
+  it('should return access and refresh tokens when login with valid email and 2FA is disabled', async () => {
     const user = mockUser();
     getUserByEmailUseCase.execute.mockResolvedValue(user);
     userDomain.validatePassword.mockResolvedValue(true);
     userDomain.isTwoFactorEnabled.mockReturnValue(false);
-    jwtService.sign.mockReturnValue('valid.jwt.token');
+    jwtService.sign
+      .mockReturnValueOnce('access.jwt.token')
+      .mockReturnValueOnce('refresh.jwt.token');
 
     const result = await useCase.execute({
       identifier: 'test@example.com',
       password: '123456',
     });
 
-    expect(result).toEqual({ accessToken: 'valid.jwt.token' });
+    expect(jwtService.sign).toHaveBeenCalledTimes(2);
+    expect(result).toEqual({
+      accessToken: 'access.jwt.token',
+      refreshToken: 'refresh.jwt.token',
+    });
   });
 
-  it('should return accessToken when login with valid username and 2FA is disabled', async () => {
+  it('should return access and refresh tokens when login with valid username and 2FA is disabled', async () => {
     const user = mockUser();
     getUserByUsernameUseCase.execute.mockResolvedValue(user);
     userDomain.validatePassword.mockResolvedValue(true);
     userDomain.isTwoFactorEnabled.mockReturnValue(false);
-    jwtService.sign.mockReturnValue('valid.jwt.token');
+    jwtService.sign
+      .mockReturnValueOnce('access.jwt.token')
+      .mockReturnValueOnce('refresh.jwt.token');
 
     const result = await useCase.execute({
       identifier: 'tester',
       password: '123456',
     });
 
-    expect(result).toEqual({ accessToken: 'valid.jwt.token' });
+    expect(jwtService.sign).toHaveBeenCalledTimes(2);
+    expect(result).toEqual({
+      accessToken: 'access.jwt.token',
+      refreshToken: 'refresh.jwt.token',
+    });
   });
 
   it('should return 2FA token when user has 2FA enabled', async () => {
@@ -99,6 +111,15 @@ describe('LoginUseCase', () => {
       password: '123456',
     });
 
+    expect(jwtService.sign).toHaveBeenCalledWith(
+      {
+        userId: user.id,
+        step: '2fa',
+        email: user.email,
+        isTwoFactorEnabled: user.isTwoFactorEnabled,
+      },
+      { expiresIn: '5m' },
+    );
     expect(result).toEqual({
       requiresTwoFactor: true,
       twoFactorToken: '2fa.jwt.token',

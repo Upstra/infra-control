@@ -1,12 +1,15 @@
-import { Controller, Post, Body, UseFilters } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Controller, Post, Body, UseFilters, Res, Req } from '@nestjs/common';
+import { Response, Request } from 'express';
+import { ApiBody, ApiOperation, ApiTags, ApiResponse } from '@nestjs/swagger';
 
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
 
 import { LoginUseCase } from '../use-cases/login.use-case';
 import { RegisterUseCase } from '../use-cases/register.use-case';
+import { RenewTokenUseCase } from '../use-cases/renew-token.use-case';
 import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.exception.filter';
+import { LoginResponseDto } from '../dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -14,6 +17,7 @@ export class AuthController {
   constructor(
     private readonly loginUseCase: LoginUseCase,
     private readonly registerUseCase: RegisterUseCase,
+    private readonly renewTokenUseCase: RenewTokenUseCase,
   ) {}
 
   @Post('login')
@@ -28,23 +32,77 @@ export class AuthController {
     description: 'Login DTO',
     required: true,
   })
-  login(@Body() dto: LoginDto) {
-    return this.loginUseCase.execute(dto);
+  @ApiResponse({
+    status: 200,
+    description: 'Connexion réussie',
+    type: LoginResponseDto,
+  })
+  login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
+    return this.loginUseCase
+      .execute(dto)
+      .then(({ accessToken, refreshToken }) => {
+        res.cookie('refreshToken', refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+          path: '/auth/refresh',
+        });
+        return { accessToken };
+      });
   }
 
   @Post('register')
   @UseFilters(InvalidQueryExceptionFilter)
   @ApiOperation({
     summary: 'Inscription d’un nouvel utilisateur',
+    description: 'Crée un nouvel utilisateur...',
+  })
+  @ApiBody({ type: RegisterDto, description: 'Register DTO', required: true })
+  @ApiResponse({
+    status: 201,
+    description: 'Inscription réussie',
+    type: LoginResponseDto,
+  })
+  register(
+    @Body() dto: RegisterDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.registerUseCase
+      .execute(dto)
+      .then(({ accessToken, refreshToken }) => {
+        res.cookie('refreshToken', refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+          path: '/auth/refresh',
+        });
+        return { accessToken };
+      });
+  }
+
+  @Post('refresh')
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiOperation({
+    summary: 'Renouveler le JWT',
     description:
-      'Crée un nouvel utilisateur avec les informations fournies dans le RegisterDto.',
+      'Renvoie un nouvel access token à partir du refresh token (dans cookie httpOnly)',
   })
-  @ApiBody({
-    type: RegisterDto,
-    description: 'Register DTO',
-    required: true,
-  })
-  register(@Body() dto: RegisterDto) {
-    return this.registerUseCase.execute(dto);
+  refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const refreshToken = req.cookies['refreshToken'];
+    const { accessToken, refreshToken: newRefreshToken } =
+      this.renewTokenUseCase.execute(refreshToken);
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/auth/refresh',
+    });
+    return { accessToken };
+  }
+
+  @Post('logout')
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('refreshToken', { path: '/auth/refresh' });
+    return { message: 'Déconnexion réussie' };
   }
 }
