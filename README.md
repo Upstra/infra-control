@@ -25,6 +25,35 @@
 - **Swagger** auto-documenté
 - **Docker** ready
 
+
+## 🔄 Flux complet de la requête
+
+Cette vue d'ensemble montre le chemin parcouru par une requête HTTP depuis le client jusqu'à la base de données.
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant F as Filtres & Pipes
+    participant Ctrl as Controller
+    participant UC as Use Case
+    participant DS as Domain Service
+    participant Repo as Repository
+    participant DB as PostgreSQL
+
+    C->>Ctrl: Requête HTTP
+    Ctrl->>F: Validation & Guards
+    F-->>Ctrl: Ok
+    Ctrl->>UC: Appel du use case
+    UC->>DS: Logique métier
+    DS->>Repo: Accès données
+    Repo->>DB: Requêtes SQL
+    DB-->>Repo: Résultats
+    Repo-->>DS: Entités
+    DS-->>UC: Retour
+    UC-->>Ctrl: Réponse
+    Ctrl-->>C: Réponse HTTP
+```
+
 ---
 
 ## ⚙️ Requirements
