@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 
 import { ServerDomainService } from '@/modules/servers/domain/services/server.domain.service';
@@ -10,6 +15,7 @@ import { GroupServerRepositoryInterface } from '@/modules/groups/domain/interfac
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
+import { UpsRepositoryInterface } from '@/modules/ups/domain/interfaces/ups.repository.interface';
 
 @Injectable()
 export class CreateServerUseCase {
@@ -20,10 +26,12 @@ export class CreateServerUseCase {
     private readonly serverDomain: ServerDomainService,
     @Inject('RoomRepositoryInterface')
     private readonly roomRepository: RoomRepositoryInterface,
-    @Inject('GroupServerRepositoryInterface')
-    private readonly groupRepository: GroupServerRepositoryInterface,
-    @Inject('UserRepositoryInterface')
-    private readonly userRepository: UserRepositoryInterface,
+  @Inject('GroupServerRepositoryInterface')
+  private readonly groupRepository: GroupServerRepositoryInterface,
+  @Inject('UpsRepositoryInterface')
+  private readonly upsRepository: UpsRepositoryInterface,
+  @Inject('UserRepositoryInterface')
+  private readonly userRepository: UserRepositoryInterface,
     @Inject('PermissionServerRepositoryInterface')
     private readonly permissionRepository: PermissionServerRepositoryInterface,
   ) {}
@@ -33,6 +41,15 @@ export class CreateServerUseCase {
     userId: string,
   ): Promise<ServerResponseDto> {
     await this.roomRepository.findRoomById(dto.roomId);
+
+    if (dto.upsId) {
+      const ups = await this.upsRepository.findUpsById(dto.upsId);
+      if (ups.roomId !== dto.roomId) {
+        throw new BadRequestException(
+          "L'UPS sélectionné n'appartient pas à la salle spécifiée",
+        );
+      }
+    }
 
     if (dto.groupId) {
       await this.groupRepository.findOneByField({
