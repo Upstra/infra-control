@@ -308,4 +308,39 @@ describe('CreateServerUseCase', () => {
     expect(userRepo.findOneByField).toHaveBeenCalled();
     expect(permissionRepo.createPermission).not.toHaveBeenCalled();
   });
+
+  it('should keep existing permissions when creating multiple servers', async () => {
+    const dto1 = createMockServerCreationDto({ ip: '10.0.0.1' });
+    const dto2 = createMockServerCreationDto({ ip: '10.0.0.2' });
+    const server1 = createMockServer({ id: 'srv-1' });
+    const server2 = createMockServer({ id: 'srv-2' });
+    const mockIloDto = createMockIloResponseDto();
+    const mockUser = createMockUser({ roleId: 'role-42' });
+
+    roomRepo.findRoomById.mockResolvedValue(mockRoom());
+    groupRepo.findOneByField.mockResolvedValue(createMockGroupServer());
+    iloUseCase.execute.mockResolvedValue(mockIloDto);
+    repo.save
+      .mockResolvedValueOnce(server1)
+      .mockResolvedValueOnce(server2);
+    userRepo.findOneByField.mockResolvedValue(mockUser);
+    permissionRepo.createPermission = jest.fn();
+
+    await useCase.execute(dto1, mockPayload.userId);
+    await useCase.execute(dto2, mockPayload.userId);
+
+    expect(permissionRepo.createPermission).toHaveBeenCalledTimes(2);
+    expect(permissionRepo.createPermission).toHaveBeenNthCalledWith(
+      1,
+      server1.id,
+      mockUser.roleId,
+      expect.any(Number),
+    );
+    expect(permissionRepo.createPermission).toHaveBeenNthCalledWith(
+      2,
+      server2.id,
+      mockUser.roleId,
+      expect.any(Number),
+    );
+  });
 });

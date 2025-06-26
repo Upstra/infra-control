@@ -1,7 +1,10 @@
-import { BaseEntity, Column, PrimaryColumn } from 'typeorm';
+import { BaseEntity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 export abstract class Permission extends BaseEntity {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
+
+  @Column()
   roleId!: string;
 
   @Column({ type: 'int', default: 0 })
