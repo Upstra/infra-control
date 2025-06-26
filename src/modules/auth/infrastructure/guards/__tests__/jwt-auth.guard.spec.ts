@@ -4,13 +4,15 @@ import { JwtService } from '@nestjs/jwt';
 
 describe('JwtAuthGuard', () => {
   let guard: JwtAuthGuard;
-  let jwtService: jest.Mocked<JwtService>;
-  let response: { setHeader: jest.MockedFunction<(name: string, value: string) => void> };
+  let _jwtService: jest.Mocked<JwtService>;
+  let response: {
+    setHeader: jest.MockedFunction<(name: string, value: string) => void>;
+  };
   let context: ExecutionContext;
   let superHandle: jest.SpyInstance;
 
   beforeEach(() => {
-    jwtService = { sign: jest.fn() } as any;
+    _jwtService = { sign: jest.fn() } as any;
     guard = new JwtAuthGuard();
     response = { setHeader: jest.fn() } as any;
     context = {

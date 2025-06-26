@@ -5,5 +5,7 @@ export const mockRoom = (overrides?: Partial<Room>): Room =>
   Object.assign(new Room(), {
     id: uuidv4().toString(),
     name: 'Test Room',
+    servers: [],
+    ups: [],
     ...overrides,
   });

@@ -10,6 +10,8 @@ describe('RoomResponseDto', () => {
     const dto = plainToInstance(RoomResponseDto, {
       id: '7c3dda0a-e6fb-4fd5-a8be-23fd45c77c8c',
       name: 'Salle 1',
+      servers: [],
+      ups: [],
     });
 
     const errors = await validate(dto);
