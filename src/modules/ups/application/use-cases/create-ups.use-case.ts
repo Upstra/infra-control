@@ -3,6 +3,7 @@ import { UpsRepositoryInterface } from '../../domain/interfaces/ups.repository.i
 import { UpsCreationDto } from '../../application/dto/ups.creation.dto';
 import { UpsResponseDto } from '../../application/dto/ups.response.dto';
 import { UpsDomainService } from '../../domain/services/ups.domain.service';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 
 @Injectable()
 export class CreateUpsUseCase {
@@ -10,6 +11,7 @@ export class CreateUpsUseCase {
     @Inject('UpsRepositoryInterface')
     private readonly upsRepository: UpsRepositoryInterface,
     private readonly upsDomainService: UpsDomainService,
+    private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
   async execute(dto: UpsCreationDto): Promise<UpsResponseDto> {
@@ -18,7 +20,7 @@ export class CreateUpsUseCase {
     const saved = await this.upsRepository.save(entity);
 
     const ups = Array.isArray(saved) ? saved[0] : saved;
-
+    await this.logHistory?.execute('ups', ups.id, 'CREATE');
     return new UpsResponseDto(ups);
   }
 }

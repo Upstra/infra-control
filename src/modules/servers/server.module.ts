@@ -10,6 +10,7 @@ import { PermissionModule } from '../permissions/permission.module';
 import { UserModule } from '../users/user.module';
 import { RoomModule } from '../rooms/room.module';
 import { GroupModule } from '../groups/group.module';
+import { HistoryModule } from '../history/history.module';
 
 @Module({
   controllers: [ServerController],
@@ -22,6 +23,7 @@ import { GroupModule } from '../groups/group.module';
     forwardRef(() => RoomModule),
     GroupModule,
     PermissionModule,
+    HistoryModule,
   ],
   providers: [
     ...ServerUseCases,
