@@ -61,7 +61,7 @@ export class Server extends BaseEntity {
   type: string;
 
   @ApiProperty()
-  @Column({ unique: true })
+  @Column()
   priority: number;
 
   @ApiProperty({ type: () => GroupServer })
