@@ -18,6 +18,7 @@ import { PresenceModule } from './modules/presence/presence.module';
 import { GuardsModule } from './core/guards.module';
 import { SetupModule } from './modules/setup/setup.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { SshModule } from './modules/ssh';
 
 @Module({
   controllers: [],
@@ -39,6 +40,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     PresenceModule,
     SetupModule,
     DashboardModule,
+    SshModule,
   ],
   providers: [Logger],
 })
