@@ -28,7 +28,7 @@ describe('RoomTypeormRepository', () => {
     const result = await repository.findAll();
     expect(result).toEqual([room]);
     expect(mockRepo.find).toHaveBeenCalledWith({
-      relations: ['servers', 'ups'],
+      relations: ['servers', 'servers.ilo', 'ups'],
     });
   });
 
@@ -39,7 +39,7 @@ describe('RoomTypeormRepository', () => {
 
     expect(mockRepo.findOne).toHaveBeenCalledWith({
       where: { id: room.id },
-      relations: ['servers', 'ups'],
+      relations: ['servers', 'servers.ilo', 'ups'],
     });
     expect(result).toEqual(room);
   });
@@ -75,7 +75,7 @@ describe('RoomTypeormRepository', () => {
 
     expect(mockRepo.findOne).toHaveBeenCalledWith({
       where: { id: room.id },
-      relations: ['servers', 'ups'],
+      relations: ['servers', 'servers.ilo', 'ups'],
     });
     expect(mockRepo.save).toHaveBeenCalledWith(room);
     expect(result).toEqual(room);
@@ -99,7 +99,7 @@ describe('RoomTypeormRepository', () => {
 
     expect(mockRepo.findOne).toHaveBeenCalledWith({
       where: { id: room.id },
-      relations: ['servers', 'ups'],
+      relations: ['servers', 'servers.ilo', 'ups'],
     });
     expect(mockRepo.delete).toHaveBeenCalledWith(room.id);
   });
