@@ -26,12 +26,12 @@ export class CreateServerUseCase {
     private readonly serverDomain: ServerDomainService,
     @Inject('RoomRepositoryInterface')
     private readonly roomRepository: RoomRepositoryInterface,
-  @Inject('GroupServerRepositoryInterface')
-  private readonly groupRepository: GroupServerRepositoryInterface,
-  @Inject('UpsRepositoryInterface')
-  private readonly upsRepository: UpsRepositoryInterface,
-  @Inject('UserRepositoryInterface')
-  private readonly userRepository: UserRepositoryInterface,
+    @Inject('GroupServerRepositoryInterface')
+    private readonly groupRepository: GroupServerRepositoryInterface,
+    @Inject('UpsRepositoryInterface')
+    private readonly upsRepository: UpsRepositoryInterface,
+    @Inject('UserRepositoryInterface')
+    private readonly userRepository: UserRepositoryInterface,
     @Inject('PermissionServerRepositoryInterface')
     private readonly permissionRepository: PermissionServerRepositoryInterface,
   ) {}
@@ -75,9 +75,6 @@ export class CreateServerUseCase {
     });
 
     if (user?.roleId) {
-      console.log(
-        `Creating permissions for user ${userId} on server ${server.id}`,
-      );
       await this.permissionRepository.createPermission(
         server.id,
         user.roleId,
