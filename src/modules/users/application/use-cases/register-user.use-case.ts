@@ -5,6 +5,7 @@ import { EnsureDefaultRoleUseCase } from '@/modules/roles/application/use-cases'
 import { RegisterDto } from '@/modules/auth/application/dto/register.dto';
 import { User } from '../../domain/entities/user.entity';
 import { UserConflictException } from '../../domain/exceptions/user.exception';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 
 export class RegisterUserUseCase {
   constructor(
@@ -12,6 +13,7 @@ export class RegisterUserUseCase {
     private readonly repo: UserRepositoryInterface,
     private readonly domain: UserDomainService,
     private readonly ensureDefaultRoleUseCase: EnsureDefaultRoleUseCase,
+    private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
   async execute(dto: RegisterDto): Promise<User> {
@@ -39,6 +41,8 @@ export class RegisterUserUseCase {
       dto.firstName,
       dto.lastName,
     );
-    return await this.repo.save(user);
+    const saved = await this.repo.save(user);
+    await this.logHistory?.execute('user', saved.id, 'CREATE');
+    return saved;
   }
 }
