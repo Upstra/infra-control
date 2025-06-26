@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards, Query, Optional } from '@nestjs/common';
 import { FullDashboardStatsDto } from '../dto/fullDashboardStats.dto';
 import {
   ApiBearerAuth,
@@ -7,6 +7,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { GetDashboardFullStatsUseCase } from '../use-cases';
+import { GetHistoryStatsUseCase } from '@/modules/history/application/use-cases';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 
 @ApiTags('Dashboard')
@@ -19,6 +20,7 @@ export class DashboardController {
    */
   constructor(
     private readonly getDashboardFullStats: GetDashboardFullStatsUseCase,
+    @Optional() private readonly getHistoryStats?: GetHistoryStatsUseCase,
   ) {}
 
   @Get('full')
@@ -33,5 +35,16 @@ export class DashboardController {
    */
   async getFullDashboard(): Promise<FullDashboardStatsDto> {
     return this.getDashboardFullStats.execute();
+  }
+
+  @Get('history')
+  @ApiOperation({ summary: 'Get creation stats for an entity' })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async getHistory(
+    @Query('entity') entity: string,
+    @Query('months') months = '6',
+  ): Promise<Record<string, number>> {
+    return this.getHistoryStats?.execute(entity, Number(months)) ?? {};
   }
 }

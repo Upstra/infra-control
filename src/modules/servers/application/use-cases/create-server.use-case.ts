@@ -10,6 +10,7 @@ import { GroupServerRepositoryInterface } from '@/modules/groups/domain/interfac
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 
 @Injectable()
 export class CreateServerUseCase {
@@ -26,6 +27,7 @@ export class CreateServerUseCase {
     private readonly userRepository: UserRepositoryInterface,
     @Inject('PermissionServerRepositoryInterface')
     private readonly permissionRepository: PermissionServerRepositoryInterface,
+    private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
   async execute(
@@ -50,6 +52,7 @@ export class CreateServerUseCase {
 
     const entity = this.serverDomain.createServerEntityFromDto(dto, ilo.id);
     const server = await this.serverRepository.save(entity);
+    await this.logHistory?.execute('server', server.id, 'CREATE');
 
     const user = await this.userRepository.findOneByField({
       field: 'id',

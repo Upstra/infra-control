@@ -7,6 +7,7 @@ import { UserDomainService } from './domain/services/user.domain.service';
 import { RoleModule } from '../roles/role.module';
 import { UserUseCase } from './application/use-cases';
 import { SetupModule } from '../setup/setup.module';
+import { HistoryModule } from '../history/history.module';
 
 @Module({
   controllers: [UserController],
@@ -15,6 +16,7 @@ import { SetupModule } from '../setup/setup.module';
     TypeOrmModule.forFeature([User]),
     forwardRef(() => RoleModule),
     forwardRef(() => SetupModule),
+    HistoryModule,
   ],
   providers: [
     ...UserUseCase,
