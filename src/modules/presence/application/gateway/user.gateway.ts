@@ -19,21 +19,45 @@ export class UserGateway {
     private readonly jwtService: JwtService,
   ) {}
   handleConnection(client: Socket) {
-    const userId = this.extractUserIdFromToken(client.handshake);
-    this.presenceService.markOnline(userId);
-    this.server.emit('presence:update', { userId, online: true });
+    try {
+      const userId = this.extractUserIdFromToken(client.handshake);
+      this.presenceService.markOnline(userId);
+      this.server.emit('presence:update', { userId, online: true });
+    } catch (error) {
+      if (error instanceof JwtNotValid) {
+        this.handleInvalidToken(client);
+      } else {
+        throw error;
+      }
+    }
   }
 
   handleDisconnect(client: Socket) {
-    const userId = this.extractUserIdFromToken(client.handshake);
-    this.presenceService.markOffline(userId);
-    this.server.emit('presence:update', { userId, online: false });
+    try {
+      const userId = this.extractUserIdFromToken(client.handshake);
+      this.presenceService.markOffline(userId);
+      this.server.emit('presence:update', { userId, online: false });
+    } catch (error) {
+      if (error instanceof JwtNotValid) {
+        this.handleInvalidToken(client);
+      } else {
+        throw error;
+      }
+    }
   }
 
   @SubscribeMessage('user:ping')
   handlePing(@ConnectedSocket() client: Socket) {
-    const userId = this.extractUserIdFromToken(client.handshake);
-    this.presenceService.refreshTTL(userId);
+    try {
+      const userId = this.extractUserIdFromToken(client.handshake);
+      this.presenceService.refreshTTL(userId);
+    } catch (error) {
+      if (error instanceof JwtNotValid) {
+        this.handleInvalidToken(client);
+      } else {
+        throw error;
+      }
+    }
   }
 
   @SubscribeMessage('presence:status-request')
@@ -55,6 +79,11 @@ export class UserGateway {
     }
 
     return results;
+  }
+
+  private handleInvalidToken(client: Socket) {
+    client.emit('auth:refresh');
+    client.disconnect();
   }
 
   private extractUserIdFromToken(handshake: any): string {
