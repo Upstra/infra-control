@@ -44,7 +44,7 @@ describe('GetUserListUseCase', () => {
     expect(result.totalPages).toBe(2);
     expect(result.currentPage).toBe(1);
   });
-  
+
   it('should propagate errors', async () => {
     repo.paginate.mockRejectedValue(new Error('fail'));
     await expect(useCase.execute()).rejects.toThrow('fail');

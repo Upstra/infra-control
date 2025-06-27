@@ -77,6 +77,8 @@ describe('RenewTokenUseCase', () => {
       throw new Error('invalid');
     });
 
-    expect(() => useCase.execute('bad.token')).toThrow('Invalid or expired refresh token');
+    expect(() => useCase.execute('bad.token')).toThrow(
+      'Invalid or expired refresh token',
+    );
   });
 });

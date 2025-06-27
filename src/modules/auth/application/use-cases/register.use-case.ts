@@ -21,7 +21,9 @@ export class RegisterUseCase {
         isTwoFactorEnabled: user.isTwoFactorEnabled,
       },
       {
-        expiresIn: this.configService.get<string>('JWT_ACCESS_TOKEN_EXPIRATION'),
+        expiresIn: this.configService.get<string>(
+          'JWT_ACCESS_TOKEN_EXPIRATION',
+        ),
       },
     );
     const refreshToken = this.jwtService.sign(
@@ -31,7 +33,9 @@ export class RegisterUseCase {
         isTwoFactorEnabled: user.isTwoFactorEnabled,
       },
       {
-        expiresIn: this.configService.get<string>('JWT_REFRESH_TOKEN_EXPIRATION'),
+        expiresIn: this.configService.get<string>(
+          'JWT_REFRESH_TOKEN_EXPIRATION',
+        ),
       },
     );
     return { accessToken, refreshToken };

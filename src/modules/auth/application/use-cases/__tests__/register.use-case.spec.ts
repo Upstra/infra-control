@@ -41,7 +41,11 @@ describe('RegisterUseCase', () => {
       }),
     } as any;
 
-    useCase = new RegisterUseCase(registerUserUseCase, jwtService, configService);
+    useCase = new RegisterUseCase(
+      registerUserUseCase,
+      jwtService,
+      configService,
+    );
   });
 
   it('should register a new user and return access and refresh tokens', async () => {

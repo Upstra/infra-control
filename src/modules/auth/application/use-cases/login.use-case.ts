@@ -48,7 +48,9 @@ export class LoginUseCase {
           email: user.email,
           isTwoFactorEnabled: user.isTwoFactorEnabled,
         },
-        { expiresIn: this.configService.get<string>('JWT_2FA_TOKEN_EXPIRATION') },
+        {
+          expiresIn: this.configService.get<string>('JWT_2FA_TOKEN_EXPIRATION'),
+        },
       );
 
       return {
@@ -63,7 +65,11 @@ export class LoginUseCase {
         email: user.email,
         isTwoFactorEnabled: user.isTwoFactorEnabled,
       },
-      { expiresIn: this.configService.get<string>('JWT_ACCESS_TOKEN_EXPIRATION') },
+      {
+        expiresIn: this.configService.get<string>(
+          'JWT_ACCESS_TOKEN_EXPIRATION',
+        ),
+      },
     );
     const refreshToken = this.jwtService.sign(
       {
@@ -71,7 +77,11 @@ export class LoginUseCase {
         email: user.email,
         isTwoFactorEnabled: user.isTwoFactorEnabled,
       },
-      { expiresIn: this.configService.get<string>('JWT_REFRESH_TOKEN_EXPIRATION') },
+      {
+        expiresIn: this.configService.get<string>(
+          'JWT_REFRESH_TOKEN_EXPIRATION',
+        ),
+      },
     );
 
     return { accessToken, refreshToken };
