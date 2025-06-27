@@ -1,33 +1,23 @@
 import { RenewTokenUseCase } from '../renew-token.use-case';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
+import { TokenService } from '../../services/token.service';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 describe('RenewTokenUseCase', () => {
   let useCase: RenewTokenUseCase;
   let jwtService: jest.Mocked<JwtService>;
-  let configService: jest.Mocked<ConfigService>;
+  let tokenService: jest.Mocked<TokenService>;
 
   beforeEach(() => {
     jwtService = {
       verify: jest.fn(),
-      sign: jest.fn(),
     } as any;
 
-    configService = {
-      get: jest.fn().mockImplementation((key: string) => {
-        switch (key) {
-          case 'JWT_ACCESS_TOKEN_EXPIRATION':
-            return '15m';
-          case 'JWT_REFRESH_TOKEN_EXPIRATION':
-            return '7d';
-          default:
-            return undefined;
-        }
-      }),
+    tokenService = {
+      generateTokens: jest.fn(),
     } as any;
 
-    useCase = new RenewTokenUseCase(jwtService, configService);
+    useCase = new RenewTokenUseCase(jwtService, tokenService);
   });
 
   it('should return a renewed token', () => {
@@ -41,31 +31,20 @@ describe('RenewTokenUseCase', () => {
 
     jwtService.verify.mockReturnValue(payload);
 
-    jwtService.sign
-      .mockReturnValueOnce('new.access.token')
-      .mockReturnValueOnce('new.refresh.token');
+    tokenService.generateTokens.mockReturnValue({
+      accessToken: 'new.access.token',
+      refreshToken: 'new.refresh.token',
+    });
 
     const result = useCase.execute(refreshToken);
 
     expect(jwtService.verify).toHaveBeenCalledWith(refreshToken);
-    expect(jwtService.sign).toHaveBeenCalledWith(
-      {
-        userId: payload.userId,
-        email: payload.email,
-        isTwoFactorEnabled: payload.isTwoFactorEnabled,
-        role: payload.role,
-      },
-      { expiresIn: '15m' },
-    );
-    expect(jwtService.sign).toHaveBeenCalledWith(
-      {
-        userId: payload.userId,
-        email: payload.email,
-        isTwoFactorEnabled: payload.isTwoFactorEnabled,
-        role: payload.role,
-      },
-      { expiresIn: '7d' },
-    );
+    expect(tokenService.generateTokens).toHaveBeenCalledWith({
+      userId: payload.userId,
+      email: payload.email,
+      isTwoFactorEnabled: payload.isTwoFactorEnabled,
+      role: payload.role,
+    });
     expect(result).toEqual({
       accessToken: 'new.access.token',
       refreshToken: 'new.refresh.token',
