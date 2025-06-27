@@ -58,4 +58,17 @@ export class HistoryEventTypeormRepository
       return acc;
     }, {});
   }
+
+  async paginate(
+    page: number,
+    limit: number,
+    relations: string[] = [],
+  ): Promise<[HistoryEvent[], number]> {
+    return this.repository.findAndCount({
+      relations,
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { createdAt: 'DESC' },
+    });
+  }
 }
