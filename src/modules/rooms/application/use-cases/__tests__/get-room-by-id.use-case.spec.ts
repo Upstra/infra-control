@@ -65,4 +65,148 @@ describe('GetRoomByIdUseCase', () => {
     expect(result.servers?.length).toBe(1);
     expect(result.servers?.[0].id).toBe('s1');
   });
+
+  it('returns room with empty servers when no userId provided', async () => {
+    const roomRepository =
+      mockRoomRepository() as jest.Mocked<RoomRepositoryInterface>;
+    const permissionRepo: jest.Mocked<PermissionServerRepositoryInterface> = {
+      findAllByField: jest.fn(),
+      findPermissionByIds: jest.fn(),
+      updatePermission: jest.fn(),
+      deletePermission: jest.fn(),
+      createPermission: jest.fn(),
+      deleteByRoleAndServerIds: jest.fn(),
+      findOneByField: jest.fn(),
+      findAll: jest.fn(),
+      count: jest.fn(),
+      save: jest.fn(),
+    } as any;
+    const userRepo: jest.Mocked<UserRepositoryInterface> = {
+      findOneByField: jest.fn(),
+      findOneById: jest.fn(),
+      updateFields: jest.fn(),
+      findAll: jest.fn(),
+      count: jest.fn(),
+      save: jest.fn(),
+      createUser: jest.fn(),
+      deleteUser: jest.fn(),
+    } as any;
+
+    const useCase = new GetRoomByIdUseCase(
+      roomRepository,
+      permissionRepo,
+      userRepo,
+    );
+
+    const server = createMockServer({ id: 's1' });
+    const room = mockRoom({ servers: [server] });
+
+    roomRepository.findRoomById.mockResolvedValue(room);
+
+    const result = await useCase.execute(room.id);
+
+    expect(roomRepository.findRoomById).toHaveBeenCalledWith(room.id);
+    expect(result.servers).toEqual([]);
+    expect(permissionRepo.findAllByField).not.toHaveBeenCalled();
+  });
+
+  it('returns room with empty servers when user has no role', async () => {
+    const roomRepository =
+      mockRoomRepository() as jest.Mocked<RoomRepositoryInterface>;
+    const permissionRepo: jest.Mocked<PermissionServerRepositoryInterface> = {
+      findAllByField: jest.fn(),
+      findPermissionByIds: jest.fn(),
+      updatePermission: jest.fn(),
+      deletePermission: jest.fn(),
+      createPermission: jest.fn(),
+      deleteByRoleAndServerIds: jest.fn(),
+      findOneByField: jest.fn(),
+      findAll: jest.fn(),
+      count: jest.fn(),
+      save: jest.fn(),
+    } as any;
+    const userRepo: jest.Mocked<UserRepositoryInterface> = {
+      findOneByField: jest.fn(),
+      findOneById: jest.fn(),
+      updateFields: jest.fn(),
+      findAll: jest.fn(),
+      count: jest.fn(),
+      save: jest.fn(),
+      createUser: jest.fn(),
+      deleteUser: jest.fn(),
+    } as any;
+
+    const useCase = new GetRoomByIdUseCase(
+      roomRepository,
+      permissionRepo,
+      userRepo,
+    );
+
+    const room = mockRoom({ servers: [createMockServer({ id: 's1' })] });
+
+    roomRepository.findRoomById.mockResolvedValue(room);
+    userRepo.findOneByField.mockResolvedValue(
+      createMockUser({ roleId: undefined, role: undefined }),
+    );
+
+    const result = await useCase.execute(room.id, 'user-1');
+
+    expect(roomRepository.findRoomById).toHaveBeenCalledWith(room.id);
+    expect(permissionRepo.findAllByField).not.toHaveBeenCalled();
+    expect(result.servers).toEqual([]);
+  });
+
+  it('returns all servers when user has global READ permission', async () => {
+    const roomRepository =
+      mockRoomRepository() as jest.Mocked<RoomRepositoryInterface>;
+    const permissionRepo: jest.Mocked<PermissionServerRepositoryInterface> = {
+      findAllByField: jest.fn(),
+      findPermissionByIds: jest.fn(),
+      updatePermission: jest.fn(),
+      deletePermission: jest.fn(),
+      createPermission: jest.fn(),
+      deleteByRoleAndServerIds: jest.fn(),
+      findOneByField: jest.fn(),
+      findAll: jest.fn(),
+      count: jest.fn(),
+      save: jest.fn(),
+    } as any;
+    const userRepo: jest.Mocked<UserRepositoryInterface> = {
+      findOneByField: jest.fn(),
+      findOneById: jest.fn(),
+      updateFields: jest.fn(),
+      findAll: jest.fn(),
+      count: jest.fn(),
+      save: jest.fn(),
+      createUser: jest.fn(),
+      deleteUser: jest.fn(),
+    } as any;
+
+    const useCase = new GetRoomByIdUseCase(
+      roomRepository,
+      permissionRepo,
+      userRepo,
+    );
+
+    const server1 = createMockServer({ id: 's1' });
+    const server2 = createMockServer({ id: 's2' });
+    const room = mockRoom({ servers: [server1, server2] });
+
+    roomRepository.findRoomById.mockResolvedValue(room);
+    userRepo.findOneByField.mockResolvedValue(
+      createMockUser({ roleId: 'role-1' }),
+    );
+    permissionRepo.findAllByField.mockResolvedValue([
+      createMockPermissionServer({
+        roleId: 'role-1',
+        serverId: null,
+        bitmask: PermissionBit.READ,
+      }),
+    ]);
+
+    const result = await useCase.execute(room.id, 'user-1');
+
+    expect(result.servers?.length).toBe(2);
+    expect(permissionRepo.findAllByField).toHaveBeenCalled();
+  });
 });
