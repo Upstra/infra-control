@@ -14,13 +14,17 @@ export class UpdateUpsUseCase {
     private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(id: string, dto: UpsUpdateDto): Promise<UpsResponseDto> {
+  async execute(
+    id: string,
+    dto: UpsUpdateDto,
+    userId?: string,
+  ): Promise<UpsResponseDto> {
     let ups = await this.upsRepository.findUpsById(id);
 
     ups = await this.upsDomainService.createUpsEntityFromUpdateDto(ups, dto);
     const saved = await this.upsRepository.save(ups);
     ups = Array.isArray(saved) ? saved[0] : saved;
-    await this.logHistory?.execute('ups', ups.id, 'UPDATE');
+    await this.logHistory?.execute('ups', ups.id, 'UPDATE', userId);
     return new UpsResponseDto(ups);
   }
 }

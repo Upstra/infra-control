@@ -14,7 +14,11 @@ export class UpdateUserUseCase {
     private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(id: string, dto: UserUpdateDto): Promise<UserResponseDto> {
+  async execute(
+    id: string,
+    dto: UserUpdateDto,
+    userId?: string,
+  ): Promise<UserResponseDto> {
     let user = await this.repo.findOneByField({
       field: 'id',
       value: id,
@@ -24,7 +28,7 @@ export class UpdateUserUseCase {
     await this.userDomainService.ensureUniqueUsername(dto.username, id);
     user = await this.userDomainService.updateUserEntity(user, dto);
     user = await this.repo.save(user);
-    await this.logHistory?.execute('user', user.id, 'UPDATE');
+    await this.logHistory?.execute('user', user.id, 'UPDATE', userId);
     return new UserResponseDto(user);
   }
 }

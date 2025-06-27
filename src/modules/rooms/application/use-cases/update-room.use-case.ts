@@ -11,9 +11,13 @@ export class UpdateRoomUseCase {
     private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(id: string, dto: RoomCreationDto): Promise<RoomResponseDto> {
+  async execute(
+    id: string,
+    dto: RoomCreationDto,
+    userId?: string,
+  ): Promise<RoomResponseDto> {
     const room = await this.roomRepository.updateRoom(id, dto.name);
-    await this.logHistory?.execute('room', room.id, 'UPDATE');
+    await this.logHistory?.execute('room', room.id, 'UPDATE', userId);
     return RoomResponseDto.from(room);
   }
 }

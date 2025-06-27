@@ -17,11 +17,15 @@ export class UpdateServerUseCase {
     private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(id: string, dto: ServerUpdateDto): Promise<ServerResponseDto> {
+  async execute(
+    id: string,
+    dto: ServerUpdateDto,
+    userId?: string,
+  ): Promise<ServerResponseDto> {
     const existing = await this.serverRepository.findServerById(id);
     const entity = this.serverDomain.updateServerEntityFromDto(existing, dto);
     const updated = await this.serverRepository.save(entity);
-    await this.logHistory?.execute('server', updated.id, 'UPDATE');
+    await this.logHistory?.execute('server', updated.id, 'UPDATE', userId);
 
     const ilo = dto.ilo
       ? await this.updateIloUsecase.execute(id, dto.ilo)

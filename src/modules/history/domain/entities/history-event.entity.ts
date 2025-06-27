@@ -1,5 +1,14 @@
-import { BaseEntity, CreateDateColumn, Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  BaseEntity,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { User } from '@/modules/users/domain/entities/user.entity';
 
 @Entity('history_event')
 export class HistoryEvent extends BaseEntity {
@@ -18,6 +27,15 @@ export class HistoryEvent extends BaseEntity {
   @ApiProperty({ description: 'Action performed like CREATE, UPDATE, DELETE' })
   @Column()
   action!: string;
+
+  @ApiProperty({ description: 'User who performed the action', required: false })
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'userId' })
+  user?: User;
+
+  @ApiProperty({ required: false })
+  @Column({ nullable: true })
+  userId?: string;
 
   @ApiProperty()
   @CreateDateColumn()
