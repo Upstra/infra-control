@@ -24,6 +24,8 @@ describe('UserGateway', () => {
       originalUrl: '',
       query: {},
     } as unknown as Handshake,
+    emit: jest.fn(),
+    disconnect: jest.fn(),
   });
 
   beforeEach(() => {
@@ -76,6 +78,18 @@ describe('UserGateway', () => {
     jwtService.verify.mockReturnValue({ userId: '123' });
     gateway.handlePing(mockSocket('token123') as Socket);
     expect(presenceService.refreshTTL).toHaveBeenCalledWith('123');
+  });
+
+  it('should disconnect and ask for token refresh on invalid connection token', () => {
+    jwtService.verify.mockImplementation(() => {
+      throw new Error('Invalid');
+    });
+    const socket = mockSocket('bad') as Socket;
+    gateway.handleConnection(socket);
+
+    expect(socket.emit).toHaveBeenCalledWith('auth:refresh');
+    expect(socket.disconnect).toHaveBeenCalled();
+    expect(presenceService.markOnline).not.toHaveBeenCalled();
   });
 
   it('should throw JwtNotValid if token is missing', () => {
