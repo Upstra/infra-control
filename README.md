@@ -73,13 +73,21 @@ DB_PORT=5432
 DB_NAME=infra
 DB_USERNAME=postgres
 DB_PASSWORD=postgres
-APP_PORT=3000
 
 JWT_SECRET=jwt_secret
 JWT_EXPIRATION=1h
 JWT_2FA_TOKEN_EXPIRATION=5m
 JWT_ACCESS_TOKEN_EXPIRATION=15m
 JWT_REFRESH_TOKEN_EXPIRATION=7d
+
+REDIS_HOST=
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_USERNAME=
+REDIS_TLS=true
+
+FRONTEND_URL=http://localhost:5173
+BACKEND_URL=http://localhost:3002
 ```
 
 Copy `.env-example` to `.env` (or rename `.env-local` to `.env`) and fill in your database credentials before running commands.

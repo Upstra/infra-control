@@ -1,6 +1,5 @@
 import { LoginUseCase } from '../login.use-case';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
+import { TokenService } from '../../services/token.service';
 import { UserDomainService } from '@/modules/users/domain/services/user.domain.service';
 import {
   AuthNotFoundException,
@@ -18,8 +17,7 @@ describe('LoginUseCase', () => {
   let getUserByEmailUseCase: jest.Mocked<GetUserByEmailUseCase>;
   let getUserByUsernameUseCase: jest.Mocked<GetUserByUsernameUseCase>;
   let userDomain: jest.Mocked<UserDomainService>;
-  let jwtService: jest.Mocked<JwtService>;
-  let configService: jest.Mocked<ConfigService>;
+  let tokenService: jest.Mocked<TokenService>;
 
   const mockUser = (overrides?: Partial<User>): User =>
     Object.assign(new User(), {
@@ -47,31 +45,16 @@ describe('LoginUseCase', () => {
       isTwoFactorEnabled: jest.fn(),
     } as any;
 
-    jwtService = {
-      sign: jest.fn(),
-    } as any;
-
-    configService = {
-      get: jest.fn().mockImplementation((key: string) => {
-        switch (key) {
-          case 'JWT_2FA_TOKEN_EXPIRATION':
-            return '5m';
-          case 'JWT_ACCESS_TOKEN_EXPIRATION':
-            return '15m';
-          case 'JWT_REFRESH_TOKEN_EXPIRATION':
-            return '7d';
-          default:
-            return undefined;
-        }
-      }),
+    tokenService = {
+      generateTokens: jest.fn(),
+      generate2FAToken: jest.fn(),
     } as any;
 
     useCase = new LoginUseCase(
       getUserByUsernameUseCase,
       getUserByEmailUseCase,
       userDomain,
-      jwtService,
-      configService,
+      tokenService,
     );
   });
 
@@ -80,16 +63,21 @@ describe('LoginUseCase', () => {
     getUserByEmailUseCase.execute.mockResolvedValue(user);
     userDomain.validatePassword.mockResolvedValue(true);
     userDomain.isTwoFactorEnabled.mockReturnValue(false);
-    jwtService.sign
-      .mockReturnValueOnce('access.jwt.token')
-      .mockReturnValueOnce('refresh.jwt.token');
+    tokenService.generateTokens.mockReturnValue({
+      accessToken: 'access.jwt.token',
+      refreshToken: 'refresh.jwt.token',
+    });
 
     const result = await useCase.execute({
       identifier: 'test@example.com',
       password: '123456',
     });
 
-    expect(jwtService.sign).toHaveBeenCalledTimes(2);
+    expect(tokenService.generateTokens).toHaveBeenCalledWith({
+      userId: user.id,
+      email: user.email,
+      isTwoFactorEnabled: user.isTwoFactorEnabled,
+    });
     expect(result).toEqual({
       accessToken: 'access.jwt.token',
       refreshToken: 'refresh.jwt.token',
@@ -101,16 +89,21 @@ describe('LoginUseCase', () => {
     getUserByUsernameUseCase.execute.mockResolvedValue(user);
     userDomain.validatePassword.mockResolvedValue(true);
     userDomain.isTwoFactorEnabled.mockReturnValue(false);
-    jwtService.sign
-      .mockReturnValueOnce('access.jwt.token')
-      .mockReturnValueOnce('refresh.jwt.token');
+    tokenService.generateTokens.mockReturnValue({
+      accessToken: 'access.jwt.token',
+      refreshToken: 'refresh.jwt.token',
+    });
 
     const result = await useCase.execute({
       identifier: 'tester',
       password: '123456',
     });
 
-    expect(jwtService.sign).toHaveBeenCalledTimes(2);
+    expect(tokenService.generateTokens).toHaveBeenCalledWith({
+      userId: user.id,
+      email: user.email,
+      isTwoFactorEnabled: user.isTwoFactorEnabled,
+    });
     expect(result).toEqual({
       accessToken: 'access.jwt.token',
       refreshToken: 'refresh.jwt.token',
@@ -122,22 +115,19 @@ describe('LoginUseCase', () => {
     getUserByEmailUseCase.execute.mockResolvedValue(user);
     userDomain.validatePassword.mockResolvedValue(true);
     userDomain.isTwoFactorEnabled.mockReturnValue(true);
-    jwtService.sign.mockReturnValue('2fa.jwt.token');
+    tokenService.generate2FAToken.mockReturnValue('2fa.jwt.token');
 
     const result = await useCase.execute({
       identifier: 'test@example.com',
       password: '123456',
     });
 
-    expect(jwtService.sign).toHaveBeenCalledWith(
-      {
-        userId: user.id,
-        step: '2fa',
-        email: user.email,
-        isTwoFactorEnabled: user.isTwoFactorEnabled,
-      },
-      { expiresIn: '5m' },
-    );
+    expect(tokenService.generate2FAToken).toHaveBeenCalledWith({
+      userId: user.id,
+      step: '2fa',
+      email: user.email,
+      isTwoFactorEnabled: user.isTwoFactorEnabled,
+    });
     expect(result).toEqual({
       requiresTwoFactor: true,
       twoFactorToken: '2fa.jwt.token',

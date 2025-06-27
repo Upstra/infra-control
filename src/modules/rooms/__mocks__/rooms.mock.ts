@@ -5,5 +5,6 @@ export const createMockRoom = (overrides?: Partial<Room>): Room =>
     id: 'room-1',
     name: 'Salle Serveur',
     servers: [],
+    ups: [],
     ...overrides,
   });

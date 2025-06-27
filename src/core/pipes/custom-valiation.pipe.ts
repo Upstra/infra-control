@@ -25,7 +25,7 @@ export class CustomValidationPipe extends ValidationPipe {
   }
 }
 
-function translateConstraint(message: string): string {
+export function translateConstraint(message: string): string {
   return message
     .replace('must be a string', 'doit être une chaîne de caractères')
     .replace('must be an email', 'doit être une adresse email valide')
