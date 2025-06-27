@@ -136,7 +136,9 @@ describe('UserGateway', () => {
     presenceService.markOnline.mockImplementation(() => {
       throw err;
     });
-    expect(() => gateway.handleConnection(mockSocket('t') as Socket)).toThrow(err);
+    expect(() => gateway.handleConnection(mockSocket('t') as Socket)).toThrow(
+      err,
+    );
   });
 
   it('rethrows unknown error on disconnect', () => {
@@ -145,7 +147,9 @@ describe('UserGateway', () => {
     presenceService.markOffline.mockImplementation(() => {
       throw err;
     });
-    expect(() => gateway.handleDisconnect(mockSocket('t') as Socket)).toThrow(err);
+    expect(() => gateway.handleDisconnect(mockSocket('t') as Socket)).toThrow(
+      err,
+    );
   });
 
   it('rethrows unknown error on ping', () => {
