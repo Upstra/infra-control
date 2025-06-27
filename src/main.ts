@@ -17,19 +17,18 @@ async function bootstrap() {
   app.use(cookieParser());
   app.useGlobalPipes(setupValidationPipe());
   app.enableCors({
-    origin: '*',
+    origin: process.env.FRONTEND_URL ?? 'http://localhost:5173',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     preflightContinue: false,
+    credentials: true,
   });
 
   setupSwagger(app);
 
-  const port = parseInt(process.env.APP_PORT ?? '3000', 10);
-  await app.listen(port);
-  logger.log(`🚀 Application lancée sur http://localhost:${port}`);
+  const backendUrl = process.env.BACKEND_URL ?? 'http://localhost:3000';
 
-  logger.log(
-    `📚 Documentation Swagger disponible sur http://localhost:${port}/docs`,
-  );
+  logger.log(`🚀 Application lancée sur ${backendUrl}`);
+
+  logger.log(`📚 Documentation Swagger disponible sur ${backendUrl}/docs`);
 }
 bootstrap();

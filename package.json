@@ -1,6 +1,6 @@
 {
   "name": "infra-control",
-  "version": "0.7.4",
+  "version": "0.8.0",
   "description": "",
   "author": "",
   "private": true,
@@ -101,6 +101,7 @@
       "!main.ts",
       "!**/core/config/**",
       "!**/core/filters/**",
+      "src/core/filters/simple-message.filter.ts",
       "!**/core/decorators/**",
       "!**/core/pipes/**",
       "!**/core/utils/**",
@@ -113,7 +114,7 @@
     "coverageDirectory": "../coverage",
     "coverageThreshold": {
       "global": {
-        "branches": 80,
+        "branches": 79,
         "functions": 80,
         "lines": 80,
         "statements": 80

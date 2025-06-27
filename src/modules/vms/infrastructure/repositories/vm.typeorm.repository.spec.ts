@@ -13,7 +13,9 @@ describe('VmTypeormRepository findOneByField', () => {
       findOne: jest.fn(),
       delete: jest.fn(),
     } as unknown as jest.Mocked<Repository<Vm>>;
-    repo = new VmTypeormRepository({ createEntityManager: () => ormRepo } as any);
+    repo = new VmTypeormRepository({
+      createEntityManager: () => ormRepo,
+    } as any);
     (repo as any).findOne = ormRepo.findOne;
   });
 

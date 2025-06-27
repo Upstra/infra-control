@@ -173,7 +173,10 @@ describe('CreateServerUseCase', () => {
 
   describe('UPS validation errors', () => {
     it('should throw BadRequestException when UPS and room mismatch', async () => {
-      const dto = createMockServerCreationDto({ upsId: 'ups-1', roomId: 'room-uuid' });
+      const dto = createMockServerCreationDto({
+        upsId: 'ups-1',
+        roomId: 'room-uuid',
+      });
 
       roomRepo.findRoomById.mockResolvedValue(mockRoom());
       upsRepo.findUpsById.mockResolvedValue({ roomId: 'other-room' } as any);
@@ -320,9 +323,7 @@ describe('CreateServerUseCase', () => {
     roomRepo.findRoomById.mockResolvedValue(mockRoom());
     groupRepo.findOneByField.mockResolvedValue(createMockGroupServer());
     iloUseCase.execute.mockResolvedValue(mockIloDto);
-    repo.save
-      .mockResolvedValueOnce(server1)
-      .mockResolvedValueOnce(server2);
+    repo.save.mockResolvedValueOnce(server1).mockResolvedValueOnce(server2);
     userRepo.findOneByField.mockResolvedValue(mockUser);
     permissionRepo.createPermission = jest.fn();
 

@@ -1,5 +1,6 @@
 import { Verify2FAUseCase } from '../verify-2fa.use-case';
 import { JwtService } from '@nestjs/jwt';
+import { TokenService } from '../../services/token.service';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
 import { TwoFAInvalidCodeException } from '@/modules/auth/domain/exceptions/twofa.exception';
@@ -18,6 +19,7 @@ describe('Verify2FAUseCase', () => {
   let getUserByEmailUseCase: jest.Mocked<GetUserByEmailUseCase>;
   let updateUserFieldsUseCase: jest.Mocked<UpdateUserFieldsUseCase>;
   let jwtService: jest.Mocked<JwtService>;
+  let tokenService: jest.Mocked<TokenService>;
 
   const userPayload: JwtPayload = {
     userId: 'user-123',
@@ -37,9 +39,8 @@ describe('Verify2FAUseCase', () => {
       execute: jest.fn(),
     } as any;
 
-    jwtService = {
-      sign: jest.fn(),
-    } as any;
+    jwtService = { sign: jest.fn() } as any;
+    tokenService = { generate2FAToken: jest.fn() } as any;
 
     const recoverCodeService = {
       generate: jest.fn(),
@@ -51,6 +52,7 @@ describe('Verify2FAUseCase', () => {
       updateUserFieldsUseCase,
       recoverCodeService,
       jwtService,
+      tokenService,
     );
   });
 
@@ -58,10 +60,15 @@ describe('Verify2FAUseCase', () => {
     const user = createMockUser({ isTwoFactorEnabled: true });
     getUserByEmailUseCase.execute.mockResolvedValue(user);
     (speakeasy.totp.verify as jest.Mock).mockReturnValue(true);
-    jwtService.sign.mockReturnValue('access.token');
+    tokenService.generate2FAToken.mockReturnValue('access.token');
 
     const result = await useCase.execute(userPayload, dto);
 
+    expect(tokenService.generate2FAToken).toHaveBeenCalledWith({
+      userId: user.id,
+      email: user.email,
+      isTwoFactorAuthenticated: true,
+    });
     expect(result).toEqual({
       isValid: true,
       accessToken: 'access.token',
@@ -74,12 +81,17 @@ describe('Verify2FAUseCase', () => {
     const user = createMockUser({ isTwoFactorEnabled: false });
     getUserByEmailUseCase.execute.mockResolvedValue(user);
     (speakeasy.totp.verify as jest.Mock).mockReturnValue(true);
-    jwtService.sign.mockReturnValue('enabled.token');
+    tokenService.generate2FAToken.mockReturnValue('enabled.token');
 
     const result = await useCase.execute(userPayload, dto);
 
     expect(updateUserFieldsUseCase.execute).toHaveBeenCalledWith(user.id, {
       isTwoFactorEnabled: true,
+    });
+    expect(tokenService.generate2FAToken).toHaveBeenCalledWith({
+      userId: user.id,
+      email: user.email,
+      isTwoFactorAuthenticated: true,
     });
     expect(result).toEqual({
       isValid: true,

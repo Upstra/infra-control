@@ -9,7 +9,9 @@ describe('DashboardController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [DashboardController],
-      providers: [{ provide: GetDashboardFullStatsUseCase, useValue: getStats }],
+      providers: [
+        { provide: GetDashboardFullStatsUseCase, useValue: getStats },
+      ],
     }).compile();
 
     controller = module.get(DashboardController);
