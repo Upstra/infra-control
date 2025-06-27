@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 
 import { ServerDomainService } from '@/modules/servers/domain/services/server.domain.service';
@@ -11,6 +16,7 @@ import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
+import { UpsRepositoryInterface } from '@/modules/ups/domain/interfaces/ups.repository.interface';
 
 @Injectable()
 export class CreateServerUseCase {
@@ -23,6 +29,8 @@ export class CreateServerUseCase {
     private readonly roomRepository: RoomRepositoryInterface,
     @Inject('GroupServerRepositoryInterface')
     private readonly groupRepository: GroupServerRepositoryInterface,
+    @Inject('UpsRepositoryInterface')
+    private readonly upsRepository: UpsRepositoryInterface,
     @Inject('UserRepositoryInterface')
     private readonly userRepository: UserRepositoryInterface,
     @Inject('PermissionServerRepositoryInterface')
@@ -35,6 +43,15 @@ export class CreateServerUseCase {
     userId: string,
   ): Promise<ServerResponseDto> {
     await this.roomRepository.findRoomById(dto.roomId);
+
+    if (dto.upsId) {
+      const ups = await this.upsRepository.findUpsById(dto.upsId);
+      if (ups.roomId !== dto.roomId) {
+        throw new BadRequestException(
+          "L'UPS sélectionné n'appartient pas à la salle spécifiée",
+        );
+      }
+    }
 
     if (dto.groupId) {
       await this.groupRepository.findOneByField({
@@ -61,9 +78,6 @@ export class CreateServerUseCase {
     });
 
     if (user?.roleId) {
-      console.log(
-        `Creating permissions for user ${userId} on server ${server.id}`,
-      );
       await this.permissionRepository.createPermission(
         server.id,
         user.roleId,

@@ -9,8 +9,9 @@ import {
 } from '@/modules/servers/__mocks__/servers.mock';
 import { createMockIloResponseDto } from '@/modules/ilos/__mocks__/ilo.mock';
 import { GroupServerRepositoryInterface } from '@/modules/groups/domain/interfaces/group-server.repository.interface';
+import { UpsRepositoryInterface } from '@/modules/ups/domain/interfaces/ups.repository.interface';
 
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { mockRoom } from '@/modules/rooms/__mocks__/room.mock';
 import { createMockGroupServer } from '@/modules/groups/__mocks__/group.server.mock';
 import { RoomNotFoundException } from '@/modules/rooms/domain/exceptions/room.exception';
@@ -29,6 +30,7 @@ describe('CreateServerUseCase', () => {
   let iloUseCase: jest.Mocked<CreateIloUseCase>;
   let roomRepo: jest.Mocked<RoomRepositoryInterface>;
   let groupRepo: jest.Mocked<GroupServerRepositoryInterface>;
+  let upsRepo: jest.Mocked<UpsRepositoryInterface>;
   let userRepo: jest.Mocked<UserRepositoryInterface>;
   let permissionRepo: jest.Mocked<PermissionServerRepositoryInterface>;
 
@@ -55,6 +57,10 @@ describe('CreateServerUseCase', () => {
       findOneByField: jest.fn().mockResolvedValue(createMockGroupServer()),
     } as any;
 
+    upsRepo = {
+      findUpsById: jest.fn().mockResolvedValue({ roomId: 'room-uuid' }),
+    } as any;
+
     userRepo = {
       findOneByField: jest.fn(),
     } as any;
@@ -69,6 +75,7 @@ describe('CreateServerUseCase', () => {
       domain,
       roomRepo,
       groupRepo,
+      upsRepo,
       userRepo,
       permissionRepo,
     );
@@ -160,6 +167,21 @@ describe('CreateServerUseCase', () => {
         value: dto.groupId,
       });
       expect(iloUseCase.execute).not.toHaveBeenCalled();
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('UPS validation errors', () => {
+    it('should throw BadRequestException when UPS and room mismatch', async () => {
+      const dto = createMockServerCreationDto({ upsId: 'ups-1', roomId: 'room-uuid' });
+
+      roomRepo.findRoomById.mockResolvedValue(mockRoom());
+      upsRepo.findUpsById.mockResolvedValue({ roomId: 'other-room' } as any);
+
+      await expect(useCase.execute(dto, mockPayload.userId)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(upsRepo.findUpsById).toHaveBeenCalledWith(dto.upsId);
       expect(repo.save).not.toHaveBeenCalled();
     });
   });
@@ -285,5 +307,40 @@ describe('CreateServerUseCase', () => {
 
     expect(userRepo.findOneByField).toHaveBeenCalled();
     expect(permissionRepo.createPermission).not.toHaveBeenCalled();
+  });
+
+  it('should keep existing permissions when creating multiple servers', async () => {
+    const dto1 = createMockServerCreationDto({ ip: '10.0.0.1' });
+    const dto2 = createMockServerCreationDto({ ip: '10.0.0.2' });
+    const server1 = createMockServer({ id: 'srv-1' });
+    const server2 = createMockServer({ id: 'srv-2' });
+    const mockIloDto = createMockIloResponseDto();
+    const mockUser = createMockUser({ roleId: 'role-42' });
+
+    roomRepo.findRoomById.mockResolvedValue(mockRoom());
+    groupRepo.findOneByField.mockResolvedValue(createMockGroupServer());
+    iloUseCase.execute.mockResolvedValue(mockIloDto);
+    repo.save
+      .mockResolvedValueOnce(server1)
+      .mockResolvedValueOnce(server2);
+    userRepo.findOneByField.mockResolvedValue(mockUser);
+    permissionRepo.createPermission = jest.fn();
+
+    await useCase.execute(dto1, mockPayload.userId);
+    await useCase.execute(dto2, mockPayload.userId);
+
+    expect(permissionRepo.createPermission).toHaveBeenCalledTimes(2);
+    expect(permissionRepo.createPermission).toHaveBeenNthCalledWith(
+      1,
+      server1.id,
+      mockUser.roleId,
+      expect.any(Number),
+    );
+    expect(permissionRepo.createPermission).toHaveBeenNthCalledWith(
+      2,
+      server2.id,
+      mockUser.roleId,
+      expect.any(Number),
+    );
   });
 });

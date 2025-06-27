@@ -7,6 +7,7 @@ export class PresenceService {
 
   async markOnline(userId: string): Promise<void> {
     await this.redisSafeService.safeSet(`presence:${userId}`, 'online');
+    await this.redisSafeService.safeExpire(`presence:${userId}`, 60);
   }
 
   async markOffline(userId: string): Promise<void> {

@@ -11,6 +11,7 @@ import { UserModule } from '../users/user.module';
 import { RoomModule } from '../rooms/room.module';
 import { GroupModule } from '../groups/group.module';
 import { HistoryModule } from '../history/history.module';
+import { UpsModule } from '../ups/ups.module';
 
 @Module({
   controllers: [ServerController],
@@ -21,6 +22,7 @@ import { HistoryModule } from '../history/history.module';
     PermissionModule,
     forwardRef(() => UserModule),
     forwardRef(() => RoomModule),
+    forwardRef(() => UpsModule),
     GroupModule,
     PermissionModule,
     HistoryModule,
