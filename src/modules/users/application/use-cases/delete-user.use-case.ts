@@ -10,12 +10,12 @@ export class DeleteUserUseCase {
     private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(id: string): Promise<void> {
+  async execute(id: string, userId?: string): Promise<void> {
     await this.repo.findOneByField({
       field: 'id',
       value: id,
     });
     await this.repo.deleteUser(id);
-    await this.logHistory?.execute('user', id, 'DELETE');
+    await this.logHistory?.execute('user', id, 'DELETE', userId);
   }
 }

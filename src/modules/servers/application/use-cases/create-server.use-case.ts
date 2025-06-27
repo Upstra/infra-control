@@ -69,7 +69,7 @@ export class CreateServerUseCase {
 
     const entity = this.serverDomain.createServerEntityFromDto(dto, ilo.id);
     const server = await this.serverRepository.save(entity);
-    await this.logHistory?.execute('server', server.id, 'CREATE');
+    await this.logHistory?.execute('server', server.id, 'CREATE', userId);
 
     const user = await this.userRepository.findOneByField({
       field: 'id',

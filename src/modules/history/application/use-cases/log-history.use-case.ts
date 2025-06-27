@@ -9,11 +9,19 @@ export class LogHistoryUseCase {
     private readonly repo: HistoryRepositoryInterface,
   ) {}
 
-  async execute(entity: string, entityId: string, action: string): Promise<void> {
+  async execute(
+    entity: string,
+    entityId: string,
+    action: string,
+    userId?: string,
+  ): Promise<void> {
     const event = new HistoryEvent();
     event.entity = entity;
     event.entityId = entityId;
     event.action = action;
+    if (userId) {
+      event.userId = userId;
+    }
     await this.repo.save(event);
   }
 }

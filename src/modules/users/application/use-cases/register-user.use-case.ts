@@ -16,7 +16,7 @@ export class RegisterUserUseCase {
     private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(dto: RegisterDto): Promise<User> {
+  async execute(dto: RegisterDto, userId?: string): Promise<User> {
     const usernameExists = await this.repo.findOneByField({
       field: 'username',
       value: dto.username,
@@ -42,7 +42,7 @@ export class RegisterUserUseCase {
       dto.lastName,
     );
     const saved = await this.repo.save(user);
-    await this.logHistory?.execute('user', saved.id, 'CREATE');
+    await this.logHistory?.execute('user', saved.id, 'CREATE', userId);
     return saved;
   }
 }

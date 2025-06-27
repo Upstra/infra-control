@@ -10,8 +10,8 @@ export class DeleteRoomUseCase {
     private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(id: string): Promise<void> {
+  async execute(id: string, userId?: string): Promise<void> {
     await this.roomRepository.deleteRoom(id);
-    await this.logHistory?.execute('room', id, 'DELETE');
+    await this.logHistory?.execute('room', id, 'DELETE', userId);
   }
 }

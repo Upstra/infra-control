@@ -10,9 +10,9 @@ export class DeleteUpsUseCase {
     private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(id: string): Promise<void> {
+  async execute(id: string, userId?: string): Promise<void> {
     await this.upsRepository.findUpsById(id);
     await this.upsRepository.deleteUps(id);
-    await this.logHistory?.execute('ups', id, 'DELETE');
+    await this.logHistory?.execute('ups', id, 'DELETE', userId);
   }
 }

@@ -13,9 +13,9 @@ export class DeleteServerUseCase {
     private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(id: string): Promise<void> {
+  async execute(id: string, userId?: string): Promise<void> {
     await this.serverRepository.deleteServer(id);
     await this.deleteIloUsecase.execute(id);
-    await this.logHistory?.execute('server', id, 'DELETE');
+    await this.logHistory?.execute('server', id, 'DELETE', userId);
   }
 }
