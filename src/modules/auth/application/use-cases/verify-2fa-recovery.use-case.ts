@@ -1,5 +1,6 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { TokenService } from '../services/token.service';
 
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
@@ -15,6 +16,7 @@ export class Verify2FARecoveryUseCase {
     private readonly getUserByEmailUseCase: GetUserByEmailUseCase,
     private readonly updateUserFieldsUseCase: UpdateUserFieldsUseCase,
     private readonly jwtService: JwtService,
+    private readonly tokenService: TokenService,
   ) {}
 
   async execute(
@@ -56,7 +58,7 @@ export class Verify2FARecoveryUseCase {
       recoveryCodes: updatedCodes,
     });
 
-    const accessToken = this.jwtService.sign({
+    const accessToken = this.tokenService.generate2FAToken({
       userId: user.id,
       email: user.email,
       isTwoFactorAuthenticated: true,

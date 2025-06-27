@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 import { LoginDto } from '../dto/login.dto';
 import { UserDomainService } from '../../../users/domain/services/user.domain.service';
 import {
@@ -12,6 +10,7 @@ import {
   GetUserByUsernameUseCase,
 } from '@/modules/users/application/use-cases';
 import { LoginResponseDto } from '../dto';
+import { TokenService } from '../services/token.service';
 
 @Injectable()
 export class LoginUseCase {
@@ -19,8 +18,7 @@ export class LoginUseCase {
     private readonly findByUsername: GetUserByUsernameUseCase,
     private readonly findByEmail: GetUserByEmailUseCase,
     private readonly userDomain: UserDomainService,
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    private readonly tokenService: TokenService,
   ) {}
 
   async execute(dto: LoginDto): Promise<LoginResponseDto> {
@@ -41,17 +39,12 @@ export class LoginUseCase {
     if (!isValidPassword) throw new AuthPasswordNotValidException();
 
     if (this.userDomain.isTwoFactorEnabled(user)) {
-      const tempToken = this.jwtService.sign(
-        {
-          userId: user.id,
-          step: '2fa',
-          email: user.email,
-          isTwoFactorEnabled: user.isTwoFactorEnabled,
-        },
-        {
-          expiresIn: this.configService.get<string>('JWT_2FA_TOKEN_EXPIRATION'),
-        },
-      );
+      const tempToken = this.tokenService.generate2FAToken({
+        userId: user.id,
+        step: '2fa',
+        email: user.email,
+        isTwoFactorEnabled: user.isTwoFactorEnabled,
+      });
 
       return {
         requiresTwoFactor: true,
@@ -59,31 +52,10 @@ export class LoginUseCase {
       };
     }
 
-    const accessToken = this.jwtService.sign(
-      {
-        userId: user.id,
-        email: user.email,
-        isTwoFactorEnabled: user.isTwoFactorEnabled,
-      },
-      {
-        expiresIn: this.configService.get<string>(
-          'JWT_ACCESS_TOKEN_EXPIRATION',
-        ),
-      },
-    );
-    const refreshToken = this.jwtService.sign(
-      {
-        userId: user.id,
-        email: user.email,
-        isTwoFactorEnabled: user.isTwoFactorEnabled,
-      },
-      {
-        expiresIn: this.configService.get<string>(
-          'JWT_REFRESH_TOKEN_EXPIRATION',
-        ),
-      },
-    );
-
-    return { accessToken, refreshToken };
+    return this.tokenService.generateTokens({
+      userId: user.id,
+      email: user.email,
+      isTwoFactorEnabled: user.isTwoFactorEnabled,
+    });
   }
 }

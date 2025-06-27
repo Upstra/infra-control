@@ -2,6 +2,7 @@ import { RecoveryCodeService } from './../../domain/services/recovery-code.domai
 import { Injectable } from '@nestjs/common';
 import * as speakeasy from 'speakeasy';
 import { JwtService } from '@nestjs/jwt';
+import { TokenService } from '../services/token.service';
 
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { TwoFADto, TwoFAResponseDto } from '../dto/twofa.dto';
@@ -20,6 +21,7 @@ export class Verify2FAUseCase {
     private readonly updateUserFieldsUseCase: UpdateUserFieldsUseCase,
     private readonly recoveryCodeService: RecoveryCodeService,
     private readonly jwtService: JwtService,
+    private readonly tokenService: TokenService,
   ) {}
 
   async execute(
@@ -53,7 +55,7 @@ export class Verify2FAUseCase {
         '2FA activated successfully. Store your recovery codes securely.';
     }
 
-    const accessToken = this.jwtService.sign({
+    const accessToken = this.tokenService.generate2FAToken({
       userId: user.id,
       email: user.email,
       isTwoFactorAuthenticated: true,
