@@ -1,5 +1,4 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
@@ -14,7 +13,6 @@ export class Verify2FARecoveryUseCase {
   constructor(
     private readonly getUserByEmailUseCase: GetUserByEmailUseCase,
     private readonly updateUserFieldsUseCase: UpdateUserFieldsUseCase,
-    private readonly jwtService: JwtService,
   ) {}
 
   async execute(
@@ -56,15 +54,9 @@ export class Verify2FARecoveryUseCase {
       recoveryCodes: updatedCodes,
     });
 
-    const accessToken = this.jwtService.sign({
-      userId: user.id,
-      email: user.email,
-      isTwoFactorAuthenticated: true,
-    });
-
     return new TwoFAResponseDto(
       true,
-      accessToken,
+      null,
       'Connexion via recovery code réussie.',
     );
   }

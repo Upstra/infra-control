@@ -1,5 +1,4 @@
 import { ForbiddenException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { Verify2FARecoveryUseCase } from '../verify-2fa-recovery.use-case';
 import {
   GetUserByEmailUseCase,
@@ -17,7 +16,6 @@ describe('Verify2FARecoveryUseCase', () => {
   let useCase: Verify2FARecoveryUseCase;
   let getUserByEmailUseCase: jest.Mocked<GetUserByEmailUseCase>;
   let updateUserFieldsUseCase: jest.Mocked<UpdateUserFieldsUseCase>;
-  let jwtService: jest.Mocked<JwtService>;
 
   const userPayload: JwtPayload = {
     userId: 'user-123',
@@ -31,12 +29,9 @@ describe('Verify2FARecoveryUseCase', () => {
   beforeEach(() => {
     getUserByEmailUseCase = { execute: jest.fn() } as any;
     updateUserFieldsUseCase = { execute: jest.fn() } as any;
-    jwtService = { sign: jest.fn() } as any;
-
     useCase = new Verify2FARecoveryUseCase(
       getUserByEmailUseCase,
       updateUserFieldsUseCase,
-      jwtService,
     );
   });
 
@@ -51,13 +46,11 @@ describe('Verify2FARecoveryUseCase', () => {
       return Promise.resolve(hash === 'hashed-code-2');
     });
 
-    jwtService.sign.mockReturnValue('valid.jwt.token');
-
     const result = await useCase.execute(userPayload, dto);
 
     expect(result).toEqual({
       isValid: true,
-      accessToken: 'valid.jwt.token',
+      accessToken: null,
       message: 'Connexion via recovery code réussie.',
     });
 

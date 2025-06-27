@@ -1,5 +1,4 @@
 import { Verify2FAUseCase } from '../verify-2fa.use-case';
-import { JwtService } from '@nestjs/jwt';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
 import { TwoFAInvalidCodeException } from '@/modules/auth/domain/exceptions/twofa.exception';
@@ -17,7 +16,6 @@ describe('Verify2FAUseCase', () => {
   let useCase: Verify2FAUseCase;
   let getUserByEmailUseCase: jest.Mocked<GetUserByEmailUseCase>;
   let updateUserFieldsUseCase: jest.Mocked<UpdateUserFieldsUseCase>;
-  let jwtService: jest.Mocked<JwtService>;
 
   const userPayload: JwtPayload = {
     userId: 'user-123',
@@ -37,10 +35,6 @@ describe('Verify2FAUseCase', () => {
       execute: jest.fn(),
     } as any;
 
-    jwtService = {
-      sign: jest.fn(),
-    } as any;
-
     const recoverCodeService = {
       generate: jest.fn(),
       hash: jest.fn(),
@@ -50,7 +44,6 @@ describe('Verify2FAUseCase', () => {
       getUserByEmailUseCase,
       updateUserFieldsUseCase,
       recoverCodeService,
-      jwtService,
     );
   });
 
@@ -58,13 +51,12 @@ describe('Verify2FAUseCase', () => {
     const user = createMockUser({ isTwoFactorEnabled: true });
     getUserByEmailUseCase.execute.mockResolvedValue(user);
     (speakeasy.totp.verify as jest.Mock).mockReturnValue(true);
-    jwtService.sign.mockReturnValue('access.token');
 
     const result = await useCase.execute(userPayload, dto);
 
     expect(result).toEqual({
       isValid: true,
-      accessToken: 'access.token',
+      accessToken: null,
       message: '2FA verified successfully.',
     });
     expect(updateUserFieldsUseCase.execute).not.toHaveBeenCalled();
@@ -74,7 +66,6 @@ describe('Verify2FAUseCase', () => {
     const user = createMockUser({ isTwoFactorEnabled: false });
     getUserByEmailUseCase.execute.mockResolvedValue(user);
     (speakeasy.totp.verify as jest.Mock).mockReturnValue(true);
-    jwtService.sign.mockReturnValue('enabled.token');
 
     const result = await useCase.execute(userPayload, dto);
 
@@ -83,7 +74,7 @@ describe('Verify2FAUseCase', () => {
     });
     expect(result).toEqual({
       isValid: true,
-      accessToken: 'enabled.token',
+      accessToken: null,
       message:
         '2FA activated successfully. Store your recovery codes securely.',
     });
