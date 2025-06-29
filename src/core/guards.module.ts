@@ -1,4 +1,4 @@
-import { Module, Global } from '@nestjs/common';
+import { Module, Global, forwardRef } from '@nestjs/common';
 
 import { PermissionGuard } from './guards/permission.guard';
 import { RoleGuard } from './guards/role.guard';
@@ -12,7 +12,7 @@ import { ResourcePermissionGuard } from './guards/ressource-permission.guard';
 
 @Global()
 @Module({
-  imports: [PermissionModule, UserModule],
+  imports: [PermissionModule, forwardRef(() => UserModule)],
   providers: [
     PermissionGuard,
     RoleGuard,
