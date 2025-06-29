@@ -23,6 +23,6 @@ import { RoleUseCases } from './application/use-cases';
       useClass: RoleTypeormRepository,
     },
   ],
-  exports: [...RoleUseCases, RoleDomainService],
+  exports: [...RoleUseCases, RoleDomainService, 'RoleRepositoryInterface'],
 })
 export class RoleModule {}
