@@ -30,4 +30,8 @@ export class RoleDto {
   @ApiProperty()
   @IsBoolean()
   canCreateServer: boolean;
+
+  @ApiProperty()
+  @IsBoolean()
+  isAdmin: boolean;
 }

@@ -5,6 +5,7 @@ import { Room } from './domain/entities/room.entity';
 import { RoomTypeormRepository } from './infrastructure/repositories/room.typeorm.repository';
 import { RoomUseCases } from './application/use-cases';
 import { SetupModule } from '../setup/setup.module';
+import { AuditModule } from '../audit/audit.module';
 import { PermissionModule } from '../permissions/permission.module';
 import { UserModule } from '../users/user.module';
 
@@ -15,7 +16,9 @@ import { UserModule } from '../users/user.module';
     forwardRef(() => SetupModule),
     PermissionModule,
     forwardRef(() => UserModule),
+    AuditModule,
   ],
+
   providers: [
     ...RoomUseCases,
     {

@@ -11,6 +11,7 @@ import {
   mockRoomCreationDto,
   mockRoomResponseDto,
 } from '@/modules/rooms/__mocks__';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 describe('RoomController', () => {
   let controller: RoomController;
@@ -22,6 +23,11 @@ describe('RoomController', () => {
   const deleteRoomUseCase = { execute: jest.fn() };
 
   const mockRoomResponse = mockRoomResponseDto();
+
+  const mockPayload: JwtPayload = {
+    userId: 'user-123',
+    email: 'john.doe@example.com',
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -50,7 +56,7 @@ describe('RoomController', () => {
   it('should return a room by ID when getRoomById is called', async () => {
     getRoomByIdUseCase.execute.mockResolvedValue(mockRoomResponse);
 
-    const req: any = { user: { userId: 'u1' } };
+    const req: any = { userId: 'u1', email: 'e@test.com' };
 
     const result = await controller.getRoomById('uuid-test', req);
 
@@ -63,10 +69,13 @@ describe('RoomController', () => {
     createRoomUseCase.execute.mockResolvedValue(mockRoomResponse);
     const dto = mockRoomCreationDto();
 
-    const result = await controller.createRoom(dto);
+    const result = await controller.createRoom(mockPayload, dto);
 
     expect(result).toEqual(mockRoomResponse);
-    expect(createRoomUseCase.execute).toHaveBeenCalledWith(dto);
+    expect(createRoomUseCase.execute).toHaveBeenCalledWith(
+      dto,
+      mockPayload.userId,
+    );
     expect(createRoomUseCase.execute).toHaveBeenCalledTimes(1);
   });
 
@@ -74,20 +83,27 @@ describe('RoomController', () => {
     updateRoomUseCase.execute.mockResolvedValue(mockRoomResponse);
     const dto = mockRoomCreationDto();
 
-    const result = await controller.updateRoom('uuid-test', dto);
+    const result = await controller.updateRoom('uuid-test', dto, mockPayload);
 
     expect(result).toEqual(mockRoomResponse);
-    expect(updateRoomUseCase.execute).toHaveBeenCalledWith('uuid-test', dto);
+    expect(updateRoomUseCase.execute).toHaveBeenCalledWith(
+      'uuid-test',
+      dto,
+      mockPayload.userId,
+    );
     expect(updateRoomUseCase.execute).toHaveBeenCalledTimes(1);
   });
 
   it('should delete a room when deleteRoom is called', async () => {
     deleteRoomUseCase.execute.mockResolvedValue(undefined);
 
-    const result = await controller.deleteRoom('uuid-test');
+    const result = await controller.deleteRoom('uuid-test', mockPayload);
 
     expect(result).toEqual(undefined);
-    expect(deleteRoomUseCase.execute).toHaveBeenCalledWith('uuid-test');
+    expect(deleteRoomUseCase.execute).toHaveBeenCalledWith(
+      'uuid-test',
+      mockPayload.userId,
+    );
     expect(deleteRoomUseCase.execute).toHaveBeenCalledTimes(1);
   });
 });

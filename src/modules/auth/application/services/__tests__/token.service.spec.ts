@@ -34,9 +34,20 @@ describe('TokenService', () => {
 
     const result = service.generateTokens({ userId: '1' });
 
-    expect(jwtService.sign).toHaveBeenNthCalledWith(1, { userId: '1' }, { expiresIn: '15m' });
-    expect(jwtService.sign).toHaveBeenNthCalledWith(2, { userId: '1' }, { expiresIn: '7d' });
-    expect(result).toEqual({ accessToken: 'access.token', refreshToken: 'refresh.token' });
+    expect(jwtService.sign).toHaveBeenNthCalledWith(
+      1,
+      { userId: '1' },
+      { expiresIn: '15m' },
+    );
+    expect(jwtService.sign).toHaveBeenNthCalledWith(
+      2,
+      { userId: '1' },
+      { expiresIn: '7d' },
+    );
+    expect(result).toEqual({
+      accessToken: 'access.token',
+      refreshToken: 'refresh.token',
+    });
   });
 
   it('should generate a 2FA token', () => {
@@ -44,7 +55,10 @@ describe('TokenService', () => {
 
     const result = service.generate2FAToken({ userId: '1' });
 
-    expect(jwtService.sign).toHaveBeenCalledWith({ userId: '1' }, { expiresIn: '5m' });
+    expect(jwtService.sign).toHaveBeenCalledWith(
+      { userId: '1' },
+      { expiresIn: '5m' },
+    );
     expect(result).toBe('2fa.token');
   });
 });

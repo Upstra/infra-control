@@ -1,0 +1,28 @@
+import { Inject, Injectable } from '@nestjs/common';
+import { HistoryRepositoryInterface } from '../../domain/interfaces/history.repository.interface';
+import { HistoryEventResponseDto } from '../dto/history-event.response.dto';
+import { HistoryListResponseDto } from '../dto/history.list.response.dto';
+import { HistoryListFilters } from '../../domain/interfaces/history-filter.interface';
+
+@Injectable()
+export class GetHistoryListUseCase {
+  constructor(
+    @Inject('HistoryRepositoryInterface')
+    private readonly repo: HistoryRepositoryInterface,
+  ) {}
+
+  async execute(
+    page = 1,
+    limit = 10,
+    filters: HistoryListFilters = {},
+  ): Promise<HistoryListResponseDto> {
+    const [events, total] = await this.repo.paginate(
+      page,
+      limit,
+      ['user'],
+      filters,
+    );
+    const dtos = events.map((e) => new HistoryEventResponseDto(e));
+    return new HistoryListResponseDto(dtos, total, page, limit);
+  }
+}

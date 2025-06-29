@@ -6,6 +6,7 @@ import { RoomRepositoryInterface } from '@/modules/rooms/domain/interfaces/room.
 import { UpsRepositoryInterface } from '@/modules/ups/domain/interfaces/ups.repository.interface';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 import { VmRepositoryInterface } from '@/modules/vms/domain/interfaces/vm.repository.interface';
+import { RoleTypeormRepository } from '@/modules/roles/infrastructure/repositories/role.typeorm.repository';
 
 @Injectable()
 export class SetupStatisticsAdapter implements StatisticsPort {
@@ -27,6 +28,9 @@ export class SetupStatisticsAdapter implements StatisticsPort {
 
     @Inject('VmRepositoryInterface')
     private readonly vmRepo: VmRepositoryInterface,
+
+    @Inject('RoleRepositoryInterface')
+    private readonly roleRepo: RoleTypeormRepository,
   ) {}
 
   /**
@@ -35,7 +39,9 @@ export class SetupStatisticsAdapter implements StatisticsPort {
   async getStatistics() {
     const [totalUsers, adminUsers] = await Promise.all([
       this.userRepo.count(),
-      99,
+      this.roleRepo.count({
+        where: { isAdmin: true },
+      }),
     ]);
 
     const [totalRooms, totalUps] = await Promise.all([

@@ -32,4 +32,7 @@ export class Role extends BaseEntity {
 
   @Column({ type: 'boolean', default: false })
   canCreateServer: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  isAdmin: boolean;
 }

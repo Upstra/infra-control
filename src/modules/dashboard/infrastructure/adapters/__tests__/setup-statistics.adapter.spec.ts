@@ -6,6 +6,7 @@ describe('SetupStatisticsAdapter', () => {
   const upsRepo = { count: jest.fn() } as any;
   const serverRepo = { count: jest.fn() } as any;
   const vmRepo = { count: jest.fn() } as any;
+  const roleRepo = { count: jest.fn() } as any;
   let adapter: SetupStatisticsAdapter;
 
   beforeEach(() => {
@@ -16,6 +17,7 @@ describe('SetupStatisticsAdapter', () => {
       upsRepo,
       serverRepo,
       vmRepo,
+      roleRepo,
     );
   });
 
@@ -25,6 +27,7 @@ describe('SetupStatisticsAdapter', () => {
     upsRepo.count.mockResolvedValue(3);
     serverRepo.count.mockResolvedValue(5);
     vmRepo.count.mockResolvedValue(20);
+    roleRepo.count.mockResolvedValue(99);
 
     const result = await adapter.getStatistics();
 

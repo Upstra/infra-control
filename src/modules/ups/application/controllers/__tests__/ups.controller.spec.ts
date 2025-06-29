@@ -11,6 +11,7 @@ import {
   createMockUpsDto,
 } from '@/modules/ups/__mocks__/ups.mock';
 import { UpsResponseDto } from '../../dto/ups.response.dto';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 describe('UpsController', () => {
   let controller: UpsController;
@@ -20,6 +21,11 @@ describe('UpsController', () => {
   let createUseCase: jest.Mocked<CreateUpsUseCase>;
   let updateUseCase: jest.Mocked<UpdateUpsUseCase>;
   let deleteUseCase: jest.Mocked<DeleteUpsUseCase>;
+
+  const mockPayload: JwtPayload = {
+    userId: 'user-123',
+    email: 'john.doe@example.com',
+  };
 
   beforeEach(async () => {
     getAllUseCase = { execute: jest.fn() } as any;
@@ -95,41 +101,52 @@ describe('UpsController', () => {
     const dto = createMockUpsDto();
     const mock = new UpsResponseDto({ ...dto, id: 'ups-123' } as any);
     createUseCase.execute.mockResolvedValue(mock);
-    const result = await controller.createUps(dto);
+    const result = await controller.createUps(dto, mockPayload);
     expect(result).toEqual(mock);
-    expect(createUseCase.execute).toHaveBeenCalledWith(dto);
+    expect(createUseCase.execute).toHaveBeenCalledWith(dto, mockPayload.userId);
   });
 
   it('should propagate error on createUps', async () => {
     const dto = createMockUpsDto();
     createUseCase.execute.mockRejectedValue(new Error('fail'));
-    await expect(controller.createUps(dto)).rejects.toThrow('fail');
+    await expect(controller.createUps(dto, mockPayload)).rejects.toThrow(
+      'fail',
+    );
   });
 
   it('should update a UPS', async () => {
     const dto = { name: 'Updated UPS' };
     const mock = new UpsResponseDto(createMockUps({ name: 'Updated UPS' }));
     updateUseCase.execute.mockResolvedValue(mock);
-    const result = await controller.updateUps('ups-123', dto);
+    const result = await controller.updateUps('ups-123', dto, mockPayload);
     expect(result).toEqual(mock);
-    expect(updateUseCase.execute).toHaveBeenCalledWith('ups-123', dto);
+    expect(updateUseCase.execute).toHaveBeenCalledWith(
+      'ups-123',
+      dto,
+      mockPayload.userId,
+    );
   });
 
   it('should propagate error on updateUps', async () => {
     updateUseCase.execute.mockRejectedValue(new Error('fail'));
     await expect(
-      controller.updateUps('ups-123', { name: 'fail' }),
+      controller.updateUps('ups-123', { name: 'fail' }, mockPayload),
     ).rejects.toThrow('fail');
   });
 
   it('should delete a UPS', async () => {
     deleteUseCase.execute.mockResolvedValue();
-    await controller.deleteUps('ups-123');
-    expect(deleteUseCase.execute).toHaveBeenCalledWith('ups-123');
+    await controller.deleteUps('ups-123', mockPayload);
+    expect(deleteUseCase.execute).toHaveBeenCalledWith(
+      'ups-123',
+      mockPayload.userId,
+    );
   });
 
   it('should propagate error on deleteUps', async () => {
     deleteUseCase.execute.mockRejectedValue(new Error('fail'));
-    await expect(controller.deleteUps('ups-123')).rejects.toThrow('fail');
+    await expect(controller.deleteUps('ups-123', mockPayload)).rejects.toThrow(
+      'fail',
+    );
   });
 });

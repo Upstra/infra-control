@@ -5,11 +5,12 @@ import { Ups } from './domain/entities/ups.entity';
 import { UpsTypeormRepository } from './infrastructure/repositories/ups.typeorm.repository';
 import { UpsUseCases } from './application/use-cases';
 import { UpsDomainService } from './domain/services/ups.domain.service';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
   controllers: [UpsController],
   exports: [...UpsUseCases, 'UpsRepositoryInterface'],
-  imports: [TypeOrmModule.forFeature([Ups])],
+  imports: [TypeOrmModule.forFeature([Ups]), AuditModule],
   providers: [
     ...UpsUseCases,
     UpsDomainService,

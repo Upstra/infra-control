@@ -10,6 +10,7 @@ import { VmModule } from '../vms/vm.module';
 import { UserModule } from '../users/user.module';
 import { RoomModule } from '../rooms/room.module';
 import { UpsModule } from '../ups/ups.module';
+import { RoleModule } from '../roles/role.module';
 
 @Module({
   controllers: [DashboardController],
@@ -28,6 +29,7 @@ import { UpsModule } from '../ups/ups.module';
     VmModule,
     UserModule,
     RoomModule,
+    forwardRef(() => RoleModule),
     UpsModule,
   ],
 })

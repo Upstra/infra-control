@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 import { Role } from '../../domain/entities/role.entity';
 import { PermissionVmDto } from '../../../permissions/application/dto/permission.vm.dto';
 import { PermissionServerDto } from '../../../permissions/application/dto/permission.server.dto';
@@ -21,6 +21,16 @@ export class RoleResponseDto {
   @ApiProperty({ type: () => PermissionVmDto, isArray: true })
   readonly permissionVms: PermissionVmDto[];
 
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsBoolean()
+  readonly canCreateServer!: boolean;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsBoolean()
+  readonly isAdmin!: boolean;
+
   constructor(role: Role) {
     this.id = role.id;
     this.name = role.name;
@@ -30,5 +40,7 @@ export class RoleResponseDto {
     this.permissionVms = (role.permissionVms ?? []).map(
       (permission) => new PermissionVmDto(permission),
     );
+    this.canCreateServer = role.canCreateServer;
+    this.isAdmin = role.isAdmin;
   }
 }
