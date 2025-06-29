@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { HistoryEvent } from '../../domain/entities/history-event.entity';
 import { HistoryRepositoryInterface } from '../../domain/interfaces/history.repository.interface';
+import { HistoryListFilters } from '../../domain/interfaces/history-filter.interface';
 
 @Injectable()
 export class HistoryEventTypeormRepository
@@ -59,12 +60,34 @@ export class HistoryEventTypeormRepository
     page: number,
     limit: number,
     relations: string[] = [],
+    filters: HistoryListFilters = {},
   ): Promise<[HistoryEvent[], number]> {
-    return this.repository.findAndCount({
-      relations,
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { createdAt: 'DESC' },
+    const qb = this.repository
+      .createQueryBuilder('history')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('history.createdAt', 'DESC');
+
+    relations.forEach((rel) => {
+      qb.leftJoinAndSelect(`history.${rel}`, rel);
     });
+
+    if (filters.action) {
+      qb.andWhere('history.action = :action', { action: filters.action });
+    }
+    if (filters.entity) {
+      qb.andWhere('history.entity = :entity', { entity: filters.entity });
+    }
+    if (filters.userId) {
+      qb.andWhere('history.userId = :userId', { userId: filters.userId });
+    }
+    if (filters.from) {
+      qb.andWhere('history.createdAt >= :from', { from: filters.from });
+    }
+    if (filters.to) {
+      qb.andWhere('history.createdAt <= :to', { to: filters.to });
+    }
+
+    return qb.getManyAndCount();
   }
 }

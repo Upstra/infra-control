@@ -120,7 +120,11 @@ describe('UpsController', () => {
     updateUseCase.execute.mockResolvedValue(mock);
     const result = await controller.updateUps('ups-123', dto, mockPayload);
     expect(result).toEqual(mock);
-    expect(updateUseCase.execute).toHaveBeenCalledWith('ups-123', dto);
+    expect(updateUseCase.execute).toHaveBeenCalledWith(
+      'ups-123',
+      dto,
+      mockPayload.userId,
+    );
   });
 
   it('should propagate error on updateUps', async () => {
@@ -133,7 +137,10 @@ describe('UpsController', () => {
   it('should delete a UPS', async () => {
     deleteUseCase.execute.mockResolvedValue();
     await controller.deleteUps('ups-123', mockPayload);
-    expect(deleteUseCase.execute).toHaveBeenCalledWith('ups-123');
+    expect(deleteUseCase.execute).toHaveBeenCalledWith(
+      'ups-123',
+      mockPayload.userId,
+    );
   });
 
   it('should propagate error on deleteUps', async () => {

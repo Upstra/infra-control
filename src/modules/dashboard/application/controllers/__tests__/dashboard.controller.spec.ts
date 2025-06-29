@@ -1,18 +1,28 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DashboardController } from '../dashboard.controller';
 import { GetDashboardFullStatsUseCase } from '../../use-cases';
+import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { RoleGuard } from '@/core/guards/role.guard';
 
 describe('DashboardController', () => {
   let controller: DashboardController;
   const getStats = { execute: jest.fn() } as any;
 
   beforeEach(async () => {
+    const mockJwtGuard = { canActivate: jest.fn().mockReturnValue(true) };
+    const mockRoleGuard = { canActivate: jest.fn().mockReturnValue(true) };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [DashboardController],
       providers: [
         { provide: GetDashboardFullStatsUseCase, useValue: getStats },
       ],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue(mockJwtGuard)
+      .overrideGuard(RoleGuard)
+      .useValue(mockRoleGuard)
+      .compile();
 
     controller = module.get(DashboardController);
   });

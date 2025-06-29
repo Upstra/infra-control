@@ -1,5 +1,6 @@
 import { GenericRepositoryInterface } from '@/core/types/generic-repository.interface';
 import { HistoryEvent } from '../entities/history-event.entity';
+import { HistoryListFilters } from './history-filter.interface';
 
 export interface HistoryRepositoryInterface
   extends GenericRepositoryInterface<HistoryEvent> {
@@ -11,5 +12,6 @@ export interface HistoryRepositoryInterface
     page: number,
     limit: number,
     relations?: string[],
+    filters?: HistoryListFilters,
   ): Promise<[HistoryEvent[], number]>;
 }

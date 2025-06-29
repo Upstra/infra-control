@@ -5,7 +5,6 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
-  Req,
   Patch,
   Post,
   UseGuards,
@@ -19,7 +18,6 @@ import {
 } from '@nestjs/swagger';
 
 import { RoomCreationDto, RoomResponseDto } from '../dto';
-import { ExpressRequestWithUser } from '@/core/types/express-with-user.interface';
 import {
   CreateRoomUseCase,
   DeleteRoomUseCase,
