@@ -9,7 +9,14 @@ import { HistoryModule } from '../history/history.module';
 
 @Module({
   controllers: [RoomController],
-  imports: [TypeOrmModule.forFeature([Room]), forwardRef(() => SetupModule), HistoryModule],
+  imports: [
+    TypeOrmModule.forFeature([Room]),
+    forwardRef(() => SetupModule),
+    PermissionModule,
+    forwardRef(() => UserModule),
+    HistoryModule
+  ],
+
   providers: [
     ...RoomUseCases,
     {

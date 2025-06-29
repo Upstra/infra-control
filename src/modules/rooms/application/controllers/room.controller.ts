@@ -5,12 +5,14 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Req,
   Patch,
   Post,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
 
 import { RoomCreationDto, RoomResponseDto } from '../dto';
+import { ExpressRequestWithUser } from '@/core/types/express-with-user.interface';
 import {
   CreateRoomUseCase,
   DeleteRoomUseCase,
@@ -53,8 +55,9 @@ export class RoomController {
   })
   async getRoomById(
     @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: ExpressRequestWithUser,
   ): Promise<RoomResponseDto> {
-    return this.getRoomByIdUseCase.execute(id);
+    return this.getRoomByIdUseCase.execute(id, req.user?.userId);
   }
 
   @Post()

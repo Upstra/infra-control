@@ -45,14 +45,14 @@ export class RoomTypeormRepository implements RoomRepositoryInterface {
 
   async findAll(): Promise<Room[]> {
     return await this.repo.find({
-      relations: ['servers'],
+      relations: ['servers', 'servers.ilo', 'ups'],
     });
   }
 
   async findRoomById(id: string): Promise<Room> {
     const room = await this.repo.findOne({
       where: { id },
-      relations: ['servers'],
+      relations: ['servers', 'servers.ilo', 'ups'],
     });
     if (!room) {
       throw new RoomNotFoundException(id);

@@ -50,10 +50,12 @@ describe('RoomController', () => {
   it('should return a room by ID when getRoomById is called', async () => {
     getRoomByIdUseCase.execute.mockResolvedValue(mockRoomResponse);
 
-    const result = await controller.getRoomById('uuid-test');
+    const req: any = { user: { userId: 'u1' } };
+
+    const result = await controller.getRoomById('uuid-test', req);
 
     expect(result).toEqual(mockRoomResponse);
-    expect(getRoomByIdUseCase.execute).toHaveBeenCalledWith('uuid-test');
+    expect(getRoomByIdUseCase.execute).toHaveBeenCalledWith('uuid-test', 'u1');
     expect(getRoomByIdUseCase.execute).toHaveBeenCalledTimes(1);
   });
 

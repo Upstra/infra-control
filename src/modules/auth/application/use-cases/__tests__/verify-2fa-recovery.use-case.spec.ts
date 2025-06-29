@@ -1,5 +1,6 @@
 import { ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { TokenService } from '../../services/token.service';
 import { Verify2FARecoveryUseCase } from '../verify-2fa-recovery.use-case';
 import {
   GetUserByEmailUseCase,
@@ -18,6 +19,7 @@ describe('Verify2FARecoveryUseCase', () => {
   let getUserByEmailUseCase: jest.Mocked<GetUserByEmailUseCase>;
   let updateUserFieldsUseCase: jest.Mocked<UpdateUserFieldsUseCase>;
   let jwtService: jest.Mocked<JwtService>;
+  let tokenService: jest.Mocked<TokenService>;
 
   const userPayload: JwtPayload = {
     userId: 'user-123',
@@ -32,11 +34,13 @@ describe('Verify2FARecoveryUseCase', () => {
     getUserByEmailUseCase = { execute: jest.fn() } as any;
     updateUserFieldsUseCase = { execute: jest.fn() } as any;
     jwtService = { sign: jest.fn() } as any;
+    tokenService = { generate2FAToken: jest.fn() } as any;
 
     useCase = new Verify2FARecoveryUseCase(
       getUserByEmailUseCase,
       updateUserFieldsUseCase,
       jwtService,
+      tokenService,
     );
   });
 
@@ -51,10 +55,15 @@ describe('Verify2FARecoveryUseCase', () => {
       return Promise.resolve(hash === 'hashed-code-2');
     });
 
-    jwtService.sign.mockReturnValue('valid.jwt.token');
+    tokenService.generate2FAToken.mockReturnValue('valid.jwt.token');
 
     const result = await useCase.execute(userPayload, dto);
 
+    expect(tokenService.generate2FAToken).toHaveBeenCalledWith({
+      userId: mockUser.id,
+      email: mockUser.email,
+      isTwoFactorAuthenticated: true,
+    });
     expect(result).toEqual({
       isValid: true,
       accessToken: 'valid.jwt.token',

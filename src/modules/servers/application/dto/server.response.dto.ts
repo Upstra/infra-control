@@ -65,11 +65,11 @@ export class ServerResponseDto {
   @IsUUID()
   readonly upsId?: string;
 
-  @ApiProperty({ type: IloResponseDto })
-  @IsNotEmpty()
-  readonly ilo!: IloResponseDto;
+  @ApiProperty({ type: IloResponseDto, required: false })
+  @IsOptional()
+  readonly ilo?: IloResponseDto;
 
-  constructor(server: Server, ilo: IloResponseDto) {
+  constructor(server: Server, ilo?: IloResponseDto) {
     this.id = server.id;
     this.name = server.name;
     this.state = server.state;
@@ -84,6 +84,9 @@ export class ServerResponseDto {
   }
 
   static fromEntity(s: Server): ServerResponseDto {
-    return new ServerResponseDto(s, new IloResponseDto(s.ilo));
+    return new ServerResponseDto(
+      s,
+      s.ilo ? new IloResponseDto(s.ilo) : undefined,
+    );
   }
 }

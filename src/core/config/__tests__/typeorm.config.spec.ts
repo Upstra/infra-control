@@ -5,7 +5,8 @@ describe('buildTypeOrmOptions', () => {
 
   beforeEach(() => {
     jest.resetModules();
-    process.env = { ...OLD_ENV,
+    process.env = {
+      ...OLD_ENV,
       DB_HOST: 'host',
       DB_PORT: '5432',
       DB_NAME: 'db',

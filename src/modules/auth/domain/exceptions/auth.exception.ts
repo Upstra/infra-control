@@ -11,8 +11,8 @@ export class AuthPasswordNotValidException extends HttpException {
   }
 }
 
-export class JwtNotValid extends Error {
+export class JwtNotValid extends HttpException {
   constructor(message: string = 'Le token fourni est invalide ou manquant') {
-    super(message);
+    super(message, HttpStatus.UNAUTHORIZED);
   }
 }

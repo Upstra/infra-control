@@ -9,6 +9,7 @@ import { PassportModule } from '@nestjs/passport';
 import { TwoFAController } from './application/controllers/twofa.controller';
 import { RecoveryCodeService } from './domain/services/recovery-code.domain.service';
 import { AuthUseCases } from './application/use-cases';
+import { TokenService } from './application/services/token.service';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { AuthUseCases } from './application/use-cases';
     }),
   ],
   controllers: [AuthController, TwoFAController],
-  providers: [JwtStrategy, RecoveryCodeService, ...AuthUseCases],
+  providers: [JwtStrategy, RecoveryCodeService, TokenService, ...AuthUseCases],
   exports: [JwtModule],
 })
 export class AuthModule {}
