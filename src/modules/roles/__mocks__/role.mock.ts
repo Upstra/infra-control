@@ -12,6 +12,7 @@ export const createMockRole = (overrides: Partial<Role> = {}): Role => {
     permissionServers: [createMockPermissionServer()],
     permissionVms: [createMockPermissionVm()],
     canCreateServer: true,
+    isAdmin: true,
     ...overrides,
   };
   return Object.assign(new Role(), base);

@@ -28,7 +28,10 @@ export class HistoryEvent extends BaseEntity {
   @Column()
   action!: string;
 
-  @ApiProperty({ description: 'User who performed the action', required: false })
+  @ApiProperty({
+    description: 'User who performed the action',
+    required: false,
+  })
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'userId' })
   user?: User;

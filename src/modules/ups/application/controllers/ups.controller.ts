@@ -8,8 +8,10 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiOperation,
   ApiParam,
@@ -32,6 +34,9 @@ import {
   UpsUpdateDto,
   UpsResponseDto,
 } from '../dto';
+import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { CurrentUser } from '@/core/decorators/current-user.decorator';
 
 @ApiTags('UPS')
 @Controller('ups')
@@ -48,6 +53,8 @@ export class UpsController {
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiOperation({ summary: 'Lister les UPS paginés' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   async getUps(
     @Query('page') page = '1',
     @Query('limit') limit = '10',
@@ -57,6 +64,8 @@ export class UpsController {
 
   @Get('all')
   @ApiOperation({ summary: 'Lister tous les équipements UPS' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   async getAllUps(): Promise<UpsResponseDto[]> {
     return this.getAllUpsUseCase.execute();
   }
@@ -73,6 +82,8 @@ export class UpsController {
     description:
       'Renvoie les détails d’un équipement UPS à partir de son UUID.',
   })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   async getUpsById(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<UpsResponseDto> {
@@ -90,8 +101,13 @@ export class UpsController {
     description:
       'Crée un nouvel UPS dans le système à partir des informations fournies.',
   })
-  async createUps(@Body() upsDto: UpsCreationDto): Promise<UpsResponseDto> {
-    return this.createUpsUseCase.execute(upsDto);
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  async createUps(
+    @Body() upsDto: UpsCreationDto,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<UpsResponseDto> {
+    return this.createUpsUseCase.execute(upsDto, user.userId);
   }
 
   @Patch(':id')
@@ -111,11 +127,14 @@ export class UpsController {
     description:
       'Met à jour les informations d’un UPS existant à partir de son UUID.',
   })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   async updateUps(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() upsDto: UpsUpdateDto,
+    @CurrentUser() user: JwtPayload,
   ): Promise<UpsResponseDto> {
-    return this.updateUpsUseCase.execute(id, upsDto);
+    return this.updateUpsUseCase.execute(id, upsDto, user.userId);
   }
 
   @Delete(':id')
@@ -130,7 +149,12 @@ export class UpsController {
     description:
       'Supprime un UPS du système en utilisant son UUID. Action définitive.',
   })
-  async deleteUps(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    return this.deleteUpsUseCase.execute(id);
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  async deleteUps(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<void> {
+    return this.deleteUpsUseCase.execute(id, user.userId);
   }
 }

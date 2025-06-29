@@ -24,6 +24,7 @@ export class EnsureDefaultRoleUseCase {
       this.logger.warn('Création rôle ADMIN par défaut');
       const admin = await this.roleRepository.createRole('ADMIN');
       admin.canCreateServer = true;
+      admin.isAdmin = true;
       return this.roleRepository.save(admin);
     }
 

@@ -1,4 +1,10 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus, Type } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpStatus,
+  Type,
+} from '@nestjs/common';
 
 export function createSimpleMessageFilter(
   exceptionType: Type<Error>,

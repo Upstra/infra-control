@@ -9,6 +9,8 @@ import {
 import { GetDashboardFullStatsUseCase } from '../use-cases';
 import { GetHistoryStatsUseCase } from '@/modules/history/application/use-cases';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { RoleGuard } from '@/core/guards';
+import { RequireRole } from '@/core/decorators/role.decorator';
 
 @ApiTags('Dashboard')
 @Controller('dashboard')
@@ -39,8 +41,17 @@ export class DashboardController {
 
   @Get('history')
   @ApiOperation({ summary: 'Get creation stats for an entity' })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
   @ApiBearerAuth()
+  @RequireRole({ isAdmin: true })
+  /**
+   * Retrieve creation statistics for a specific entity over the last N months.
+   * @param entity - The entity type to retrieve statistics for (e.g., 'server', 'vm').
+   * @param months - The number of months to look back for statistics (default is 6).
+   * @returns A record mapping entity creation dates to counts.
+   * @throws BadRequestException if the entity type is not recognized.
+   * @throws NotFoundException if no statistics are available for the specified entity.
+   */
   async getHistory(
     @Query('entity') entity: string,
     @Query('months') months = '6',

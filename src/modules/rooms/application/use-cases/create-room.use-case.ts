@@ -11,7 +11,10 @@ export class CreateRoomUseCase {
     private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(dto: RoomCreationDto, userId?: string): Promise<RoomResponseDto> {
+  async execute(
+    dto: RoomCreationDto,
+    userId?: string,
+  ): Promise<RoomResponseDto> {
     const room = await this.roomRepository.createRoom(dto.name);
     await this.logHistory?.execute('room', room.id, 'CREATE', userId);
     return RoomResponseDto.from(room);

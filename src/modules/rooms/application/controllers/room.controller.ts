@@ -8,8 +8,15 @@ import {
   Req,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
 import { RoomCreationDto, RoomResponseDto } from '../dto';
 import { ExpressRequestWithUser } from '@/core/types/express-with-user.interface';
@@ -20,6 +27,9 @@ import {
   GetRoomByIdUseCase,
   UpdateRoomUseCase,
 } from '../use-cases';
+import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { CurrentUser } from '@/core/decorators/current-user.decorator';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 @ApiTags('Room')
 @Controller('room')
@@ -37,6 +47,8 @@ export class RoomController {
     summary: 'Lister toutes les salles',
     description: 'Renvoie la liste de toutes les salles disponibles.',
   })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   async getAllRooms(): Promise<RoomResponseDto[]> {
     return this.getAllRoomsUseCase.execute();
   }
@@ -53,11 +65,13 @@ export class RoomController {
     description:
       'Retourne les informations d’une salle spécifique à partir de son UUID.',
   })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   async getRoomById(
     @Param('id', ParseUUIDPipe) id: string,
-    @Req() req: ExpressRequestWithUser,
+    @CurrentUser() req: JwtPayload,
   ): Promise<RoomResponseDto> {
-    return this.getRoomByIdUseCase.execute(id, req.user?.userId);
+    return this.getRoomByIdUseCase.execute(id, req.userId);
   }
 
   @Post()
@@ -71,8 +85,13 @@ export class RoomController {
     description:
       'Crée une salle dans le système à partir des données du `RoomCreationDto`.',
   })
-  async createRoom(@Body() roomDto: RoomCreationDto): Promise<RoomResponseDto> {
-    return this.createRoomUseCase.execute(roomDto);
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  async createRoom(
+    @CurrentUser() user: JwtPayload,
+    @Body() roomDto: RoomCreationDto,
+  ): Promise<RoomResponseDto> {
+    return this.createRoomUseCase.execute(roomDto, user.userId);
   }
 
   @Patch(':id')
@@ -92,11 +111,14 @@ export class RoomController {
     description:
       'Met à jour les informations d’une salle existante via son UUID.',
   })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   async updateRoom(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() roomDto: RoomCreationDto,
+    @CurrentUser() user: JwtPayload,
   ): Promise<RoomResponseDto> {
-    return this.updateRoomUseCase.execute(id, roomDto);
+    return this.updateRoomUseCase.execute(id, roomDto, user.userId);
   }
 
   @Delete(':id')
@@ -110,7 +132,12 @@ export class RoomController {
     summary: 'Supprimer une salle',
     description: 'Supprime une salle du système de manière permanente.',
   })
-  async deleteRoom(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    return this.deleteRoomUseCase.execute(id);
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  async deleteRoom(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<void> {
+    return this.deleteRoomUseCase.execute(id, user.userId);
   }
 }

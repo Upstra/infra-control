@@ -8,7 +8,10 @@ export class GetHistoryStatsUseCase {
     private readonly repo: HistoryRepositoryInterface,
   ) {}
 
-  async execute(entity: string, months: number): Promise<Record<string, number>> {
+  async execute(
+    entity: string,
+    months: number,
+  ): Promise<Record<string, number>> {
     return this.repo.countCreatedByMonth(entity, months);
   }
 }
