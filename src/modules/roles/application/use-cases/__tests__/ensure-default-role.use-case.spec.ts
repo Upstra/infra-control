@@ -29,7 +29,7 @@ describe('EnsureDefaultRoleUseCase', () => {
 
     const admin = createMockRole({
       name: 'ADMIN',
-      canCreateServer: true,
+      canCreateServer: false,
       isAdmin: true,
     });
     roleRepository.createRole.mockResolvedValue(admin);
@@ -47,7 +47,7 @@ describe('EnsureDefaultRoleUseCase', () => {
 
     const admin = createMockRole({
       name: 'ADMIN',
-      canCreateServer: true,
+      canCreateServer: false,
       isAdmin: true,
     });
     roleRepository.findAll.mockResolvedValue([admin]);

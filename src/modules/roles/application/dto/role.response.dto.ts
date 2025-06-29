@@ -40,5 +40,7 @@ export class RoleResponseDto {
     this.permissionVms = (role.permissionVms ?? []).map(
       (permission) => new PermissionVmDto(permission),
     );
+    this.canCreateServer = role.canCreateServer;
+    this.isAdmin = role.isAdmin;
   }
 }

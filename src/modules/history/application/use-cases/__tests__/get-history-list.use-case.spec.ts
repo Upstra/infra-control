@@ -19,9 +19,19 @@ describe('GetHistoryListUseCase', () => {
 
     const result = await useCase.execute(2, 5);
 
-    expect(repo.paginate).toHaveBeenCalledWith(2, 5, ['user']);
+    expect(repo.paginate).toHaveBeenCalledWith(2, 5, ['user'], {});
     expect(result.totalItems).toBe(1);
     expect(result.currentPage).toBe(2);
+  });
+
+  it('passes filters to repository', async () => {
+    const events = [new HistoryEvent()];
+    repo.paginate.mockResolvedValue([events, 1]);
+
+    const filters = { action: 'CREATE', userId: '123' };
+    await useCase.execute(1, 10, filters);
+
+    expect(repo.paginate).toHaveBeenCalledWith(1, 10, ['user'], filters);
   });
 
   it('returns empty list when no events', async () => {

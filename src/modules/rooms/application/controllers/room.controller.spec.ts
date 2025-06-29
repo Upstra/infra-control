@@ -56,7 +56,7 @@ describe('RoomController', () => {
   it('should return a room by ID when getRoomById is called', async () => {
     getRoomByIdUseCase.execute.mockResolvedValue(mockRoomResponse);
 
-    const req: any = { user: { userId: 'u1' } };
+    const req: any = { userId: 'u1', email: 'e@test.com' };
 
     const result = await controller.getRoomById('uuid-test', req);
 
@@ -72,7 +72,10 @@ describe('RoomController', () => {
     const result = await controller.createRoom(mockPayload, dto);
 
     expect(result).toEqual(mockRoomResponse);
-    expect(createRoomUseCase.execute).toHaveBeenCalledWith(mockPayload, dto);
+    expect(createRoomUseCase.execute).toHaveBeenCalledWith(
+      dto,
+      mockPayload.userId,
+    );
     expect(createRoomUseCase.execute).toHaveBeenCalledTimes(1);
   });
 
@@ -86,7 +89,7 @@ describe('RoomController', () => {
     expect(updateRoomUseCase.execute).toHaveBeenCalledWith(
       'uuid-test',
       dto,
-      mockPayload,
+      mockPayload.userId,
     );
     expect(updateRoomUseCase.execute).toHaveBeenCalledTimes(1);
   });
@@ -97,7 +100,10 @@ describe('RoomController', () => {
     const result = await controller.deleteRoom('uuid-test', mockPayload);
 
     expect(result).toEqual(undefined);
-    expect(deleteRoomUseCase.execute).toHaveBeenCalledWith('uuid-test');
+    expect(deleteRoomUseCase.execute).toHaveBeenCalledWith(
+      'uuid-test',
+      mockPayload.userId,
+    );
     expect(deleteRoomUseCase.execute).toHaveBeenCalledTimes(1);
   });
 });
