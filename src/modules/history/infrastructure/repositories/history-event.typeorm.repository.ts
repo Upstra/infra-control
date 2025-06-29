@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { HistoryEvent } from '../../domain/entities/history-event.entity';
-import { HistoryRepositoryInterface } from '../../domain/interfaces/history.repository.interface';
+import {
+  HistoryQuery,
+  HistoryRepositoryInterface,
+} from '../../domain/interfaces/history.repository.interface';
 
 @Injectable()
 export class HistoryEventTypeormRepository
@@ -59,12 +62,34 @@ export class HistoryEventTypeormRepository
     page: number,
     limit: number,
     relations: string[] = [],
+    query: HistoryQuery = {},
   ): Promise<[HistoryEvent[], number]> {
-    return this.repository.findAndCount({
-      relations,
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { createdAt: 'DESC' },
+    const qb = this.repository
+      .createQueryBuilder('history')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('history.createdAt', 'DESC');
+
+    relations.forEach((rel) => {
+      qb.leftJoinAndSelect(`history.${rel}`, rel);
     });
+
+    if (query.action) {
+      qb.andWhere('history.action = :action', { action: query.action });
+    }
+    if (query.entity) {
+      qb.andWhere('history.entity = :entity', { entity: query.entity });
+    }
+    if (query.userId) {
+      qb.andWhere('history.userId = :userId', { userId: query.userId });
+    }
+    if (query.from) {
+      qb.andWhere('history.createdAt >= :from', { from: query.from });
+    }
+    if (query.to) {
+      qb.andWhere('history.createdAt <= :to', { to: query.to });
+    }
+
+    return qb.getManyAndCount();
   }
 }
