@@ -20,10 +20,6 @@ export class HistoryEventTypeormRepository
     return this.dataSource.getRepository(HistoryEvent);
   }
 
-  async save(entity: HistoryEvent): Promise<HistoryEvent> {
-    return this.repository.save(entity);
-  }
-
   async findAll(): Promise<HistoryEvent[]> {
     return this.repository.find();
   }

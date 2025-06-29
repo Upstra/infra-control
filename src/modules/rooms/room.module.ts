@@ -6,6 +6,8 @@ import { RoomTypeormRepository } from './infrastructure/repositories/room.typeor
 import { RoomUseCases } from './application/use-cases';
 import { SetupModule } from '../setup/setup.module';
 import { HistoryModule } from '../history/history.module';
+import { PermissionModule } from '../permissions/permission.module';
+import { UserModule } from '../users/user.module';
 
 @Module({
   controllers: [RoomController],
@@ -14,8 +16,9 @@ import { HistoryModule } from '../history/history.module';
     forwardRef(() => SetupModule),
     PermissionModule,
     forwardRef(() => UserModule),
-    HistoryModule
+    HistoryModule,
   ],
+
   providers: [
     ...RoomUseCases,
     {
