@@ -17,9 +17,9 @@ describe('GetHistoryListUseCase', () => {
     const events = [new HistoryEvent()];
     repo.paginate.mockResolvedValue([events, 1]);
 
-    const result = await useCase.execute(2, 5);
+    const result = await useCase.execute(2, 5, { action: 'CREATE' });
 
-    expect(repo.paginate).toHaveBeenCalledWith(2, 5, ['user']);
+    expect(repo.paginate).toHaveBeenCalledWith(2, 5, ['user'], { action: 'CREATE' });
     expect(result.totalItems).toBe(1);
     expect(result.currentPage).toBe(2);
   });
@@ -28,7 +28,7 @@ describe('GetHistoryListUseCase', () => {
     repo.paginate.mockResolvedValue([[], 0]);
 
     const result = await useCase.execute();
-
+    expect(repo.paginate).toHaveBeenCalledWith(1, 10, ['user'], {});
     expect(result.items).toEqual([]);
     expect(result.totalItems).toBe(0);
   });
