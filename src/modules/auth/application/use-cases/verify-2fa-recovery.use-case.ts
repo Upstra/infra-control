@@ -24,7 +24,7 @@ export class Verify2FARecoveryUseCase {
     dto: TwoFARecoveryDto,
   ): Promise<TwoFAResponseDto> {
     const user = await this.getUserByEmailUseCase.execute(userJwt.email);
-    if (!user || !user.recoveryCodes || user.recoveryCodes.length === 0) {
+    if (!user?.recoveryCodes || user.recoveryCodes.length === 0) {
       throw new ForbiddenException('Aucun code de récupération disponible.');
     }
 

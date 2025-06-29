@@ -1,8 +1,7 @@
-import { IsArray, IsBoolean, ValidateNested } from 'class-validator';
+import { IsArray, IsBoolean, IsString, ValidateNested } from 'class-validator';
 
 import { PermissionServerDto } from '@/modules/permissions/application/dto/permission.server.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
 import { PermissionVmDto } from '@/modules/permissions/application/dto/permission.vm.dto';
 import { Type } from 'class-transformer';
 
