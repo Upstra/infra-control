@@ -19,6 +19,7 @@ import { GuardsModule } from './core/guards.module';
 import { SetupModule } from './modules/setup/setup.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { HistoryModule } from './modules/history/history.module';
+import { SshModule } from './modules/ssh';
 
 @Module({
   controllers: [],
@@ -41,6 +42,7 @@ import { HistoryModule } from './modules/history/history.module';
     SetupModule,
     HistoryModule,
     DashboardModule,
+    SshModule,
   ],
   providers: [Logger],
 })
