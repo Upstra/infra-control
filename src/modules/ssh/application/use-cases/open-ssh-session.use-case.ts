@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { SshService, SshSession } from '../../domain/services/ssh.service';
+import { SshService } from '../../domain/services/ssh.service';
+import { SshSession } from '../../domain/services/interfaces/ssh-session.interace';
 
 @Injectable()
 export class OpenSshSessionUseCase {
