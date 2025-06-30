@@ -4,9 +4,18 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "webpack": true,
+    "webpack": false,
     "webpackConfigPath": "webpack.config.js",
     "tsConfigPath": "tsconfig.json"
   },
-  "watchIgnore": ["**/node_modules/**", "**/dist/**", "**/.git/**", "**/coverage/**", "**/build/**", "**/coverage-final.json", "**/jest.config.js", "**/jest-e2e.json"]
+  "watchIgnore": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/.git/**",
+    "**/coverage/**",
+    "**/build/**",
+    "**/coverage-final.json",
+    "**/jest.config.js",
+    "**/jest-e2e.json"
+  ]
 }
