@@ -16,7 +16,9 @@ describe('SshGateway', () => {
       end: jest.fn(),
     };
     sshClient = { end: jest.fn() };
-    useCase = { execute: jest.fn().mockResolvedValue({ client: sshClient, shell }) } as any;
+    useCase = {
+      execute: jest.fn().mockResolvedValue({ client: sshClient, shell }),
+    } as any;
     gateway = new SshGateway(useCase);
     client = {
       handshake: { auth: { ip: '1', username: 'u', password: 'p' } },
@@ -32,7 +34,11 @@ describe('SshGateway', () => {
       if (event === 'data') dataCallback = cb;
     });
     await gateway.handleConnection(client as Socket);
-    expect(useCase.execute).toHaveBeenCalledWith({ host: '1', username: 'u', password: 'p' });
+    expect(useCase.execute).toHaveBeenCalledWith({
+      host: '1',
+      username: 'u',
+      password: 'p',
+    });
     dataCallback(Buffer.from('hello'));
     expect(client.emit).toHaveBeenCalledWith('ssh:data', 'hello');
   });

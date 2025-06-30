@@ -1,11 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Client, ClientChannel } from 'ssh2';
-
-export interface SshSession {
-  client: Client;
-  shell: ClientChannel;
-}
-
+import { Client } from 'ssh2';
+import { SshSession } from './interfaces/ssh-session.interace';
 @Injectable()
 export class SshService {
   async createSession(options: {
@@ -25,7 +20,7 @@ export class SshService {
             resolve({ client, shell: stream });
           });
         })
-        .on('error', err => reject(err))
+        .on('error', (err) => reject(err))
         .connect({
           host: options.host,
           username: options.username,
