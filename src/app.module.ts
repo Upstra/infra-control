@@ -20,6 +20,7 @@ import { SetupModule } from './modules/setup/setup.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { HistoryModule } from './modules/history/history.module';
 import { SshModule } from './modules/ssh';
+import { ReleasesModule } from './modules/releases/releases.module';
 
 @Module({
   controllers: [],
@@ -43,6 +44,7 @@ import { SshModule } from './modules/ssh';
     HistoryModule,
     DashboardModule,
     SshModule,
+    ReleasesModule,
   ],
   providers: [Logger],
 })
