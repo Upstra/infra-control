@@ -74,7 +74,9 @@ export class GetDashboardFullStatsUseCase {
    * @returns a whole number between 0 and 100 representing completion
    */
   private computeProgress(records: SetupProgress[]): number {
-    const completed = new Set(records.map((r) => r.step));
+    const completed = new Set(
+      records.map((r) => r.step).filter((s) => s !== SetupStep.COMPLETE),
+    );
     const total = Object.values(SetupStep).filter(
       (s) => s !== SetupStep.COMPLETE,
     ).length;

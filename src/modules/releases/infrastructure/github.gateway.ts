@@ -23,7 +23,7 @@ export class GithubGateway implements GithubGatewayInterface {
       tagName: r.tag_name,
       publishedAt: r.published_at,
       author: r.author ? r.author.login : null,
-      body: r.body || '',
+      body: r.body ?? '',
       htmlUrl: r.html_url,
     }));
   }
