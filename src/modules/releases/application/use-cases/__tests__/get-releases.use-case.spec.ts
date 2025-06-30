@@ -13,15 +13,19 @@ describe('GetReleasesUseCase', () => {
     process.env.BACK_REPO = 'back';
   });
 
-  it('should fetch releases for both repos', async () => {
-    gateway.getReleases.mockResolvedValueOnce([createMockRelease({ tagName: 'f' })]);
-    gateway.getReleases.mockResolvedValueOnce([createMockRelease({ tagName: 'b' })]);
+  it('should paginate releases for both repos', async () => {
+    const front = [createMockRelease({ tagName: 'f1' }), createMockRelease({ tagName: 'f2' })];
+    const back = [createMockRelease({ tagName: 'b1' })];
+    gateway.getReleases.mockResolvedValueOnce(front);
+    gateway.getReleases.mockResolvedValueOnce(back);
 
-    const result = await useCase.execute();
+    const result = await useCase.execute(1, 1);
 
     expect(gateway.getReleases).toHaveBeenCalledWith('front');
     expect(gateway.getReleases).toHaveBeenCalledWith('back');
-    expect(result.frontend[0].tagName).toBe('f');
-    expect(result.backend[0].tagName).toBe('b');
+    expect(result.frontend.items[0].tagName).toBe('f1');
+    expect(result.frontend.totalItems).toBe(2);
+    expect(result.frontend.currentPage).toBe(1);
+    expect(result.backend.items[0].tagName).toBe('b1');
   });
 });
