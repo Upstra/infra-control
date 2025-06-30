@@ -9,7 +9,7 @@
     "format": "eslint \"src/**/*.ts\" \"test/**/*.ts\" --fix && prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "prebuild": "rimraf dist",
     "build": "nest build",
-    "start": "pnpm format && nest start",
+    "start": "nest start",
     "dev": "ts-node-dev --respawn --transpile-only src/main.ts",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
