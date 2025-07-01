@@ -11,6 +11,9 @@ import {
   UpdateUserRoleUseCase,
 } from '../../use-cases';
 import { RoleCreationDto, RoleResponseDto } from '../../dto';
+import { AdminRoleCreationDto } from '../../dto/role.creation.dto';
+import { RoleUpdateDto } from '../../dto/role.update.dto';
+import { RoleGuard } from '@/core/guards';
 import { createMockRole } from '@/modules/roles/__mocks__/role.mock';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
@@ -48,7 +51,10 @@ describe('RoleController', () => {
         { provide: GetUsersByRoleUseCase, useValue: getUsersByRoleUseCase },
         { provide: UpdateUserRoleUseCase, useValue: updateUserRoleUseCase },
       ],
-    }).compile();
+    })
+      .overrideGuard(RoleGuard)
+      .useValue({ canActivate: jest.fn().mockResolvedValue(true) })
+      .compile();
 
     controller = module.get<RoleController>(RoleController);
   });
@@ -139,9 +145,21 @@ describe('RoleController', () => {
     });
   });
 
+  describe('createAdminRole', () => {
+    it('should create admin role', async () => {
+      const dto: AdminRoleCreationDto = { name: 'ADMIN', isAdmin: true, canCreateServer: true };
+      const role = new RoleResponseDto(createMockRole({ name: 'ADMIN' }));
+      createRoleUseCase.execute.mockResolvedValue(role);
+
+      const result = await controller.createAdminRole(dto);
+      expect(result).toEqual(role);
+      expect(createRoleUseCase.execute).toHaveBeenCalledWith(dto);
+    });
+  });
+
   describe('updateRole', () => {
     it('should update a role', async () => {
-      const dto: RoleCreationDto = { name: 'UPD_ROLE' };
+      const dto: RoleUpdateDto = { name: 'UPD_ROLE' };
       const role = new RoleResponseDto(createMockRole({ name: 'UPD_ROLE' }));
       updateRoleUseCase.execute.mockResolvedValue(role);
 

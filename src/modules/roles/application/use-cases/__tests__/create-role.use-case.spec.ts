@@ -25,26 +25,25 @@ describe('CreateRoleUseCase', () => {
 
   beforeEach(() => {
     roleRepository = {
-      createRole: jest.fn(),
+      save: jest.fn(),
     } as any;
 
     roleDomainService = {
       toRoleEntity: jest.fn(),
     } as any;
-    roleDomainService.toRoleEntity.mockImplementation((dto) =>
-      createMockRole({ name: dto.name }),
-    );
     useCase = new CreateRoleUseCase(roleRepository, roleDomainService);
   });
 
   it('should create a role and return a RoleResponseDto', async () => {
     const dto: RoleCreationDto = { name: 'ADMIN' };
     const roleEntity = createMockRole({ name: 'ADMIN' });
-    roleRepository.createRole.mockResolvedValue(roleEntity);
+    roleDomainService.toRoleEntity.mockReturnValue(roleEntity);
+    roleRepository.save.mockResolvedValue(roleEntity);
 
     const result = await useCase.execute(dto);
 
-    expect(roleRepository.createRole).toHaveBeenCalledWith('ADMIN');
+    expect(roleDomainService.toRoleEntity).toHaveBeenCalledWith(dto);
+    expect(roleRepository.save).toHaveBeenCalledWith(roleEntity);
     expect(result).toBeInstanceOf(RoleResponseDto);
     expect(result.name).toBe('ADMIN');
     expect(result.id).toBe(roleEntity.id);
@@ -53,17 +52,19 @@ describe('CreateRoleUseCase', () => {
   it('should work with another role name', async () => {
     const dto: RoleCreationDto = { name: 'GUEST' };
     const roleEntity = createMockRole({ name: 'GUEST' });
-    roleRepository.createRole.mockResolvedValue(roleEntity);
+    roleDomainService.toRoleEntity.mockReturnValue(roleEntity);
+    roleRepository.save.mockResolvedValue(roleEntity);
 
     const result = await useCase.execute(dto);
 
-    expect(roleRepository.createRole).toHaveBeenCalledWith('GUEST');
+    expect(roleDomainService.toRoleEntity).toHaveBeenCalledWith(dto);
+    expect(roleRepository.save).toHaveBeenCalledWith(roleEntity);
     expect(result.name).toBe('GUEST');
   });
 
   it('should handle repository errors', async () => {
     const dto: RoleCreationDto = { name: 'BROKEN' };
-    roleRepository.createRole.mockRejectedValue(new Error('DB Error'));
+    roleRepository.save.mockRejectedValue(new Error('DB Error'));
 
     await expect(useCase.execute(dto)).rejects.toThrow('DB Error');
   });

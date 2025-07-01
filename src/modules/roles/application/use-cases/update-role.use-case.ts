@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { RoleRepositoryInterface } from '../../domain/interfaces/role.repository.interface';
-import { RoleCreationDto } from '../dto/role.creation.dto';
 import { RoleResponseDto } from '../dto/role.response.dto';
 import { RoleUpdateDto } from '../dto/role.update.dto';
 import { RoleDomainService } from '../../domain/services/role.domain.service';
