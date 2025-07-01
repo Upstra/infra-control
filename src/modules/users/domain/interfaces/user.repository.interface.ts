@@ -1,4 +1,8 @@
-import { FindOneByFieldOptions } from '@/core/utils/index';
+import {
+  FindOneByFieldOptions,
+  FindAllByFieldOptions,
+} from '@/core/utils/index';
+import { PrimitiveFields } from '@/core/types/primitive-fields.interface';
 import { User } from '../entities/user.entity';
 import { GenericRepositoryInterface } from '@/core/types/generic-repository.interface';
 
@@ -8,6 +12,9 @@ export interface UserRepositoryInterface
   updateFields(id: string, partialUser: Partial<User>): Promise<User>;
   count(): Promise<number>;
   save(user: User): Promise<User>;
+  findAllByField<T extends PrimitiveFields<User>>(
+    options: FindAllByFieldOptions<User, T>,
+  ): Promise<User[]>;
   updateUser(
     id: string,
     username: string,
@@ -33,4 +40,4 @@ export interface UserRepositoryInterface
     relations?: string[],
   ): Promise<[User[], number]>;
 }
-export { FindOneByFieldOptions };
+export { FindOneByFieldOptions, FindAllByFieldOptions };
