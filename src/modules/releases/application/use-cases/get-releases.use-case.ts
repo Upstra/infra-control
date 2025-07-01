@@ -9,6 +9,28 @@ export interface Changelog {
   backend: ReleaseListResponseDto;
 }
 
+/**
+ * Use case for retrieving paginated release information for both frontend and backend repositories.
+ *
+ * This class fetches release data from the configured frontend and backend repositories using the injected
+ * `GithubGatewayInterface`. It supports pagination via the `page` and `limit` parameters.
+ *
+ * @remarks
+ * - The repository names are read from the environment variables `FRONT_REPO` and `BACK_REPO`.
+ * - The releases are fetched in parallel for performance.
+ * - The result contains paginated lists for both frontend and backend releases.
+ *
+ * @example
+ * ```typescript
+ * const releases = await getReleasesUseCase.execute(1, 10);
+ * console.log(releases.frontend.items); // Paginated frontend releases
+ * console.log(releases.backend.items);  // Paginated backend releases
+ * ```
+ *
+ * @param page - The page number to retrieve (defaults to 1).
+ * @param limit - The number of releases per page (defaults to 10).
+ * @returns A promise that resolves to a `Changelog` object containing paginated release lists for frontend and backend.
+ */
 @Injectable()
 export class GetReleasesUseCase {
   constructor(

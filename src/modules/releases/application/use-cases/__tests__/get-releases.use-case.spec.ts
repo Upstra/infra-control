@@ -14,7 +14,10 @@ describe('GetReleasesUseCase', () => {
   });
 
   it('should paginate releases for both repos', async () => {
-    const front = [createMockRelease({ tagName: 'f1' }), createMockRelease({ tagName: 'f2' })];
+    const front = [
+      createMockRelease({ tagName: 'f1' }),
+      createMockRelease({ tagName: 'f2' }),
+    ];
     const back = [createMockRelease({ tagName: 'b1' })];
     gateway.getReleases.mockResolvedValueOnce(front);
     gateway.getReleases.mockResolvedValueOnce(back);
