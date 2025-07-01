@@ -27,6 +27,11 @@ export interface UserRepositoryInterface
   deleteUser(id: string): Promise<void>;
 
   /**
+   * Count the number of admin users in the system.
+   */
+  countAdmins(): Promise<number>;
+
+  /**
    * Retrieve users with pagination support.
    *
    * @param page - page number starting at 1

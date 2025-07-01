@@ -2,6 +2,7 @@ import { Inject } from '@nestjs/common';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 
 import { UserRepositoryInterface } from '../../domain/interfaces/user.repository.interface';
+import { CannotDeleteLastAdminException } from '../../domain/exceptions/user.exception';
 
 export class DeleteUserUseCase {
   constructor(
@@ -11,10 +12,16 @@ export class DeleteUserUseCase {
   ) {}
 
   async execute(id: string, userId?: string): Promise<void> {
-    await this.repo.findOneByField({
+    const user = await this.repo.findOneByField({
       field: 'id',
       value: id,
+      relations: ['role'],
     });
+
+    if (user.role.isAdmin && (await this.repo.countAdmins()) === 1) {
+      throw new CannotDeleteLastAdminException();
+    }
+
     await this.repo.deleteUser(id);
     await this.logHistory?.execute('user', id, 'DELETE', userId);
   }
