@@ -21,6 +21,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { HistoryModule } from './modules/history/history.module';
 import { SshModule } from './modules/ssh';
 import { ReleasesModule } from './modules/releases/releases.module';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
   controllers: [],
@@ -45,6 +46,7 @@ import { ReleasesModule } from './modules/releases/releases.module';
     DashboardModule,
     SshModule,
     ReleasesModule,
+    HealthModule,
   ],
   providers: [Logger],
 })
