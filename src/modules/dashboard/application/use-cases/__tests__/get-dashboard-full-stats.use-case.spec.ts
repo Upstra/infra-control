@@ -109,6 +109,6 @@ describe('GetDashboardFullStatsUseCase', () => {
     const result = await useCase.execute();
 
     expect(result.setupComplete).toBe(true);
-    expect(result.setupProgress).toBe(40);
+    expect(result.setupProgress).toBe(20);
   });
 });
