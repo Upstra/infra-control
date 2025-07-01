@@ -12,7 +12,9 @@ describe('ReleasesController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ReleasesController],
-      providers: [{ provide: GetReleasesUseCase, useValue: { execute: jest.fn() } }],
+      providers: [
+        { provide: GetReleasesUseCase, useValue: { execute: jest.fn() } },
+      ],
     }).compile();
 
     controller = module.get(ReleasesController);

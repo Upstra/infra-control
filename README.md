@@ -25,7 +25,6 @@
 - **Swagger** auto-documenté
 - **Docker** ready
 
-
 ## 🔄 Flux complet de la requête
 
 Cette vue d'ensemble montre le chemin parcouru par une requête HTTP depuis le client jusqu'à la base de données.
@@ -88,21 +87,35 @@ REDIS_TLS=true
 
 FRONTEND_URL=http://localhost:5173
 BACKEND_URL=http://localhost:3002
+
+GITHUB_TOKEN=
+FRONT_REPO=Upstra/upstra-control_front
+BACK_REPO=Upstra/upstra-control
 ```
 
 Copy `.env-example` to `.env` (or rename `.env-local` to `.env`) and fill in your database credentials before running commands.
+
+Note:
+
+- Vous aurez besoin d'un `GITHUB_TOKEN` pour assurer le bon fonctionnement du module release, qui fetch les release front + back afin de les afficher au client
 
 ---
 
 ## 🐳 Démarrage avec Docker
 
+Le script va s'occuper de lancer les containers:
+
+- Postgres
+- Redis
+- NestJS (infra-control)
+
 ```bash
 # Pour lancer toute l'infra (Nest + PostgreSQL)
-docker-compose up --build
+./start_prod.sh
 ```
 
 Puis l’API est dispo sur `http://localhost:3000`  
-La doc Swagger est dispo sur `http://localhost:3000/api`
+La doc Swagger est dispo sur `http://localhost:3000/docs`
 
 ---
 
