@@ -17,4 +17,8 @@ export function setupSwagger(app: INestApplication): void {
       operationsSorter: 'alpha',
     },
   });
+
+  app.use('/docs-json', (req, res) => {
+    res.status(200).json(document);
+  });
 }

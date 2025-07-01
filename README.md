@@ -114,8 +114,9 @@ Le script va s'occuper de lancer les containers:
 ./start_prod.sh
 ```
 
-Puis l’API est dispo sur `http://localhost:3000`  
+Puis l’API est dispo sur `http://localhost:3000`
 La doc Swagger est dispo sur `http://localhost:3000/docs`
+Le JSON du schéma est disponible sur `http://localhost:3000/docs-json`
 
 ---
 

@@ -34,6 +34,7 @@ async function bootstrap() {
 
   logger.log(`🚀 Application lancée sur ${backendUrl}`);
 
+  logger.log(`📖 Documentation OpenAPI disponible sur ${backendUrl}/docs-json`);
   logger.log(`📚 Documentation Swagger disponible sur ${backendUrl}/docs`);
 }
 bootstrap();
