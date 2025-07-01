@@ -7,9 +7,13 @@ import {
   GetRoleByIdUseCase,
   GetRoleListUseCase,
   UpdateRoleUseCase,
+  GetUsersByRoleUseCase,
+  UpdateUserRoleUseCase,
 } from '../../use-cases';
 import { RoleCreationDto, RoleResponseDto } from '../../dto';
 import { createMockRole } from '@/modules/roles/__mocks__/role.mock';
+import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
+import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
 
 describe('RoleController', () => {
   let controller: RoleController;
@@ -19,6 +23,8 @@ describe('RoleController', () => {
   let getRoleByIdUseCase: jest.Mocked<GetRoleByIdUseCase>;
   let updateRoleUseCase: jest.Mocked<UpdateRoleUseCase>;
   let deleteRoleUseCase: jest.Mocked<DeleteRoleUseCase>;
+  let getUsersByRoleUseCase: jest.Mocked<GetUsersByRoleUseCase>;
+  let updateUserRoleUseCase: jest.Mocked<UpdateUserRoleUseCase>;
 
   beforeEach(async () => {
     createRoleUseCase = { execute: jest.fn() } as any;
@@ -27,6 +33,8 @@ describe('RoleController', () => {
     getRoleByIdUseCase = { execute: jest.fn() } as any;
     updateRoleUseCase = { execute: jest.fn() } as any;
     deleteRoleUseCase = { execute: jest.fn() } as any;
+    getUsersByRoleUseCase = { execute: jest.fn() } as any;
+    updateUserRoleUseCase = { execute: jest.fn() } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [RoleController],
@@ -37,6 +45,8 @@ describe('RoleController', () => {
         { provide: GetRoleByIdUseCase, useValue: getRoleByIdUseCase },
         { provide: UpdateRoleUseCase, useValue: updateRoleUseCase },
         { provide: DeleteRoleUseCase, useValue: deleteRoleUseCase },
+        { provide: GetUsersByRoleUseCase, useValue: getUsersByRoleUseCase },
+        { provide: UpdateUserRoleUseCase, useValue: updateUserRoleUseCase },
       ],
     }).compile();
 
@@ -159,6 +169,40 @@ describe('RoleController', () => {
     it('should propagate error from usecase', async () => {
       deleteRoleUseCase.execute.mockRejectedValue(new Error('fail'));
       await expect(controller.deleteRole('uuid')).rejects.toThrow('fail');
+    });
+  });
+
+  describe('getUsersByRole', () => {
+    it('should return users of role', async () => {
+      const users = [new UserResponseDto(createMockUser({ id: 'u1' }))];
+      getUsersByRoleUseCase.execute.mockResolvedValue(users);
+
+      const result = await controller.getUsersByRole('role1');
+      expect(result).toEqual(users);
+      expect(getUsersByRoleUseCase.execute).toHaveBeenCalledWith('role1');
+    });
+
+    it('should propagate errors', async () => {
+      getUsersByRoleUseCase.execute.mockRejectedValue(new Error('fail'));
+      await expect(controller.getUsersByRole('r1')).rejects.toThrow('fail');
+    });
+  });
+
+  describe('updateUserRole', () => {
+    it('should update user role', async () => {
+      const user = new UserResponseDto(createMockUser({ id: 'u1' }));
+      updateUserRoleUseCase.execute.mockResolvedValue(user);
+
+      const result = await controller.updateUserRole('u1', 'r2');
+      expect(result).toEqual(user);
+      expect(updateUserRoleUseCase.execute).toHaveBeenCalledWith('u1', 'r2');
+    });
+
+    it('should propagate errors', async () => {
+      updateUserRoleUseCase.execute.mockRejectedValue(new Error('fail'));
+      await expect(controller.updateUserRole('u1', null)).rejects.toThrow(
+        'fail',
+      );
     });
   });
 });

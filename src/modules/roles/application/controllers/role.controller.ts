@@ -32,7 +32,10 @@ import {
   GetRoleByIdUseCase,
   GetRoleListUseCase,
   UpdateRoleUseCase,
+  GetUsersByRoleUseCase,
+  UpdateUserRoleUseCase,
 } from '@/modules/roles/application/use-cases';
+import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 
 @ApiTags('Role')
@@ -45,6 +48,8 @@ export class RoleController {
     private readonly getRoleByIdUseCase: GetRoleByIdUseCase,
     private readonly updateRoleUseCase: UpdateRoleUseCase,
     private readonly deleteRoleUseCase: DeleteRoleUseCase,
+    private readonly getUsersByRoleUseCase: GetUsersByRoleUseCase,
+    private readonly updateUserRoleUseCase: UpdateUserRoleUseCase,
   ) {}
 
   @Get()
@@ -172,5 +177,37 @@ export class RoleController {
   })
   async deleteRole(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.deleteRoleUseCase.execute(id);
+  }
+
+  @Get(':id/users')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', type: String })
+  @ApiOperation({ summary: "Liste des utilisateurs d'un rôle" })
+  @ApiResponse({ status: 200, type: [UserResponseDto] })
+  async getUsersByRole(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<UserResponseDto[]> {
+    return this.getUsersByRoleUseCase.execute(id);
+  }
+
+  @Patch('user/update-account/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', type: String })
+  @ApiBody({
+    schema: {
+      properties: {
+        roleId: { type: 'string', format: 'uuid', nullable: true },
+      },
+    },
+  })
+  @ApiOperation({ summary: "Mettre à jour le rôle d'un utilisateur" })
+  @ApiResponse({ status: 200, type: UserResponseDto })
+  async updateUserRole(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('roleId') roleId: string | null,
+  ): Promise<UserResponseDto> {
+    return this.updateUserRoleUseCase.execute(id, roleId);
   }
 }

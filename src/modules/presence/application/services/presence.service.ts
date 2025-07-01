@@ -18,6 +18,18 @@ export class PresenceService {
     return !!(await this.redisSafeService.safeGet(`presence:${userId}`));
   }
 
+  /**
+   * Track multiple users if they are online with a safe get operation.
+   * @param userIds - Array of user IDs to check
+   * @returns Array of boole
+   * indicating if each user is online
+   * */
+  async trackUsers(userIds: string[]): Promise<boolean[]> {
+    const presenceKeys = userIds.map((id) => `presence:${id}`);
+    const presenceValues = await this.redisSafeService.safeMGet(presenceKeys);
+    return presenceValues.map((value) => !!value);
+  }
+
   async refreshTTL(userId: string): Promise<void> {
     await this.redisSafeService.safeExpire(`presence:${userId}`, 60);
   }
