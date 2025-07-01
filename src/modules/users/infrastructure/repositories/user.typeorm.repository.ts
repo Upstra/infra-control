@@ -105,6 +105,13 @@ export class UserTypeormRepository
     return await super.count();
   }
 
+  async countAdmins(): Promise<number> {
+    return await this.createQueryBuilder('user')
+      .innerJoin('user.role', 'role')
+      .where('role.isAdmin = :admin', { admin: true })
+      .getCount();
+  }
+
   async updateUser(
     id: string,
     username: string,
