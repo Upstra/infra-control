@@ -1,10 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { UpdateUserFieldsUseCase } from '@/modules/users/application/use-cases';
 import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
 
 @Injectable()
 export class UpdateUserRoleUseCase {
-  constructor(private readonly updateUserFields: UpdateUserFieldsUseCase) {}
+  constructor(
+    @Inject(forwardRef(() => UpdateUserFieldsUseCase))
+    private readonly updateUserFields: UpdateUserFieldsUseCase,
+  ) {}
 
   async execute(
     userId: string,

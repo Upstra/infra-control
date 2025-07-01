@@ -7,6 +7,7 @@ import { PermissionModule } from '../permissions/permission.module';
 import { RoleDomainService } from './domain/services/role.domain.service';
 import { UserModule } from '../users/user.module';
 import { RoleUseCases } from './application/use-cases';
+import { PresenceModule } from '../presence/presence.module';
 
 @Module({
   controllers: [RoleController],
@@ -14,6 +15,7 @@ import { RoleUseCases } from './application/use-cases';
     TypeOrmModule.forFeature([Role]),
     PermissionModule,
     forwardRef(() => UserModule),
+    forwardRef(() => PresenceModule),
   ],
   providers: [
     ...RoleUseCases,

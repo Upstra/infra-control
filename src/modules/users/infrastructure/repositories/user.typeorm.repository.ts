@@ -12,6 +12,7 @@ import {
   UserNotFoundException,
   UserRetrievalException,
 } from '../../domain/exceptions/user.exception';
+import { PrimitiveFields } from '@/core/types/primitive-fields.interface';
 
 @Injectable()
 export class UserTypeormRepository
@@ -27,7 +28,7 @@ export class UserTypeormRepository
     });
   }
 
-  async findAllByField<T extends keyof User>({
+  async findAllByField<T extends PrimitiveFields<User>>({
     field,
     value,
     disableThrow = false,
@@ -74,12 +75,12 @@ export class UserTypeormRepository
     });
   }
 
-  async findOneByField<T extends keyof User>({
+  async findOneByField<K extends keyof User>({
     field,
     value,
     disableThrow = false,
     relations = [],
-  }: FindOneByFieldOptions<User, T>): Promise<User | null> {
+  }: FindOneByFieldOptions<User, K>): Promise<User | null> {
     if (value === undefined || value === null) {
       throw new InvalidQueryValueException(String(field), value);
     }
