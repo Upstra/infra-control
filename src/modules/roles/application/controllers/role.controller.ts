@@ -37,6 +37,10 @@ import {
 } from '@/modules/roles/application/use-cases';
 import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { AdminRoleCreationDto } from '../dto/role.creation.dto';
+import { RequireRole } from '@/core/decorators/role.decorator';
+import { RoleGuard } from '@/core/guards';
+import { RoleUpdateDto } from '../dto/role.update.dto';
 
 @ApiTags('Role')
 @Controller('role')
@@ -130,6 +134,29 @@ export class RoleController {
     return this.createRoleUseCase.execute(roleDto);
   }
 
+  @Post('admin')
+  @ApiOperation({
+    summary: 'Créer un rôle administrateur',
+    description:
+      'Crée un rôle administrateur/ou non avec les données spécifiées dans le `AdminRoleCreationDto`. Seuls les utilisateurs avec le rôle "admin" peuvent effectuer cette action.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Rôle administrateur/normal créé avec succès',
+    type: RoleResponseDto,
+  })
+  @ApiBody({
+    type: AdminRoleCreationDto,
+    description: 'Données nécessaires à la création d’un rôle administrateur',
+    required: true,
+  })
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
+  @ApiBearerAuth()
+  async createAdminRole(@Body() dto: AdminRoleCreationDto) {
+    return this.createRoleUseCase.execute(dto);
+  }
+
   @Patch(':id')
   @ApiParam({
     name: 'id',
@@ -138,7 +165,7 @@ export class RoleController {
     required: true,
   })
   @ApiBody({
-    type: RoleCreationDto,
+    type: RoleUpdateDto,
     description: 'Données nécessaires pour mettre à jour un rôle existant',
     required: true,
   })
@@ -154,7 +181,7 @@ export class RoleController {
   })
   async updateRole(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() roleDto: RoleCreationDto,
+    @Body() roleDto: RoleUpdateDto,
   ): Promise<RoleResponseDto> {
     return this.updateRoleUseCase.execute(id, roleDto);
   }

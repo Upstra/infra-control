@@ -2,17 +2,23 @@ import { createMockRole } from '@/modules/roles/__mocks__/role.mock';
 import { RoleRepositoryInterface } from '@/modules/roles/domain/interfaces/role.repository.interface';
 import { RoleCreationDto } from '../../dto/role.creation.dto';
 import { UpdateRoleUseCase } from '../update-role.use-case';
+import { RoleDomainService } from '@/modules/roles/domain/services/role.domain.service';
 
 describe('UpdateRoleUseCase', () => {
   let useCase: UpdateRoleUseCase;
   let roleRepository: jest.Mocked<RoleRepositoryInterface>;
+  let roleDomainService: jest.Mocked<RoleDomainService>;
 
   beforeEach(() => {
     roleRepository = {
       updateRole: jest.fn(),
     } as any;
 
-    useCase = new UpdateRoleUseCase(roleRepository);
+    roleDomainService = {
+      updateRoleEntity: jest.fn(),
+    } as any;
+
+    useCase = new UpdateRoleUseCase(roleRepository, roleDomainService);
   });
 
   it('should update and return RoleResponseDto', async () => {

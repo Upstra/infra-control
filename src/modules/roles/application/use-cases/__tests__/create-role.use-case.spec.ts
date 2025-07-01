@@ -2,6 +2,7 @@ import { CreateRoleUseCase } from '../create-role.use-case';
 import { RoleRepositoryInterface } from '@/modules/roles/domain/interfaces/role.repository.interface';
 import { RoleCreationDto } from '../../dto/role.creation.dto';
 import { RoleResponseDto } from '../../dto/role.response.dto';
+import { RoleDomainService } from '@/modules/roles/domain/services/role.domain.service';
 
 jest.mock('@/modules/roles/__mocks__/role.mock', () => ({
   createMockRole: jest.fn((overrides) => ({
@@ -20,13 +21,20 @@ const { createMockRole } = require('@/modules/roles/__mocks__/role.mock');
 describe('CreateRoleUseCase', () => {
   let useCase: CreateRoleUseCase;
   let roleRepository: jest.Mocked<RoleRepositoryInterface>;
+  let roleDomainService: jest.Mocked<RoleDomainService>;
 
   beforeEach(() => {
     roleRepository = {
       createRole: jest.fn(),
     } as any;
 
-    useCase = new CreateRoleUseCase(roleRepository);
+    roleDomainService = {
+      toRoleEntity: jest.fn(),
+    } as any;
+    roleDomainService.toRoleEntity.mockImplementation((dto) =>
+      createMockRole({ name: dto.name }),
+    );
+    useCase = new CreateRoleUseCase(roleRepository, roleDomainService);
   });
 
   it('should create a role and return a RoleResponseDto', async () => {
