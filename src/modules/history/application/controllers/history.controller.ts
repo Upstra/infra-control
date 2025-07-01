@@ -4,6 +4,7 @@ import {
   ApiQuery,
   ApiOperation,
   ApiBearerAuth,
+  ApiResponse,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { GetHistoryListUseCase } from '../use-cases/get-history-list.use-case';
@@ -31,6 +32,7 @@ export class HistoryController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get paginated history events' })
   @RequireRole({ isAdmin: true })
+  @ApiResponse({ status: 200, type: HistoryListResponseDto })
   async getHistory(
     @Query('page') page = '1',
     @Query('limit') limit = '10',

@@ -17,6 +17,7 @@ import {
   ApiParam,
   ApiQuery,
   ApiTags,
+  ApiResponse,
 } from '@nestjs/swagger';
 
 import {
@@ -55,6 +56,7 @@ export class UpsController {
   @ApiOperation({ summary: 'Lister les UPS paginés' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @ApiResponse({ status: 200, type: UpsListResponseDto })
   async getUps(
     @Query('page') page = '1',
     @Query('limit') limit = '10',
@@ -66,6 +68,7 @@ export class UpsController {
   @ApiOperation({ summary: 'Lister tous les équipements UPS' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @ApiResponse({ status: 200, type: [UpsResponseDto] })
   async getAllUps(): Promise<UpsResponseDto[]> {
     return this.getAllUpsUseCase.execute();
   }
@@ -84,6 +87,7 @@ export class UpsController {
   })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @ApiResponse({ status: 200, type: UpsResponseDto })
   async getUpsById(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<UpsResponseDto> {
@@ -103,6 +107,7 @@ export class UpsController {
   })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @ApiResponse({ status: 201, type: UpsResponseDto })
   async createUps(
     @Body() upsDto: UpsCreationDto,
     @CurrentUser() user: JwtPayload,
@@ -129,6 +134,7 @@ export class UpsController {
   })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @ApiResponse({ status: 200, type: UpsResponseDto })
   async updateUps(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() upsDto: UpsUpdateDto,
@@ -151,6 +157,7 @@ export class UpsController {
   })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @ApiResponse({ status: 204, description: 'UPS supprimé avec succès' })
   async deleteUps(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,

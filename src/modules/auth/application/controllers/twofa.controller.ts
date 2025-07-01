@@ -51,6 +51,7 @@ export class TwoFAController {
   @UseGuards(JwtAuthGuard, TwoFAGuard)
   @ApiBearerAuth()
   @UseFilters(InvalidQueryExceptionFilter)
+  @ApiResponse({ status: 200, description: 'QR Code généré.' })
   generate(@CurrentUser() user: JwtPayload) {
     return this.generate2FAUseCase.execute(user.email);
   }
@@ -74,6 +75,7 @@ export class TwoFAController {
     description: '2FA verification DTO',
     required: true,
   })
+  @ApiResponse({ status: 200, type: TwoFAResponseDto })
   verify(@CurrentUser() user: JwtPayload, @Body() dto: TwoFADto) {
     return this.verify2FAUseCase.execute(user, dto);
   }
@@ -87,6 +89,7 @@ export class TwoFAController {
   @UseFilters(InvalidQueryExceptionFilter)
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @ApiResponse({ status: 200, description: '2FA désactivé' })
   disable(@CurrentUser() user: JwtPayload) {
     return this.disable2FAUseCase.execute(user);
   }
@@ -101,6 +104,7 @@ export class TwoFAController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiBody({ type: TwoFARecoveryDto })
+  @ApiResponse({ status: 200, type: TwoFAResponseDto })
   recover(@CurrentUser() user: JwtPayload, @Body() dto: TwoFARecoveryDto) {
     return this.verify2FARecoveryUseCase.execute(user, dto);
   }
@@ -109,6 +113,7 @@ export class TwoFAController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(InvalidQueryExceptionFilter)
   @ApiBearerAuth()
+  @ApiResponse({ status: 200 })
   get2FAStatus(@CurrentUser() user: JwtPayload) {
     return this.get2FAStatusUseCase.execute(user.email);
   }

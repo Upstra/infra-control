@@ -4,6 +4,7 @@ import {
   ApiOperation,
   ApiQuery,
   ApiTags,
+  ApiResponse,
 } from '@nestjs/swagger';
 import { GetReleasesUseCase } from '../use-cases/get-releases.use-case';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
@@ -31,6 +32,11 @@ export class ReleasesController {
   @ApiOperation({ summary: 'Get project releases' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @ApiResponse({
+    status: 200,
+    description: 'Liste paginée des versions frontend et backend',
+    type: Object,
+  })
   /**
    * Retrieves a paginated list of project releases.
    *

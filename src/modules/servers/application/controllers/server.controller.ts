@@ -16,6 +16,7 @@ import {
   ApiParam,
   ApiBody,
   ApiBearerAuth,
+  ApiResponse,
 } from '@nestjs/swagger';
 
 import {
@@ -61,6 +62,7 @@ export class ServerController {
     description:
       'Renvoie la liste de tous les serveurs enregistrés dans le système.',
   })
+  @ApiResponse({ status: 200, type: [ServerResponseDto] })
   async getAllServers(): Promise<ServerResponseDto[]> {
     return this.getAllServersUseCase.execute();
   }
@@ -79,6 +81,7 @@ export class ServerController {
     description:
       'Renvoie les informations d’un serveur spécifique via son UUID.',
   })
+  @ApiResponse({ status: 200, type: ServerResponseDto })
   async getServerByIdAdmin(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<ServerResponseDto> {
@@ -90,6 +93,7 @@ export class ServerController {
   @UseFilters(InvalidQueryExceptionFilter)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Lister mes serveurs accessibles' })
+  @ApiResponse({ status: 200, type: [ServerResponseDto] })
   async getMyServers(
     @CurrentUser() user: JwtPayload,
   ): Promise<ServerResponseDto[]> {
@@ -106,6 +110,7 @@ export class ServerController {
     description: 'UUID du serveur à récupérer',
     required: true,
   })
+  @ApiResponse({ status: 200, type: ServerResponseDto })
   async getServerById(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
@@ -131,6 +136,7 @@ export class ServerController {
   })
   @UseGuards(JwtAuthGuard, RoleGuard)
   @RequireRole({ canCreateServer: true })
+  @ApiResponse({ status: 201, type: ServerResponseDto })
   async createServer(
     @Body() serverDto: ServerCreationDto,
     @CurrentUser() user: JwtPayload,
@@ -158,6 +164,7 @@ export class ServerController {
     description:
       'Met à jour les informations d’un serveur existant via son UUID.',
   })
+  @ApiResponse({ status: 200, type: ServerResponseDto })
   async updateServer(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() serverDto: ServerUpdateDto,
@@ -179,6 +186,7 @@ export class ServerController {
     description:
       'Supprime un serveur du système à partir de son UUID. Action irréversible.',
   })
+  @ApiResponse({ status: 204, description: 'Serveur supprimé avec succès' })
   async deleteServer(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.deleteServerUseCase.execute(id);
   }

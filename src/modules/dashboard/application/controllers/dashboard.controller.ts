@@ -44,6 +44,11 @@ export class DashboardController {
   @UseGuards(JwtAuthGuard, RoleGuard)
   @ApiBearerAuth()
   @RequireRole({ isAdmin: true })
+  @ApiResponse({
+    status: 200,
+    description: "Statistiques de création par date",
+    type: Object,
+  })
   /**
    * Retrieve creation statistics for a specific entity over the last N months.
    * @param entity - The entity type to retrieve statistics for (e.g., 'server', 'vm').

@@ -6,7 +6,13 @@ import {
   Post,
   Body,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiBody,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import {
   CompleteSetupStepUseCase,
@@ -15,7 +21,11 @@ import {
   GetSetupStatusUseCase,
 } from '../use-cases';
 import { CompleteVmDiscoveryDto } from '../dto/complete-vm-discovery.dto';
-import { CompleteSetupStepDto } from '../dto';
+import {
+  CompleteSetupStepDto,
+  SetupProgressDto,
+  SetupStatusDto,
+} from '../dto';
 
 @ApiTags('Setup')
 @Controller('setup')
@@ -29,6 +39,11 @@ export class SetupController {
 
   @Get('status')
   @ApiOperation({ summary: 'Get application setup status' })
+  @ApiResponse({
+    status: 200,
+    description: "Statut actuel de l'installation",
+    type: SetupStatusDto,
+  })
   async getSetupStatus(@Request() req) {
     const userId = req.user?.userId;
     return this.getSetupStatusUseCase.execute(userId);
@@ -38,6 +53,11 @@ export class SetupController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get setup status for authenticated user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Statut du setup pour l\'utilisateur authentifié',
+    type: SetupStatusDto,
+  })
   async getAuthenticatedSetupStatus(@Request() req) {
     return this.getSetupStatusUseCase.execute(req.user.userId);
   }
@@ -51,6 +71,11 @@ export class SetupController {
       "Appelé après que l'utilisateur ait scanné les VMs d'un serveur ESXi",
   })
   @ApiBody({ type: CompleteVmDiscoveryDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Découverte des VMs terminée',
+    type: SetupStatusDto,
+  })
   async completeVmDiscovery(
     @Request() req,
     @Body() body: CompleteVmDiscoveryDto,
@@ -64,6 +89,11 @@ export class SetupController {
   @ApiBearerAuth()
   @ApiBody({ type: CompleteSetupStepDto })
   @ApiOperation({ summary: 'Marquer une étape du setup comme complétée' })
+  @ApiResponse({
+    status: 200,
+    description: "Étape de setup complétée",
+    type: SetupProgressDto,
+  })
   async completeSetupStep(@Request() req, @Body() body: CompleteSetupStepDto) {
     return this.completeStep.execute(body.step, req.user.userId, body.metadata);
   }
@@ -72,6 +102,11 @@ export class SetupController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Récupérer toute la progression du setup' })
+  @ApiResponse({
+    status: 200,
+    description: 'Progression détaillée du setup',
+    type: [SetupProgressDto],
+  })
   async getSetupProgress() {
     return this.getProgress.execute();
   }

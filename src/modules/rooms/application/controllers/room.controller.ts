@@ -15,6 +15,7 @@ import {
   ApiParam,
   ApiBody,
   ApiBearerAuth,
+  ApiResponse,
 } from '@nestjs/swagger';
 
 import { RoomCreationDto, RoomResponseDto } from '../dto';
@@ -47,6 +48,7 @@ export class RoomController {
   })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @ApiResponse({ status: 200, type: [RoomResponseDto] })
   async getAllRooms(): Promise<RoomResponseDto[]> {
     return this.getAllRoomsUseCase.execute();
   }
@@ -65,6 +67,7 @@ export class RoomController {
   })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @ApiResponse({ status: 200, type: RoomResponseDto })
   async getRoomById(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() req: JwtPayload,
@@ -85,6 +88,7 @@ export class RoomController {
   })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @ApiResponse({ status: 201, type: RoomResponseDto })
   async createRoom(
     @CurrentUser() user: JwtPayload,
     @Body() roomDto: RoomCreationDto,
@@ -111,6 +115,7 @@ export class RoomController {
   })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @ApiResponse({ status: 200, type: RoomResponseDto })
   async updateRoom(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() roomDto: RoomCreationDto,
@@ -132,6 +137,7 @@ export class RoomController {
   })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @ApiResponse({ status: 204, description: 'Salle supprimée avec succès' })
   async deleteRoom(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
