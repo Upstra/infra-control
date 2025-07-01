@@ -16,6 +16,7 @@ import {
   ApiOperation,
   ApiParam,
   ApiTags,
+  ApiResponse,
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
@@ -59,6 +60,7 @@ export class UserController {
     description:
       'Renvoie les informations du profil utilisateur connecté via le JWT.',
   })
+  @ApiResponse({ status: 200, type: UserResponseDto })
   async getMe(@CurrentUser() user: JwtPayload): Promise<UserResponseDto> {
     return this.getMeUseCase.execute(user);
   }
@@ -69,6 +71,7 @@ export class UserController {
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiOperation({ summary: 'Récupérer la liste paginée des utilisateurs' })
+  @ApiResponse({ status: 200, type: UserListResponseDto })
   async getUsers(
     @Query('page') page = '1',
     @Query('limit') limit = '10',
@@ -83,6 +86,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: "Nombre total d'utilisateurs" })
+  @ApiResponse({ status: 200, type: Number })
   async getUserCount(): Promise<number> {
     return this.getUserCountUseCase.execute();
   }
@@ -100,6 +104,7 @@ export class UserController {
     summary: 'Récupérer un utilisateur par son ID',
     description: "Renvoie les informations de l'utilisateur par son UUID.",
   })
+  @ApiResponse({ status: 200, type: UserResponseDto })
   async getUserById(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<UserResponseDto> {
@@ -124,6 +129,7 @@ export class UserController {
     summary: 'Mettre à jour un utilisateur',
     description: 'Modifie un utilisateur existant en fonction de son UUID.',
   })
+  @ApiResponse({ status: 200, type: UserResponseDto })
   async updateUser(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UserUpdateDto,
@@ -138,6 +144,7 @@ export class UserController {
   @ApiOperation({
     summary: 'Mettre à jour son propre compte',
   })
+  @ApiResponse({ status: 200, type: UserResponseDto })
   async updateCurrentUser(
     @CurrentUser() user: JwtPayload,
     @Body() updateUserDto: UserUpdateDto,
@@ -152,6 +159,7 @@ export class UserController {
   @ApiOperation({
     summary: 'Réinitialiser son propre mot de passe',
   })
+  @ApiResponse({ status: 200, type: UserResponseDto })
   async resetCurrentUserPassword(
     @CurrentUser() user: JwtPayload,
     @Body() dto: ResetPasswordDto,
@@ -165,6 +173,7 @@ export class UserController {
   @ApiParam({ name: 'id', type: String })
   @ApiBody({ type: ResetPasswordDto })
   @ApiOperation({ summary: 'Réinitialiser le mot de passe (admin)' })
+  @ApiResponse({ status: 200, type: UserResponseDto })
   async resetPassword(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: ResetPasswordDto,
@@ -180,6 +189,7 @@ export class UserController {
     description:
       "Supprime l'utilisateur courant via son token JWT. Action Irréversible",
   })
+  @ApiResponse({ status: 204, description: 'Utilisateur supprimé avec succès' })
   async deleteCurrentUser(@CurrentUser() user: JwtPayload): Promise<void> {
     return this.deleteUserUseCase.execute(user.userId);
   }
@@ -197,6 +207,7 @@ export class UserController {
     summary: 'Supprimer un utilisateur',
     description: 'Supprime un utilisateur via son UUID. Action irréversible.',
   })
+  @ApiResponse({ status: 204, description: 'Utilisateur supprimé avec succès' })
   async deleteUser(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.deleteUserUseCase.execute(id);
   }

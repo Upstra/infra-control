@@ -20,6 +20,7 @@ import {
   ApiParam,
   ApiBody,
   ApiBearerAuth,
+  ApiResponse,
 } from '@nestjs/swagger';
 import {
   CreateVmUseCase,
@@ -51,6 +52,7 @@ export class VmController implements VmEndpointInterface {
     description:
       'Renvoie toutes les machines virtuelles enregistrées dans le système.',
   })
+  @ApiResponse({ status: 200, type: [VmResponseDto] })
   async getAllVms(): Promise<VmResponseDto[]> {
     return this.getAllVmsUseCase.execute();
   }
@@ -67,6 +69,7 @@ export class VmController implements VmEndpointInterface {
     description:
       'Retourne les informations détaillées d’une machine virtuelle en fonction de son identifiant.',
   })
+  @ApiResponse({ status: 200, type: VmResponseDto })
   async getVmById(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<VmResponseDto> {
@@ -93,6 +96,7 @@ export class VmController implements VmEndpointInterface {
     description:
       'Crée une machine virtuelle sur un serveur spécifique. Nécessite la permission WRITE sur le serveur hôte.',
   })
+  @ApiResponse({ status: 201, type: VmResponseDto })
   async createVm(@Body() vmDto: VmCreationDto): Promise<VmResponseDto> {
     return this.createVmUseCase.execute(vmDto);
   }
@@ -114,6 +118,7 @@ export class VmController implements VmEndpointInterface {
     description:
       'Met à jour les informations d’une machine virtuelle existante.',
   })
+  @ApiResponse({ status: 200, type: VmResponseDto })
   async updateVm(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() vmDto: VmUpdateDto,
@@ -133,6 +138,7 @@ export class VmController implements VmEndpointInterface {
     description:
       'Supprime une machine virtuelle du système à partir de son identifiant. Action irréversible.',
   })
+  @ApiResponse({ status: 204, description: 'VM supprimée avec succès' })
   async deleteVm(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.deleteVmUseCase.execute(id);
   }

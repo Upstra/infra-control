@@ -87,6 +87,7 @@ export class AuthController {
     description:
       'Renvoie un nouvel access token à partir du refresh token (dans cookie httpOnly)',
   })
+  @ApiResponse({ status: 200, type: LoginResponseDto })
   refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const refreshToken = req.cookies['refreshToken'];
     const { accessToken, refreshToken: newRefreshToken } =
@@ -101,6 +102,7 @@ export class AuthController {
   }
 
   @Post('logout')
+  @ApiResponse({ status: 200, description: 'Déconnexion réussie' })
   logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie('refreshToken', { path: '/auth/refresh' });
     return { message: 'Déconnexion réussie' };
