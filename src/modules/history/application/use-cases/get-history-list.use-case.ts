@@ -4,6 +4,25 @@ import { HistoryEventResponseDto } from '../dto/history-event.response.dto';
 import { HistoryListResponseDto } from '../dto/history.list.response.dto';
 import { HistoryListFilters } from '../../domain/interfaces/history-filter.interface';
 
+/**
+ * Retrieves a chronological list of history entries for audit and reporting.
+ *
+ * Responsibilities:
+ * - Fetches all history records optionally filtered by entity type or date range.
+ * - Maps domain history entities to HistoryEntryDto for presentation.
+ * - Supports pagination or sorting if parameters are provided.
+ *
+ * @param filters?  Optional criteria (e.g. entityType, startDate, endDate).
+ * @returns         Promise<HistoryEntryDto[]> array of history entries ordered by timestamp.
+ *
+ * @remarks
+ * Used by controllers or dashboard components to display recent events;
+ * does not modify state.
+ *
+ * @example
+ * const entries = await getHistoryListUseCase.execute({ entityType: 'server', startDate: '2025-06-01' });
+ */
+
 @Injectable()
 export class GetHistoryListUseCase {
   constructor(
