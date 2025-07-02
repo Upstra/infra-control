@@ -3,6 +3,19 @@ import { RoleRepositoryInterface } from '../../domain/interfaces/role.repository
 import { Role } from '../../domain/entities/role.entity';
 import { GetUserCountUseCase } from '@/modules/users/application/use-cases';
 
+/**
+ * Guarantees that system default roles exist, creating them if absent.
+ *
+ * Responsibilities:
+ * - Check for presence of essential roles (e.g., 'admin', 'guest').
+ * - Create missing defaults via RoleDomainService.
+ *
+ * @returns Promise<void> after ensuring default roles are present.
+ *
+ * @example
+ * await ensureDefaultRoleUseCase.execute();
+ */
+
 @Injectable()
 export class EnsureDefaultRoleUseCase {
   private readonly logger = new Logger(EnsureDefaultRoleUseCase.name);
