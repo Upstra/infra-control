@@ -23,12 +23,17 @@ export class GetUsersByRoleUseCase {
 
     let users = role?.users ?? [];
 
-    await Promise.all(
+    const usersWithPresence = await Promise.all(
       users.map(async (user) => {
-        user.active = await this.presenceService.isOnline(user.id);
+        const active = await this.presenceService.isOnline(user.id);
+        return { user, active };
       }),
     );
 
-    return users.map((u) => new UserResponseDto(u));
+    return usersWithPresence.map(({ user, active }) => {
+      const dto = new UserResponseDto(user);
+      (dto as any).active = active;
+      return dto;
+    });
   }
 }

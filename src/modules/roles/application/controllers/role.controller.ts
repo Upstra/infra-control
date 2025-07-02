@@ -218,10 +218,14 @@ export class RoleController {
     return this.getUsersByRoleUseCase.execute(id);
   }
 
-  @Patch('user/update-account/:id')
+  @Patch('users/:userId/role')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiParam({ name: 'id', type: String })
+  @ApiParam({
+    name: 'userId',
+    type: String,
+    description: 'UUID de l’utilisateur',
+  })
   @ApiBody({
     schema: {
       properties: {
@@ -232,9 +236,9 @@ export class RoleController {
   @ApiOperation({ summary: "Mettre à jour le rôle d'un utilisateur" })
   @ApiResponse({ status: 200, type: UserResponseDto })
   async updateUserRole(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
     @Body('roleId') roleId: string | null,
   ): Promise<UserResponseDto> {
-    return this.updateUserRoleUseCase.execute(id, roleId);
+    return this.updateUserRoleUseCase.execute(userId, roleId);
   }
 }

@@ -53,7 +53,6 @@ describe('UpdateUserRoleUseCase', () => {
     expect(roleRepo.findOneOrFail).toHaveBeenCalledWith({
       where: { id: 'r1' },
     });
-    // Vérifie sur les ids seulement (robuste)
     expect(current.roles.map((r) => r.id)).toEqual([
       existingRole.id,
       newRole.id,
