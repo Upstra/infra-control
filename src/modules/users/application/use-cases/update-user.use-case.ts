@@ -26,13 +26,13 @@ export class UpdateUserUseCase {
     let user = await this.repo.findOneByField({
       field: 'id',
       value: id,
-      relations: ['role'],
+      relations: ['roles'],
     });
 
     await this.userDomainService.ensureUniqueEmail(dto.email, id);
     await this.userDomainService.ensureUniqueUsername(dto.username, id);
 
-    if (dto.roleId && dto.roleId !== user.roleId && user.role.isAdmin) {
+    if (dto.roleId && dto.roleId !== user.roleId && user.roles?.some(r => r.isAdmin)) {
       const adminCount = await this.repo.countAdmins();
       if (adminCount === 1) {
         const newRole = await this.roleRepo.findOneByField({

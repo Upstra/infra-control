@@ -107,7 +107,7 @@ export class UserTypeormRepository
 
   async countAdmins(): Promise<number> {
     return await this.createQueryBuilder('user')
-      .innerJoin('user.role', 'role')
+      .innerJoin('user.roles', 'role')
       .where('role.isAdmin = :admin', { admin: true })
       .getCount();
   }

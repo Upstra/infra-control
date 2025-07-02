@@ -28,7 +28,7 @@ describe('DeleteUserUseCase', () => {
     expect(repo.findOneByField).toHaveBeenCalledWith({
       field: 'id',
       value: 'user-id',
-      relations: ['role'],
+      relations: ['roles'],
     });
     expect(repo.deleteUser).toHaveBeenCalledWith('user-id');
   });
@@ -43,7 +43,7 @@ describe('DeleteUserUseCase', () => {
     expect(repo.findOneByField).toHaveBeenCalledWith({
       field: 'id',
       value: 'user-id',
-      relations: ['role'],
+      relations: ['roles'],
     });
     expect(repo.deleteUser).not.toHaveBeenCalled();
   });
@@ -57,13 +57,13 @@ describe('DeleteUserUseCase', () => {
     expect(repo.findOneByField).toHaveBeenCalledWith({
       field: 'id',
       value: 'user-id',
-      relations: ['role'],
+      relations: ['roles'],
     });
     expect(repo.deleteUser).toHaveBeenCalledWith('user-id');
   });
 
   it('should throw if deleting the last admin', async () => {
-    const adminUser = createMockUser({ role: createMockRole({ isAdmin: true }) });
+    const adminUser = createMockUser({ roles: [createMockRole({ isAdmin: true })] });
     repo.findOneByField.mockResolvedValue(adminUser);
     repo.countAdmins.mockResolvedValue(1);
 

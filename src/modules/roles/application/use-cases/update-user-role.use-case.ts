@@ -23,10 +23,10 @@ export class UpdateUserRoleUseCase {
     const current = await this.repo.findOneByField({
       field: 'id',
       value: userId,
-      relations: ['role'],
+      relations: ['roles'],
     });
 
-    if (current.role.isAdmin && (await this.repo.countAdmins()) === 1) {
+    if (current.roles?.some((r) => r.isAdmin) && (await this.repo.countAdmins()) === 1) {
       let newRoleIsAdmin = false;
       if (roleId) {
         const role = await this.roleRepo.findOneByField({

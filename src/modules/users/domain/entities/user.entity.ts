@@ -3,8 +3,6 @@ import {
   PrimaryGeneratedColumn,
   Column,
   BaseEntity,
-  ManyToOne,
-  JoinColumn,
   ManyToMany,
   JoinTable,
 } from 'typeorm';
@@ -47,11 +45,7 @@ export class User extends BaseEntity {
   @Column({ type: 'timestamp', nullable: true })
   lastLoggedIn?: Date;
 
-  /* Rôle */
-  @ManyToOne(() => Role, (role) => role.users)
-  @JoinColumn({ name: 'roleId' })
-  role: Role;
-
+  /* Role */
   @Column()
   roleId!: string;
 

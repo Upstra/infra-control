@@ -66,7 +66,8 @@ describe('UserDomainService', () => {
       expect(user.username).toBe('james');
       expect(user.password).toBe('hashpw');
       expect(user.email).toBe('user@example.com');
-      expect(user.role).toBe(role);
+      expect(user.roleId).toBe(role.id);
+      expect(user.roles[0]).toBe(role);
       expect(user.firstName).toBe('Jean');
       expect(user.lastName).toBe('Dupont');
       expect(user.isTwoFactorEnabled).toBe(false);

@@ -36,11 +36,13 @@ describe('GetUserWithRoleUseCase', () => {
     const mockUser: User = {
       id: 'user-123',
       username: 'testuser',
-      role: {
-        id: 'role-123',
-        name: 'admin',
-        canCreateServer: true,
-      } as Role,
+      roles: [
+        {
+          id: 'role-123',
+          name: 'admin',
+          canCreateServer: true,
+        } as Role,
+      ],
     } as User;
 
     jest.spyOn(userRepository, 'findOneByField').mockResolvedValue(mockUser);
@@ -51,7 +53,7 @@ describe('GetUserWithRoleUseCase', () => {
     expect(userRepository.findOneByField).toHaveBeenCalledWith({
       field: 'id',
       value: 'user-123',
-      relations: ['role'],
+      relations: ['roles'],
     });
   });
 
@@ -64,7 +66,7 @@ describe('GetUserWithRoleUseCase', () => {
     expect(userRepository.findOneByField).toHaveBeenCalledWith({
       field: 'id',
       value: 'non-existent',
-      relations: ['role'],
+      relations: ['roles'],
     });
   });
 });

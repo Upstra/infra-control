@@ -57,7 +57,7 @@ describe('UpdateUserUseCase', () => {
     expect(repo.findOneByField).toHaveBeenCalledWith({
       field: 'id',
       value: 'user-1',
-      relations: ['role'],
+      relations: ['roles'],
     });
     expect(domain.ensureUniqueEmail).toHaveBeenCalledWith(dto.email, 'user-1');
     expect(domain.ensureUniqueUsername).toHaveBeenCalledWith(
@@ -103,7 +103,7 @@ describe('UpdateUserUseCase', () => {
   });
 
   it('should throw if demoting the last admin', async () => {
-    const adminUser = createMockUser({ role: createMockRole({ isAdmin: true }) });
+    const adminUser = createMockUser({ roles: [createMockRole({ isAdmin: true })] });
     repo.findOneByField.mockResolvedValue(adminUser);
     repo.countAdmins.mockResolvedValue(1);
     roleRepo.findOneByField.mockResolvedValue(createMockRole({ isAdmin: false }));

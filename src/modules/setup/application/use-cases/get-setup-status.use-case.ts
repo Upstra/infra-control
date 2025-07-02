@@ -117,9 +117,9 @@ export class GetSetupStatusUseCase {
         field: 'id',
         value: userId,
         disableThrow: true,
-        relations: ['role'],
+        relations: ['roles'],
       });
-      return user.role?.canCreateServer ?? false;
+      return user.roles?.some((r) => r.canCreateServer) ?? false;
     } catch {
       return false;
     }

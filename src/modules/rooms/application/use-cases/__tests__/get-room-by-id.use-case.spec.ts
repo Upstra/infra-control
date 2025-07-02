@@ -146,7 +146,7 @@ describe('GetRoomByIdUseCase', () => {
 
     roomRepository.findRoomById.mockResolvedValue(room);
     userRepo.findOneByField.mockResolvedValue(
-      createMockUser({ roleId: undefined, role: undefined }),
+      createMockUser({ roleId: undefined }),
     );
 
     const result = await useCase.execute(room.id, 'user-1');
