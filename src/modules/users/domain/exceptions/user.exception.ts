@@ -42,3 +42,9 @@ export class CannotDeleteLastAdminException extends Error {
     super(message);
   }
 }
+
+export class CannotRemoveLastAdminException extends Error {
+  constructor(message = 'Impossible de retirer le dernier rôle administrateur') {
+    super(message);
+  }
+}

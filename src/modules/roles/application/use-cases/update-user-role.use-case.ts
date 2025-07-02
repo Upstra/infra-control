@@ -4,6 +4,7 @@ import { User } from '@/modules/users/domain/entities/user.entity';
 import { Role } from '../../domain/entities/role.entity';
 import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
 import { CannotRemoveGuestRoleException } from '../../domain/exceptions/role.exception';
+import { CannotRemoveLastAdminException } from '@/modules/users/domain/exceptions/user.exception';
 
 @Injectable()
 export class UpdateUserRoleUseCase {
@@ -34,22 +35,36 @@ export class UpdateUserRoleUseCase {
 
       if (roleId) {
         const role = await roleRepo.findOneOrFail({ where: { id: roleId } });
-
         const roleExists = current.roles?.some((r) => r.id === roleId);
-        if (!roleExists) {
-          current.roles = [...(current.roles || []), role];
-        } else {
+
+        if (roleExists) {
           if (role.name === 'GUEST' && current.roles.length === 1) {
             throw new CannotRemoveGuestRoleException();
           }
+          if (role.isAdmin) {
+            const adminRoles = current.roles.filter((r) => r.isAdmin);
+            if (
+              adminRoles.length === 1 &&
+              (await userRepo.count({
+                where: { roles: { isAdmin: true } },
+              })) === 1
+            ) {
+              throw new CannotRemoveLastAdminException();
+            }
+          }
           current.roles = current.roles.filter((r) => r.id !== roleId);
-          if (current.roles.length === 0) {
-            const guest = await roleRepo.findOneOrFail({
-              where: { name: 'GUEST' },
-            });
-            current.roles = [guest];
+        } else {
+          if (current.roles && current.roles.length > 0) {
+            current.roles = [...current.roles, role];
           }
         }
+      }
+
+      if (!current.roles || current.roles.length === 0) {
+        const guest = await roleRepo.findOneOrFail({
+          where: { name: 'GUEST' },
+        });
+        current.roles = [guest];
       }
 
       const saved = await userRepo.save(current);
