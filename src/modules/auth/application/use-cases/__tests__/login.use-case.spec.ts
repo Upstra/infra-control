@@ -31,7 +31,6 @@ describe('LoginUseCase', () => {
       twoFactorSecret: 'SOME_SECRET',
       createdAt: new Date(),
       updatedAt: new Date(),
-      roleId: '1',
       roles: [createMockRole()],
       ...overrides,
     });

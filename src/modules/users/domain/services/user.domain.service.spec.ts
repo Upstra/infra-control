@@ -66,7 +66,6 @@ describe('UserDomainService', () => {
       expect(user.username).toBe('james');
       expect(user.password).toBe('hashpw');
       expect(user.email).toBe('user@example.com');
-      expect(user.roleId).toBe(role.id);
       expect(user.roles[0]).toBe(role);
       expect(user.firstName).toBe('Jean');
       expect(user.lastName).toBe('Dupont');
@@ -97,14 +96,12 @@ describe('UserDomainService', () => {
       user.firstName = 'Old';
       user.lastName = 'Name';
       user.email = 'old@mail.com';
-      user.roleId = 'role1';
 
       const dto: UserUpdateDto = {
         username: 'newuser',
         firstName: 'New',
         lastName: undefined,
         email: 'new@mail.com',
-        roleId: undefined,
       };
 
       const updated = await service.updateUserEntity(user, dto);
@@ -112,7 +109,6 @@ describe('UserDomainService', () => {
       expect(updated.firstName).toBe('New');
       expect(updated.lastName).toBe('Name'); // non modifié
       expect(updated.email).toBe('new@mail.com');
-      expect(updated.roleId).toBe('role1');
     });
 
     it('should lower case email if provided', async () => {

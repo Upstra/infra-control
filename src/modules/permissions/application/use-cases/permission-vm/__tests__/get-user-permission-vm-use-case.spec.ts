@@ -13,7 +13,7 @@ describe('GetUserVmPermissionsUseCase', () => {
   });
 
   it("should return VM permissions for the user's role", async () => {
-    const fakeUser = { id: '1', roleId: 'role-123' };
+    const fakeUser = { id: '1', roles: [{ id: 'role-123' }] };
     const fakePermissions = [{ id: 'perm1' }, { id: 'perm2' }];
     userRepo.findOneByField.mockResolvedValue(fakeUser);
     permissionVmRepo.findAllByField.mockResolvedValue(fakePermissions);
@@ -32,7 +32,7 @@ describe('GetUserVmPermissionsUseCase', () => {
   });
 
   it('should throw UnauthorizedException if user has no role', async () => {
-    userRepo.findOneByField.mockResolvedValue({ id: '1', roleId: undefined });
+    userRepo.findOneByField.mockResolvedValue({ id: '1', roles: [] });
     await expect(useCase.execute('1')).rejects.toThrow(UnauthorizedException);
   });
 
@@ -42,7 +42,7 @@ describe('GetUserVmPermissionsUseCase', () => {
   });
 
   it('should return empty array if no permissions found', async () => {
-    userRepo.findOneByField.mockResolvedValue({ id: '1', roleId: 'role-123' });
+    userRepo.findOneByField.mockResolvedValue({ id: '1', roles: [{ id: 'role-123' }] });
     permissionVmRepo.findAllByField.mockResolvedValue([]);
     jest
       .spyOn(
@@ -56,7 +56,7 @@ describe('GetUserVmPermissionsUseCase', () => {
   });
 
   it('should propagate error if permissionVmRepo.findAllByField throws', async () => {
-    userRepo.findOneByField.mockResolvedValue({ id: '1', roleId: 'role-123' });
+    userRepo.findOneByField.mockResolvedValue({ id: '1', roles: [{ id: 'role-123' }] });
     permissionVmRepo.findAllByField.mockRejectedValue(new Error('DB Error'));
 
     await expect(useCase.execute('1')).rejects.toThrow('DB Error');

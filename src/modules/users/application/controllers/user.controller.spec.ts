@@ -20,7 +20,6 @@ const mockUser = {
   username: 'johnny',
   firstName: 'John',
   lastName: 'Doe',
-  roleId: 'user-role-id',
 };
 
 describe('UserController', () => {

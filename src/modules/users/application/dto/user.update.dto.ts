@@ -25,8 +25,4 @@ export class UserUpdateDto {
   @IsString()
   readonly email?: string;
 
-  @ApiProperty()
-  @IsOptional()
-  @IsUUID()
-  readonly roleId?: string;
 }

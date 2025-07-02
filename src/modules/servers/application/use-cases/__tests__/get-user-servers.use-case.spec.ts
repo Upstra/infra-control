@@ -1,5 +1,5 @@
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
-import { GetUserServersUseCase } from '../ get-user-servers.use-case';
+import { GetUserServersUseCase } from '../get-user-servers.use-case';
 import { ServerResponseDto } from '../../dto/server.response.dto';
 
 describe('GetUserServersUseCase', () => {
@@ -17,7 +17,7 @@ describe('GetUserServersUseCase', () => {
   });
 
   it('should return [] if user has no role', async () => {
-    userRepo.findOneByField.mockResolvedValue({ id: 'user-1', roleId: null });
+    userRepo.findOneByField.mockResolvedValue({ id: 'user-1', roles: [] });
 
     const result = await useCase.execute('user-1');
     expect(result).toEqual([]);
@@ -26,7 +26,7 @@ describe('GetUserServersUseCase', () => {
   it('should return [] if no permissions found', async () => {
     userRepo.findOneByField.mockResolvedValue({
       id: 'user-2',
-      roleId: 'role-2',
+      roles: [{ id: 'role-2' }],
     });
     permissionRepo.findAllByField.mockResolvedValue([]);
 
@@ -37,7 +37,7 @@ describe('GetUserServersUseCase', () => {
   it('should return [] if user has no READ permissions', async () => {
     userRepo.findOneByField.mockResolvedValue({
       id: 'user-3',
-      roleId: 'role-3',
+      roles: [{ id: 'role-3' }],
     });
 
     permissionRepo.findAllByField.mockResolvedValue([
@@ -52,7 +52,7 @@ describe('GetUserServersUseCase', () => {
   it('should return [] if READ permissions point only to null serverIds', async () => {
     userRepo.findOneByField.mockResolvedValue({
       id: 'user-4',
-      roleId: 'role-4',
+      roles: [{ id: 'role-4' }],
     });
     permissionRepo.findAllByField.mockResolvedValue([
       { serverId: null, bitmask: PermissionBit.READ },
@@ -66,7 +66,7 @@ describe('GetUserServersUseCase', () => {
   it('should return servers if READ permissions and servers found', async () => {
     userRepo.findOneByField.mockResolvedValue({
       id: 'user-5',
-      roleId: 'role-5',
+      roles: [{ id: 'role-5' }],
     });
     permissionRepo.findAllByField.mockResolvedValue([
       { serverId: 'srv-42', bitmask: PermissionBit.READ },
@@ -97,7 +97,7 @@ describe('GetUserServersUseCase', () => {
   it('should return [] if an error is thrown by repo', async () => {
     userRepo.findOneByField.mockResolvedValue({
       id: 'user-6',
-      roleId: 'role-6',
+      roles: [{ id: 'role-6' }],
     });
     permissionRepo.findAllByField.mockResolvedValue([
       { serverId: 'srv-99', bitmask: PermissionBit.READ },

@@ -1,5 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { UpdateUserFieldsUseCase } from '@/modules/users/application/use-cases';
+import { Inject, Injectable } from '@nestjs/common';
 import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { RoleRepositoryInterface } from '../../domain/interfaces/role.repository.interface';
@@ -8,8 +7,6 @@ import { CannotDeleteLastAdminException } from '@/modules/users/domain/exception
 @Injectable()
 export class UpdateUserRoleUseCase {
   constructor(
-    @Inject(forwardRef(() => UpdateUserFieldsUseCase))
-    private readonly updateUserFields: UpdateUserFieldsUseCase,
     @Inject('UserRepositoryInterface')
     private readonly repo: UserRepositoryInterface,
     @Inject('RoleRepositoryInterface')
@@ -40,7 +37,17 @@ export class UpdateUserRoleUseCase {
       }
     }
 
-    const user = await this.updateUserFields.execute(userId, { roleId });
-    return new UserResponseDto(user);
+    if (roleId) {
+      const role = await this.roleRepo.findOneByField({
+        field: 'id',
+        value: roleId,
+      });
+      current.roles = [role];
+    } else {
+      current.roles = [];
+    }
+
+    const saved = await this.repo.save(current);
+    return new UserResponseDto(saved);
   }
 }
