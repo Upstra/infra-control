@@ -22,7 +22,7 @@ export class DashboardController {
    */
   constructor(
     private readonly getDashboardFullStats: GetDashboardFullStatsUseCase,
-    @Optional() private readonly getHistoryStats?: GetHistoryStatsUseCase,
+    private readonly getHistoryStats: GetHistoryStatsUseCase,
   ) {}
 
   @Get('full')
@@ -46,7 +46,7 @@ export class DashboardController {
   @RequireRole({ isAdmin: true })
   @ApiResponse({
     status: 200,
-    description: "Statistiques de création par date",
+    description: 'Statistiques de création par date',
     type: Object,
   })
   /**
@@ -61,6 +61,6 @@ export class DashboardController {
     @Query('entity') entity: string,
     @Query('months') months = '6',
   ): Promise<Record<string, number>> {
-    return this.getHistoryStats?.execute(entity, Number(months)) ?? {};
+    return this.getHistoryStats.execute(entity, Number(months));
   }
 }

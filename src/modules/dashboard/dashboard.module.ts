@@ -11,6 +11,7 @@ import { UserModule } from '../users/user.module';
 import { RoomModule } from '../rooms/room.module';
 import { UpsModule } from '../ups/ups.module';
 import { RoleModule } from '../roles/role.module';
+import { HistoryModule } from '../history/history.module';
 
 @Module({
   controllers: [DashboardController],
@@ -31,6 +32,7 @@ import { RoleModule } from '../roles/role.module';
     RoomModule,
     forwardRef(() => RoleModule),
     UpsModule,
+    HistoryModule,
   ],
 })
 export class DashboardModule {}
