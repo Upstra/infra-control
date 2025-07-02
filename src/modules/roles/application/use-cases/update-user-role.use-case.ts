@@ -1,5 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { User } from '@/modules/users/domain/entities/user.entity';
+import { Role } from '../../domain/entities/role.entity';
 import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { RoleRepositoryInterface } from '../../domain/interfaces/role.repository.interface';
@@ -30,24 +32,16 @@ export class UpdateUserRoleUseCase {
     roleId: string | null,
   ): Promise<UserResponseDto> {
     return this.dataSource.transaction(async (manager) => {
-      const userRepo = manager.withRepository
-        ? manager.withRepository(this.repo as any)
-        : (this.repo as any);
-      const roleRepo = manager.withRepository
-        ? manager.withRepository(this.roleRepo as any)
-        : (this.roleRepo as any);
+      const userRepo = manager.getRepository(User);
+      const roleRepo = manager.getRepository(Role);
 
-      const current = await userRepo.findOneByField({
-        field: 'id',
-        value: userId,
+      const current = await userRepo.findOneOrFail({
+        where: { id: userId },
         relations: ['roles'],
       });
 
       if (roleId) {
-        const role = await roleRepo.findOneByField({
-          field: 'id',
-          value: roleId,
-        });
+        const role = await roleRepo.findOneOrFail({ where: { id: roleId } });
 
         const roleExists = current.roles?.some((r) => r.id === roleId);
         if (!roleExists) {
@@ -58,9 +52,8 @@ export class UpdateUserRoleUseCase {
           }
           current.roles = current.roles.filter((r) => r.id !== roleId);
           if (current.roles.length === 0) {
-            const guest = await roleRepo.findOneByField({
-              field: 'name',
-              value: 'GUEST',
+            const guest = await roleRepo.findOneOrFail({
+              where: { name: 'GUEST' },
             });
             current.roles = [guest];
           }
