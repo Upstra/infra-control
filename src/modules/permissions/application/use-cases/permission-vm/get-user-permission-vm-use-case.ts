@@ -3,6 +3,24 @@ import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.
 import { PermissionVmDto } from '../../dto/permission.vm.dto';
 import { PermissionVmRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.vm.repository.interface';
 
+/**
+ * Retrieves all VM permissions granted to a specific user.
+ *
+ * Responsibilities:
+ * - Load user entity and its assigned roles.
+ * - Aggregate permissions for each VM based on role and direct grants.
+ *
+ * @param userId  The UUID of the user whose VM permissions to fetch.
+ * @returns       Promise<PermissionVmDto[]> array of per-VM permission DTOs.
+ *
+ * @remarks
+ * Used by controllers or UI layers to display a user’s VM access rights;
+ * does not modify state.
+ *
+ * @example
+ * const perms = await getUserPermissionVmUseCase.execute('user-uuid-123');
+ */
+
 @Injectable()
 export class GetUserVmPermissionsUseCase {
   constructor(

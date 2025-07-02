@@ -2,6 +2,24 @@ import { Inject, Injectable } from '@nestjs/common';
 import { PermissionServerDto } from '../../dto/permission.server.dto';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
 
+/**
+ * Updates an existing server permission entry with new actions or scope.
+ *
+ * Responsibilities:
+ * - Fetches existing permission by its ID.
+ * - Applies changes from UpdatePermissionServerDto (actions, expiry, etc.).
+ * - Persists and returns the updated permission DTO.
+ *
+ * @param id   The UUID of the permission record to update.
+ * @param dto  UpdatePermissionServerDto containing updated fields.
+ * @returns    Promise<PermissionServerDto> of the modified record.
+ *
+ * @throws {NotFoundException} if no permission entry matches the given ID.
+ *
+ * @example
+ * const updated = await updatePermissionServerUseCase.execute(permissionId, { actions: ['read','write'] });
+ */
+
 @Injectable()
 export class UpdatePermissionServerUseCase {
   constructor(
