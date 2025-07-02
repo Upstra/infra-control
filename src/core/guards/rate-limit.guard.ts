@@ -1,43 +1,52 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import rateLimit from 'express-rate-limit';
-
-interface RateLimitConfig {
-  windowMs: number;
-  max: number;
-  message: {
-    error: string;
-    statusCode: number;
-  };
-}
+import {
+  parseEnvInt,
+  sanitizeRateLimitKey,
+  encodeBase64Url,
+} from '@/core/utils/env-validation.util';
+import { RateLimitConfig } from './base-rate-limit.guard';
 
 @Injectable()
 export class AuthRateLimitGuard implements CanActivate {
+  private generateAuthKey(req: any): string {
+    const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+    const email = sanitizeRateLimitKey(
+      req.body?.email || req.body?.username || '',
+    );
+    const userAgent = req.get('User-Agent') || '';
+
+    if (email && email !== 'anonymous') {
+      return `auth:${sanitizeRateLimitKey(ip)}:${email}`;
+    }
+
+    const encodedUA = encodeBase64Url(userAgent);
+    return `auth:${sanitizeRateLimitKey(ip)}:${encodedUA}`;
+  }
+
+  private shouldSkipRateLimit(req: any): boolean {
+    const testIps = ['127.0.0.1', '::1', '::ffff:127.0.0.1'];
+    return process.env.NODE_ENV === 'test' || testIps.includes(req.ip);
+  }
+
   private createLimiter(config: RateLimitConfig) {
     return rateLimit({
       ...config,
       standardHeaders: true,
       legacyHeaders: false,
-      keyGenerator: (req) => {
-        const ip = req.ip || req.socket?.remoteAddress || 'unknown';
-        const email = req.body?.email || req.body?.username || '';
-        const userAgent = req.get('User-Agent') || '';
-
-        if (email) {
-          return `auth:${ip}:${email}`;
-        }
-
-        return `auth:${ip}:${Buffer.from(userAgent).toString('base64').slice(0, 16)}`;
-      },
-      skip: (req) => {
-        const testIps = ['127.0.0.1', '::1', '::ffff:127.0.0.1'];
-        return process.env.NODE_ENV === 'test' || testIps.includes(req.ip);
-      },
+      keyGenerator: this.generateAuthKey.bind(this),
+      skip: this.shouldSkipRateLimit.bind(this),
     });
   }
 
   private strictLimiter = this.createLimiter({
-    windowMs: parseInt(process.env.RATE_LIMIT_AUTH_WINDOW_MS || '900000'),
-    max: parseInt(process.env.RATE_LIMIT_AUTH_STRICT_MAX || '5'),
+    windowMs: parseEnvInt(
+      process.env.RATE_LIMIT_AUTH_WINDOW_MS,
+      900000,
+      60000,
+      3600000,
+    ),
+    max: parseEnvInt(process.env.RATE_LIMIT_AUTH_STRICT_MAX, 5, 1, 50),
     message: {
       error: 'Trop de tentatives de connexion. Réessayez plus tard.',
       statusCode: 429,
@@ -45,21 +54,24 @@ export class AuthRateLimitGuard implements CanActivate {
   });
 
   private moderateLimiter = this.createLimiter({
-    windowMs: parseInt(process.env.RATE_LIMIT_AUTH_WINDOW_MS || '900000'),
-    max: parseInt(process.env.RATE_LIMIT_AUTH_MODERATE_MAX || '10'),
+    windowMs: parseEnvInt(
+      process.env.RATE_LIMIT_AUTH_WINDOW_MS,
+      900000,
+      60000,
+      3600000,
+    ),
+    max: parseEnvInt(process.env.RATE_LIMIT_AUTH_MODERATE_MAX, 10, 1, 100),
     message: {
       error: 'Trop de tentatives de vérification 2FA. Réessayez plus tard.',
       statusCode: 429,
     },
   });
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
-    const response = context.switchToHttp().getResponse();
-
-    const path = request.route?.path || request.url;
-    const limiter = this.getLimiterForPath(path);
-
+  private executeLimiter(
+    limiter: ReturnType<typeof rateLimit>,
+    request: any,
+    response: any,
+  ): Promise<boolean> {
     return new Promise((resolve, reject) => {
       limiter(request, response, (err: unknown) => {
         if (err) {
@@ -71,12 +83,30 @@ export class AuthRateLimitGuard implements CanActivate {
     });
   }
 
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest();
+    const response = context.switchToHttp().getResponse();
+
+    const path = request.route?.path || request.url;
+    const limiter = this.getLimiterForPath(path);
+
+    return this.executeLimiter(limiter, request, response);
+  }
+
   private getLimiterForPath(path: string) {
-    if (path.includes('/login') || path.includes('/register')) {
+    const normalizedPath = path.toLowerCase().replace(/\/+/g, '/');
+
+    if (
+      normalizedPath === '/auth/login' ||
+      normalizedPath === '/auth/register'
+    ) {
       return this.strictLimiter;
     }
 
-    if (path.includes('/2fa')) {
+    if (
+      normalizedPath.startsWith('/auth/2fa') ||
+      normalizedPath.includes('/2fa/')
+    ) {
       return this.moderateLimiter;
     }
 

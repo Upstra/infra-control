@@ -94,7 +94,8 @@ export class RoleController {
   }
 
   @Get(':id')
-  @UseGuards(ApiUsageGuard)
+  @UseGuards(ApiUsageGuard, JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiParam({
     name: 'id',
     type: String,
@@ -118,7 +119,8 @@ export class RoleController {
   }
 
   @Post()
-  @UseGuards(SensitiveOperationsGuard)
+  @UseGuards(SensitiveOperationsGuard, JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiBody({
     type: RoleCreationDto,
     description: 'Données nécessaires à la création d’un nouveau rôle',
@@ -163,7 +165,8 @@ export class RoleController {
   }
 
   @Patch(':id')
-  @UseGuards(SensitiveOperationsGuard)
+  @UseGuards(SensitiveOperationsGuard, JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiParam({
     name: 'id',
     type: String,
@@ -193,7 +196,8 @@ export class RoleController {
   }
 
   @Delete(':id')
-  @UseGuards(SensitiveOperationsGuard)
+  @UseGuards(SensitiveOperationsGuard, JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiParam({
     name: 'id',
     type: String,

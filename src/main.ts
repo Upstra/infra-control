@@ -6,6 +6,7 @@ import { Logger } from '@nestjs/common';
 import { registerAllGlobalFilters } from './core/utils/index';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import { parseEnvInt } from './core/utils/env-validation.util';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -32,8 +33,13 @@ async function bootstrap() {
 
   app.use(
     rateLimit({
-      windowMs: parseInt(process.env.RATE_LIMIT_GLOBAL_WINDOW_MS || '900000'),
-      max: parseInt(process.env.RATE_LIMIT_GLOBAL_MAX || '1000'),
+      windowMs: parseEnvInt(
+        process.env.RATE_LIMIT_GLOBAL_WINDOW_MS,
+        900000,
+        60000,
+        3600000,
+      ),
+      max: parseEnvInt(process.env.RATE_LIMIT_GLOBAL_MAX, 1000, 100, 10000),
       message: {
         error: 'Trop de requêtes depuis cette IP, essayez plus tard.',
       },
