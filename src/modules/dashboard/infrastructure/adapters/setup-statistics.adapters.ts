@@ -1,4 +1,3 @@
-// src/modules/dashboard/infrastructure/adapters/setup-statistics.adapter.ts
 import { Inject, Injectable } from '@nestjs/common';
 import { StatisticsPort } from '../../application/ports/statistics.port';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';

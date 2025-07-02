@@ -12,6 +12,7 @@ import { DeleteUserUseCase } from '../use-cases/delete-user.use-case';
 
 import { UserUpdateDto } from '../dto/user.update.dto';
 import { ResetPasswordDto } from '../dto';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 const mockUser = {
   userId: 'abc-123',
@@ -25,7 +26,6 @@ const mockUser = {
 describe('UserController', () => {
   let controller: UserController;
 
-  // Mocks UseCases
   const getMeUseCase = { execute: jest.fn() };
   const getUserByIdUseCase = { execute: jest.fn() };
   const getUserListUseCase = { execute: jest.fn() };
@@ -34,6 +34,11 @@ describe('UserController', () => {
   const updateUserUseCase = { execute: jest.fn() };
   const resetPasswordUseCase = { execute: jest.fn() };
   const deleteUserUseCase = { execute: jest.fn() };
+
+  const mockPayload: JwtPayload = {
+    userId: 'user-123',
+    email: 'john.doe@example.com',
+  };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -135,10 +140,15 @@ describe('UserController', () => {
         ...mockUser,
         ...updateDto,
       });
-      const result = await controller.updateUser(mockUser.userId, updateDto);
+      const result = await controller.updateUser(
+        mockUser.userId,
+        updateDto,
+        mockPayload,
+      );
       expect(updateUserUseCase.execute).toHaveBeenCalledWith(
         mockUser.userId,
         updateDto,
+        mockPayload,
       );
       expect(result).toEqual({ ...mockUser, ...updateDto });
     });
