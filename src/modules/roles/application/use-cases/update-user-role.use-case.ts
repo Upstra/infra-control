@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { RoleRepositoryInterface } from '../../domain/interfaces/role.repository.interface';
@@ -11,6 +12,7 @@ export class UpdateUserRoleUseCase {
     private readonly repo: UserRepositoryInterface,
     @Inject('RoleRepositoryInterface')
     private readonly roleRepo: RoleRepositoryInterface,
+    private readonly dataSource: DataSource,
   ) {}
 
   /**
@@ -27,37 +29,46 @@ export class UpdateUserRoleUseCase {
     userId: string,
     roleId: string | null,
   ): Promise<UserResponseDto> {
-    const current = await this.repo.findOneByField({
-      field: 'id',
-      value: userId,
-      relations: ['roles'],
-    });
+    return this.dataSource.transaction(async (manager) => {
+      const userRepo = manager.withRepository
+        ? manager.withRepository(this.repo as any)
+        : (this.repo as any);
+      const roleRepo = manager.withRepository
+        ? manager.withRepository(this.roleRepo as any)
+        : (this.roleRepo as any);
 
-    if (roleId) {
-      const role = await this.roleRepo.findOneByField({
+      const current = await userRepo.findOneByField({
         field: 'id',
-        value: roleId,
+        value: userId,
+        relations: ['roles'],
       });
 
-      const roleExists = current.roles?.some((r) => r.id === roleId);
-      if (!roleExists) {
-        current.roles = [...(current.roles || []), role];
-      } else {
-        if (role.name === 'GUEST' && current.roles.length === 1) {
-          throw new CannotRemoveGuestRoleException();
-        }
-        current.roles = current.roles.filter((r) => r.id !== roleId);
-        if (current.roles.length === 0) {
-          const guest = await this.roleRepo.findOneByField({
-            field: 'name',
-            value: 'GUEST',
-          });
-          current.roles = [guest];
+      if (roleId) {
+        const role = await roleRepo.findOneByField({
+          field: 'id',
+          value: roleId,
+        });
+
+        const roleExists = current.roles?.some((r) => r.id === roleId);
+        if (!roleExists) {
+          current.roles = [...(current.roles || []), role];
+        } else {
+          if (role.name === 'GUEST' && current.roles.length === 1) {
+            throw new CannotRemoveGuestRoleException();
+          }
+          current.roles = current.roles.filter((r) => r.id !== roleId);
+          if (current.roles.length === 0) {
+            const guest = await roleRepo.findOneByField({
+              field: 'name',
+              value: 'GUEST',
+            });
+            current.roles = [guest];
+          }
         }
       }
-    }
 
-    const saved = await this.repo.save(current);
-    return new UserResponseDto(saved);
+      const saved = await userRepo.save(current);
+      return new UserResponseDto(saved);
+    });
   }
 }
