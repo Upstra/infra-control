@@ -35,12 +35,9 @@ export class UpdateUserRoleUseCase {
 
       if (roleId) {
         const role = await roleRepo.findOneOrFail({ where: { id: roleId } });
-
         const roleExists = current.roles?.some((r) => r.id === roleId);
 
-        if (!roleExists) {
-          current.roles = [...(current.roles || []), role];
-        } else {
+        if (roleExists) {
           if (role.name === 'GUEST' && current.roles.length === 1) {
             throw new CannotRemoveGuestRoleException();
           }
@@ -56,15 +53,20 @@ export class UpdateUserRoleUseCase {
             }
           }
           current.roles = current.roles.filter((r) => r.id !== roleId);
-
-          if (current.roles.length === 0) {
-            const guest = await roleRepo.findOneOrFail({
-              where: { name: 'GUEST' },
-            });
-            current.roles = [guest];
+        } else {
+          if (current.roles && current.roles.length > 0) {
+            current.roles = [...current.roles, role];
           }
         }
       }
+
+      if (!current.roles || current.roles.length === 0) {
+        const guest = await roleRepo.findOneOrFail({
+          where: { name: 'GUEST' },
+        });
+        current.roles = [guest];
+      }
+
       const saved = await userRepo.save(current);
       return new UserResponseDto(saved);
     });
