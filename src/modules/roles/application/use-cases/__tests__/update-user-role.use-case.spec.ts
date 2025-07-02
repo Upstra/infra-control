@@ -6,16 +6,24 @@ import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.
 import { RoleRepositoryInterface } from '@/modules/roles/domain/interfaces/role.repository.interface';
 import { createMockRole } from '@/modules/roles/__mocks__/role.mock';
 import { CannotRemoveGuestRoleException } from '@/modules/roles/domain/exceptions/role.exception';
+import { DataSource, EntityManager } from 'typeorm';
 
 describe('UpdateUserRoleUseCase', () => {
   let useCase: UpdateUserRoleUseCase;
   let repo: jest.Mocked<UserRepositoryInterface>;
   let roleRepo: jest.Mocked<RoleRepositoryInterface>;
+  let dataSource: jest.Mocked<DataSource>;
 
   beforeEach(() => {
     repo = { findOneByField: jest.fn(), save: jest.fn() } as any;
     roleRepo = { findOneByField: jest.fn() } as any;
-    useCase = new UpdateUserRoleUseCase(repo, roleRepo);
+    dataSource = {
+      transaction: jest.fn(
+        async (cb: (manager: Partial<EntityManager>) => any) =>
+          cb({ withRepository: (r: any) => r }),
+      ),
+    } as any;
+    useCase = new UpdateUserRoleUseCase(repo, roleRepo, dataSource);
   });
 
   it('should add role to user', async () => {
@@ -40,6 +48,7 @@ describe('UpdateUserRoleUseCase', () => {
     });
     expect(current.roles).toEqual([existingRole, newRole]);
     expect(repo.save).toHaveBeenCalledWith(current);
+    expect(dataSource.transaction).toHaveBeenCalled();
     expect(result).toEqual(new UserResponseDto(updated));
   });
 
@@ -48,14 +57,19 @@ describe('UpdateUserRoleUseCase', () => {
     const current = createMockUser({ id: 'u1', roles: [existingRole] });
     const updated = Object.setPrototypeOf(current, User.prototype);
 
+    const guestRole = createMockRole({ id: 'g1', name: 'GUEST' });
+
     repo.findOneByField.mockResolvedValue(current);
-    roleRepo.findOneByField.mockResolvedValue(existingRole);
+    roleRepo.findOneByField
+      .mockResolvedValueOnce(existingRole)
+      .mockResolvedValueOnce(guestRole);
     repo.save.mockResolvedValue(updated);
 
     const result = await useCase.execute('u1', 'r1');
 
-    expect(current.roles).toEqual([]);
+    expect(current.roles).toEqual([guestRole]);
     expect(repo.save).toHaveBeenCalledWith(current);
+    expect(dataSource.transaction).toHaveBeenCalled();
     expect(result).toEqual(new UserResponseDto(updated));
   });
 
@@ -73,6 +87,7 @@ describe('UpdateUserRoleUseCase', () => {
 
     expect(roleRepo.findOneByField).not.toHaveBeenCalled();
     expect(repo.save).toHaveBeenCalledWith(current);
+    expect(dataSource.transaction).toHaveBeenCalled();
     expect(result).toEqual(new UserResponseDto(updated));
   });
 
@@ -95,6 +110,7 @@ describe('UpdateUserRoleUseCase', () => {
     const result = await useCase.execute('u1', 'r1');
 
     expect(current.roles).toEqual([guestRole]);
+    expect(dataSource.transaction).toHaveBeenCalled();
     expect(result).toEqual(new UserResponseDto(updated));
   });
 
@@ -108,11 +124,13 @@ describe('UpdateUserRoleUseCase', () => {
     await expect(useCase.execute('u1', 'g1')).rejects.toThrow(
       CannotRemoveGuestRoleException,
     );
+    expect(dataSource.transaction).toHaveBeenCalled();
   });
 
   it('should propagate errors', async () => {
     repo.findOneByField.mockResolvedValue(createMockUser({ roles: [] }));
     repo.save.mockRejectedValue(new Error('fail'));
     await expect(useCase.execute('u1', null)).rejects.toThrow('fail');
+    expect(dataSource.transaction).toHaveBeenCalled();
   });
 });
