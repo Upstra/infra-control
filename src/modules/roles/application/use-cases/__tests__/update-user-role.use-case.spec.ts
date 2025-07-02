@@ -7,6 +7,7 @@ import { RoleRepositoryInterface } from '@/modules/roles/domain/interfaces/role.
 import { createMockRole } from '@/modules/roles/__mocks__/role.mock';
 import { CannotRemoveGuestRoleException } from '@/modules/roles/domain/exceptions/role.exception';
 import { DataSource, EntityManager } from 'typeorm';
+import { CannotRemoveLastAdminException } from '@/modules/users/domain/exceptions/user.exception';
 
 describe('UpdateUserRoleUseCase', () => {
   let useCase: UpdateUserRoleUseCase;
@@ -55,7 +56,10 @@ describe('UpdateUserRoleUseCase', () => {
   it('should not add duplicate role', async () => {
     const existingRole = createMockRole({ id: 'r1', isAdmin: true });
     const otherRole = createMockRole({ id: 'r2', isAdmin: false });
-    const current = createMockUser({ id: 'u1', roles: [existingRole, otherRole] });
+    const current = createMockUser({
+      id: 'u1',
+      roles: [existingRole, otherRole],
+    });
     const updated = Object.setPrototypeOf(current, User.prototype);
 
     const guestRole = createMockRole({ id: 'g1', name: 'GUEST' });

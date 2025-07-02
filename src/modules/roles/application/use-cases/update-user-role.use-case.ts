@@ -33,30 +33,38 @@ export class UpdateUserRoleUseCase {
         relations: ['roles'],
       });
 
-if (roleId) {
-  const role = await roleRepo.findOneOrFail({ where: { id: roleId } });
+      if (roleId) {
+        const role = await roleRepo.findOneOrFail({ where: { id: roleId } });
 
-  const roleExists = current.roles?.some((r) => r.id === roleId);
+        const roleExists = current.roles?.some((r) => r.id === roleId);
 
-  if (!roleExists) {
-    current.roles = [...(current.roles || []), role];
-  } else {
-    if (role.name === 'GUEST' && current.roles.length === 1) {
-      throw new CannotRemoveGuestRoleException();
-    }
-    if (role.isAdmin) {
-      const adminRoles = current.roles.filter((r) => r.isAdmin);
-      if (adminRoles.length === 1 && (await repo.countAdmins()) === 1) {
-        throw new CannotRemoveLastAdminException();
+        if (!roleExists) {
+          current.roles = [...(current.roles || []), role];
+        } else {
+          if (role.name === 'GUEST' && current.roles.length === 1) {
+            throw new CannotRemoveGuestRoleException();
+          }
+          if (role.isAdmin) {
+            const adminRoles = current.roles.filter((r) => r.isAdmin);
+            if (
+              adminRoles.length === 1 &&
+              (await userRepo.count({
+                where: { roles: { isAdmin: true } },
+              })) === 1
+            ) {
+              throw new CannotRemoveLastAdminException();
+            }
+          }
+          current.roles = current.roles.filter((r) => r.id !== roleId);
+
+          if (current.roles.length === 0) {
+            const guest = await roleRepo.findOneOrFail({
+              where: { name: 'GUEST' },
+            });
+            current.roles = [guest];
+          }
+        }
       }
-    }
-    current.roles = current.roles.filter((r) => r.id !== roleId);
-
-    if (current.roles.length === 0) {
-      const guest = await roleRepo.findOneOrFail({ where: { name: 'GUEST' } });
-      current.roles = [guest];
-    }
-  }
       const saved = await userRepo.save(current);
       return new UserResponseDto(saved);
     });
