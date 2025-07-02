@@ -41,6 +41,8 @@ import { AdminRoleCreationDto } from '../dto/role.creation.dto';
 import { RequireRole } from '@/core/decorators/role.decorator';
 import { RoleGuard } from '@/core/guards';
 import { RoleUpdateDto } from '../dto/role.update.dto';
+import { SensitiveOperationsGuard } from '@/core/guards/sensitive-operations.guard';
+import { ApiUsageGuard } from '@/core/guards/api-usage.guard';
 
 @ApiTags('Role')
 @Controller('role')
@@ -57,7 +59,7 @@ export class RoleController {
   ) {}
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(ApiUsageGuard, JwtAuthGuard)
   @ApiBearerAuth()
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
@@ -75,7 +77,7 @@ export class RoleController {
   }
 
   @Get('admin/all')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(ApiUsageGuard, JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Récupérer tous les rôles',
@@ -92,6 +94,7 @@ export class RoleController {
   }
 
   @Get(':id')
+  @UseGuards(ApiUsageGuard)
   @ApiParam({
     name: 'id',
     type: String,
@@ -115,6 +118,7 @@ export class RoleController {
   }
 
   @Post()
+  @UseGuards(SensitiveOperationsGuard)
   @ApiBody({
     type: RoleCreationDto,
     description: 'Données nécessaires à la création d’un nouveau rôle',
@@ -135,6 +139,7 @@ export class RoleController {
   }
 
   @Post('admin')
+  @UseGuards(SensitiveOperationsGuard)
   @ApiOperation({
     summary: 'Créer un rôle administrateur',
     description:
@@ -150,7 +155,7 @@ export class RoleController {
     description: 'Données nécessaires à la création d’un rôle administrateur',
     required: true,
   })
-  @UseGuards(JwtAuthGuard, RoleGuard)
+  @UseGuards(SensitiveOperationsGuard, JwtAuthGuard, RoleGuard)
   @RequireRole({ isAdmin: true })
   @ApiBearerAuth()
   async createAdminRole(@Body() dto: AdminRoleCreationDto) {
@@ -158,6 +163,7 @@ export class RoleController {
   }
 
   @Patch(':id')
+  @UseGuards(SensitiveOperationsGuard)
   @ApiParam({
     name: 'id',
     type: String,
@@ -187,6 +193,7 @@ export class RoleController {
   }
 
   @Delete(':id')
+  @UseGuards(SensitiveOperationsGuard)
   @ApiParam({
     name: 'id',
     type: String,
@@ -207,7 +214,7 @@ export class RoleController {
   }
 
   @Get(':id/users')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(ApiUsageGuard, JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({ name: 'id', type: String })
   @ApiOperation({ summary: "Liste des utilisateurs d'un rôle" })
@@ -219,7 +226,7 @@ export class RoleController {
   }
 
   @Patch('users/:userId/role')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SensitiveOperationsGuard, JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({
     name: 'userId',

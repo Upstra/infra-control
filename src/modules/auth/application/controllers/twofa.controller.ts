@@ -27,6 +27,7 @@ import { Verify2FAUseCase } from '../use-cases/verify-2fa.use-case';
 import { Disable2FAUseCase } from '../use-cases/disable-2fa.use-case';
 import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.exception.filter';
 import { Verify2FARecoveryUseCase } from '../use-cases';
+import { AuthRateLimitGuard } from '@/core/guards/rate-limit.guard';
 
 @ApiTags('2FA')
 @Controller('auth/2fa')
@@ -68,7 +69,7 @@ export class TwoFAController {
     type: TwoFAResponseDto,
   })
   @UseFilters(InvalidQueryExceptionFilter)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthRateLimitGuard, JwtAuthGuard)
   @ApiBearerAuth()
   @ApiBody({
     type: TwoFADto,
