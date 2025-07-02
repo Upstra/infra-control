@@ -5,4 +5,6 @@ export const mockRoomResponseDto = () => ({
   name: 'Room 69',
   servers: [],
   ups: [],
+  serverCount: 0,
+  upsCount: 0,
 });

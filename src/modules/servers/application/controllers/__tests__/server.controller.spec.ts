@@ -16,6 +16,7 @@ import { RoleGuard } from '@/core/guards/role.guard';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { GetUserWithRoleUseCase } from '@/modules/users/application/use-cases';
 import { Reflector } from '@nestjs/core';
+import { ServerListResponseDto } from '../../dto/server.list.response.dto';
 
 describe('ServerController', () => {
   let controller: ServerController;
@@ -212,19 +213,78 @@ describe('ServerController', () => {
   });
 
   describe('getMyServers', () => {
-    it('should return servers accessible to the user', async () => {
+    it('should return paginated servers accessible to the user with default pagination', async () => {
       const dto = createMockServerDto();
       const user: JwtPayload = {
         userId: 'user-uuid',
         email: 'john.doe@example.com',
       };
 
-      getUserServersUseCase.execute.mockResolvedValue([dto]);
+      const mockPaginatedResponse = new ServerListResponseDto([dto], 1, 1, 10);
+      getUserServersUseCase.execute.mockResolvedValue(mockPaginatedResponse);
 
       const result = await controller.getMyServers(user);
 
-      expect(result).toEqual([dto]);
-      expect(getUserServersUseCase.execute).toHaveBeenCalledWith('user-uuid');
+      expect(result).toEqual(mockPaginatedResponse);
+      expect(result).toBeInstanceOf(ServerListResponseDto);
+      expect(result.items).toEqual([dto]);
+      expect(result.totalItems).toBe(1);
+      expect(result.currentPage).toBe(1);
+      expect(result.totalPages).toBe(1);
+      expect(getUserServersUseCase.execute).toHaveBeenCalledWith(
+        'user-uuid',
+        1,
+        10,
+      );
+    });
+
+    it('should return paginated servers with custom pagination parameters', async () => {
+      const dto = createMockServerDto();
+      const user: JwtPayload = {
+        userId: 'user-uuid',
+        email: 'john.doe@example.com',
+      };
+
+      const mockPaginatedResponse = new ServerListResponseDto([dto], 10, 2, 5);
+      getUserServersUseCase.execute.mockResolvedValue(mockPaginatedResponse);
+
+      const result = await controller.getMyServers(user, '2', '5');
+
+      expect(result).toEqual(mockPaginatedResponse);
+      expect(result).toBeInstanceOf(ServerListResponseDto);
+      expect(result.items).toEqual([dto]);
+      expect(result.totalItems).toBe(10);
+      expect(result.currentPage).toBe(2);
+      expect(result.totalPages).toBe(2);
+      expect(getUserServersUseCase.execute).toHaveBeenCalledWith(
+        'user-uuid',
+        2,
+        5,
+      );
+    });
+
+    it('should handle empty results with pagination', async () => {
+      const user: JwtPayload = {
+        userId: 'user-uuid',
+        email: 'john.doe@example.com',
+      };
+
+      const mockPaginatedResponse = new ServerListResponseDto([], 0, 1, 10);
+      getUserServersUseCase.execute.mockResolvedValue(mockPaginatedResponse);
+
+      const result = await controller.getMyServers(user);
+
+      expect(result).toEqual(mockPaginatedResponse);
+      expect(result).toBeInstanceOf(ServerListResponseDto);
+      expect(result.items).toEqual([]);
+      expect(result.totalItems).toBe(0);
+      expect(result.currentPage).toBe(1);
+      expect(result.totalPages).toBe(0);
+      expect(getUserServersUseCase.execute).toHaveBeenCalledWith(
+        'user-uuid',
+        1,
+        10,
+      );
     });
   });
 

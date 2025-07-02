@@ -9,6 +9,12 @@ export interface ServerRepositoryInterface
     options: FindAllByFieldOptions<Server, T>,
   ): Promise<Server[]>;
 
+  findAllByFieldPaginated<T extends PrimitiveFields<Server>>(
+    options: FindAllByFieldOptions<Server, T>,
+    page: number,
+    limit: number,
+  ): Promise<[Server[], number]>;
+
   findServerById(id: string): Promise<Server | null>;
   deleteServer(id: string): Promise<void>;
 }

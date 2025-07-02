@@ -4,6 +4,7 @@ import {
   CreateVmUseCase,
   DeleteVmUseCase,
   GetAllVmsUseCase,
+  GetVmListUseCase,
   GetVmByIdUseCase,
   UpdateVmUseCase,
 } from '../../use-cases';
@@ -17,6 +18,7 @@ import { Reflector } from '@nestjs/core';
 describe('VmController', () => {
   let controller: VmController;
   let getAllVmsUseCase: jest.Mocked<GetAllVmsUseCase>;
+  let getVmListUseCase: jest.Mocked<GetVmListUseCase>;
   let getVmByIdUseCase: jest.Mocked<GetVmByIdUseCase>;
   let createVmUseCase: jest.Mocked<CreateVmUseCase>;
   let updateVmUseCase: jest.Mocked<UpdateVmUseCase>;
@@ -45,6 +47,7 @@ describe('VmController', () => {
     };
 
     getAllVmsUseCase = { execute: jest.fn() } as any;
+    getVmListUseCase = { execute: jest.fn() } as any;
     getVmByIdUseCase = { execute: jest.fn() } as any;
     createVmUseCase = { execute: jest.fn() } as any;
     updateVmUseCase = { execute: jest.fn() } as any;
@@ -54,6 +57,7 @@ describe('VmController', () => {
       controllers: [VmController],
       providers: [
         { provide: GetAllVmsUseCase, useValue: getAllVmsUseCase },
+        { provide: GetVmListUseCase, useValue: getVmListUseCase },
         { provide: GetVmByIdUseCase, useValue: getVmByIdUseCase },
         { provide: CreateVmUseCase, useValue: createVmUseCase },
         { provide: UpdateVmUseCase, useValue: updateVmUseCase },
@@ -85,6 +89,24 @@ describe('VmController', () => {
 
       expect(result).toEqual([vm]);
       expect(getAllVmsUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getVms', () => {
+    it('should return paginated VMs', async () => {
+      const mock = { items: [createMockVm()] } as any;
+      getVmListUseCase.execute.mockResolvedValue(mock);
+      const result = await controller.getVms('1', '5');
+      expect(result).toBe(mock);
+      expect(getVmListUseCase.execute).toHaveBeenCalledWith(1, 5);
+    });
+
+    it('should use default pagination', async () => {
+      const mock = { items: [] } as any;
+      getVmListUseCase.execute.mockResolvedValue(mock);
+      const result = await controller.getVms();
+      expect(result).toBe(mock);
+      expect(getVmListUseCase.execute).toHaveBeenCalledWith(1, 10);
     });
   });
 
