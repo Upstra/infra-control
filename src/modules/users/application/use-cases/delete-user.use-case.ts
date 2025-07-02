@@ -18,7 +18,10 @@ export class DeleteUserUseCase {
       relations: ['roles'],
     });
 
-    if (user.roles?.some((r) => r.isAdmin) && (await this.repo.countAdmins()) === 1) {
+    if (
+      user.roles?.some((r) => r.isAdmin) &&
+      (await this.repo.countAdmins()) === 1
+    ) {
       throw new CannotDeleteLastAdminException();
     }
 

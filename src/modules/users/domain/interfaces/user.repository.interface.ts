@@ -43,5 +43,13 @@ export interface UserRepositoryInterface
     limit: number,
     relations?: string[],
   ): Promise<[User[], number]>;
+
+  /**
+   * Find all users that have a specific role.
+   *
+   * @param roleId - The ID of the role to search for
+   * @returns Array of users having the specified role
+   */
+  findUsersByRole(roleId: string): Promise<User[]>;
 }
 export { FindOneByFieldOptions, FindAllByFieldOptions };

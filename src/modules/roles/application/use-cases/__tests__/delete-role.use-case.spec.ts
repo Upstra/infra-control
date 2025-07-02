@@ -1,28 +1,34 @@
-import { RoleRepositoryInterface } from '@/modules/roles/domain/interfaces/role.repository.interface';
 import { DeleteRoleUseCase } from '../delete-role.use-case';
+import { SafeRoleDeletionDomainService } from '@/modules/roles/domain/services/safe-role-deletion.domain.service';
 
 describe('DeleteRoleUseCase', () => {
   let useCase: DeleteRoleUseCase;
-  let roleRepository: jest.Mocked<RoleRepositoryInterface>;
+  let safeRoleDeletionService: jest.Mocked<SafeRoleDeletionDomainService>;
 
   beforeEach(() => {
-    roleRepository = {
-      deleteRole: jest.fn(),
+    safeRoleDeletionService = {
+      safelyDeleteRole: jest.fn(),
     } as any;
 
-    useCase = new DeleteRoleUseCase(roleRepository);
+    useCase = new DeleteRoleUseCase(safeRoleDeletionService);
   });
 
-  it('should call repository to delete role', async () => {
-    roleRepository.deleteRole.mockResolvedValue(undefined);
+  it('should call safe deletion service to delete role', async () => {
+    safeRoleDeletionService.safelyDeleteRole.mockResolvedValue(undefined);
 
     await useCase.execute('role-id-123');
-    expect(roleRepository.deleteRole).toHaveBeenCalledWith('role-id-123');
+    expect(safeRoleDeletionService.safelyDeleteRole).toHaveBeenCalledWith(
+      'role-id-123',
+    );
   });
 
-  it('should propagate errors from repository', async () => {
-    roleRepository.deleteRole.mockRejectedValue(new Error('DB Error'));
+  it('should propagate errors from safe deletion service', async () => {
+    safeRoleDeletionService.safelyDeleteRole.mockRejectedValue(
+      new Error('Service Error'),
+    );
 
-    await expect(useCase.execute('role-id-123')).rejects.toThrow('DB Error');
+    await expect(useCase.execute('role-id-123')).rejects.toThrow(
+      'Service Error',
+    );
   });
 });

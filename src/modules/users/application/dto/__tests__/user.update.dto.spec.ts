@@ -1,7 +1,6 @@
 import 'reflect-metadata';
 import { validate } from 'class-validator';
 import { UserUpdateDto } from '../user.update.dto';
-import { v4 as uuidv4 } from 'uuid';
 
 describe('UserUpdateDto', () => {
   it('should be valid with correct lengths', async () => {
@@ -22,7 +21,6 @@ describe('UserUpdateDto', () => {
     expect(errors.length).toBe(1);
     expect(errors[0].constraints).toHaveProperty('isLength');
   });
-
 
   it('should be valid with only one field (partial update)', async () => {
     const dto = new UserUpdateDto();

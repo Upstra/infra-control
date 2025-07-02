@@ -28,7 +28,6 @@ describe('UpdateUserUseCase', () => {
       countAdmins: jest.fn(),
     } as any;
 
-
     domain = {
       ensureUniqueEmail: jest.fn(),
       ensureUniqueUsername: jest.fn(),
@@ -96,5 +95,4 @@ describe('UpdateUserUseCase', () => {
 
     await expect(useCase.execute('user-1', dto)).rejects.toThrow('Save failed');
   });
-
 });

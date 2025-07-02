@@ -73,12 +73,17 @@ describe('CreateRoleUseCase', () => {
   });
 
   it('throws if admin role already exists', async () => {
-    const dto: AdminRoleCreationDto = Object.assign(new AdminRoleCreationDto(), {
-      name: 'ADMIN',
-      isAdmin: true,
-      canCreateServer: true,
-    });
-    roleRepository.findOneByField.mockResolvedValue(createMockRole({ isAdmin: true }));
+    const dto: AdminRoleCreationDto = Object.assign(
+      new AdminRoleCreationDto(),
+      {
+        name: 'ADMIN',
+        isAdmin: true,
+        canCreateServer: true,
+      },
+    );
+    roleRepository.findOneByField.mockResolvedValue(
+      createMockRole({ isAdmin: true }),
+    );
     await expect(useCase.execute(dto)).rejects.toBeInstanceOf(
       AdminRoleAlreadyExistsException,
     );

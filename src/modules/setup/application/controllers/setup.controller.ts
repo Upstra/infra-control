@@ -21,11 +21,7 @@ import {
   GetSetupStatusUseCase,
 } from '../use-cases';
 import { CompleteVmDiscoveryDto } from '../dto/complete-vm-discovery.dto';
-import {
-  CompleteSetupStepDto,
-  SetupProgressDto,
-  SetupStatusDto,
-} from '../dto';
+import { CompleteSetupStepDto, SetupProgressDto, SetupStatusDto } from '../dto';
 
 @ApiTags('Setup')
 @Controller('setup')
@@ -55,7 +51,7 @@ export class SetupController {
   @ApiOperation({ summary: 'Get setup status for authenticated user' })
   @ApiResponse({
     status: 200,
-    description: 'Statut du setup pour l\'utilisateur authentifié',
+    description: "Statut du setup pour l'utilisateur authentifié",
     type: SetupStatusDto,
   })
   async getAuthenticatedSetupStatus(@Request() req) {
@@ -91,7 +87,7 @@ export class SetupController {
   @ApiOperation({ summary: 'Marquer une étape du setup comme complétée' })
   @ApiResponse({
     status: 200,
-    description: "Étape de setup complétée",
+    description: 'Étape de setup complétée',
     type: SetupProgressDto,
   })
   async completeSetupStep(@Request() req, @Body() body: CompleteSetupStepDto) {

@@ -143,4 +143,12 @@ export class UserTypeormRepository
       throw new UserDeletionException();
     }
   }
+
+  async findUsersByRole(roleId: string): Promise<User[]> {
+    return await this.createQueryBuilder('user')
+      .innerJoin('user.roles', 'role')
+      .where('role.id = :roleId', { roleId })
+      .leftJoinAndSelect('user.roles', 'allRoles')
+      .getMany();
+  }
 }

@@ -42,7 +42,10 @@ describe('GetUserVmPermissionsUseCase', () => {
   });
 
   it('should return empty array if no permissions found', async () => {
-    userRepo.findOneByField.mockResolvedValue({ id: '1', roles: [{ id: 'role-123' }] });
+    userRepo.findOneByField.mockResolvedValue({
+      id: '1',
+      roles: [{ id: 'role-123' }],
+    });
     permissionVmRepo.findAllByField.mockResolvedValue([]);
     jest
       .spyOn(
@@ -56,7 +59,10 @@ describe('GetUserVmPermissionsUseCase', () => {
   });
 
   it('should propagate error if permissionVmRepo.findAllByField throws', async () => {
-    userRepo.findOneByField.mockResolvedValue({ id: '1', roles: [{ id: 'role-123' }] });
+    userRepo.findOneByField.mockResolvedValue({
+      id: '1',
+      roles: [{ id: 'role-123' }],
+    });
     permissionVmRepo.findAllByField.mockRejectedValue(new Error('DB Error'));
 
     await expect(useCase.execute('1')).rejects.toThrow('DB Error');

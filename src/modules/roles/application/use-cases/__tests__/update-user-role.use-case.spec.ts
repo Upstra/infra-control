@@ -21,16 +21,22 @@ describe('UpdateUserRoleUseCase', () => {
     const existingRole = createMockRole({ id: 'r0', isAdmin: true });
     const current = createMockUser({ id: 'u1', roles: [existingRole] });
     const newRole = createMockRole({ id: 'r1', isAdmin: false });
-    
+
     repo.findOneByField.mockResolvedValue(current);
     roleRepo.findOneByField.mockResolvedValue(newRole);
-    
-    const updated = Object.setPrototypeOf({ ...current, roles: [existingRole, newRole] }, User.prototype);
+
+    const updated = Object.setPrototypeOf(
+      { ...current, roles: [existingRole, newRole] },
+      User.prototype,
+    );
     repo.save.mockResolvedValue(updated);
 
     const result = await useCase.execute('u1', 'r1');
 
-    expect(roleRepo.findOneByField).toHaveBeenCalledWith({ field: 'id', value: 'r1' });
+    expect(roleRepo.findOneByField).toHaveBeenCalledWith({
+      field: 'id',
+      value: 'r1',
+    });
     expect(current.roles).toEqual([existingRole, newRole]);
     expect(repo.save).toHaveBeenCalledWith(current);
     expect(result).toEqual(new UserResponseDto(updated));
@@ -40,7 +46,7 @@ describe('UpdateUserRoleUseCase', () => {
     const existingRole = createMockRole({ id: 'r1', isAdmin: true });
     const current = createMockUser({ id: 'u1', roles: [existingRole] });
     const updated = Object.setPrototypeOf(current, User.prototype);
-    
+
     repo.findOneByField.mockResolvedValue(current);
     roleRepo.findOneByField.mockResolvedValue(existingRole);
     repo.save.mockResolvedValue(updated);
@@ -53,9 +59,12 @@ describe('UpdateUserRoleUseCase', () => {
   });
 
   it('should handle null roleId without changes', async () => {
-    const current = createMockUser({ id: 'u1', roles: [createMockRole({ isAdmin: false })] });
+    const current = createMockUser({
+      id: 'u1',
+      roles: [createMockRole({ isAdmin: false })],
+    });
     const updated = Object.setPrototypeOf(current, User.prototype);
-    
+
     repo.findOneByField.mockResolvedValue(current);
     repo.save.mockResolvedValue(updated);
 

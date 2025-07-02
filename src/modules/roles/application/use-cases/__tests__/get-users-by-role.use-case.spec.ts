@@ -21,7 +21,9 @@ describe('GetUsersByRoleUseCase', () => {
 
   it('should return users for role', async () => {
     const user = createMockUser({ id: 'u1', roles: [{ id: 'r1' }] });
-    roleRepo.findOneByField.mockResolvedValue(Object.assign(createMockRole(), { users: [user] }));
+    roleRepo.findOneByField.mockResolvedValue(
+      Object.assign(createMockRole(), { users: [user] }),
+    );
 
     const result = await useCase.execute('r1');
 

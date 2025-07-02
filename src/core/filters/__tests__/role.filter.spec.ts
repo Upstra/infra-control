@@ -1,6 +1,9 @@
 import { ArgumentsHost, HttpStatus } from '@nestjs/common';
 import { RoleExceptionFilter } from '../role.exception.filter';
-import { AdminRoleAlreadyExistsException, RoleNotFoundException } from '@/modules/roles/domain/exceptions/role.exception';
+import {
+  AdminRoleAlreadyExistsException,
+  RoleNotFoundException,
+} from '@/modules/roles/domain/exceptions/role.exception';
 
 describe('RoleExceptionFilter', () => {
   const createHost = () => {

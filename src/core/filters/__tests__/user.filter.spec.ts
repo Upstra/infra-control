@@ -1,6 +1,9 @@
 import { ArgumentsHost, HttpStatus } from '@nestjs/common';
 import { UserExceptionFilter } from '../user.exception.filter';
-import { CannotDeleteLastAdminException, UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
+import {
+  CannotDeleteLastAdminException,
+  UserNotFoundException,
+} from '@/modules/users/domain/exceptions/user.exception';
 
 describe('UserExceptionFilter', () => {
   const createHost = () => {

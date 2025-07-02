@@ -37,7 +37,7 @@ export class UpdateUserRoleUseCase {
         field: 'id',
         value: roleId,
       });
-      
+
       const roleExists = current.roles?.some((r) => r.id === roleId);
       if (!roleExists) {
         current.roles = [...(current.roles || []), role];

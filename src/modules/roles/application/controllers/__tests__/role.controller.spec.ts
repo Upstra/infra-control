@@ -147,7 +147,11 @@ describe('RoleController', () => {
 
   describe('createAdminRole', () => {
     it('should create admin role', async () => {
-      const dto: AdminRoleCreationDto = { name: 'ADMIN', isAdmin: true, canCreateServer: true };
+      const dto: AdminRoleCreationDto = {
+        name: 'ADMIN',
+        isAdmin: true,
+        canCreateServer: true,
+      };
       const role = new RoleResponseDto(createMockRole({ name: 'ADMIN' }));
       createRoleUseCase.execute.mockResolvedValue(role);
 

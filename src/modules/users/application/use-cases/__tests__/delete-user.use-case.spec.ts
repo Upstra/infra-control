@@ -1,4 +1,7 @@
-import { UserNotFoundException, CannotDeleteLastAdminException } from '@/modules/users/domain/exceptions/user.exception';
+import {
+  UserNotFoundException,
+  CannotDeleteLastAdminException,
+} from '@/modules/users/domain/exceptions/user.exception';
 import { DeleteUserUseCase } from '../delete-user.use-case';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
@@ -63,7 +66,9 @@ describe('DeleteUserUseCase', () => {
   });
 
   it('should throw if deleting the last admin', async () => {
-    const adminUser = createMockUser({ roles: [createMockRole({ isAdmin: true })] });
+    const adminUser = createMockUser({
+      roles: [createMockRole({ isAdmin: true })],
+    });
     repo.findOneByField.mockResolvedValue(adminUser);
     repo.countAdmins.mockResolvedValue(1);
 

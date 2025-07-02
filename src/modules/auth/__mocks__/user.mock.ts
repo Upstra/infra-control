@@ -1,5 +1,4 @@
 import { User } from '@/modules/users/domain/entities/user.entity';
-import { createMockRole } from '@/modules/roles/__mocks__/role.mock';
 import { UserResponseDto } from '@/modules/users/application/dto';
 
 export const createMockUser = (overrides?: Record<string, any>): User => {

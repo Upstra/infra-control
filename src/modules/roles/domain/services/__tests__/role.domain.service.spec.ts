@@ -41,11 +41,14 @@ describe('RoleDomainService', () => {
   });
 
   it('should convert admin dto to role entity with flags', () => {
-    const dto: AdminRoleCreationDto = Object.assign(new AdminRoleCreationDto(), {
-      name: 'ADMIN',
-      isAdmin: true,
-      canCreateServer: true,
-    });
+    const dto: AdminRoleCreationDto = Object.assign(
+      new AdminRoleCreationDto(),
+      {
+        name: 'ADMIN',
+        isAdmin: true,
+        canCreateServer: true,
+      },
+    );
     const role = service.toRoleEntity(dto);
     expect(role.isAdmin).toBe(true);
     expect(role.canCreateServer).toBe(true);
@@ -55,7 +58,11 @@ describe('RoleDomainService', () => {
     const role = new Role();
     role.name = 'OLD';
     role.isAdmin = false;
-    const dto: RoleUpdateDto = { name: 'NEW', isAdmin: true, canCreateServer: true };
+    const dto: RoleUpdateDto = {
+      name: 'NEW',
+      isAdmin: true,
+      canCreateServer: true,
+    };
     const updated = service.updateRoleEntity(role, dto);
     expect(updated.name).toBe('NEW');
     expect(updated.isAdmin).toBe(true);

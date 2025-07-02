@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Query, Optional } from '@nestjs/common';
+import { Controller, Get, UseGuards, Query } from '@nestjs/common';
 import { FullDashboardStatsDto } from '../dto/fullDashboardStats.dto';
 import {
   ApiBearerAuth,

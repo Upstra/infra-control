@@ -36,7 +36,10 @@ describe('UpdateRoleUseCase', () => {
       field: 'id',
       value: 'role-id-123',
     });
-    expect(roleDomainService.updateRoleEntity).toHaveBeenCalledWith(entity, dto);
+    expect(roleDomainService.updateRoleEntity).toHaveBeenCalledWith(
+      entity,
+      dto,
+    );
     expect(roleRepository.save).toHaveBeenCalledWith(updated);
     expect(result.name).toBe('NEW_NAME');
   });
