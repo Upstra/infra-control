@@ -15,7 +15,7 @@ export class Role extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'varchar' })
+  @Column()
   name!: string;
 
   @ManyToMany(() => User, (user) => user.roles)
@@ -31,9 +31,9 @@ export class Role extends BaseEntity {
   })
   permissionVms: PermissionVm[];
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ default: false })
   canCreateServer: boolean;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ default: false })
   isAdmin: boolean;
 }
