@@ -48,7 +48,7 @@ describe('GetRoomByIdUseCase', () => {
 
     roomRepository.findRoomById.mockResolvedValue(room);
     userRepo.findOneByField.mockResolvedValue(
-      createMockUser({ roleId: 'role-1' }),
+      createMockUser({ roles: [{ id: 'role-1' }] }),
     );
     permissionRepo.findAllByField.mockResolvedValue([
       createMockPermissionServer({
@@ -146,7 +146,7 @@ describe('GetRoomByIdUseCase', () => {
 
     roomRepository.findRoomById.mockResolvedValue(room);
     userRepo.findOneByField.mockResolvedValue(
-      createMockUser({ roleId: undefined }),
+      createMockUser({ roles: [] }),
     );
 
     const result = await useCase.execute(room.id, 'user-1');
@@ -194,7 +194,7 @@ describe('GetRoomByIdUseCase', () => {
 
     roomRepository.findRoomById.mockResolvedValue(room);
     userRepo.findOneByField.mockResolvedValue(
-      createMockUser({ roleId: 'role-1' }),
+      createMockUser({ roles: [{ id: 'role-1' }] }),
     );
     permissionRepo.findAllByField.mockResolvedValue([
       createMockPermissionServer({

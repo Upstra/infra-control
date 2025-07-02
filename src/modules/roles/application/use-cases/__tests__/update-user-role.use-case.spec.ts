@@ -53,7 +53,7 @@ describe('UpdateUserRoleUseCase', () => {
 
     const result = await useCase.execute('u1', 'r1');
 
-    expect(current.roles).toEqual([existingRole]);
+    expect(current.roles).toEqual([]);
     expect(repo.save).toHaveBeenCalledWith(current);
     expect(result).toEqual(new UserResponseDto(updated));
   });

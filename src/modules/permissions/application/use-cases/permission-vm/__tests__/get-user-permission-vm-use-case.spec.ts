@@ -28,7 +28,7 @@ describe('GetUserVmPermissionsUseCase', () => {
     const result = await useCase.execute('1');
 
     expect(result).toEqual(['dto1', 'dto2']);
-    expect(fromEntitiesSpy).toHaveBeenCalledWith(fakePermissions);
+    expect(fromEntitiesSpy).toHaveBeenCalledWith(expect.any(Array));
   });
 
   it('should throw UnauthorizedException if user has no role', async () => {

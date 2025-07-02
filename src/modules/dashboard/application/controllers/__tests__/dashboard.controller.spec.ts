@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DashboardController } from '../dashboard.controller';
 import { GetDashboardFullStatsUseCase } from '../../use-cases';
+import { GetHistoryStatsUseCase } from '@/modules/history/application/use-cases';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { RoleGuard } from '@/core/guards/role.guard';
 
@@ -16,6 +17,7 @@ describe('DashboardController', () => {
       controllers: [DashboardController],
       providers: [
         { provide: GetDashboardFullStatsUseCase, useValue: getStats },
+        { provide: GetHistoryStatsUseCase, useValue: { execute: jest.fn() } },
       ],
     })
       .overrideGuard(JwtAuthGuard)

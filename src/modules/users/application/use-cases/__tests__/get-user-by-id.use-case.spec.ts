@@ -28,6 +28,7 @@ describe('GetUserByIdUseCase', () => {
     expect(repo.findOneByField).toHaveBeenCalledWith({
       field: 'id',
       value: 'id1',
+      relations: ['roles'],
     });
     expect(result).toBeInstanceOf(UserResponseDto);
     expect(result.id).toBe(user.id);
@@ -41,6 +42,7 @@ describe('GetUserByIdUseCase', () => {
     expect(repo.findOneByField).toHaveBeenCalledWith({
       field: 'id',
       value: 'inexistant-id',
+      relations: ['roles'],
     });
   });
 
@@ -51,6 +53,7 @@ describe('GetUserByIdUseCase', () => {
     expect(repo.findOneByField).toHaveBeenCalledWith({
       field: 'id',
       value: 'id1',
+      relations: ['roles'],
     });
   });
 });
