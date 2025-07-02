@@ -11,3 +11,10 @@ export class RoleRetrievalException extends Error {
     this.name = 'RoleRetrievalException';
   }
 }
+
+export class AdminRoleAlreadyExistsException extends Error {
+  constructor(message = 'Admin role already exists') {
+    super(message);
+    this.name = 'AdminRoleAlreadyExistsException';
+  }
+}

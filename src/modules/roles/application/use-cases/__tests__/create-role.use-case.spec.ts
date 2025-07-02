@@ -1,8 +1,10 @@
 import { CreateRoleUseCase } from '../create-role.use-case';
 import { RoleRepositoryInterface } from '@/modules/roles/domain/interfaces/role.repository.interface';
 import { RoleCreationDto } from '../../dto/role.creation.dto';
+import { AdminRoleCreationDto } from '../../dto/role.creation.dto';
 import { RoleResponseDto } from '../../dto/role.response.dto';
 import { RoleDomainService } from '@/modules/roles/domain/services/role.domain.service';
+import { AdminRoleAlreadyExistsException } from '@/modules/roles/domain/exceptions/role.exception';
 
 jest.mock('@/modules/roles/__mocks__/role.mock', () => ({
   createMockRole: jest.fn((overrides) => ({
@@ -26,6 +28,7 @@ describe('CreateRoleUseCase', () => {
   beforeEach(() => {
     roleRepository = {
       save: jest.fn(),
+      findOneByField: jest.fn(),
     } as any;
 
     roleDomainService = {
@@ -67,5 +70,17 @@ describe('CreateRoleUseCase', () => {
     roleRepository.save.mockRejectedValue(new Error('DB Error'));
 
     await expect(useCase.execute(dto)).rejects.toThrow('DB Error');
+  });
+
+  it('throws if admin role already exists', async () => {
+    const dto: AdminRoleCreationDto = Object.assign(new AdminRoleCreationDto(), {
+      name: 'ADMIN',
+      isAdmin: true,
+      canCreateServer: true,
+    });
+    roleRepository.findOneByField.mockResolvedValue(createMockRole({ isAdmin: true }));
+    await expect(useCase.execute(dto)).rejects.toBeInstanceOf(
+      AdminRoleAlreadyExistsException,
+    );
   });
 });
