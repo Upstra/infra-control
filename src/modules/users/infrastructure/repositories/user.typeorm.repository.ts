@@ -65,7 +65,7 @@ export class UserTypeormRepository
   async paginate(
     page: number,
     limit: number,
-    relations: string[] = ['role'],
+    relations: string[] = ['roles'],
   ): Promise<[User[], number]> {
     return this.findAndCount({
       relations,

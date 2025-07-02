@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsUUID, IsEmail, IsBoolean, IsDate } from 'class-validator';
-
 import { User } from '../../domain/entities/user.entity';
+import { RoleResponseDto } from '@/modules/roles/application/dto';
 
 export class UserResponseDto {
   @ApiProperty() @IsUUID() readonly id: string;
@@ -16,6 +16,9 @@ export class UserResponseDto {
   @ApiProperty() @IsDate() readonly createdAt: Date;
   @ApiProperty() @IsDate() readonly updatedAt: Date;
 
+  @ApiProperty({ type: [RoleResponseDto] })
+  readonly roles: RoleResponseDto[];
+
   constructor(u: User) {
     this.id = u.id;
     this.username = u.username;
@@ -26,6 +29,7 @@ export class UserResponseDto {
     this.isTwoFactorEnabled = u.isTwoFactorEnabled;
     this.createdAt = u.createdAt;
     this.updatedAt = u.updatedAt;
+    this.roles = u.roles?.map((role) => new RoleResponseDto(role)) ?? [];
   }
 
   toUser(): User {
