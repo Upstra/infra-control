@@ -45,3 +45,10 @@ export class SystemRoleNameAlreadyExistsException extends Error {
     this.name = 'SystemRoleNameAlreadyExistsException';
   }
 }
+
+export class CannotRemoveGuestRoleException extends Error {
+  constructor() {
+    super('Cannot remove last guest role from user.');
+    this.name = 'CannotRemoveGuestRoleException';
+  }
+}

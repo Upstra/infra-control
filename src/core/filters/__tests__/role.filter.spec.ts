@@ -42,8 +42,7 @@ describe('RoleExceptionFilter', () => {
     expect(response.status).toHaveBeenCalledWith(HttpStatus.FORBIDDEN);
     expect(json).toHaveBeenCalledWith({
       statusCode: 403,
-      message:
-        'Cannot delete system role: ADMIN. This role is required for the system to function properly.',
+      message: 'Cannot delete system role: ADMIN. This role is required for the system to function properly.',
     });
   });
 });
