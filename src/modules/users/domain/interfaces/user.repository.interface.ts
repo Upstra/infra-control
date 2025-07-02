@@ -1,4 +1,8 @@
-import { FindOneByFieldOptions } from '@/core/utils/index';
+import {
+  FindOneByFieldOptions,
+  FindAllByFieldOptions,
+} from '@/core/utils/index';
+import { PrimitiveFields } from '@/core/types/primitive-fields.interface';
 import { User } from '../entities/user.entity';
 import { GenericRepositoryInterface } from '@/core/types/generic-repository.interface';
 
@@ -8,6 +12,9 @@ export interface UserRepositoryInterface
   updateFields(id: string, partialUser: Partial<User>): Promise<User>;
   count(): Promise<number>;
   save(user: User): Promise<User>;
+  findAllByField<T extends PrimitiveFields<User>>(
+    options: FindAllByFieldOptions<User, T>,
+  ): Promise<User[]>;
   updateUser(
     id: string,
     username: string,
@@ -15,9 +22,13 @@ export interface UserRepositoryInterface
     firstName: string,
     lastName: string,
     email: string,
-    roleId: string,
   ): Promise<User>;
   deleteUser(id: string): Promise<void>;
+
+  /**
+   * Count the number of admin users in the system.
+   */
+  countAdmins(): Promise<number>;
 
   /**
    * Retrieve users with pagination support.
@@ -32,5 +43,13 @@ export interface UserRepositoryInterface
     limit: number,
     relations?: string[],
   ): Promise<[User[], number]>;
+
+  /**
+   * Find all users that have a specific role.
+   *
+   * @param roleId - The ID of the role to search for
+   * @returns Array of users having the specified role
+   */
+  findUsersByRole(roleId: string): Promise<User[]>;
 }
-export { FindOneByFieldOptions };
+export { FindOneByFieldOptions, FindAllByFieldOptions };

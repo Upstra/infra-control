@@ -51,6 +51,17 @@ export class RedisSafeService {
     }
   }
 
+  safeMGet(keys: string[]) {
+    const client = this.redisClient;
+    if (!client) return Promise.resolve([]);
+    return client.mget(keys).catch((e) => {
+      this.online = false;
+      this.logger.error('Erreur Redis: ' + e.message);
+      this.scheduleReconnect();
+      return [];
+    });
+  }
+
   async safeSet(key: string, value: string) {
     const client = this.redisClient;
     if (!client) return;

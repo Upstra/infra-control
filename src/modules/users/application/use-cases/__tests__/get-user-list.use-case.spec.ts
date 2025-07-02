@@ -17,7 +17,7 @@ describe('GetUserListUseCase', () => {
 
     const result = await useCase.execute(1, 10);
 
-    expect(repo.paginate).toHaveBeenCalledWith(1, 10, ['role']);
+    expect(repo.paginate).toHaveBeenCalledWith(1, 10, ['roles']);
     expect(result.totalItems).toBe(2);
     expect(result.items[0].id).toBe('1');
     expect(result.totalPages).toBe(1);
@@ -28,7 +28,7 @@ describe('GetUserListUseCase', () => {
 
     const result = await useCase.execute();
 
-    expect(repo.paginate).toHaveBeenCalledWith(1, 10, ['role']);
+    expect(repo.paginate).toHaveBeenCalledWith(1, 10, ['roles']);
     expect(result.totalItems).toBe(0);
     expect(result.totalPages).toBe(0);
     expect(result.items).toEqual([]);
@@ -40,7 +40,7 @@ describe('GetUserListUseCase', () => {
 
     const result = await useCase.execute(1, 2);
 
-    expect(repo.paginate).toHaveBeenCalledWith(1, 2, ['role']);
+    expect(repo.paginate).toHaveBeenCalledWith(1, 2, ['roles']);
     expect(result.totalPages).toBe(2);
     expect(result.currentPage).toBe(1);
   });

@@ -12,6 +12,7 @@ export class GetUserByIdUseCase {
     const user = await this.repo.findOneByField({
       field: 'id',
       value: id,
+      relations: ['roles'],
     });
     return new UserResponseDto(user);
   }

@@ -23,11 +23,13 @@ describe('RoleGuard', () => {
     ({
       id: 'user-123',
       username: 'testuser',
-      role: {
-        id: 'role-123',
-        name: 'test-role',
-        canCreateServer,
-      } as Role,
+      roles: [
+        {
+          id: 'role-123',
+          name: 'test-role',
+          canCreateServer,
+        } as Role,
+      ],
     }) as User;
 
   beforeEach(async () => {
@@ -85,7 +87,7 @@ describe('RoleGuard', () => {
       jest.spyOn(reflector, 'get').mockReturnValue({ canCreateServer: true });
       jest.spyOn(getUserWithRoleUseCase, 'execute').mockResolvedValue({
         id: 'user-123',
-        role: null,
+        roles: [],
       } as User);
 
       const context = mockExecutionContext({ userId: 'user-123' });

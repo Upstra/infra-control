@@ -4,6 +4,7 @@ import {
   Column,
   BaseEntity,
   OneToMany,
+  ManyToMany,
 } from 'typeorm';
 import { User } from '../../../users/domain/entities/user.entity';
 import { PermissionServer } from '../../../permissions/domain/entities/permission.server.entity';
@@ -14,10 +15,10 @@ export class Role extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'varchar' })
+  @Column()
   name!: string;
 
-  @OneToMany(() => User, (user) => user.role)
+  @ManyToMany(() => User, (user) => user.roles)
   users: User[];
 
   @OneToMany(() => PermissionServer, (permission) => permission.role, {
@@ -30,9 +31,9 @@ export class Role extends BaseEntity {
   })
   permissionVms: PermissionVm[];
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ default: false })
   canCreateServer: boolean;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ default: false })
   isAdmin: boolean;
 }

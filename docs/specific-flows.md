@@ -38,3 +38,48 @@ sequenceDiagram
     Migrate->>DB: COMMIT
     Migrate-->>CLI: Success
 ```
+
+## User Role Update Flow
+
+```mermaid
+sequenceDiagram
+    participant Admin as Admin User
+    participant API as RoleController
+    participant UseCase as UpdateUserRoleUseCase
+    participant UserRepo as UserRepository
+    participant RoleRepo as RoleRepository
+
+    Admin->>API: PATCH /roles/users/:userId { roleId }
+    API->>UseCase: execute(userId, roleId)
+    UseCase->>UserRepo: find user with roles
+    UseCase->>RoleRepo: find role by id (if roleId provided)
+    UseCase->>UserRepo: countAdmins() (if user is admin)
+    alt If user is last admin and removing admin role
+        UseCase-->>API: throw CannotDeleteLastAdminException
+    else
+        UseCase->>UserRepo: save updated user with new roles
+        UseCase-->>API: return updated UserResponseDto
+    end
+```
+
+## Admin Role Creation Flow
+
+```mermaid
+sequenceDiagram
+    participant Admin as Admin User
+    participant API as RoleController
+    participant UseCase as CreateRoleUseCase
+    participant RoleRepo as RoleRepository
+    participant Domain as RoleDomainService
+
+    Admin->>API: POST /roles/admin { name, isAdmin, canCreateServer }
+    API->>UseCase: execute(AdminRoleCreationDto)
+    UseCase->>RoleRepo: find existing admin role
+    alt If admin role exists
+        UseCase-->>API: throw AdminRoleAlreadyExistsException
+    else
+        UseCase->>Domain: toRoleEntity(dto)
+        UseCase->>RoleRepo: save new admin role
+        UseCase-->>API: return RoleResponseDto
+    end
+```

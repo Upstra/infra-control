@@ -36,7 +36,7 @@ export class UserDomainService {
     user.username = username;
     user.password = hashedPassword;
     user.email = email.toLowerCase();
-    user.role = role;
+    user.roles = [role];
     user.firstName = firstName ?? '';
     user.lastName = lastName ?? '';
     user.isTwoFactorEnabled = false;
@@ -52,7 +52,6 @@ export class UserDomainService {
     user.firstName = dto.firstName ?? user.firstName;
     user.lastName = dto.lastName ?? user.lastName;
     user.email = dto.email?.toLowerCase() ?? user.email;
-    user.roleId = dto.roleId ?? user.roleId;
     return user;
   }
 

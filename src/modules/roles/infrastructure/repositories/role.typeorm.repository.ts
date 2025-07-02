@@ -100,4 +100,10 @@ export class RoleTypeormRepository
     });
     await this.delete(id);
   }
+
+  async countAdminRoles(): Promise<number> {
+    return await this.count({
+      where: { isAdmin: true },
+    });
+  }
 }

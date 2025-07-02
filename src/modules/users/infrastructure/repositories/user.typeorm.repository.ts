@@ -2,15 +2,17 @@ import { Injectable, Logger } from '@nestjs/common';
 import { User } from '../../domain/entities/user.entity';
 import {
   FindOneByFieldOptions,
+  FindAllByFieldOptions,
   UserRepositoryInterface,
 } from '../../domain/interfaces/user.repository.interface';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Repository, In } from 'typeorm';
 import { InvalidQueryValueException } from '@/core/exceptions/repository.exception';
 import {
   UserDeletionException,
   UserNotFoundException,
   UserRetrievalException,
 } from '../../domain/exceptions/user.exception';
+import { PrimitiveFields } from '@/core/types/primitive-fields.interface';
 
 @Injectable()
 export class UserTypeormRepository
@@ -26,6 +28,33 @@ export class UserTypeormRepository
     });
   }
 
+  async findAllByField<T extends PrimitiveFields<User>>({
+    field,
+    value,
+    disableThrow = false,
+    relations = [],
+  }: FindAllByFieldOptions<User, T>): Promise<User[]> {
+    if (
+      value === undefined ||
+      value === null ||
+      (Array.isArray(value) && value.length === 0)
+    ) {
+      if (disableThrow) return [];
+      throw new InvalidQueryValueException(String(field), value);
+    }
+
+    try {
+      const whereClause = Array.isArray(value)
+        ? { [field]: In(value as any) }
+        : { [field]: value };
+      return await this.find({ where: whereClause, relations });
+    } catch (error) {
+      if (disableThrow) return [];
+      Logger.error('Error retrieving users by field:', error);
+      throw new UserRetrievalException();
+    }
+  }
+
   /**
    * Paginate users using TypeORM's find and count.
    *
@@ -36,7 +65,7 @@ export class UserTypeormRepository
   async paginate(
     page: number,
     limit: number,
-    relations: string[] = ['role'],
+    relations: string[] = ['roles'],
   ): Promise<[User[], number]> {
     return this.findAndCount({
       relations,
@@ -46,12 +75,12 @@ export class UserTypeormRepository
     });
   }
 
-  async findOneByField<T extends keyof User>({
+  async findOneByField<K extends keyof User>({
     field,
     value,
     disableThrow = false,
     relations = [],
-  }: FindOneByFieldOptions<User, T>): Promise<User | null> {
+  }: FindOneByFieldOptions<User, K>): Promise<User | null> {
     if (value === undefined || value === null) {
       throw new InvalidQueryValueException(String(field), value);
     }
@@ -76,18 +105,23 @@ export class UserTypeormRepository
     return await super.count();
   }
 
+  async countAdmins(): Promise<number> {
+    return await this.createQueryBuilder('user')
+      .innerJoin('user.roles', 'role')
+      .where('role.isAdmin = :admin', { admin: true })
+      .getCount();
+  }
+
   async updateUser(
     id: string,
     username: string,
     password: string,
     email: string,
-    roleId: string,
   ): Promise<User> {
     const partial: Partial<User> = {
       username,
       password,
       email,
-      roleId,
     };
 
     return this.updateFields(id, partial);
@@ -108,5 +142,13 @@ export class UserTypeormRepository
       Logger.error('Error deleting user:', error);
       throw new UserDeletionException();
     }
+  }
+
+  async findUsersByRole(roleId: string): Promise<User[]> {
+    return await this.createQueryBuilder('user')
+      .innerJoin('user.roles', 'role')
+      .where('role.id = :roleId', { roleId })
+      .leftJoinAndSelect('user.roles', 'allRoles')
+      .getMany();
   }
 }

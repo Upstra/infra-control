@@ -1,36 +1,51 @@
 import { createMockRole } from '@/modules/roles/__mocks__/role.mock';
 import { RoleRepositoryInterface } from '@/modules/roles/domain/interfaces/role.repository.interface';
-import { RoleCreationDto } from '../../dto/role.creation.dto';
+import { RoleUpdateDto } from '../../dto/role.update.dto';
 import { UpdateRoleUseCase } from '../update-role.use-case';
+import { RoleDomainService } from '@/modules/roles/domain/services/role.domain.service';
 
 describe('UpdateRoleUseCase', () => {
   let useCase: UpdateRoleUseCase;
   let roleRepository: jest.Mocked<RoleRepositoryInterface>;
+  let roleDomainService: jest.Mocked<RoleDomainService>;
 
   beforeEach(() => {
     roleRepository = {
-      updateRole: jest.fn(),
+      findOneByField: jest.fn(),
+      save: jest.fn(),
     } as any;
 
-    useCase = new UpdateRoleUseCase(roleRepository);
+    roleDomainService = {
+      updateRoleEntity: jest.fn(),
+    } as any;
+
+    useCase = new UpdateRoleUseCase(roleRepository, roleDomainService);
   });
 
   it('should update and return RoleResponseDto', async () => {
-    const dto: RoleCreationDto = { name: 'NEW_NAME' };
+    const dto: RoleUpdateDto = { name: 'NEW_NAME' };
+    const entity = createMockRole({ name: 'OLD' });
     const updated = createMockRole({ name: 'NEW_NAME' });
-    roleRepository.updateRole.mockResolvedValue(updated);
+    roleRepository.findOneByField.mockResolvedValue(entity);
+    roleDomainService.updateRoleEntity.mockReturnValue(updated);
+    roleRepository.save.mockResolvedValue(updated);
 
     const result = await useCase.execute('role-id-123', dto);
 
-    expect(roleRepository.updateRole).toHaveBeenCalledWith(
-      'role-id-123',
-      'NEW_NAME',
+    expect(roleRepository.findOneByField).toHaveBeenCalledWith({
+      field: 'id',
+      value: 'role-id-123',
+    });
+    expect(roleDomainService.updateRoleEntity).toHaveBeenCalledWith(
+      entity,
+      dto,
     );
+    expect(roleRepository.save).toHaveBeenCalledWith(updated);
     expect(result.name).toBe('NEW_NAME');
   });
 
   it('should throw if repository throws', async () => {
-    roleRepository.updateRole.mockRejectedValue(new Error('Failed'));
+    roleRepository.findOneByField.mockRejectedValue(new Error('Failed'));
     await expect(useCase.execute('role-id', { name: 'fail' })).rejects.toThrow(
       'Failed',
     );

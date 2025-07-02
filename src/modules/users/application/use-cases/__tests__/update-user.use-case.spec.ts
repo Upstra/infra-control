@@ -19,13 +19,13 @@ describe('UpdateUserUseCase', () => {
     username: 'new_username',
     firstName: 'New',
     lastName: 'User',
-    roleId: 'role-123',
   };
 
   beforeEach(() => {
     repo = {
       findOneByField: jest.fn(),
       save: jest.fn(),
+      countAdmins: jest.fn(),
     } as any;
 
     domain = {
@@ -51,6 +51,7 @@ describe('UpdateUserUseCase', () => {
     expect(repo.findOneByField).toHaveBeenCalledWith({
       field: 'id',
       value: 'user-1',
+      relations: ['roles'],
     });
     expect(domain.ensureUniqueEmail).toHaveBeenCalledWith(dto.email, 'user-1');
     expect(domain.ensureUniqueUsername).toHaveBeenCalledWith(

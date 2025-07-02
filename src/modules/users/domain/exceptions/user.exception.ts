@@ -36,3 +36,15 @@ export class UserRegistrationException extends Error {
     super(message);
   }
 }
+
+export class CannotDeleteLastAdminException extends Error {
+  constructor(message = 'Impossible de supprimer le dernier administrateur') {
+    super(message);
+  }
+}
+
+export class CannotRemoveLastAdminException extends Error {
+  constructor(message = 'Impossible de retirer le dernier rôle administrateur') {
+    super(message);
+  }
+}

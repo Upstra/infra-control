@@ -133,8 +133,9 @@ export class UserController {
   async updateUser(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UserUpdateDto,
+    @CurrentUser() user: JwtPayload,
   ): Promise<UserResponseDto> {
-    return this.updateUserUseCase.execute(id, updateUserDto);
+    return this.updateUserUseCase.execute(id, updateUserDto, user.userId);
   }
 
   @Patch('me/update-account')

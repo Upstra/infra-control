@@ -2,6 +2,7 @@ import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PermissionServerDto } from '../../dto/permission.server.dto';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
+import { PermissionResolver } from '@/modules/permissions/application/utils/permission-resolver.util';
 
 @Injectable()
 export class GetUserServerPermissionsUseCase {
@@ -16,16 +17,18 @@ export class GetUserServerPermissionsUseCase {
     const user = await this.userRepo.findOneByField({
       field: 'id',
       value: userId,
-      relations: ['role'],
+      relations: ['roles'],
     });
 
-    const roleId = user.roleId;
-    if (!roleId) throw new UnauthorizedException('User has no role assigned');
+    const roleIds = user.roles?.map((r) => r.id) ?? [];
+    if (!roleIds.length) {
+      throw new UnauthorizedException('User has no role assigned');
+    }
 
-    const permissions = await this.permissionServerRepo.findAllByField({
-      field: 'roleId',
-      value: roleId,
-    });
+    const permissions = await PermissionResolver.resolveServerPermissions(
+      this.permissionServerRepo,
+      roleIds,
+    );
     return PermissionServerDto.fromEntities(permissions);
   }
 }
