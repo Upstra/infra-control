@@ -12,6 +12,25 @@ import {
 import { LoginResponseDto } from '../dto';
 import { TokenService } from '../services/token.service';
 
+/**
+ * Authenticates a user by verifying credentials and handling 2FA requirements.
+ *
+ * Responsibilities:
+ * - Determines lookup method (username vs. email) and retrieves the User.
+ * - Validates the supplied password via UserDomainService.
+ * - If 2FA is enabled, returns a temporary 2FA token indicating next step.
+ * - Otherwise, issues full access and refresh tokens via TokenService.
+ *
+ * @param dto  LoginDto containing identifier (email/username) and password.
+ * @returns    LoginResponseDto with tokens or 2FA requirement flag.
+ *
+ * @throws    AuthNotFoundException if no matching user is found.
+ * @throws    AuthPasswordNotValidException if password check fails.
+ *
+ * @example
+ * const response = await loginUseCase.execute({ identifier, password });
+ */
+
 @Injectable()
 export class LoginUseCase {
   constructor(

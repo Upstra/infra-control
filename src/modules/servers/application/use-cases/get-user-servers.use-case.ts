@@ -8,6 +8,24 @@ import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/s
 import { PermissionSet } from '@/modules/permissions/domain/value-objects/ permission-set.value-object';
 import { PermissionResolver } from '@/modules/permissions/application/utils/permission-resolver.util';
 
+/**
+ * Retrieves all servers assigned or accessible to a given user.
+ *
+ * Responsibilities:
+ * - Determines the set of servers the user can view (via roles/groups).
+ * - Loads each permitted server entity from the domain service.
+ * - Returns an array of ServerDto filtered by user scope.
+ *
+ * @param userId  UUID of the user whose servers to fetch.
+ * @returns       Promise<ServerDto[]> array of accessible server DTOs.
+ *
+ * @remarks
+ * Ideal for “My Servers” views; enforces domain authorization rules.
+ *
+ * @example
+ * const myServers = await getUserServersUseCase.execute('user-uuid');
+ */
+
 @Injectable()
 export class GetUserServersUseCase {
   private readonly logger = new Logger(GetUserServersUseCase.name);

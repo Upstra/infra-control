@@ -6,6 +6,26 @@ import { GroupServerRepositoryInterface } from '@/modules/groups/domain/interfac
 import { GroupNotFoundException } from '@/modules/groups/domain/exceptions/group.exception';
 import { GroupServerDomainService } from '@/modules/groups/domain/services/group.server.domain.service';
 
+/**
+ * Updates an existing server group’s metadata and membership.
+ *
+ * Steps:
+ * 1. Fetch the existing group or throw GroupNotFoundException.
+ * 2. Optionally reload servers if serverIds provided.
+ * 3. Apply DTO fields to the entity via the domain service.
+ * 4. Persist and return the updated group DTO.
+ *
+ * @param id        The UUID of the group to update.
+ * @param groupDto  DTO containing new name, priority, and optional serverIds.
+ * @returns {Promise<GroupServerDto>}
+ *   The updated group DTO with refreshed server associations.
+ *
+ * @throws {GroupNotFoundException} if the group does not exist.
+ *
+ * @example
+ * const updated = await updateGroupServerUseCase.execute(groupId, { name: 'Rack B' });
+ */
+
 @Injectable()
 export class UpdateGroupServerUseCase {
   constructor(

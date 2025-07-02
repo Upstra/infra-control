@@ -8,6 +8,21 @@ import {
   UpdateUserFieldsUseCase,
 } from '@/modules/users/application/use-cases';
 
+/**
+ * Initializes two-factor authentication for a user by generating a TOTP secret and QR code.
+ *
+ * Responsibilities:
+ * - Retrieves the target user via GetUserByEmailUseCase.
+ * - Generates a new speakeasy secret and stores it (flags 2FA disabled until verification).
+ * - Produces a QR code data URL for the authenticator setup.
+ *
+ * @param email  The user’s email address for which to enable 2FA.
+ * @returns      TwoFaGenerateQrCodeResponseDto containing secret and QR code URL.
+ *
+ * @example
+ * const result = await generate2FAUseCase.execute('user@example.com');
+ */
+
 @Injectable()
 export class Generate2FAUseCase {
   constructor(

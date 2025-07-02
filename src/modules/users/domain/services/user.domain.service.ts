@@ -6,6 +6,25 @@ import { UserUpdateDto } from '../../application/dto/user.update.dto';
 import { UserRepositoryInterface } from '../interfaces/user.repository.interface';
 import { UserConflictException } from '../exceptions/user.exception';
 
+/**
+ * Manages user lifecycle and profile operations within the domain layer.
+ * Encapsulates rules for registration, profile updates, and account deactivation.
+ *
+ * Responsibilities:
+ * - Validate and create new user entities, enforcing unique credentials and email.
+ * - Handle password hashing, 2FA setup (e.g. TOTP), and recovery code issuance.
+ * - Update user roles, permissions, and profile metadata securely.
+ * - Deactivate or delete users with audit logging for compliance.
+ *
+ * @remarks
+ * Designed for use by application-layer use-cases; controllers should not
+ * manipulate user repositories directly to ensure business invariants.
+ *
+ * @example
+ * // Register a new user
+ * const user = await userDomainService.register({ email, password });
+ */
+
 @Injectable()
 export class UserDomainService {
   constructor(

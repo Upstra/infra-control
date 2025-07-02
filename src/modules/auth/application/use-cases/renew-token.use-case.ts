@@ -3,6 +3,23 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { TokenService } from '../services/token.service';
 
+/**
+ * Validates a refresh token and issues new authentication tokens.
+ *
+ * Responsibilities:
+ * - Verifies the refresh token payload using JwtService.
+ * - Extracts user identity and 2FA status from the token.
+ * - Generates a new set of access and refresh tokens via TokenService.
+ *
+ * @param refreshToken  The JWT refresh token to validate.
+ * @returns             New token pair if validation succeeds.
+ *
+ * @throws UnauthorizedException if the token is invalid or expired.
+ *
+ * @example
+ * const newTokens = renewTokenUseCase.execute(existingRefreshToken);
+ */
+
 @Injectable()
 export class RenewTokenUseCase {
   constructor(

@@ -3,6 +3,24 @@ import { Vm } from '../entities/vm.entity';
 import { VmCreationDto } from '../../application/dto/vm.creation.dto';
 import { VmUpdateDto } from '../../application/dto/vm.update.dto';
 
+/**
+ * Orchestrates virtual machine operations in the domain context, including lifecycle
+ * management, resource allocation, and health checks.
+ *
+ * Responsibilities:
+ * - Validate and persist VM entities with correct server associations and resource quotas.
+ * - Start, stop, and reboot VMs, enforcing graceful shutdown protocols if necessary.
+ * - Monitor VM status and propagate errors via domain exceptions.
+ * - Support grouping and permission checks via collaboration with GroupVmDomainService and PermissionDomainVmService.
+ *
+ * @remarks
+ * Consumed by application-layer use-cases; avoid direct controller usage to preserve domain rules.
+ *
+ * @example
+ * // Create and power on a new VM
+ * const vm = await vmDomainService.createVm(params);
+ */
+
 @Injectable()
 export class VmDomainService {
   createVmEntity(dto: VmCreationDto): Vm {

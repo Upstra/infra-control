@@ -10,6 +10,25 @@ import {
 } from '@/modules/users/application/use-cases';
 import { TwoFARecoveryDto, TwoFAResponseDto } from '../dto/twofa.dto';
 
+/**
+ * Handles login via 2FA recovery codes when the user cannot use TOTP.
+ *
+ * Responsibilities:
+ * - Retrieves the user and existing recovery codes via GetUserByEmailUseCase.
+ * - Normalizes and compares the supplied code against stored hashed codes.
+ * - Marks the used code as consumed and updates the user record.
+ * - Issues a 2FA authentication token on successful recovery.
+ *
+ * @param userJwt         JwtPayload for the user context.
+ * @param dto             TwoFARecoveryDto with the recovery code.
+ * @returns               TwoFAResponseDto with auth token and success message.
+ *
+ * @throws ForbiddenException if no valid recovery codes remain or code does not match.
+ *
+ * @example
+ * const resp = await verify2FARecoveryUseCase.execute(jwtPayload, { recoveryCode });
+ */
+
 @Injectable()
 export class Verify2FARecoveryUseCase {
   constructor(
