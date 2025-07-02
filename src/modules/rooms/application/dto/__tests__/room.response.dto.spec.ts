@@ -12,6 +12,8 @@ describe('RoomResponseDto', () => {
       name: 'Salle 1',
       servers: [],
       ups: [],
+      serverCount: 0,
+      upsCount: 0,
     });
 
     const errors = await validate(dto);

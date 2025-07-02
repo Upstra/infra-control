@@ -59,9 +59,9 @@ describe('RoomController', () => {
   it('should return paginated rooms', async () => {
     const mock = { items: [mockRoomResponse] } as any;
     getRoomListUseCase.execute.mockResolvedValue(mock);
-    const result = await controller.getRooms('1', '5');
+    const result = await controller.getRooms('1', '5', 'true');
     expect(result).toBe(mock);
-    expect(getRoomListUseCase.execute).toHaveBeenCalledWith(1, 5);
+    expect(getRoomListUseCase.execute).toHaveBeenCalledWith(1, 5, true);
   });
 
   it('should use default pagination values', async () => {
@@ -69,7 +69,7 @@ describe('RoomController', () => {
     getRoomListUseCase.execute.mockResolvedValue(mock);
     const result = await controller.getRooms();
     expect(result).toBe(mock);
-    expect(getRoomListUseCase.execute).toHaveBeenCalledWith(1, 10);
+    expect(getRoomListUseCase.execute).toHaveBeenCalledWith(1, 10, false);
   });
 
   it('should return a room by ID when getRoomById is called', async () => {

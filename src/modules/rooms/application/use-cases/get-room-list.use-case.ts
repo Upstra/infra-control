@@ -10,9 +10,13 @@ export class GetRoomListUseCase {
     private readonly repo: RoomRepositoryInterface,
   ) {}
 
-  async execute(page = 1, limit = 10): Promise<RoomListResponseDto> {
+  async execute(
+    page = 1,
+    limit = 10,
+    includeCounts = false,
+  ): Promise<RoomListResponseDto> {
     const [rooms, total] = await this.repo.paginate(page, limit);
-    const dtos = rooms.map((r) => RoomResponseDto.from(r));
+    const dtos = rooms.map((r) => RoomResponseDto.from(r, includeCounts));
     return new RoomListResponseDto(dtos, total, page, limit);
   }
 }

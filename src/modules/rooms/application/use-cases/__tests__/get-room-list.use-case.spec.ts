@@ -15,7 +15,7 @@ describe('GetRoomListUseCase', () => {
     const rooms = [createMockRoom({ id: '1' })];
     repo.paginate.mockResolvedValue([rooms, 1]);
 
-    const result = await useCase.execute(2, 5);
+    const result = await useCase.execute(2, 5, true);
 
     expect(repo.paginate).toHaveBeenCalledWith(2, 5);
     expect(result.items).toHaveLength(1);

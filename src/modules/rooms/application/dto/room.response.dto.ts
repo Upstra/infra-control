@@ -5,6 +5,8 @@ import {
   IsUUID,
   IsArray,
   ValidateNested,
+  IsOptional,
+  IsNumber,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Room } from '../../domain/entities/room.entity';
@@ -38,22 +40,45 @@ export class RoomResponseDto {
   @Type(() => UpsResponseDto)
   readonly ups?: UpsResponseDto[];
 
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  readonly serverCount?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  readonly upsCount?: number;
+
   constructor(
     id: string,
     name: string,
     servers: ServerResponseDto[] = [],
     ups: UpsResponseDto[] = [],
+    serverCount?: number,
+    upsCount?: number,
   ) {
     this.id = id;
     this.name = name;
     this.servers = servers;
     this.ups = ups;
+    this.serverCount = serverCount;
+    this.upsCount = upsCount;
   }
 
-  static from(room: Room): RoomResponseDto {
+  static from(room: Room, includeCounts = false): RoomResponseDto {
     const servers =
       room.servers?.map((s) => ServerResponseDto.fromEntity(s)) ?? [];
     const ups = room.ups?.map((u) => new UpsResponseDto(u)) ?? [];
-    return new RoomResponseDto(room.id, room.name, servers, ups);
+    const serverCount = includeCounts ? servers.length : undefined;
+    const upsCount = includeCounts ? ups.length : undefined;
+    return new RoomResponseDto(
+      room.id,
+      room.name,
+      servers,
+      ups,
+      serverCount,
+      upsCount,
+    );
   }
 }

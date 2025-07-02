@@ -48,6 +48,7 @@ export class RoomController {
   @Get()
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'includeCounts', required: false, type: Boolean })
   @ApiOperation({ summary: 'Lister les salles paginées' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
@@ -55,8 +56,14 @@ export class RoomController {
   async getRooms(
     @Query('page') page = '1',
     @Query('limit') limit = '10',
+    @Query('includeCounts') includeCounts = 'false',
   ): Promise<RoomListResponseDto> {
-    return this.getRoomListUseCase.execute(Number(page), Number(limit));
+    const withCounts = includeCounts === 'true';
+    return this.getRoomListUseCase.execute(
+      Number(page),
+      Number(limit),
+      withCounts,
+    );
   }
 
   @Get('all')
