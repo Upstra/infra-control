@@ -5,6 +5,7 @@ import { UserResponseDto } from '@/modules/users/application/dto/user.response.d
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { RoleRepositoryInterface } from '@/modules/roles/domain/interfaces/role.repository.interface';
 import { createMockRole } from '@/modules/roles/__mocks__/role.mock';
+import { CannotRemoveGuestRoleException } from '@/modules/roles/domain/exceptions/role.exception';
 
 describe('UpdateUserRoleUseCase', () => {
   let useCase: UpdateUserRoleUseCase;
@@ -73,6 +74,40 @@ describe('UpdateUserRoleUseCase', () => {
     expect(roleRepo.findOneByField).not.toHaveBeenCalled();
     expect(repo.save).toHaveBeenCalledWith(current);
     expect(result).toEqual(new UserResponseDto(updated));
+  });
+
+  it('should assign guest when removing last role', async () => {
+    const existingRole = createMockRole({ id: 'r1', name: 'USER' });
+    const guestRole = createMockRole({ id: 'g1', name: 'GUEST' });
+    const current = createMockUser({ id: 'u1', roles: [existingRole] });
+
+    repo.findOneByField.mockResolvedValueOnce(current); // for user
+    roleRepo.findOneByField
+      .mockResolvedValueOnce(existingRole) // find role to remove
+      .mockResolvedValueOnce(guestRole); // find guest role
+
+    const updated = Object.setPrototypeOf(
+      { ...current, roles: [guestRole] },
+      User.prototype,
+    );
+    repo.save.mockResolvedValue(updated);
+
+    const result = await useCase.execute('u1', 'r1');
+
+    expect(current.roles).toEqual([guestRole]);
+    expect(result).toEqual(new UserResponseDto(updated));
+  });
+
+  it('should throw when removing last guest role', async () => {
+    const guestRole = createMockRole({ id: 'g1', name: 'GUEST' });
+    const current = createMockUser({ id: 'u1', roles: [guestRole] });
+
+    repo.findOneByField.mockResolvedValueOnce(current); // for user
+    roleRepo.findOneByField.mockResolvedValue(guestRole); // for role
+
+    await expect(useCase.execute('u1', 'g1')).rejects.toThrow(
+      CannotRemoveGuestRoleException,
+    );
   });
 
   it('should propagate errors', async () => {

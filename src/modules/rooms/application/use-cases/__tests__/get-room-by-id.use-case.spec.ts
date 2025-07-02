@@ -4,6 +4,7 @@ import { RoomRepositoryInterface } from '@/modules/rooms/domain/interfaces/room.
 import { createMockServer } from '@/modules/servers/__mocks__/servers.mock';
 import { createMockPermissionServer } from '@/modules/permissions/__mocks__/permissions.mock';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
+import { createMockRole } from '@/modules/roles/__mocks__/role.mock';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
@@ -48,7 +49,7 @@ describe('GetRoomByIdUseCase', () => {
 
     roomRepository.findRoomById.mockResolvedValue(room);
     userRepo.findOneByField.mockResolvedValue(
-      createMockUser({ roleId: 'role-1' }),
+      createMockUser({ roles: [createMockRole({ id: 'role-1' })] }),
     );
     permissionRepo.findAllByField.mockResolvedValue([
       createMockPermissionServer({
@@ -146,7 +147,7 @@ describe('GetRoomByIdUseCase', () => {
 
     roomRepository.findRoomById.mockResolvedValue(room);
     userRepo.findOneByField.mockResolvedValue(
-      createMockUser({ roleId: undefined }),
+      createMockUser({ roleId: undefined, roles: [] }),
     );
 
     const result = await useCase.execute(room.id, 'user-1');
@@ -194,7 +195,7 @@ describe('GetRoomByIdUseCase', () => {
 
     roomRepository.findRoomById.mockResolvedValue(room);
     userRepo.findOneByField.mockResolvedValue(
-      createMockUser({ roleId: 'role-1' }),
+      createMockUser({ roleId: 'role-1', roles: [createMockRole({ id: 'role-1' })] }),
     );
     permissionRepo.findAllByField.mockResolvedValue([
       createMockPermissionServer({

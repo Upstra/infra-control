@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { RoleRepositoryInterface } from '../../domain/interfaces/role.repository.interface';
+import { CannotRemoveGuestRoleException } from '../../domain/exceptions/role.exception';
 
 @Injectable()
 export class UpdateUserRoleUseCase {
@@ -42,7 +43,17 @@ export class UpdateUserRoleUseCase {
       if (!roleExists) {
         current.roles = [...(current.roles || []), role];
       } else {
+        if (role.name === 'GUEST' && current.roles.length === 1) {
+          throw new CannotRemoveGuestRoleException();
+        }
         current.roles = current.roles.filter((r) => r.id !== roleId);
+        if (current.roles.length === 0) {
+          const guest = await this.roleRepo.findOneByField({
+            field: 'name',
+            value: 'GUEST',
+          });
+          current.roles = [guest];
+        }
       }
     }
 

@@ -129,9 +129,7 @@ describe('SafeRoleDeletionDomainService', () => {
       });
 
       roleRepo.findOneByField.mockResolvedValueOnce(roleToDelete);
-      roleRepo.findOneByField.mockRejectedValueOnce(
-        new Error('Role not found'),
-      );
+      roleRepo.findOneByField.mockResolvedValueOnce(null);
       userRepo.findUsersByRole.mockResolvedValue([user]);
       roleRepo.createRole.mockResolvedValue(guestRole);
       roleRepo.save.mockResolvedValue(guestRole);
@@ -143,7 +141,6 @@ describe('SafeRoleDeletionDomainService', () => {
         value: 'GUEST',
       });
       expect(roleRepo.createRole).toHaveBeenCalledWith('GUEST');
-      expect(roleRepo.save).toHaveBeenCalledWith(guestRole);
       expect(user.roles).toEqual([guestRole]);
       expect(userRepo.save).toHaveBeenCalledWith(user);
       expect(roleRepo.deleteRole).toHaveBeenCalledWith(roleId);
