@@ -2,6 +2,23 @@ import { Inject, Injectable } from '@nestjs/common';
 import { UpsRepositoryInterface } from '../../domain/interfaces/ups.repository.interface';
 import { UpsResponseDto } from '../../application/dto/ups.response.dto';
 
+/**
+ * Fetches details for a single UPS device by its unique identifier.
+ *
+ * Responsibilities:
+ * - Validates the provided UPS ID.
+ * - Uses UpsDomainService to retrieve the entity.
+ * - Converts the entity into UpsDto.
+ *
+ * @param id  UUID of the UPS device to retrieve.
+ * @returns   Promise<UpsDto> the corresponding UPS DTO.
+ *
+ * @throws NotFoundException if no UPS matches the given ID.
+ *
+ * @example
+ * const ups = await getUpsByIdUseCase.execute('ups-uuid-123');
+ */
+
 @Injectable()
 export class GetUpsByIdUseCase {
   constructor(
