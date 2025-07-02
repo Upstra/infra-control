@@ -3,6 +3,10 @@ import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.
 import { RoleRepositoryInterface } from '../interfaces/role.repository.interface';
 import { Role } from '../entities/role.entity';
 import { User } from '@/modules/users/domain/entities/user.entity';
+import {
+  CannotDeleteSystemRoleException,
+  CannotDeleteLastAdminRoleException,
+} from '../exceptions/role.exception';
 
 @Injectable()
 export class SafeRoleDeletionDomainService {
@@ -17,13 +21,30 @@ export class SafeRoleDeletionDomainService {
 
   /**
    * Safely delete a role by:
-   * 1. Finding all users with this role
-   * 2. Removing the role from their role list
-   * 3. Assigning Guest role to users left without any roles
-   * 4. Deleting the role
+   * 1. Checking if the role can be safely deleted (not ADMIN/GUEST system roles)
+   * 2. Finding all users with this role
+   * 3. Removing the role from their role list
+   * 4. Assigning Guest role to users left without any roles
+   * 5. Deleting the role
    */
   async safelyDeleteRole(roleId: string): Promise<void> {
     this.logger.log(`Starting safe deletion of role ${roleId}`);
+
+    const roleToDelete = await this.roleRepository.findOneByField({
+      field: 'id',
+      value: roleId,
+    });
+
+    if (roleToDelete.name === 'ADMIN' || roleToDelete.name === 'GUEST') {
+      throw new CannotDeleteSystemRoleException(roleToDelete.name);
+    }
+
+    if (roleToDelete.isAdmin) {
+      const adminRoleCount = await this.roleRepository.countAdminRoles();
+      if (adminRoleCount <= 1) {
+        throw new CannotDeleteLastAdminRoleException();
+      }
+    }
 
     const usersWithRole = await this.userRepository.findUsersByRole(roleId);
     this.logger.log(`Found ${usersWithRole.length} users with role ${roleId}`);

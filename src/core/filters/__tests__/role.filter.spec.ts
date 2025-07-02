@@ -2,6 +2,7 @@ import { ArgumentsHost, HttpStatus } from '@nestjs/common';
 import { RoleExceptionFilter } from '../role.exception.filter';
 import {
   AdminRoleAlreadyExistsException,
+  CannotDeleteSystemRoleException,
   RoleNotFoundException,
 } from '@/modules/roles/domain/exceptions/role.exception';
 
@@ -32,5 +33,16 @@ describe('RoleExceptionFilter', () => {
     filter.catch(new AdminRoleAlreadyExistsException('exists'), host);
     expect(response.status).toHaveBeenCalledWith(HttpStatus.CONFLICT);
     expect(json).toHaveBeenCalledWith({ statusCode: 409, message: 'exists' });
+  });
+
+  it('returns 403 for CannotDeleteSystemRoleException', () => {
+    const filter = new RoleExceptionFilter();
+    const { host, response, json } = createHost();
+    filter.catch(new CannotDeleteSystemRoleException('ADMIN'), host);
+    expect(response.status).toHaveBeenCalledWith(HttpStatus.FORBIDDEN);
+    expect(json).toHaveBeenCalledWith({
+      statusCode: 403,
+      message: 'Cannot delete system role: ADMIN',
+    });
   });
 });

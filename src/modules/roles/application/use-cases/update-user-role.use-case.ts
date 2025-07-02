@@ -41,6 +41,8 @@ export class UpdateUserRoleUseCase {
       const roleExists = current.roles?.some((r) => r.id === roleId);
       if (!roleExists) {
         current.roles = [...(current.roles || []), role];
+      } else {
+        current.roles = current.roles.filter((r) => r.id !== roleId);
       }
     }
 

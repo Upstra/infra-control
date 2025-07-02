@@ -8,12 +8,14 @@ import {
   RoleRetrievalException,
   RoleNotFoundException,
   AdminRoleAlreadyExistsException,
+  CannotDeleteSystemRoleException,
 } from '@/modules/roles/domain/exceptions/role.exception';
 
 @Catch(
   RoleRetrievalException,
   RoleNotFoundException,
   AdminRoleAlreadyExistsException,
+  CannotDeleteSystemRoleException,
 )
 export class RoleExceptionFilter implements ExceptionFilter {
   catch(exception: Error, host: ArgumentsHost) {
@@ -24,6 +26,8 @@ export class RoleExceptionFilter implements ExceptionFilter {
       status = HttpStatus.NOT_FOUND;
     } else if (exception instanceof AdminRoleAlreadyExistsException) {
       status = HttpStatus.CONFLICT;
+    } else if (exception instanceof CannotDeleteSystemRoleException) {
+      status = HttpStatus.FORBIDDEN;
     }
 
     response.status(status).json({

@@ -3,7 +3,10 @@ import { RoleRepositoryInterface } from '../../domain/interfaces/role.repository
 import { RoleCreationDto, RoleResponseDto } from '../dto';
 import { AdminRoleCreationDto } from '../dto/role.creation.dto';
 import { RoleDomainService } from '../../domain/services/role.domain.service';
-import { AdminRoleAlreadyExistsException } from '../../domain/exceptions/role.exception';
+import {
+  AdminRoleAlreadyExistsException,
+  SystemRoleNameAlreadyExistsException,
+} from '../../domain/exceptions/role.exception';
 
 @Injectable()
 export class CreateRoleUseCase {
@@ -16,6 +19,11 @@ export class CreateRoleUseCase {
   async execute(
     dto: RoleCreationDto | AdminRoleCreationDto,
   ): Promise<RoleResponseDto> {
+    const roleName = dto.name.toUpperCase();
+    if (roleName === 'ADMIN' || roleName === 'GUEST') {
+      throw new SystemRoleNameAlreadyExistsException(roleName);
+    }
+
     if (dto instanceof AdminRoleCreationDto && dto.isAdmin) {
       const existing = await this.roleRepository.findOneByField({
         field: 'isAdmin',
