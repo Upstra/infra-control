@@ -7,6 +7,23 @@ import { User } from '../../domain/entities/user.entity';
 import { UserConflictException } from '../../domain/exceptions/user.exception';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 
+/**
+ * Registers a new user account with provided profile and credentials.
+ *
+ * Responsibilities:
+ * - Validates and transforms the CreateUserDto into a user entity.
+ * - Delegates to UserDomainService to persist the new user.
+ * - Optionally assigns default roles and initializes 2FA if configured.
+ *
+ * @param dto  CreateUserDto containing email, username, password, and optional metadata.
+ * @returns    Promise<UserDto> the newly created user’s DTO (sans mot de passe).
+ *
+ * @throws ValidationException if required fields are missing or invalid.
+ *
+ * @example
+ * const user = await registerUserUseCase.execute({ email:'a@b.com', username:'alice', password:'••••' });
+ */
+
 export class RegisterUserUseCase {
   constructor(
     @Inject('UserRepositoryInterface')
