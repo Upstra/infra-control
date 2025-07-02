@@ -147,7 +147,7 @@ describe('UserController', () => {
       expect(updateUserUseCase.execute).toHaveBeenCalledWith(
         mockUser.userId,
         updateDto,
-        mockPayload,
+        mockPayload.userId,
       );
       expect(result).toEqual({ ...mockUser, ...updateDto });
     });
