@@ -2,6 +2,7 @@ import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { PermissionVmDto } from '../../dto/permission.vm.dto';
 import { PermissionVmRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.vm.repository.interface';
+import { PermissionResolver } from '@/modules/permissions/application/utils/permission-resolver.util';
 
 /**
  * Retrieves all VM permissions granted to a specific user.
@@ -34,18 +35,20 @@ export class GetUserVmPermissionsUseCase {
     const user = await this.userRepo.findOneByField({
       field: 'id',
       value: userId,
-      relations: ['role'],
+      relations: ['roles'],
       disableThrow: true,
     });
     if (!user) throw new UnauthorizedException('User not found');
 
-    const roleId = user.roleId;
-    if (!roleId) throw new UnauthorizedException('User has no role assigned');
+    const roleIds = user.roles?.map((r) => r.id) ?? [];
+    if (!roleIds.length) {
+      throw new UnauthorizedException('User has no role assigned');
+    }
 
-    const permissions = await this.permissionVmRepo.findAllByField({
-      field: 'roleId',
-      value: roleId,
-    });
+    const permissions = await PermissionResolver.resolveVmPermissions(
+      this.permissionVmRepo,
+      roleIds,
+    );
     return PermissionVmDto.fromEntities(permissions);
   }
 }

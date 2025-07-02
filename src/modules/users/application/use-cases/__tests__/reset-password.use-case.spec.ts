@@ -53,7 +53,6 @@ describe('ResetPasswordUseCase', () => {
         username: user.username,
         firstName: user.firstName,
         lastName: user.lastName,
-        roleId: user.roleId,
       }),
     );
   });

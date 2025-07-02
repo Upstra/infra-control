@@ -35,12 +35,15 @@ export class RoleGuard implements CanActivate {
 
     const userWithRole = await this.getUserWithRoleUseCase.execute(user.userId);
 
-    if (!userWithRole || !userWithRole.role) {
+    if (!userWithRole?.roles?.length) {
       throw new ForbiddenException('User has no role assigned');
     }
 
     if (requirement.canCreateServer !== undefined) {
-      if (userWithRole.role.canCreateServer !== requirement.canCreateServer) {
+      const hasPerm = userWithRole.roles.some(
+        (r) => r.canCreateServer === requirement.canCreateServer,
+      );
+      if (!hasPerm) {
         throw new ForbiddenException(
           requirement.canCreateServer
             ? 'You do not have permission to create servers'

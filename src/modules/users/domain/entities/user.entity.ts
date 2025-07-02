@@ -3,8 +3,8 @@ import {
   PrimaryGeneratedColumn,
   Column,
   BaseEntity,
-  ManyToOne,
-  JoinColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { Role } from '../../../roles/domain/entities/role.entity';
 
@@ -45,13 +45,9 @@ export class User extends BaseEntity {
   @Column({ type: 'timestamp', nullable: true })
   lastLoggedIn?: Date;
 
-  /* Rôle */
-  @ManyToOne(() => Role, (role) => role.users)
-  @JoinColumn({ name: 'roleId' })
-  role: Role;
-
-  @Column()
-  roleId!: string;
+  @ManyToMany(() => Role, (role) => role.users)
+  @JoinTable({ name: 'user_roles' })
+  roles: Role[];
 
   @Column('text', { array: true, nullable: true })
   recoveryCodes?: string[];

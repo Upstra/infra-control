@@ -125,7 +125,7 @@ describe('GetSetupStatusUseCase', () => {
       field: 'id',
       value: userId,
       disableThrow: true,
-      relations: ['role'],
+      relations: ['roles'],
     });
 
     expect(result).toEqual(expectedDto);

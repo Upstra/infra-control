@@ -92,13 +92,15 @@ export class CreateServerUseCase {
     const user = await this.userRepository.findOneByField({
       field: 'id',
       value: userId,
-      relations: ['role'],
+      relations: ['roles'],
     });
 
-    if (user?.roleId) {
+    const adminRoleIds =
+      user?.roles?.filter((r) => r.isAdmin).map((r) => r.id) ?? [];
+    for (const roleId of adminRoleIds) {
       await this.permissionRepository.createPermission(
         server.id,
-        user.roleId,
+        roleId,
         PermissionBit.READ |
           PermissionBit.WRITE |
           PermissionBit.DELETE |

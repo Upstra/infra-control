@@ -32,8 +32,15 @@ import {
   GetRoleByIdUseCase,
   GetRoleListUseCase,
   UpdateRoleUseCase,
+  GetUsersByRoleUseCase,
+  UpdateUserRoleUseCase,
 } from '@/modules/roles/application/use-cases';
+import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { AdminRoleCreationDto } from '../dto/role.creation.dto';
+import { RequireRole } from '@/core/decorators/role.decorator';
+import { RoleGuard } from '@/core/guards';
+import { RoleUpdateDto } from '../dto/role.update.dto';
 
 @ApiTags('Role')
 @Controller('role')
@@ -45,6 +52,8 @@ export class RoleController {
     private readonly getRoleByIdUseCase: GetRoleByIdUseCase,
     private readonly updateRoleUseCase: UpdateRoleUseCase,
     private readonly deleteRoleUseCase: DeleteRoleUseCase,
+    private readonly getUsersByRoleUseCase: GetUsersByRoleUseCase,
+    private readonly updateUserRoleUseCase: UpdateUserRoleUseCase,
   ) {}
 
   @Get()
@@ -125,6 +134,29 @@ export class RoleController {
     return this.createRoleUseCase.execute(roleDto);
   }
 
+  @Post('admin')
+  @ApiOperation({
+    summary: 'Créer un rôle administrateur',
+    description:
+      'Crée un rôle administrateur/ou non avec les données spécifiées dans le `AdminRoleCreationDto`. Seuls les utilisateurs avec le rôle "admin" peuvent effectuer cette action.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Rôle administrateur/normal créé avec succès',
+    type: RoleResponseDto,
+  })
+  @ApiBody({
+    type: AdminRoleCreationDto,
+    description: 'Données nécessaires à la création d’un rôle administrateur',
+    required: true,
+  })
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
+  @ApiBearerAuth()
+  async createAdminRole(@Body() dto: AdminRoleCreationDto) {
+    return this.createRoleUseCase.execute(dto);
+  }
+
   @Patch(':id')
   @ApiParam({
     name: 'id',
@@ -133,7 +165,7 @@ export class RoleController {
     required: true,
   })
   @ApiBody({
-    type: RoleCreationDto,
+    type: RoleUpdateDto,
     description: 'Données nécessaires pour mettre à jour un rôle existant',
     required: true,
   })
@@ -149,7 +181,7 @@ export class RoleController {
   })
   async updateRole(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() roleDto: RoleCreationDto,
+    @Body() roleDto: RoleUpdateDto,
   ): Promise<RoleResponseDto> {
     return this.updateRoleUseCase.execute(id, roleDto);
   }
@@ -172,5 +204,41 @@ export class RoleController {
   })
   async deleteRole(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.deleteRoleUseCase.execute(id);
+  }
+
+  @Get(':id/users')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', type: String })
+  @ApiOperation({ summary: "Liste des utilisateurs d'un rôle" })
+  @ApiResponse({ status: 200, type: [UserResponseDto] })
+  async getUsersByRole(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<UserResponseDto[]> {
+    return this.getUsersByRoleUseCase.execute(id);
+  }
+
+  @Patch('users/:userId/role')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'userId',
+    type: String,
+    description: 'UUID de l’utilisateur',
+  })
+  @ApiBody({
+    schema: {
+      properties: {
+        roleId: { type: 'string', format: 'uuid', nullable: true },
+      },
+    },
+  })
+  @ApiOperation({ summary: "Mettre à jour le rôle d'un utilisateur" })
+  @ApiResponse({ status: 200, type: UserResponseDto })
+  async updateUserRole(
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Body('roleId') roleId: string | null,
+  ): Promise<UserResponseDto> {
+    return this.updateUserRoleUseCase.execute(userId, roleId);
   }
 }

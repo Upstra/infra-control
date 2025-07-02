@@ -11,6 +11,7 @@ import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
 import { ServerRepositoryInterface } from '../../domain/interfaces/server.repository.interface';
 import { PermissionSet } from '@/modules/permissions/domain/value-objects/ permission-set.value-object';
+import { PermissionResolver } from '@/modules/permissions/application/utils/permission-resolver.util';
 
 /**
  * Retrieves a server only if the user has the required permissions.
@@ -50,20 +51,21 @@ export class GetServerByIdWithPermissionCheckUseCase {
     const user = await this.userRepo.findOneByField({
       field: 'id',
       value: userId,
-      relations: ['role'],
+      relations: ['roles'],
     });
 
-    if (!user?.roleId) {
+    const roleIds = user?.roles?.map((r) => r.id) ?? [];
+    if (!roleIds.length) {
       this.logger.debug(`User ${userId} has no role assigned`);
       throw new ForbiddenException('User has no role assigned');
     }
 
-    this.logger.debug(`User ${userId} has roleId ${user.roleId}`);
+    this.logger.debug(`User ${userId} has roleIds ${roleIds.join(',')}`);
 
-    const permissions = await this.permissionRepo.findAllByField({
-      field: 'roleId',
-      value: user.roleId,
-    });
+    const permissions = await PermissionResolver.resolveServerPermissions(
+      this.permissionRepo,
+      roleIds,
+    );
 
     this.logger.debug(`User ${userId} has ${permissions.length} permissions`);
 

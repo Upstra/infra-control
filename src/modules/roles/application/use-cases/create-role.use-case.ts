@@ -1,6 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { RoleRepositoryInterface } from '../../domain/interfaces/role.repository.interface';
 import { RoleCreationDto, RoleResponseDto } from '../dto';
+import { AdminRoleCreationDto } from '../dto/role.creation.dto';
+import { RoleDomainService } from '../../domain/services/role.domain.service';
+import {
+  AdminRoleAlreadyExistsException,
+  SystemRoleNameAlreadyExistsException,
+} from '../../domain/exceptions/role.exception';
 
 /**
  * Creates a new user role with specified permissions.
@@ -24,10 +30,29 @@ export class CreateRoleUseCase {
   constructor(
     @Inject('RoleRepositoryInterface')
     private readonly roleRepository: RoleRepositoryInterface,
+    private readonly roleDomainService: RoleDomainService,
   ) {}
 
-  async execute(dto: RoleCreationDto): Promise<RoleResponseDto> {
-    const role = await this.roleRepository.createRole(dto.name);
+  async execute(
+    dto: RoleCreationDto | AdminRoleCreationDto,
+  ): Promise<RoleResponseDto> {
+    const roleName = dto.name.toUpperCase();
+    if (roleName === 'ADMIN' || roleName === 'GUEST') {
+      throw new SystemRoleNameAlreadyExistsException(roleName);
+    }
+
+    if (dto instanceof AdminRoleCreationDto && dto.isAdmin) {
+      const existing = await this.roleRepository.findOneByField({
+        field: 'isAdmin',
+        value: true,
+        disableThrow: true,
+      });
+      if (existing) {
+        throw new AdminRoleAlreadyExistsException();
+      }
+    }
+    const entity = this.roleDomainService.toRoleEntity(dto);
+    const role = await this.roleRepository.save(entity);
     return new RoleResponseDto(role);
   }
 }

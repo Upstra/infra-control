@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { RoomRepositoryInterface } from '../../domain/interfaces/room.repository.interface';
 import { RoomResponseDto } from '../dto';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
+import { PermissionResolver } from '@/modules/permissions/application/utils/permission-resolver.util';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { ServerPermissionSet } from '@/modules/permissions/domain/value-objects/server-permission-set.value-object';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
@@ -44,18 +45,19 @@ export class GetRoomByIdUseCase {
     const user = await this.userRepo.findOneByField({
       field: 'id',
       value: userId,
-      relations: ['role'],
+      relations: ['roles'],
     });
 
-    if (!user?.roleId) {
+    const roleIds = user?.roles?.map((r) => r.id) ?? [];
+    if (!roleIds.length) {
       room.servers = [];
       return RoomResponseDto.from(room);
     }
 
-    const perms = await this.permissionRepo.findAllByField({
-      field: 'roleId',
-      value: user.roleId,
-    });
+    const perms = await PermissionResolver.resolveServerPermissions(
+      this.permissionRepo,
+      roleIds,
+    );
 
     const permSet = new ServerPermissionSet(perms);
     const readable = permSet.filterByBit(PermissionBit.READ);

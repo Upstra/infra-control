@@ -16,4 +16,9 @@ export interface RoleRepositoryInterface {
   updateRole(id: string, name: string): Promise<Role>;
   deleteRole(id: string): Promise<void>;
   save(role: Role): Promise<Role>;
+
+  /**
+   * Count the number of admin roles in the system.
+   */
+  countAdminRoles(): Promise<number>;
 }

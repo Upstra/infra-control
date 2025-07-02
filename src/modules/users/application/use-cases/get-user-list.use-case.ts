@@ -17,7 +17,7 @@ export class GetUserListUseCase {
    * @param limit - number of users per page
    */
   async execute(page = 1, limit = 10): Promise<UserListResponseDto> {
-    const [users, total] = await this.repo.paginate(page, limit, ['role']);
+    const [users, total] = await this.repo.paginate(page, limit, ['roles']);
     const dtos = users.map((u) => new UserResponseDto(u));
     return new UserListResponseDto(dtos, total, page, limit);
   }
