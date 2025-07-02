@@ -28,47 +28,53 @@ export class UpdateUserRoleUseCase {
       const userRepo = manager.getRepository(User);
       const roleRepo = manager.getRepository(Role);
 
-      const current = await userRepo.findOneOrFail({
+      const user = await userRepo.findOneOrFail({
         where: { id: userId },
         relations: ['roles'],
       });
 
       if (roleId) {
         const role = await roleRepo.findOneOrFail({ where: { id: roleId } });
-        const roleExists = current.roles?.some((r) => r.id === roleId);
-
-        if (roleExists) {
-          if (role.name === 'GUEST' && current.roles.length === 1) {
-            throw new CannotRemoveGuestRoleException();
-          }
-          if (role.isAdmin) {
-            const adminRoles = current.roles.filter((r) => r.isAdmin);
-            if (
-              adminRoles.length === 1 &&
-              (await userRepo.count({
-                where: { roles: { isAdmin: true } },
-              })) === 1
-            ) {
-              throw new CannotRemoveLastAdminException();
-            }
-          }
-          current.roles = current.roles.filter((r) => r.id !== roleId);
-        } else {
-          if (current.roles && current.roles.length > 0) {
-            current.roles = [...current.roles, role];
-          }
+        if (this.hasRole(user, roleId)) {
+          await this.handleRoleRemoval(user, role, userRepo);
+        } else if (user.roles && user.roles.length > 0) {
+          user.roles = [...user.roles, role];
         }
       }
 
-      if (!current.roles || current.roles.length === 0) {
-        const guest = await roleRepo.findOneOrFail({
-          where: { name: 'GUEST' },
-        });
-        current.roles = [guest];
+      if (!user.roles || user.roles.length === 0) {
+        user.roles = [await this.getGuestRole(roleRepo)];
       }
 
-      const saved = await userRepo.save(current);
+      const saved = await userRepo.save(user);
       return new UserResponseDto(saved);
     });
+  }
+
+  private hasRole(user: User, roleId: string): boolean {
+    return user.roles?.some((r) => r.id === roleId);
+  }
+
+  private async handleRoleRemoval(user: User, role: Role, userRepo: any) {
+    if (role.name === 'GUEST' && user.roles.length === 1) {
+      throw new CannotRemoveGuestRoleException();
+    }
+    if (role.isAdmin && (await this.isLastAdmin(user, userRepo))) {
+      throw new CannotRemoveLastAdminException();
+    }
+    user.roles = user.roles.filter((r) => r.id !== role.id);
+  }
+
+  private async isLastAdmin(user: User, userRepo: any): Promise<boolean> {
+    const adminRoles = user.roles.filter((r) => r.isAdmin);
+    if (adminRoles.length !== 1) return false;
+    const adminCount = await userRepo.count({
+      where: { roles: { isAdmin: true } },
+    });
+    return adminCount === 1;
+  }
+
+  private async getGuestRole(roleRepo: any): Promise<Role> {
+    return roleRepo.findOneOrFail({ where: { name: 'GUEST' } });
   }
 }

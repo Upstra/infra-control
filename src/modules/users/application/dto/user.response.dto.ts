@@ -1,12 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsString,
-  IsUUID,
-  IsEmail,
-  IsBoolean,
-  IsDate,
-  IsOptional,
-} from 'class-validator';
+import { IsString, IsUUID, IsEmail, IsBoolean, IsDate } from 'class-validator';
 import { User } from '../../domain/entities/user.entity';
 import { RoleResponseDto } from '@/modules/roles/application/dto';
 
