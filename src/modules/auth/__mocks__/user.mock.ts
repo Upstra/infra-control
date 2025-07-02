@@ -16,6 +16,7 @@ export const createMockUser = (overrides?: Partial<User>): User => {
     updatedAt: new Date(),
     role: createMockRole(),
     roleId: 'role-1',
+    roles: [],
     ...overrides,
   });
 };

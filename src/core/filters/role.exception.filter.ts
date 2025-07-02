@@ -7,17 +7,20 @@ import {
 import {
   RoleRetrievalException,
   RoleNotFoundException,
+  AdminRoleAlreadyExistsException,
 } from '@/modules/roles/domain/exceptions/role.exception';
 
-@Catch(RoleRetrievalException, RoleNotFoundException)
+@Catch(RoleRetrievalException, RoleNotFoundException, AdminRoleAlreadyExistsException)
 export class RoleExceptionFilter implements ExceptionFilter {
   catch(exception: Error, host: ArgumentsHost) {
     const response = host.switchToHttp().getResponse();
 
-    const status =
-      exception instanceof RoleNotFoundException
-        ? HttpStatus.NOT_FOUND
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+    let status = HttpStatus.INTERNAL_SERVER_ERROR;
+    if (exception instanceof RoleNotFoundException) {
+      status = HttpStatus.NOT_FOUND;
+    } else if (exception instanceof AdminRoleAlreadyExistsException) {
+      status = HttpStatus.CONFLICT;
+    }
 
     response.status(status).json({
       statusCode: status,
