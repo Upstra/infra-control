@@ -28,7 +28,7 @@ describe('GetUsersByRoleUseCase', () => {
     expect(repo.findAllByField).toHaveBeenCalledWith({
       field: 'roleId',
       value: 'r1',
-      relations: ['role'],
+      relations: ['roles'],
     });
     expect(presenceService.isOnline).toHaveBeenCalledWith(user.id);
     expect(result).toEqual([new UserResponseDto(user)]);

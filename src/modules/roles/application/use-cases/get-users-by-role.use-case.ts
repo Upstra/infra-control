@@ -15,7 +15,7 @@ export class GetUsersByRoleUseCase {
     let users = await this.repo.findAllByField({
       field: 'roleId',
       value: roleId,
-      relations: ['role'],
+      relations: ['roles'],
     });
 
     await Promise.all(

@@ -27,7 +27,7 @@ export class GetRoomByIdUseCase {
     const user = await this.userRepo.findOneByField({
       field: 'id',
       value: userId,
-      relations: ['role'],
+      relations: ['roles'],
     });
 
     if (!user?.roleId) {

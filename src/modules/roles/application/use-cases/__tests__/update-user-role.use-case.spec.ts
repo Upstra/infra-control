@@ -22,7 +22,7 @@ describe('UpdateUserRoleUseCase', () => {
   });
 
   it('should update user role', async () => {
-    const current = createMockUser({ id: 'u1', role: createMockRole({ isAdmin: true }) });
+    const current = createMockUser({ id: 'u1', roles: [createMockRole({ isAdmin: true })] });
     repo.findOneByField.mockResolvedValue(current);
     repo.countAdmins.mockResolvedValue(2);
     const updated = Object.setPrototypeOf(current, User.prototype);
@@ -35,14 +35,14 @@ describe('UpdateUserRoleUseCase', () => {
   });
 
   it('should propagate errors', async () => {
-    repo.findOneByField.mockResolvedValue(createMockUser({ role: createMockRole({ isAdmin: false }) }));
+    repo.findOneByField.mockResolvedValue(createMockUser({ roles: [createMockRole({ isAdmin: false })] }));
     repo.countAdmins.mockResolvedValue(2);
     updateFields.execute.mockRejectedValue(new Error('fail'));
     await expect(useCase.execute('u1', null)).rejects.toThrow('fail');
   });
 
   it('should throw if demoting the last admin', async () => {
-    const adminUser = createMockUser({ role: createMockRole({ isAdmin: true }) });
+    const adminUser = createMockUser({ roles: [createMockRole({ isAdmin: true })] });
     repo.findOneByField.mockResolvedValue(adminUser);
     repo.countAdmins.mockResolvedValue(1);
     roleRepo.findOneByField.mockResolvedValue(createMockRole({ isAdmin: false }));

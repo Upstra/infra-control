@@ -74,7 +74,7 @@ export class CreateServerUseCase {
     const user = await this.userRepository.findOneByField({
       field: 'id',
       value: userId,
-      relations: ['role'],
+      relations: ['roles'],
     });
 
     if (user?.roleId) {

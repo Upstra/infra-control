@@ -15,10 +15,10 @@ export class DeleteUserUseCase {
     const user = await this.repo.findOneByField({
       field: 'id',
       value: id,
-      relations: ['role'],
+      relations: ['roles'],
     });
 
-    if (user.role.isAdmin && (await this.repo.countAdmins()) === 1) {
+    if (user.roles?.some((r) => r.isAdmin) && (await this.repo.countAdmins()) === 1) {
       throw new CannotDeleteLastAdminException();
     }
 

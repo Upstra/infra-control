@@ -13,7 +13,7 @@ export class GetUserWithRoleUseCase {
     return this.userRepository.findOneByField({
       field: 'id',
       value: userId,
-      relations: ['role'],
+      relations: ['roles'],
     });
   }
 }

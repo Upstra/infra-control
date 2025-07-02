@@ -2,7 +2,7 @@ import { User } from '@/modules/users/domain/entities/user.entity';
 import { createMockRole } from '@/modules/roles/__mocks__/role.mock';
 import { UserResponseDto } from '@/modules/users/application/dto';
 
-export const createMockUser = (overrides?: Partial<User>): User => {
+export const createMockUser = (overrides?: Record<string, any>): User => {
   return Object.assign(new User(), {
     id: 'user-123',
     email: 'john.doe@example.com',
@@ -14,7 +14,6 @@ export const createMockUser = (overrides?: Partial<User>): User => {
     twoFactorSecret: 'SECRET123',
     createdAt: new Date(),
     updatedAt: new Date(),
-    role: createMockRole(),
     roleId: 'role-1',
     roles: [],
     ...overrides,

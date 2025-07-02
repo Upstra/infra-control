@@ -4,6 +4,7 @@ import {
   Column,
   BaseEntity,
   OneToMany,
+  ManyToMany,
 } from 'typeorm';
 import { User } from '../../../users/domain/entities/user.entity';
 import { PermissionServer } from '../../../permissions/domain/entities/permission.server.entity';
@@ -17,7 +18,7 @@ export class Role extends BaseEntity {
   @Column({ type: 'varchar' })
   name!: string;
 
-  @OneToMany(() => User, (user) => user.role)
+  @ManyToMany(() => User, (user) => user.roles)
   users: User[];
 
   @OneToMany(() => PermissionServer, (permission) => permission.role, {

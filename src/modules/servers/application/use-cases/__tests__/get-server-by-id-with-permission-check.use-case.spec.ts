@@ -62,7 +62,7 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,
-        role: mockRole,
+        roles: [mockRole],
       });
 
       const mockPermissions = [
@@ -97,7 +97,7 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
       expect(userRepo.findOneByField).toHaveBeenCalledWith({
         field: 'id',
         value: userId,
-        relations: ['role'],
+        relations: ['roles'],
       });
 
       expect(permissionRepo.findAllByField).toHaveBeenCalledWith({
@@ -142,7 +142,7 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,
-        role: mockRole,
+        roles: [mockRole],
       });
 
       const mockPermissions = [
@@ -178,7 +178,7 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,
-        role: mockRole,
+        roles: [mockRole],
       });
 
       const mockPermissions = [
@@ -204,7 +204,7 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,
-        role: mockRole,
+        roles: [mockRole],
       });
 
       const mockPermissions = [
@@ -250,7 +250,7 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,
-        role: mockRole,
+        roles: [mockRole],
       });
 
       userRepo.findOneByField.mockResolvedValue(mockUser);
@@ -268,7 +268,7 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,
-        role: mockRole,
+        roles: [mockRole],
       });
 
       const mockPermissions = [
@@ -297,7 +297,7 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,
-        role: mockRole,
+        roles: [mockRole],
       });
 
       const mockPermissions = [

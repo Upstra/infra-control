@@ -280,7 +280,7 @@ describe('CreateServerUseCase', () => {
     expect(userRepo.findOneByField).toHaveBeenCalledWith({
       field: 'id',
       value: mockPayload.userId,
-      relations: ['role'],
+      relations: ['roles'],
     });
     expect(permissionRepo.createPermission).toHaveBeenCalledWith(
       mockServer.id,
@@ -302,7 +302,7 @@ describe('CreateServerUseCase', () => {
     iloUseCase.execute.mockResolvedValue(mockIloDto);
     repo.save.mockResolvedValue(mockServer);
     userRepo.findOneByField.mockResolvedValue(
-      createMockUser({ roleId: undefined, role: undefined }),
+      createMockUser({ roleId: undefined }),
     );
     permissionRepo.createPermission = jest.fn();
 

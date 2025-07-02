@@ -16,7 +16,7 @@ export class GetUserVmPermissionsUseCase {
     const user = await this.userRepo.findOneByField({
       field: 'id',
       value: userId,
-      relations: ['role'],
+      relations: ['roles'],
       disableThrow: true,
     });
     if (!user) throw new UnauthorizedException('User not found');
