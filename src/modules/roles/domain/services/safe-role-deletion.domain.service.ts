@@ -96,7 +96,7 @@ export class SafeRoleDeletionDomainService {
     this.logger.warn('Guest role not found, creating it');
     try {
       return await this.roleRepository.createRole('GUEST');
-    } catch (error) {
+    } catch {
       const role = await this.roleRepository.findOneByField({
         field: 'name',
         value: 'GUEST',

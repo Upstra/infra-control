@@ -77,8 +77,9 @@ export class CreateServerUseCase {
       relations: ['roles'],
     });
 
-    const roleId = user?.roles?.[0]?.id;
-    if (roleId) {
+    const adminRoleIds =
+      user?.roles?.filter((r) => r.isAdmin).map((r) => r.id) ?? [];
+    for (const roleId of adminRoleIds) {
       await this.permissionRepository.createPermission(
         server.id,
         roleId,

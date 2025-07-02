@@ -268,7 +268,7 @@ describe('CreateServerUseCase', () => {
     // Simule un user AVEC roleId
     const mockUser = createMockUser({
       id: 'user-123',
-      roles: [{ id: 'role-42' }],
+      roles: [{ id: 'role-42', isAdmin: true }],
     });
 
     roomRepo.findRoomById.mockResolvedValue(mockRoom());
@@ -319,7 +319,9 @@ describe('CreateServerUseCase', () => {
     const server1 = createMockServer({ id: 'srv-1' });
     const server2 = createMockServer({ id: 'srv-2' });
     const mockIloDto = createMockIloResponseDto();
-    const mockUser = createMockUser({ roles: [{ id: 'role-42' }] });
+    const mockUser = createMockUser({
+      roles: [{ id: 'role-42', isAdmin: true }],
+    });
 
     roomRepo.findRoomById.mockResolvedValue(mockRoom());
     groupRepo.findOneByField.mockResolvedValue(createMockGroupServer());

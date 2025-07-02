@@ -132,7 +132,6 @@ describe('SafeRoleDeletionDomainService', () => {
       roleRepo.findOneByField.mockResolvedValueOnce(null);
       userRepo.findUsersByRole.mockResolvedValue([user]);
       roleRepo.createRole.mockResolvedValue(guestRole);
-      roleRepo.save.mockResolvedValue(guestRole);
 
       await service.safelyDeleteRole(roleId);
 
