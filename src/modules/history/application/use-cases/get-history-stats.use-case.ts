@@ -5,19 +5,21 @@ import { HistoryRepositoryInterface } from '../../domain/interfaces/history.repo
  * Computes aggregate metrics over history records for insight dashboards.
  *
  * Responsibilities:
- * - Counts events by type (creates, updates, deletes, state-changes).
- * - Aggregates totals over a configurable time window (e.g. last 24h, last 7 days).
- * - Returns structured statistics for charting or summary widgets.
+ * - Counts creation events for a specific entity type over the last N months.
+ * - Returns monthly aggregation data for charting or summary widgets.
+ * - Provides historical trends for dashboard visualization.
  *
- * @param timeframe  Object specifying aggregation window (start and end timestamps).
- * @returns          Promise<HistoryStatsDto> containing counts per event category.
+ * @param entity  string - The entity type to aggregate statistics for (e.g., 'vm', 'server', 'user').
+ * @param months  number - The number of months to look back for aggregation.
+ * @returns       Promise<Record<string, number>> containing monthly counts keyed by month.
  *
  * @remarks
- * Ideal for feeding dashboard panels that show event volumes;
+ * Ideal for feeding dashboard panels that show creation trends over time;
  * does not persist or alter history data.
  *
  * @example
- * const stats = await getHistoryStatsUseCase.execute({ start: '2025-06-20', end: '2025-06-27' });
+ * const stats = await getHistoryStatsUseCase.execute('vm', 6);
+ * // Returns: { '2024-07': 15, '2024-08': 23, '2024-09': 18, ... }
  */
 
 @Injectable()

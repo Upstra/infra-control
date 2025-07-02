@@ -3,27 +3,25 @@ import { SshService } from '../../domain/services/ssh.service';
 import { SshSession } from '../../domain/services/interfaces/ssh-session.interace';
 
 /**
- * Opens an SSH session to a target server and executes specified commands.
+ * Opens an SSH session to a target server using password authentication.
  *
  * Responsibilities:
- * - Establishes a connection using the SshService with given credentials.
- * - Executes one or more shell commands in sequence, capturing stdout/stderr.
- * - Applies retry and timeout policies to each command execution.
- * - Returns structured results for each command, including exit codes and output.
+ * - Establishes a basic SSH connection using the SshService with provided credentials.
+ * - Returns a raw SshSession object containing client and shell stream.
  *
- * @param server    ServerDto or identifier containing connection details (host, port).
- * @param commands  Array of shell command strings to execute over SSH.
- * @returns         Promise<CommandResultDto[]> array of results for each command.
- *
- * @throws ConnectionException if SSH handshake fails.
- * @throws CommandExecutionException if any command returns a non-zero exit code.
+ * @param options  Object containing connection details: host, username, and password.
+ * @returns        Promise<SshSession> containing SSH client and shell stream for manual interaction.
  *
  * @remarks
- * Used by application-layer use-cases to perform in-band operations on servers;
- * controllers should call this use-case rather than invoking SshService directly.
+ * Used by application-layer use-cases to establish SSH connections.
+ * Returns low-level SSH objects that require manual command execution and cleanup.
  *
  * @example
- * const results = await openSshSessionUseCase.execute(serverInfo, ['uname -a', 'df -h']);
+ * const session = await openSshSessionUseCase.execute({
+ *   host: '192.168.1.100',
+ *   username: 'admin',
+ *   password: 'secret'
+ * });
  */
 
 @Injectable()

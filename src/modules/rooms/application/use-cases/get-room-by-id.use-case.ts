@@ -8,20 +8,22 @@ import { ServerPermissionSet } from '@/modules/permissions/domain/value-objects/
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 
 /**
- * Fetches details for a single room by its unique identifier.
+ * Fetches details for a single room by its unique identifier with optional user-based server filtering.
  *
  * Responsibilities:
- * - Validates the provided room ID.
- * - Uses RoomDomainService to retrieve the entity.
- * - Converts the entity into RoomDto.
+ * - Retrieves the room entity by ID from the repository.
+ * - Filters room servers based on user permissions if userId is provided.
+ * - Converts the entity into RoomResponseDto.
  *
- * @param id  UUID of the room to retrieve.
- * @returns   Promise<RoomDto> the corresponding room DTO.
+ * @param id      string - UUID of the room to retrieve.
+ * @param userId  string - Optional. UUID of the user for permission-based server filtering.
+ * @returns       Promise<RoomResponseDto> the corresponding room response DTO.
  *
- * @throws NotFoundException if no room matches the given ID.
+ * @throws RoomNotFoundException if no room matches the given ID.
  *
  * @example
  * const room = await getRoomByIdUseCase.execute('room-uuid-123');
+ * const roomWithFiltered = await getRoomByIdUseCase.execute('room-uuid-123', 'user-uuid');
  */
 
 @Injectable()

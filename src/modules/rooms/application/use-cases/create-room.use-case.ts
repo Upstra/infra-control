@@ -4,20 +4,20 @@ import { RoomResponseDto, RoomCreationDto } from '../dto';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 
 /**
- * Creates a new room entity with the specified attributes.
+ * Creates a new room entity with the specified name and logs the action.
  *
  * Responsibilities:
- * - Validates CreateRoomDto fields (name, location, capacity).
- * - Delegates to RoomDomainService to persist the entity.
- * - Returns the created RoomDto including generated ID.
+ * - Creates a new room using the repository createRoom method with the provided name.
+ * - Logs the creation action to the history system if userId is provided.
+ * - Returns the created room as RoomResponseDto.
  *
- * @param dto  CreateRoomDto containing room details.
- * @returns    Promise<RoomDto> the newly created room DTO.
- *
- * @throws ValidationException if DTO fields are invalid.
+ * @param dto     RoomCreationDto - DTO containing the room name to create.
+ * @param userId  string - Optional. UUID of the user performing the creation for audit logging.
+ * @returns       Promise<RoomResponseDto> the newly created room response DTO.
  *
  * @example
- * const newRoom = await createRoomUseCase.execute({ name: 'Lab A', location: '1st Floor', capacity: 10 });
+ * const newRoom = await createRoomUseCase.execute({ name: 'Lab A' });
+ * const newRoomWithLog = await createRoomUseCase.execute({ name: 'Lab B' }, 'user-uuid');
  */
 
 @Injectable()

@@ -3,25 +3,23 @@ import { Client } from 'ssh2';
 import { SshSession } from './interfaces/ssh-session.interace';
 
 /**
- * Provides SSH connectivity and command execution capabilities for servers.
- * Encapsulates connection pooling, command timeouts, and output parsing.
+ * Provides basic SSH connectivity for establishing shell sessions to remote servers.
  *
  * Responsibilities:
- * - Establish and manage SSH sessions using configured credentials.
- * - Execute shell commands on remote servers and capture stdout/stderr.
- * - Handle retry logic, timeouts, and reconnection on failure.
- * - Parse raw command output into structured results or domain models.
+ * - Establish SSH sessions using password-based authentication.
+ * - Return raw SSH client and shell stream objects for direct interaction.
  *
  * @remarks
- * Used by domain services (e.g. ServerDomainService) for in-band operations.
- * Should not be injected directly into controllers; use through orchestrating use-cases.
- *
- * @param host       Remote server address.
- * @param username   SSH username.
- * @param privateKey SSH private key or path to key file.
+ * Used by domain services for creating SSH connections. Returns low-level
+ * SSH2 Client and Stream objects that require manual management.
+ * Currently supports only password authentication.
  *
  * @example
- * const result = await sshService.execCommand(server, 'df -h');
+ * const session = await sshService.createSession({
+ *   host: '192.168.1.100',
+ *   username: 'admin',
+ *   password: 'secret'
+ * });
  */
 
 @Injectable()

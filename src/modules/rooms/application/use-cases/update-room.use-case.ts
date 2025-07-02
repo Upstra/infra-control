@@ -4,22 +4,23 @@ import { RoomResponseDto, RoomCreationDto } from '../dto';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 
 /**
- * Updates an existing room’s details and settings.
+ * Updates an existing room's name and logs the change to history.
  *
  * Responsibilities:
- * - Validates the room ID and input DTO (name, location, capacity).
- * - Fetches the current entity and applies updates via RoomDomainService.
- * - Persists changes and returns the updated RoomDto.
+ * - Updates the room name using the repository updateRoom method.
+ * - Logs the update action to the history system if userId is provided.
+ * - Returns the updated room as RoomResponseDto.
  *
- * @param id   UUID of the room to update.
- * @param dto  UpdateRoomDto with new field values.
- * @returns    Promise<RoomDto> the updated room DTO.
+ * @param id      string - UUID of the room to update.
+ * @param dto     RoomCreationDto - DTO containing the new name for the room.
+ * @param userId  string - Optional. UUID of the user performing the update for audit logging.
+ * @returns       Promise<RoomResponseDto> the updated room response DTO.
  *
- * @throws NotFoundException if the room does not exist.
- * @throws ValidationException if input data is invalid.
+ * @throws RoomNotFoundException if the room does not exist.
  *
  * @example
- * const updated = await updateRoomUseCase.execute('room-uuid-123', { capacity: 12 });
+ * const updated = await updateRoomUseCase.execute('room-uuid-123', { name: 'New Room Name' });
+ * const updatedWithLog = await updateRoomUseCase.execute('room-uuid-123', { name: 'New Name' }, 'user-uuid');
  */
 
 @Injectable()
