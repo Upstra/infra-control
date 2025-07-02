@@ -6,6 +6,21 @@ import {
   UpdateUserFieldsUseCase,
 } from '@/modules/users/application/use-cases';
 
+/**
+ * Disables two-factor authentication for a user account.
+ *
+ * Responsibilities:
+ * - Retrieves user by email via GetUserByEmailUseCase.
+ * - If 2FA is not enabled, returns false without changes.
+ * - Otherwise, clears 2FA fields (secret and recovery codes) and updates the user.
+ *
+ * @param user  JwtPayload of the authenticated user.
+ * @returns     TwoFADisableResponseDto indicating prior and new 2FA status.
+ *
+ * @example
+ * const result = await disable2FAUseCase.execute(jwtPayload);
+ */
+
 @Injectable()
 export class Disable2FAUseCase {
   constructor(
