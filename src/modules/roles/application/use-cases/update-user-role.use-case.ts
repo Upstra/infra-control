@@ -3,6 +3,7 @@ import { UserResponseDto } from '@/modules/users/application/dto/user.response.d
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { RoleRepositoryInterface } from '../../domain/interfaces/role.repository.interface';
 import { CannotRemoveGuestRoleException } from '../../domain/exceptions/role.exception';
+import { CannotRemoveLastAdminException } from '@/modules/users/domain/exceptions/user.exception';
 
 @Injectable()
 export class UpdateUserRoleUseCase {
@@ -45,6 +46,12 @@ export class UpdateUserRoleUseCase {
       } else {
         if (role.name === 'GUEST' && current.roles.length === 1) {
           throw new CannotRemoveGuestRoleException();
+        }
+        if (role.isAdmin) {
+          const adminRoles = current.roles.filter((r) => r.isAdmin);
+          if (adminRoles.length === 1 && (await this.repo.countAdmins()) === 1) {
+            throw new CannotRemoveLastAdminException();
+          }
         }
         current.roles = current.roles.filter((r) => r.id !== roleId);
         if (current.roles.length === 0) {

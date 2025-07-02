@@ -12,6 +12,7 @@ import {
   UserRetrievalException,
   UserUpdateException,
   CannotDeleteLastAdminException,
+  CannotRemoveLastAdminException,
 } from '@/modules/users/domain/exceptions/user.exception';
 
 @Catch(
@@ -22,6 +23,7 @@ import {
   UserRetrievalException,
   UserRegistrationException,
   CannotDeleteLastAdminException,
+  CannotRemoveLastAdminException,
 )
 export class UserExceptionFilter implements ExceptionFilter {
   catch(exception: Error, host: ArgumentsHost) {
@@ -33,7 +35,8 @@ export class UserExceptionFilter implements ExceptionFilter {
       status = HttpStatus.NOT_FOUND;
     } else if (
       exception instanceof UserConflictException ||
-      exception instanceof CannotDeleteLastAdminException
+      exception instanceof CannotDeleteLastAdminException ||
+      exception instanceof CannotRemoveLastAdminException
     ) {
       status = HttpStatus.CONFLICT;
     }

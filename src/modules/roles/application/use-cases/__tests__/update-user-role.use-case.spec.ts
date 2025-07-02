@@ -6,6 +6,7 @@ import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.
 import { RoleRepositoryInterface } from '@/modules/roles/domain/interfaces/role.repository.interface';
 import { createMockRole } from '@/modules/roles/__mocks__/role.mock';
 import { CannotRemoveGuestRoleException } from '@/modules/roles/domain/exceptions/role.exception';
+import { CannotRemoveLastAdminException } from '@/modules/users/domain/exceptions/user.exception';
 
 describe('UpdateUserRoleUseCase', () => {
   let useCase: UpdateUserRoleUseCase;
@@ -13,7 +14,7 @@ describe('UpdateUserRoleUseCase', () => {
   let roleRepo: jest.Mocked<RoleRepositoryInterface>;
 
   beforeEach(() => {
-    repo = { findOneByField: jest.fn(), save: jest.fn() } as any;
+    repo = { findOneByField: jest.fn(), save: jest.fn(), countAdmins: jest.fn() } as any;
     roleRepo = { findOneByField: jest.fn() } as any;
     useCase = new UpdateUserRoleUseCase(repo, roleRepo);
   });
@@ -45,7 +46,8 @@ describe('UpdateUserRoleUseCase', () => {
 
   it('should not add duplicate role', async () => {
     const existingRole = createMockRole({ id: 'r1', isAdmin: true });
-    const current = createMockUser({ id: 'u1', roles: [existingRole] });
+    const otherRole = createMockRole({ id: 'r2', isAdmin: false });
+    const current = createMockUser({ id: 'u1', roles: [existingRole, otherRole] });
     const updated = Object.setPrototypeOf(current, User.prototype);
 
     repo.findOneByField.mockResolvedValue(current);
@@ -54,7 +56,7 @@ describe('UpdateUserRoleUseCase', () => {
 
     const result = await useCase.execute('u1', 'r1');
 
-    expect(current.roles).toEqual([]);
+    expect(current.roles).toEqual([otherRole]);
     expect(repo.save).toHaveBeenCalledWith(current);
     expect(result).toEqual(new UserResponseDto(updated));
   });
@@ -108,6 +110,21 @@ describe('UpdateUserRoleUseCase', () => {
     await expect(useCase.execute('u1', 'g1')).rejects.toThrow(
       CannotRemoveGuestRoleException,
     );
+  });
+
+  it('should throw when removing last admin role from last admin user', async () => {
+    const adminRole = createMockRole({ id: 'a1', isAdmin: true });
+    const current = createMockUser({ id: 'u1', roles: [adminRole] });
+
+    repo.findOneByField.mockResolvedValueOnce(current); // for user
+    roleRepo.findOneByField.mockResolvedValue(adminRole); // for role
+    repo.countAdmins.mockResolvedValue(1);
+
+    await expect(useCase.execute('u1', 'a1')).rejects.toThrow(
+      CannotRemoveLastAdminException,
+    );
+
+    expect(repo.countAdmins).toHaveBeenCalled();
   });
 
   it('should propagate errors', async () => {
