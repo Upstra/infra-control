@@ -3,6 +3,24 @@ import { PermissionServerDto } from '../../dto/permission.server.dto';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
 
+/**
+ * Retrieves all server permissions granted to a specific user.
+ *
+ * Responsibilities:
+ * - Loads user entity and its assigned roles.
+ * - Aggregates permissions for each server based on role and direct grants.
+ *
+ * @param userId  The UUID of the user whose server permissions to fetch.
+ * @returns       Promise<PermissionServerDto[]> array of per-server permission DTOs.
+ *
+ * @remarks
+ * Used by controllers or UI layers to display a user’s access to servers;
+ * does not modify state.
+ *
+ * @example
+ * const perms = await getUserPermissionServerUseCase.execute('user-uuid-123');
+ */
+
 @Injectable()
 export class GetUserServerPermissionsUseCase {
   constructor(
