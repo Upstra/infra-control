@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import {
   CreateRoomUseCase,
   DeleteRoomUseCase,
+  GetRoomListUseCase,
   GetAllRoomsUseCase,
   GetRoomByIdUseCase,
   UpdateRoomUseCase,
@@ -17,6 +18,7 @@ describe('RoomController', () => {
   let controller: RoomController;
 
   const getAllRoomsUseCase = { execute: jest.fn() };
+  const getRoomListUseCase = { execute: jest.fn() };
   const getRoomByIdUseCase = { execute: jest.fn() };
   const createRoomUseCase = { execute: jest.fn() };
   const updateRoomUseCase = { execute: jest.fn() };
@@ -34,6 +36,7 @@ describe('RoomController', () => {
       controllers: [RoomController],
       providers: [
         { provide: GetAllRoomsUseCase, useValue: getAllRoomsUseCase },
+        { provide: GetRoomListUseCase, useValue: getRoomListUseCase },
         { provide: GetRoomByIdUseCase, useValue: getRoomByIdUseCase },
         { provide: CreateRoomUseCase, useValue: createRoomUseCase },
         { provide: UpdateRoomUseCase, useValue: updateRoomUseCase },
@@ -51,6 +54,22 @@ describe('RoomController', () => {
 
     expect(rooms).toEqual([mockRoomResponse]);
     expect(getAllRoomsUseCase.execute).toHaveBeenCalledTimes(1);
+  });
+
+  it('should return paginated rooms', async () => {
+    const mock = { items: [mockRoomResponse] } as any;
+    getRoomListUseCase.execute.mockResolvedValue(mock);
+    const result = await controller.getRooms('1', '5');
+    expect(result).toBe(mock);
+    expect(getRoomListUseCase.execute).toHaveBeenCalledWith(1, 5);
+  });
+
+  it('should use default pagination values', async () => {
+    const mock = { items: [] } as any;
+    getRoomListUseCase.execute.mockResolvedValue(mock);
+    const result = await controller.getRooms();
+    expect(result).toBe(mock);
+    expect(getRoomListUseCase.execute).toHaveBeenCalledWith(1, 10);
   });
 
   it('should return a room by ID when getRoomById is called', async () => {

@@ -7,4 +7,12 @@ export interface RoomRepositoryInterface
   createRoom(name: string): Promise<Room>;
   updateRoom(id: string, name: string): Promise<Room>;
   deleteRoom(id: string): Promise<void>;
+
+  /**
+   * Retrieve rooms with pagination.
+   *
+   * @param page - page number starting at 1
+   * @param limit - items per page
+   */
+  paginate(page: number, limit: number): Promise<[Room[], number]>;
 }

@@ -57,6 +57,15 @@ export class VmTypeormRepository
     }
   }
 
+  async paginate(page: number, limit: number): Promise<[Vm[], number]> {
+    return this.findAndCount({
+      relations: ['permissions'],
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { name: 'ASC' },
+    });
+  }
+
   async findVmById(id: string): Promise<Vm> {
     const vm = await this.findOne({
       where: { id },

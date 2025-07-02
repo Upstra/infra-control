@@ -7,21 +7,24 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiBody,
   ApiBearerAuth,
   ApiResponse,
 } from '@nestjs/swagger';
 
-import { RoomCreationDto, RoomResponseDto } from '../dto';
+import { RoomCreationDto, RoomResponseDto, RoomListResponseDto } from '../dto';
 import {
   CreateRoomUseCase,
   DeleteRoomUseCase,
+  GetRoomListUseCase,
   GetAllRoomsUseCase,
   GetRoomByIdUseCase,
   UpdateRoomUseCase,
@@ -35,6 +38,7 @@ import { JwtPayload } from '@/core/types/jwt-payload.interface';
 export class RoomController {
   constructor(
     private readonly getAllRoomsUseCase: GetAllRoomsUseCase,
+    private readonly getRoomListUseCase: GetRoomListUseCase,
     private readonly getRoomByIdUseCase: GetRoomByIdUseCase,
     private readonly createRoomUseCase: CreateRoomUseCase,
     private readonly updateRoomUseCase: UpdateRoomUseCase,
@@ -42,10 +46,21 @@ export class RoomController {
   ) {}
 
   @Get()
-  @ApiOperation({
-    summary: 'Lister toutes les salles',
-    description: 'Renvoie la liste de toutes les salles disponibles.',
-  })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOperation({ summary: 'Lister les salles paginées' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiResponse({ status: 200, type: RoomListResponseDto })
+  async getRooms(
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+  ): Promise<RoomListResponseDto> {
+    return this.getRoomListUseCase.execute(Number(page), Number(limit));
+  }
+
+  @Get('all')
+  @ApiOperation({ summary: 'Lister toutes les salles' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiResponse({ status: 200, type: [RoomResponseDto] })

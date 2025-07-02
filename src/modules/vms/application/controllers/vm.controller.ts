@@ -7,11 +7,13 @@ import {
   Patch,
   Post,
   ParseUUIDPipe,
+  Query,
   UseGuards,
   UseFilters,
 } from '@nestjs/common';
 import { VmCreationDto } from '../dto/vm.creation.dto';
 import { VmResponseDto } from '../dto/vm.response.dto';
+import { VmListResponseDto } from '../dto/vm.list.response.dto';
 import { VmEndpointInterface } from '../interfaces/vm.endpoint.interface';
 import { VmUpdateDto } from '../dto/vm.update.dto';
 import {
@@ -20,11 +22,13 @@ import {
   ApiParam,
   ApiBody,
   ApiBearerAuth,
+  ApiQuery,
   ApiResponse,
 } from '@nestjs/swagger';
 import {
   CreateVmUseCase,
   DeleteVmUseCase,
+  GetVmListUseCase,
   GetAllVmsUseCase,
   GetVmByIdUseCase,
   UpdateVmUseCase,
@@ -40,6 +44,7 @@ import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.except
 export class VmController implements VmEndpointInterface {
   constructor(
     private readonly getAllVmsUseCase: GetAllVmsUseCase,
+    private readonly getVmListUseCase: GetVmListUseCase,
     private readonly getVmByIdUseCase: GetVmByIdUseCase,
     private readonly createVmUseCase: CreateVmUseCase,
     private readonly updateVmUseCase: UpdateVmUseCase,
@@ -47,11 +52,19 @@ export class VmController implements VmEndpointInterface {
   ) {}
 
   @Get()
-  @ApiOperation({
-    summary: 'Lister toutes les machines virtuelles',
-    description:
-      'Renvoie toutes les machines virtuelles enregistrées dans le système.',
-  })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOperation({ summary: 'Lister les VMs paginées' })
+  @ApiResponse({ status: 200, type: VmListResponseDto })
+  async getVms(
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+  ): Promise<VmListResponseDto> {
+    return this.getVmListUseCase.execute(Number(page), Number(limit));
+  }
+
+  @Get('all')
+  @ApiOperation({ summary: 'Lister toutes les machines virtuelles' })
   @ApiResponse({ status: 200, type: [VmResponseDto] })
   async getAllVms(): Promise<VmResponseDto[]> {
     return this.getAllVmsUseCase.execute();
