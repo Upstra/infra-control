@@ -71,6 +71,49 @@ export class ServerTypeormRepository
     }
   }
 
+  async findAllByFieldPaginated<T extends PrimitiveFields<Server>>(
+    {
+      field,
+      value,
+      disableThrow = false,
+      relations = [],
+    }: FindAllByFieldOptions<Server, T>,
+    page: number,
+    limit: number,
+  ): Promise<[Server[], number]> {
+    if (value === undefined || value === null) {
+      throw new InvalidQueryValueException(String(field), value);
+    }
+
+    try {
+      let whereClause;
+
+      if (Array.isArray(value)) {
+        if (value.length === 0) return [[], 0];
+        whereClause = { [field]: In(value as any) };
+      } else {
+        whereClause = { [field]: value };
+      }
+
+      return await this.findAndCount({
+        where: whereClause,
+        relations,
+        skip: (page - 1) * limit,
+        take: limit,
+        order: { name: 'ASC' },
+      });
+    } catch (error) {
+      if (disableThrow) return [[], 0];
+      this.logger.error(
+        `Error retrieving servers by field ${String(field)} with pagination:`,
+        error,
+      );
+      throw new ServerRetrievalException(
+        `Error retrieving servers by field ${String(field)} with pagination`,
+      );
+    }
+  }
+
   async findServerById(id: string): Promise<Server> {
     try {
       const server = await this.findOne({

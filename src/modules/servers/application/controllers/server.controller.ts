@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseFilters,
   UseGuards,
 } from '@nestjs/common';
@@ -17,6 +18,7 @@ import {
   ApiBody,
   ApiBearerAuth,
   ApiResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 
 import {
@@ -32,6 +34,7 @@ import {
 import { ServerResponseDto } from '../dto/server.response.dto';
 import { ServerCreationDto } from '../dto/server.creation.dto';
 import { ServerUpdateDto } from '../dto/server.update.dto';
+import { ServerListResponseDto } from '../dto/server.list.response.dto';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
@@ -92,12 +95,20 @@ export class ServerController {
   @UseGuards(JwtAuthGuard)
   @UseFilters(InvalidQueryExceptionFilter)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Lister mes serveurs accessibles' })
-  @ApiResponse({ status: 200, type: [ServerResponseDto] })
+  @ApiOperation({ summary: 'Lister mes serveurs accessibles avec pagination' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiResponse({ status: 200, type: ServerListResponseDto })
   async getMyServers(
     @CurrentUser() user: JwtPayload,
-  ): Promise<ServerResponseDto[]> {
-    return this.getUserServersUseCase.execute(user.userId);
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+  ): Promise<ServerListResponseDto> {
+    return this.getUserServersUseCase.execute(
+      user.userId,
+      Number(page),
+      Number(limit),
+    );
   }
 
   @Get(':id')
