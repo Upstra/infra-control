@@ -14,7 +14,6 @@ export const createMockUser = (overrides?: Record<string, any>): User => {
     twoFactorSecret: 'SECRET123',
     createdAt: new Date(),
     updatedAt: new Date(),
-    roleId: 'role-1',
     roles: [],
     ...overrides,
   });

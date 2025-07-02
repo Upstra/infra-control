@@ -77,10 +77,11 @@ export class CreateServerUseCase {
       relations: ['roles'],
     });
 
-    if (user?.roleId) {
+    const roleId = user?.roles?.[0]?.id;
+    if (roleId) {
       await this.permissionRepository.createPermission(
         server.id,
-        user.roleId,
+        roleId,
         PermissionBit.READ |
           PermissionBit.WRITE |
           PermissionBit.DELETE |

@@ -45,10 +45,6 @@ export class User extends BaseEntity {
   @Column({ type: 'timestamp', nullable: true })
   lastLoggedIn?: Date;
 
-  /* Role */
-  @Column()
-  roleId!: string;
-
   @ManyToMany(() => Role)
   @JoinTable({ name: 'user_roles' })
   roles: Role[];

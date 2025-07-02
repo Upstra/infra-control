@@ -11,7 +11,6 @@ describe('UserResponseDto', () => {
     firstName: 'Jean',
     lastName: 'Dupont',
     email: 'james@example.com',
-    roleId: uuidv4(),
     active: true,
     isTwoFactorEnabled: false,
     createdAt: new Date(),

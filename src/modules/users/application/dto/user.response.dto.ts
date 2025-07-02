@@ -10,8 +10,6 @@ export class UserResponseDto {
   @ApiProperty() @IsString() readonly lastName: string;
   @ApiProperty() @IsEmail() readonly email: string;
 
-  @ApiProperty() @IsUUID() readonly roleId: string;
-
   @ApiProperty() @IsBoolean() readonly active: boolean;
   @ApiProperty() @IsBoolean() readonly isTwoFactorEnabled: boolean;
 
@@ -24,7 +22,6 @@ export class UserResponseDto {
     this.firstName = u.firstName;
     this.lastName = u.lastName;
     this.email = u.email;
-    this.roleId = u.roleId;
     this.active = u.active;
     this.isTwoFactorEnabled = u.isTwoFactorEnabled;
     this.createdAt = u.createdAt;
@@ -38,7 +35,6 @@ export class UserResponseDto {
     user.firstName = this.firstName;
     user.lastName = this.lastName;
     user.email = this.email;
-    user.roleId = this.roleId;
     user.active = this.active;
     user.isTwoFactorEnabled = this.isTwoFactorEnabled;
     user.createdAt = this.createdAt;

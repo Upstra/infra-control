@@ -22,7 +22,6 @@ export interface UserRepositoryInterface
     firstName: string,
     lastName: string,
     email: string,
-    roleId: string,
   ): Promise<User>;
   deleteUser(id: string): Promise<void>;
 

@@ -19,7 +19,7 @@ export class GetUserServerPermissionsUseCase {
       relations: ['roles'],
     });
 
-    const roleId = user.roleId;
+    const roleId = user.roles?.[0]?.id;
     if (!roleId) throw new UnauthorizedException('User has no role assigned');
 
     const permissions = await this.permissionServerRepo.findAllByField({

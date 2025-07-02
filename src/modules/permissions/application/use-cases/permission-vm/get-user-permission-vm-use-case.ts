@@ -21,7 +21,7 @@ export class GetUserVmPermissionsUseCase {
     });
     if (!user) throw new UnauthorizedException('User not found');
 
-    const roleId = user.roleId;
+    const roleId = user.roles?.[0]?.id;
     if (!roleId) throw new UnauthorizedException('User has no role assigned');
 
     const permissions = await this.permissionVmRepo.findAllByField({

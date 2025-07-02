@@ -1,5 +1,4 @@
 import { UpdateUserRoleUseCase } from '../update-user-role.use-case';
-import { UpdateUserFieldsUseCase } from '@/modules/users/application/use-cases';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 import { User } from '@/modules/users/domain/entities/user.entity';
 import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
@@ -10,15 +9,13 @@ import { CannotDeleteLastAdminException } from '@/modules/users/domain/exception
 
 describe('UpdateUserRoleUseCase', () => {
   let useCase: UpdateUserRoleUseCase;
-  let updateFields: jest.Mocked<UpdateUserFieldsUseCase>;
   let repo: jest.Mocked<UserRepositoryInterface>;
   let roleRepo: jest.Mocked<RoleRepositoryInterface>;
 
   beforeEach(() => {
-    updateFields = { execute: jest.fn() } as any;
-    repo = { findOneByField: jest.fn(), countAdmins: jest.fn() } as any;
+    repo = { findOneByField: jest.fn(), countAdmins: jest.fn(), save: jest.fn() } as any;
     roleRepo = { findOneByField: jest.fn() } as any;
-    useCase = new UpdateUserRoleUseCase(updateFields, repo, roleRepo);
+    useCase = new UpdateUserRoleUseCase(repo, roleRepo);
   });
 
   it('should update user role', async () => {
@@ -26,18 +23,20 @@ describe('UpdateUserRoleUseCase', () => {
     repo.findOneByField.mockResolvedValue(current);
     repo.countAdmins.mockResolvedValue(2);
     const updated = Object.setPrototypeOf(current, User.prototype);
-    updateFields.execute.mockResolvedValue(updated);
+    roleRepo.findOneByField.mockResolvedValue(createMockRole({ isAdmin: false }));
+    repo.save.mockResolvedValue(updated);
 
     const result = await useCase.execute('u1', 'r1');
 
-    expect(updateFields.execute).toHaveBeenCalledWith('u1', { roleId: 'r1' });
+    expect(roleRepo.findOneByField).toHaveBeenCalledWith({ field: 'id', value: 'r1' });
+    expect(repo.save).toHaveBeenCalledWith(current);
     expect(result).toEqual(new UserResponseDto(updated));
   });
 
   it('should propagate errors', async () => {
     repo.findOneByField.mockResolvedValue(createMockUser({ roles: [createMockRole({ isAdmin: false })] }));
     repo.countAdmins.mockResolvedValue(2);
-    updateFields.execute.mockRejectedValue(new Error('fail'));
+    repo.save.mockRejectedValue(new Error('fail'));
     await expect(useCase.execute('u1', null)).rejects.toThrow('fail');
   });
 
@@ -51,6 +50,6 @@ describe('UpdateUserRoleUseCase', () => {
       CannotDeleteLastAdminException,
     );
 
-    expect(updateFields.execute).not.toHaveBeenCalled();
+    expect(repo.save).not.toHaveBeenCalled();
   });
 });

@@ -117,13 +117,11 @@ export class UserTypeormRepository
     username: string,
     password: string,
     email: string,
-    roleId: string,
   ): Promise<User> {
     const partial: Partial<User> = {
       username,
       password,
       email,
-      roleId,
     };
 
     return this.updateFields(id, partial);

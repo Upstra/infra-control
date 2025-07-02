@@ -30,14 +30,15 @@ export class GetRoomByIdUseCase {
       relations: ['roles'],
     });
 
-    if (!user?.roleId) {
+    const roleId = user?.roles?.[0]?.id;
+    if (!roleId) {
       room.servers = [];
       return RoomResponseDto.from(room);
     }
 
     const perms = await this.permissionRepo.findAllByField({
       field: 'roleId',
-      value: user.roleId,
+      value: roleId,
     });
 
     const permSet = new ServerPermissionSet(perms);

@@ -10,7 +10,6 @@ describe('UserUpdateDto', () => {
     (dto as any).firstName = 'Jean';
     (dto as any).lastName = 'Dupont';
     (dto as any).email = 'jean.dupont@example.com';
-    (dto as any).roleId = uuidv4();
 
     const errors = await validate(dto);
     expect(errors.length).toBe(0);
@@ -24,13 +23,6 @@ describe('UserUpdateDto', () => {
     expect(errors[0].constraints).toHaveProperty('isLength');
   });
 
-  it('should fail if roleId is not uuid', async () => {
-    const dto = new UserUpdateDto();
-    (dto as any).roleId = 'not-a-uuid';
-    const errors = await validate(dto);
-    expect(errors.length).toBe(1);
-    expect(errors[0].constraints).toHaveProperty('isUuid');
-  });
 
   it('should be valid with only one field (partial update)', async () => {
     const dto = new UserUpdateDto();

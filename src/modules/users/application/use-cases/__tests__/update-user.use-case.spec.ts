@@ -1,18 +1,15 @@
 import { UpdateUserUseCase } from '../update-user.use-case';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
-import { RoleRepositoryInterface } from '@/modules/roles/domain/interfaces/role.repository.interface';
 import { UserDomainService } from '@/modules/users/domain/services/user.domain.service';
 import { UserUpdateDto } from '../../dto/user.update.dto';
 import { User } from '@/modules/users/domain/entities/user.entity';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 import { UserResponseDto } from '../../dto/user.response.dto';
-import { UserConflictException, CannotDeleteLastAdminException } from '@/modules/users/domain/exceptions/user.exception';
-import { createMockRole } from '@/modules/roles/__mocks__/role.mock';
+import { UserConflictException } from '@/modules/users/domain/exceptions/user.exception';
 
 describe('UpdateUserUseCase', () => {
   let useCase: UpdateUserUseCase;
   let repo: jest.Mocked<UserRepositoryInterface>;
-  let roleRepo: jest.Mocked<RoleRepositoryInterface>;
   let domain: jest.Mocked<UserDomainService>;
 
   const user = createMockUser({ id: 'user-1', email: 'old@mail.com' });
@@ -22,7 +19,6 @@ describe('UpdateUserUseCase', () => {
     username: 'new_username',
     firstName: 'New',
     lastName: 'User',
-    roleId: 'role-123',
   };
 
   beforeEach(() => {
@@ -32,7 +28,6 @@ describe('UpdateUserUseCase', () => {
       countAdmins: jest.fn(),
     } as any;
 
-    roleRepo = { findOneByField: jest.fn() } as any;
 
     domain = {
       ensureUniqueEmail: jest.fn(),
@@ -40,7 +35,7 @@ describe('UpdateUserUseCase', () => {
       updateUserEntity: jest.fn(),
     } as any;
 
-    useCase = new UpdateUserUseCase(repo, roleRepo, domain);
+    useCase = new UpdateUserUseCase(repo, domain);
   });
 
   it('should update the user and return UserResponseDto', async () => {
@@ -102,17 +97,4 @@ describe('UpdateUserUseCase', () => {
     await expect(useCase.execute('user-1', dto)).rejects.toThrow('Save failed');
   });
 
-  it('should throw if demoting the last admin', async () => {
-    const adminUser = createMockUser({ roles: [createMockRole({ isAdmin: true })] });
-    repo.findOneByField.mockResolvedValue(adminUser);
-    repo.countAdmins.mockResolvedValue(1);
-    roleRepo.findOneByField.mockResolvedValue(createMockRole({ isAdmin: false }));
-    domain.ensureUniqueEmail.mockResolvedValue();
-    domain.ensureUniqueUsername.mockResolvedValue();
-
-    await expect(useCase.execute('user-1', dto)).rejects.toThrow(
-      CannotDeleteLastAdminException,
-    );
-    expect(domain.updateUserEntity).not.toHaveBeenCalled();
-  });
 });

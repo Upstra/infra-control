@@ -26,16 +26,17 @@ export class GetUserServersUseCase {
       relations: ['roles'],
     });
 
-    if (!user?.roleId) {
+    const roleId = user?.roles?.[0]?.id;
+    if (!roleId) {
       this.logger.debug(`User ${userId} has no role assigned`);
       return [];
     }
 
-    this.logger.debug(`User ${userId} has roleId ${user.roleId}`);
+    this.logger.debug(`User ${userId} has roleId ${roleId}`);
 
     const permissions = await this.permissionRepo.findAllByField({
       field: 'roleId',
-      value: user.roleId,
+      value: roleId,
     });
 
     this.logger.debug(`User ${userId} has ${permissions.length} permissions`);

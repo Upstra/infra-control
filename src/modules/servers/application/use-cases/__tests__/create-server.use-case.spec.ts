@@ -266,7 +266,7 @@ describe('CreateServerUseCase', () => {
       ip: '10.0.0.1',
     });
     // Simule un user AVEC roleId
-    const mockUser = createMockUser({ id: 'user-123', roleId: 'role-42' });
+    const mockUser = createMockUser({ id: 'user-123', roles: [{ id: 'role-42' }] });
 
     roomRepo.findRoomById.mockResolvedValue(mockRoom());
     groupRepo.findOneByField.mockResolvedValue(createMockGroupServer());
@@ -284,7 +284,7 @@ describe('CreateServerUseCase', () => {
     });
     expect(permissionRepo.createPermission).toHaveBeenCalledWith(
       mockServer.id,
-      mockUser.roleId,
+      mockUser.roles[0].id,
       expect.any(Number),
     );
   });
@@ -302,7 +302,7 @@ describe('CreateServerUseCase', () => {
     iloUseCase.execute.mockResolvedValue(mockIloDto);
     repo.save.mockResolvedValue(mockServer);
     userRepo.findOneByField.mockResolvedValue(
-      createMockUser({ roleId: undefined }),
+      createMockUser({ roles: [] }),
     );
     permissionRepo.createPermission = jest.fn();
 
@@ -318,7 +318,7 @@ describe('CreateServerUseCase', () => {
     const server1 = createMockServer({ id: 'srv-1' });
     const server2 = createMockServer({ id: 'srv-2' });
     const mockIloDto = createMockIloResponseDto();
-    const mockUser = createMockUser({ roleId: 'role-42' });
+    const mockUser = createMockUser({ roles: [{ id: 'role-42' }] });
 
     roomRepo.findRoomById.mockResolvedValue(mockRoom());
     groupRepo.findOneByField.mockResolvedValue(createMockGroupServer());
@@ -334,13 +334,13 @@ describe('CreateServerUseCase', () => {
     expect(permissionRepo.createPermission).toHaveBeenNthCalledWith(
       1,
       server1.id,
-      mockUser.roleId,
+      mockUser.roles[0].id,
       expect.any(Number),
     );
     expect(permissionRepo.createPermission).toHaveBeenNthCalledWith(
       2,
       server2.id,
-      mockUser.roleId,
+      mockUser.roles[0].id,
       expect.any(Number),
     );
   });
