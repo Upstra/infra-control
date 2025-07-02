@@ -18,6 +18,24 @@ import { PermissionServerRepositoryInterface } from '@/modules/permissions/infra
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 import { UpsRepositoryInterface } from '@/modules/ups/domain/interfaces/ups.repository.interface';
 
+/**
+ * Creates a new server record and optionally provisions initial VMs.
+ *
+ * Responsibilities:
+ * - Validates CreateServerDto fields (hostname, roomId, ilo credentials).
+ * - Invokes ServerDomainService to instantiate the server aggregate.
+ * - Handles initial power-on via ILO if requested.
+ * - Persists and returns the new ServerDto.
+ *
+ * @param dto  CreateServerDto containing server attributes.
+ * @returns    Promise<ServerDto> of the created server.
+ *
+ * @throws ValidationException if input data is invalid.
+ *
+ * @example
+ * const srv = await createServerUseCase.execute({ hostname:'srv1', roomId:'r1' });
+ */
+
 @Injectable()
 export class CreateServerUseCase {
   constructor(
