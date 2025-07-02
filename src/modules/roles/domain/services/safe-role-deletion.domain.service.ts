@@ -6,6 +6,7 @@ import { User } from '@/modules/users/domain/entities/user.entity';
 import {
   CannotDeleteSystemRoleException,
   CannotDeleteLastAdminRoleException,
+  RoleNotFoundException,
 } from '../exceptions/role.exception';
 
 @Injectable()
@@ -83,15 +84,29 @@ export class SafeRoleDeletionDomainService {
    * Ensure Guest role exists, create it if not
    */
   private async ensureGuestRole(): Promise<Role> {
+    const existingRole = await this.roleRepository.findOneByField({
+      field: 'name',
+      value: 'GUEST',
+    });
+
+    if (existingRole) {
+      return existingRole;
+    }
+
+    this.logger.warn('Guest role not found, creating it');
     try {
-      return await this.roleRepository.findOneByField({
+      return await this.roleRepository.createRole('GUEST');
+    } catch (error) {
+      const role = await this.roleRepository.findOneByField({
         field: 'name',
         value: 'GUEST',
       });
-    } catch {
-      this.logger.warn('Guest role not found, creating it');
-      const guestRole = await this.roleRepository.createRole('GUEST');
-      return await this.roleRepository.save(guestRole);
+      if (role) {
+        return role;
+      }
+      throw new RoleNotFoundException(
+        'GUEST role not found and could not be created',
+      );
     }
   }
 }

@@ -35,11 +35,7 @@ export class RoleGuard implements CanActivate {
 
     const userWithRole = await this.getUserWithRoleUseCase.execute(user.userId);
 
-    if (
-      !userWithRole ||
-      !userWithRole.roles ||
-      userWithRole.roles.length === 0
-    ) {
+    if (!userWithRole?.roles?.length) {
       throw new ForbiddenException('User has no role assigned');
     }
 
