@@ -15,6 +15,7 @@ describe('UpdateUpsUseCase', () => {
     repo = {
       findUpsById: jest.fn(),
       save: jest.fn(),
+      findByIdWithServerCount: jest.fn(),
     } as any;
 
     domain = {
@@ -32,6 +33,7 @@ describe('UpdateUpsUseCase', () => {
     repo.findUpsById.mockResolvedValue(existing);
     domain.createUpsEntityFromUpdateDto.mockResolvedValue(updated);
     repo.save.mockResolvedValue(updated);
+    repo.findByIdWithServerCount.mockResolvedValue({ ups: updated, serverCount: 3 });
 
     const result = await useCase.execute('ups-id', dto);
 
@@ -41,8 +43,10 @@ describe('UpdateUpsUseCase', () => {
       dto,
     );
     expect(repo.save).toHaveBeenCalledWith(updated);
+    expect(repo.findByIdWithServerCount).toHaveBeenCalledWith(updated.id);
     expect(result).toBeInstanceOf(UpsResponseDto);
     expect(result.name).toBe('New UPS');
+    expect(result.serverCount).toBe(3);
   });
 
   it('should handle partial update', async () => {
@@ -53,11 +57,13 @@ describe('UpdateUpsUseCase', () => {
     repo.findUpsById.mockResolvedValue(existing);
     domain.createUpsEntityFromUpdateDto.mockResolvedValue(updated);
     repo.save.mockResolvedValue(updated);
+    repo.findByIdWithServerCount.mockResolvedValue({ ups: updated, serverCount: 0 });
 
     const result = await useCase.execute('ups-id', dto);
 
     expect(result.ip).toBe('192.168.1.100');
     expect(result.name).toBe('Partial UPS');
+    expect(result.serverCount).toBe(0);
   });
 
   it('should throw UpsNotFoundException if UPS does not exist', async () => {

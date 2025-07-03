@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UpsRepositoryInterface } from '../../domain/interfaces/ups.repository.interface';
 import { UpsResponseDto } from '../../application/dto/ups.response.dto';
+import { UpsNotFoundException } from '../../domain/exceptions/ups.exception';
 
 /**
  * Fetches details for a single UPS device by its unique identifier.
@@ -27,7 +28,10 @@ export class GetUpsByIdUseCase {
   ) {}
 
   async execute(id: string): Promise<UpsResponseDto> {
-    const ups = await this.upsRepository.findUpsById(id);
-    return new UpsResponseDto(ups);
+    const result = await this.upsRepository.findByIdWithServerCount(id);
+    if (!result) {
+      throw new UpsNotFoundException(id);
+    }
+    return new UpsResponseDto(result.ups, result.serverCount);
   }
 }

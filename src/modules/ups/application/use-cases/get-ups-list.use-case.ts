@@ -17,8 +17,8 @@ export class GetUpsListUseCase {
    * @param limit - number of UPS per page
    */
   async execute(page = 1, limit = 10): Promise<UpsListResponseDto> {
-    const [ups, total] = await this.repo.paginate(page, limit);
-    const dtos = ups.map((u) => new UpsResponseDto(u));
+    const [upsWithCount, total] = await this.repo.paginateWithServerCount(page, limit);
+    const dtos = upsWithCount.map(({ ups, serverCount }) => new UpsResponseDto(ups, serverCount));
     return new UpsListResponseDto(dtos, total, page, limit);
   }
 }
