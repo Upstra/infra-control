@@ -25,7 +25,7 @@ export class ApiUsageGuard extends BaseRateLimitGuard {
           req.ip ?? req.socket?.remoteAddress ?? 'unknown',
         );
         const userId = sanitizeRateLimitKey(
-          (req as any).user?.id ?? (req as any).user?.sub ?? '',
+          req.user?.id ?? req.user?.sub ?? '',
         );
 
         if (userId && userId !== 'anonymous') {

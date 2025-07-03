@@ -311,7 +311,12 @@ describe('BaseRateLimitGuard', () => {
           await errorGuard.canActivate(mockContext);
           expect(true).toBe(false);
         } catch (error) {
-          expect(error).toBe(errorValue);
+          if (errorValue instanceof Error) {
+            expect(error).toBe(errorValue);
+          } else {
+            expect(error).toBeInstanceOf(Error);
+            expect(error.message).toBe(String(errorValue));
+          }
         }
       }
     });

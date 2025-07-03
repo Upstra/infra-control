@@ -39,7 +39,7 @@ export abstract class BaseRateLimitGuard implements CanActivate {
     return new Promise((resolve, reject) => {
       this.limiter(request, response, (err: unknown) => {
         if (err) {
-          reject(err);
+          reject(err instanceof Error ? err : new Error(String(err)));
         } else {
           resolve(true);
         }

@@ -39,7 +39,7 @@ export class AuthRateLimitGuard implements CanActivate {
     });
   }
 
-  private strictLimiter = this.createLimiter({
+  private readonly strictLimiter = this.createLimiter({
     windowMs: parseEnvInt(
       process.env.RATE_LIMIT_AUTH_WINDOW_MS,
       900000,
@@ -53,7 +53,7 @@ export class AuthRateLimitGuard implements CanActivate {
     },
   });
 
-  private moderateLimiter = this.createLimiter({
+  private readonly moderateLimiter = this.createLimiter({
     windowMs: parseEnvInt(
       process.env.RATE_LIMIT_AUTH_WINDOW_MS,
       900000,
@@ -75,7 +75,7 @@ export class AuthRateLimitGuard implements CanActivate {
     return new Promise((resolve, reject) => {
       limiter(request, response, (err: unknown) => {
         if (err) {
-          reject(err);
+          reject(err instanceof Error ? err : new Error(String(err)));
         } else {
           resolve(true);
         }
@@ -87,7 +87,7 @@ export class AuthRateLimitGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const response = context.switchToHttp().getResponse();
 
-    const path = request.route?.path || request.url;
+    const path = request.route?.path ?? request.url;
     const limiter = this.getLimiterForPath(path);
 
     return this.executeLimiter(limiter, request, response);
