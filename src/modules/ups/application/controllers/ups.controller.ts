@@ -36,6 +36,8 @@ import {
   UpsResponseDto,
 } from '../dto';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { RoleGuard } from '@/core/guards/role.guard';
+import { RequireRole } from '@/core/decorators/role.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 
@@ -51,6 +53,7 @@ export class UpsController {
     private readonly deleteUpsUseCase: DeleteUpsUseCase,
   ) {}
 
+  @Get()
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiOperation({ summary: 'Lister les UPS paginés' })
@@ -64,10 +67,11 @@ export class UpsController {
     return this.getUpsListUseCase.execute(Number(page), Number(limit));
   }
 
-  @Get('all')
+  @Get('admin/all')
   @ApiOperation({ summary: 'Lister tous les équipements UPS' })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
   @ApiResponse({ status: 200, type: [UpsResponseDto] })
   async getAllUps(): Promise<UpsResponseDto[]> {
     return this.getAllUpsUseCase.execute();
