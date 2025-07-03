@@ -1,4 +1,5 @@
 #!/bin/bash
 
-docker-compose up --build -d
-docker exec -it nest-app pnpm run start:prod
+# prometheus & Grafana
+docker-compose -f docker-compose.monitoring.yml up -d
+pnpm run start:prod

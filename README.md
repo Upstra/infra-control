@@ -25,6 +25,8 @@
 - **Rate Limiting** multi-niveau (Helmet + express-rate-limit)
 - **Swagger** auto-documenté
 - **Docker** ready
+- **Prometheus** pour le monitoring
+- **Grafana** pour les dashboards
 
 ## 🔄 Flux complet de la requête
 
@@ -120,18 +122,45 @@ Note:
 
 Le script va s'occuper de lancer les containers:
 
-- Postgres
-- Redis
+- Prometheus (monitoring)
+- Grafana (dashboards)
 - NestJS (infra-control)
 
+**Note**: En production sur Raspberry Pi, PostgreSQL et Redis sont installés nativement sans Docker.
+
 ```bash
-# Pour lancer toute l'infra (Nest + PostgreSQL)
+# Pour lancer toute l'infra avec monitoring
 ./start_prod.sh
 ```
 
 Puis l’API est dispo sur `http://localhost:3000`
 La doc Swagger est dispo sur `http://localhost:3000/docs`
 Le JSON du schéma est disponible sur `http://localhost:3000/docs-json`
+
+### 📊 Monitoring avec Prometheus et Grafana
+
+L'application expose des métriques Prometheus sur `/metrics`:
+
+- **Prometheus**: `http://localhost:9090` - Collecte et stockage des métriques
+- **Grafana**: `http://localhost:3001` - Visualisation des métriques
+  - Login: admin / Password: admin
+
+Les métriques incluent:
+- Utilisation CPU et mémoire
+- Event loop lag
+- Handles et requêtes actives
+- Statistiques de garbage collection
+
+Pour ajouter des métriques personnalisées dans votre code:
+```typescript
+import { Counter, Histogram } from 'prom-client';
+
+const httpRequestDuration = new Histogram({
+  name: 'infra_control_http_request_duration_seconds',
+  help: 'Duration of HTTP requests in seconds',
+  labelNames: ['method', 'route', 'status']
+});
+```
 
 ---
 
