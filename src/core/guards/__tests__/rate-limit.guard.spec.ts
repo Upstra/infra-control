@@ -16,7 +16,7 @@ describe('AuthRateLimitGuard', () => {
     guard = new AuthRateLimitGuard();
 
     mockRequest = {
-      ip: '127.0.0.1',
+      ip: '192.168.1.1',
       body: { email: 'test@example.com' },
       route: { path: '/auth/login' },
       url: '/auth/login',
@@ -47,7 +47,7 @@ describe('AuthRateLimitGuard', () => {
       const result = await guard.canActivate(mockContext);
 
       expect(result).toBe(true);
-      expect(mockRequest.ip).toBe('127.0.0.1');
+      expect(mockRequest.ip).toBe('192.168.1.1');
       expect(mockRequest.body.email).toBe('test@example.com');
     });
 

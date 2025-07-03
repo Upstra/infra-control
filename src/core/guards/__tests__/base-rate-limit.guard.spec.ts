@@ -15,7 +15,7 @@ describe('BaseRateLimitGuard', () => {
 
   beforeEach(() => {
     mockRequest = {
-      ip: '127.0.0.1',
+      ip: '192.168.1.1',
       url: '/test',
     };
 
@@ -51,7 +51,7 @@ describe('BaseRateLimitGuard', () => {
     it('should use default key generator', async () => {
       const result = await guard.canActivate(mockContext);
       expect(result).toBe(true);
-      expect(mockRequest.ip).toBe('127.0.0.1');
+      expect(mockRequest.ip).toBe('192.168.1.1');
     });
 
     it('should skip rate limiting in test environment', async () => {
@@ -128,7 +128,7 @@ describe('BaseRateLimitGuard', () => {
   describe('defaultKeyGenerator', () => {
     it('should generate key from IP', () => {
       const key = guard['defaultKeyGenerator'](mockRequest);
-      expect(key).toBe('127.0.0.1');
+      expect(key).toBe('192.168.1.1');
     });
 
     it('should handle missing IP with socket remoteAddress', () => {
