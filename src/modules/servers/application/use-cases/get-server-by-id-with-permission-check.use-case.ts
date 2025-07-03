@@ -13,6 +13,25 @@ import { ServerRepositoryInterface } from '../../domain/interfaces/server.reposi
 import { PermissionSet } from '@/modules/permissions/domain/value-objects/ permission-set.value-object';
 import { PermissionResolver } from '@/modules/permissions/application/utils/permission-resolver.util';
 
+/**
+ * Retrieves a server only if the user has the required permissions.
+ *
+ * Responsibilities:
+ * - Delegates to PermissionDomainServerService to verify read access.
+ * - If allowed, loads the server entity via ServerDomainService.
+ * - Maps entity to ServerDto for response.
+ *
+ * @param id      UUID of the server to fetch.
+ * @param userId  UUID of the user requesting the data.
+ * @returns       Promise<ServerDto> DTO representing the server.
+ *
+ * @throws NotFoundException if server does not exist.
+ * @throws ForbiddenException if user is unauthorized.
+ *
+ * @example
+ * const srv = await getServerByIdWithPermissionCheckUseCase.execute('srv-id','user-id');
+ */
+
 @Injectable()
 export class GetServerByIdWithPermissionCheckUseCase {
   private readonly logger = new Logger(

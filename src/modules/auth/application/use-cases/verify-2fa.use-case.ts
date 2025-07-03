@@ -14,6 +14,25 @@ import {
 } from '@/modules/users/application/use-cases';
 import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
 
+/**
+ * Verifies a submitted TOTP code and handles 2FA activation if not already enabled.
+ *
+ * Responsibilities:
+ * - Confirms user existence via GetUserByEmailUseCase.
+ * - Validates the TOTP code against the stored secret using speakeasy.
+ * - On first-time enable, generates and hashes recovery codes, updates user record.
+ * - Issues a short-lived 2FA authentication token for subsequent flows.
+ *
+ * @param userJwtPayload  JwtPayload representing the authenticated login step.
+ * @param dto             TwoFADto containing the TOTP code to verify.
+ * @returns               TwoFAResponseDto with 2FA auth token, message, and any new recovery codes.
+ *
+ * @throws TwoFAInvalidCodeException if the TOTP code is invalid.
+ *
+ * @example
+ * const response = await verify2FAUseCase.execute(jwtPayload, { code });
+ */
+
 @Injectable()
 export class Verify2FAUseCase {
   constructor(

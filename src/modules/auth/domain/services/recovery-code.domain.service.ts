@@ -1,6 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import { randomInt } from 'crypto';
 
+/**
+ * Manages generation, storage, and validation of user recovery codes for account restoration.
+ * Ensures secure handling and one-time usage of codes in multi-factor authentication flows.
+ *
+ * Responsibilities:
+ * - Generate cryptographically random recovery codes when a user enables or requests MFA reset.
+ * - Persist codes with expiration metadata and one-time-use semantics.
+ * - Validate submitted recovery codes, marking them consumed upon successful verification.
+ * - Enforce rate limits and expiration checks to prevent brute-force or replay attempts.
+ *
+ * @remarks
+ * This service is designed for use by application-layer use-cases that orchestrate
+ * user account recovery flows. Controllers should not call it directly without
+ * the coordinating use-case.
+ *
+ * @example
+ * // Issue a new set of recovery codes for a user
+ * const codes = await recoveryCodeService.generateCodes(userId);
+ *
+ * // Validate a submitted code
+ * const isValid = await recoveryCodeService.validateCode(userId, submittedCode);
+ * if (!isValid) {
+ *   throw new InvalidRecoveryCodeException();
+ * }
+ */
+
 @Injectable()
 export class RecoveryCodeService {
   generate(): string[] {

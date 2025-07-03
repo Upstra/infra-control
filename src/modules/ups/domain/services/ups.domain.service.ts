@@ -4,6 +4,25 @@ import { Ups } from '../entities/ups.entity';
 import { UpsCreationDto } from '../../application/dto/ups.creation.dto';
 import { UpsUpdateDto } from '../../application/dto/ups.update.dto';
 
+/**
+ * Domain service managing UPS devices, including monitoring, graceful shutdowns,
+ * and automated power events based on battery status.
+ *
+ * Responsibilities:
+ * - Poll UPS metrics (battery level, load, runtime) via the UPS manager API.
+ * - Initiate orderly shutdown sequences for servers during power failures.
+ * - Record UPS event logs and alert thresholds.
+ * - Fallback to forced shutdown if graceful sequence fails or times out.
+ *
+ * @remarks
+ * Invoked by application-layer use-cases and dashboard aggregation.
+ * Direct controller use is discouraged to maintain consistent UPS workflows.
+ *
+ * @example
+ * // Trigger emergency shutdown on low battery
+ * await upsDomainService.handleLowBattery(upsEntity);
+ */
+
 @Injectable()
 export class UpsDomainService {
   async createUpsEntityFromCreateDto(upsDto: UpsCreationDto): Promise<Ups> {

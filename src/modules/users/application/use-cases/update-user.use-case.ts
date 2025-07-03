@@ -5,6 +5,25 @@ import { UserUpdateDto } from '../dto/user.update.dto';
 import { UserDomainService } from '../../domain/services/user.domain.service';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 
+/**
+ * Updates all modifiable attributes of an existing user.
+ *
+ * Responsibilities:
+ * - Validates the UpdateUserDto for completeness (email, username, roles).
+ * - Checks user existence and permission via UserDomainService.
+ * - Applies updates and persists the full user record.
+ *
+ * @param id   UUID of the user to update.
+ * @param dto  UpdateUserDto containing new email, username, roles, and 2FA settings.
+ * @returns    Promise<UserDto> the updated user DTO reflecting all changes.
+ *
+ * @throws NotFoundException if the user does not exist.
+ * @throws ValidationException if any updated field is invalid.
+ *
+ * @example
+ * const updated = await updateUserUseCase.execute('user-uuid', { email:'new@b.com', roles:['tech'] });
+ */
+
 @Injectable()
 export class UpdateUserUseCase {
   constructor(

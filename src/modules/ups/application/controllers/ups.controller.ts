@@ -53,6 +53,7 @@ export class UpsController {
     private readonly deleteUpsUseCase: DeleteUpsUseCase,
   ) {}
 
+  @Get()
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiOperation({ summary: 'Lister les UPS paginés' })
