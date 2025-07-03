@@ -24,7 +24,6 @@ import { GetAllGroupVmUseCase } from '../use-cases/group-vm/get-all-group-vm.use
 import { UpdateGroupVmUseCase } from '../use-cases/group-vm/update-group-vm.use-case';
 import { DeleteGroupVmUseCase } from '../use-cases/group-vm/delete-group-vm.use-case';
 import { GroupVmDto } from '../dto/group.vm.dto';
-import { GroupVmResponseDto } from '../dto/group.vm.response.dto';
 import { GroupVmListResponseDto } from '../dto/group.vm.list.response.dto';
 import { GetGroupVmByIdUseCase } from '../use-cases/group-vm/get-group-vm-by-id.use-case';
 

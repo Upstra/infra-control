@@ -27,12 +27,22 @@ export class GroupVmDomainService {
     const groupVm = new GroupVm();
     groupVm.name = dto.name;
     groupVm.priority = dto.priority;
+    groupVm.cascade = dto.cascade ?? true;
+    groupVm.description = dto.description;
+    groupVm.roomId = dto.roomId;
+    groupVm.serverGroupId = dto.serverGroupId;
+    groupVm.vms = [];
     return groupVm;
   }
 
   updateGroupEntityFromDto(group: GroupVm, dto: GroupVmDto): GroupVm {
-    group.name = dto.name;
-    group.priority = dto.priority;
+    if (dto.name !== undefined) group.name = dto.name;
+    if (dto.priority !== undefined) group.priority = dto.priority;
+    if (dto.cascade !== undefined) group.cascade = dto.cascade;
+    if (dto.description !== undefined) group.description = dto.description;
+    if (dto.roomId !== undefined) group.roomId = dto.roomId;
+    if (dto.serverGroupId !== undefined) group.serverGroupId = dto.serverGroupId;
+
     return group;
   }
 }

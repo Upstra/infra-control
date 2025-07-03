@@ -20,12 +20,14 @@ import { ExecuteShutdownUseCase } from './application/use-cases/execute-shutdown
 import { ToggleCascadeUseCase } from './application/use-cases/toggle-cascade.use-case';
 import { AuditModule } from '../audit/audit.module';
 import { UserModule } from '../users/user.module';
+import { VmModule } from '../vms/vm.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Group, GroupServer, GroupVm]),
     AuditModule,
     forwardRef(() => UserModule),
+    VmModule,
   ],
   controllers: [
     GroupServerController,

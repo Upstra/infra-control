@@ -5,7 +5,6 @@ import {
   IsString,
   IsUUID,
   IsBoolean,
-  IsNotEmpty,
 } from 'class-validator';
 import { GroupDtoInterface } from '../interfaces/group.dto.interface';
 import { GroupVm } from '../../domain/entities/group.vm.entity';
@@ -35,10 +34,10 @@ export class GroupVmDto implements GroupDtoInterface {
   @IsOptional()
   roomId?: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsUUID()
-  @IsNotEmpty()
-  serverGroupId: string;
+  @IsOptional()
+  serverGroupId?: string;
 
   @ApiProperty({ type: [String], required: false })
   @IsArray()
@@ -46,12 +45,16 @@ export class GroupVmDto implements GroupDtoInterface {
   @IsOptional()
   vmIds?: string[];
 
-  constructor(partial?: Partial<GroupVmDto>) {
-    Object.assign(this, { vmIds: [], ...partial });
+  constructor(partial?: Partial<GroupVmDto> | GroupVm) {
+    if (partial instanceof GroupVm) {
+      Object.assign(this, GroupVmDto.fromEntity(partial));
+    } else {
+      Object.assign(this, { vmIds: [], ...partial });
+    }
   }
 
   static fromEntity(entity: GroupVm): GroupVmDto {
-    return new GroupVmDto({
+    return {
       name: entity.name,
       priority: entity.priority,
       description: entity.description,
@@ -59,6 +62,6 @@ export class GroupVmDto implements GroupDtoInterface {
       roomId: entity.roomId,
       serverGroupId: entity.serverGroupId,
       vmIds: entity.vms ? entity.vms.map((v) => v.id) : [],
-    });
+    };
   }
 }

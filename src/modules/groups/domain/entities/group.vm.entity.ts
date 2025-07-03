@@ -11,8 +11,8 @@ export class GroupVm extends Group {
   vms: Vm[];
 
   @ApiProperty()
-  @Column()
-  serverGroupId: string;
+  @Column({ nullable: true })
+  serverGroupId?: string;
 
   @ApiProperty()
   @ManyToOne('GroupServer', 'vmGroups', {

@@ -3,6 +3,7 @@ import { GroupVmRepositoryInterface } from '@/modules/groups/domain/interfaces/g
 import { GroupVmDto } from '../../dto/group.vm.dto';
 import { GroupNotFoundException } from '@/modules/groups/domain/exceptions/group.exception';
 import { GroupVmDomainService } from '@/modules/groups/domain/services/group.vm.domain.service';
+import { VmRepositoryInterface } from '@/modules/vms/domain/interfaces/vm.repository.interface';
 
 /**
  * Updates metadata and VM membership for an existing VM group.
@@ -28,14 +29,25 @@ export class UpdateGroupVmUseCase {
   constructor(
     @Inject('GroupVmRepositoryInterface')
     private readonly groupRepository: GroupVmRepositoryInterface,
+    @Inject('VmRepositoryInterface')
+    private readonly vmRepository: VmRepositoryInterface,
     private readonly domain: GroupVmDomainService,
   ) {}
 
   async execute(id: string, groupDto: GroupVmDto): Promise<GroupVmDto> {
     const existing = await this.groupRepository.findGroupById(id);
-    if (!existing) throw new GroupNotFoundException('vm', id);
+    if (!existing) {
+      throw new GroupNotFoundException('vm', id);
+    }
 
     const entity = this.domain.updateGroupEntityFromDto(existing, groupDto);
+
+    if (groupDto.vmIds !== undefined) {
+      const vms = await Promise.all(
+        groupDto.vmIds.map((vmId) => this.vmRepository.findVmById(vmId)),
+      );
+      entity.vms = vms.filter((vm) => vm !== null);
+    }
 
     const updated = await this.groupRepository.save(entity);
 
