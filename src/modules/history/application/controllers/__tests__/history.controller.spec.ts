@@ -5,6 +5,9 @@ import { GetHistoryEntityTypesUseCase } from '../../use-cases/get-entity-types.u
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { RoleGuard } from '@/core/guards/role.guard';
 import { EntityTypesResponseDto } from '../../dto/entity-types.response.dto';
+import { HistoryEventResponseDto } from '../../dto/history-event.response.dto';
+import { HistoryListResponseDto } from '../../dto/history.list.response.dto';
+import { HistoryEvent } from '../../../domain/entities/history-event.entity';
 
 describe('HistoryController', () => {
   let controller: HistoryController;
@@ -71,6 +74,35 @@ describe('HistoryController', () => {
       from: new Date('2024-01-01'),
       to: new Date('2024-01-31'),
     });
+  });
+
+  it('returns history events with all metadata fields', async () => {
+    const event = new HistoryEvent();
+    event.id = 'event-123';
+    event.entity = 'server';
+    event.entityId = 'server-456';
+    event.action = 'UPDATE';
+    event.userId = 'user-789';
+    event.createdAt = new Date('2024-01-01T00:00:00Z');
+    event.oldValue = { status: 'running' };
+    event.newValue = { status: 'stopped' };
+    event.metadata = { reason: 'maintenance' };
+    event.ipAddress = '192.168.1.100';
+    event.userAgent = 'Mozilla/5.0';
+    event.correlationId = 'corr-123';
+
+    const eventDto = new HistoryEventResponseDto(event);
+    const mockResponse = new HistoryListResponseDto([eventDto], 1, 1, 10);
+    
+    getList.execute.mockResolvedValue(mockResponse);
+    const result = await controller.getHistory('1', '10');
+    
+    expect(result.items[0].ipAddress).toBe('192.168.1.100');
+    expect(result.items[0].userAgent).toBe('Mozilla/5.0');
+    expect(result.items[0].correlationId).toBe('corr-123');
+    expect(result.items[0].metadata).toEqual({ reason: 'maintenance' });
+    expect(result.items[0].oldValue).toEqual({ status: 'running' });
+    expect(result.items[0].newValue).toEqual({ status: 'stopped' });
   });
 
   describe('getEntityTypes', () => {
