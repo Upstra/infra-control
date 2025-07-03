@@ -17,12 +17,18 @@ export abstract class BaseRateLimitGuard implements CanActivate {
   protected limiter: ReturnType<typeof rateLimit>;
 
   constructor(config: RateLimitConfig) {
-    this.limiter = rateLimit({
+    this.limiter = this.createLimiter(config);
+  }
+
+  protected createLimiter(
+    config: RateLimitConfig,
+  ): ReturnType<typeof rateLimit> {
+    return rateLimit({
       ...config,
       standardHeaders: true,
       legacyHeaders: false,
-      keyGenerator: config.keyGenerator || this.defaultKeyGenerator.bind(this),
-      skip: config.skip || this.defaultSkip.bind(this),
+      keyGenerator: config.keyGenerator ?? this.defaultKeyGenerator.bind(this),
+      skip: config.skip ?? this.defaultSkip.bind(this),
     });
   }
 
@@ -42,7 +48,7 @@ export abstract class BaseRateLimitGuard implements CanActivate {
   }
 
   protected defaultKeyGenerator(req: any): string {
-    return req.ip || req.socket?.remoteAddress || 'unknown';
+    return req.ip ?? req.socket?.remoteAddress ?? 'unknown';
   }
 
   protected defaultSkip(req: any): boolean {

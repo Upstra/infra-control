@@ -166,6 +166,18 @@ pnpm test:watch
 pnpm test:cov
 ```
 
+#### Pour lancer la couverture sur un module spécifique :
+
+```bash
+pnpm test:cov -- src/modules/auth
+```
+
+#### Pour lancer la couverture sur un test spécifique :
+
+```bash
+pnpm test:cov -- src/modules/auth/__tests__/auth.controller.spec.ts
+```
+
 ### 🧪 Lancer les **tests e2e**
 
 ```bash

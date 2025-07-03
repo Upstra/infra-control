@@ -10,11 +10,11 @@ import { RateLimitConfig } from './base-rate-limit.guard';
 @Injectable()
 export class AuthRateLimitGuard implements CanActivate {
   private generateAuthKey(req: any): string {
-    const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+    const ip = req.ip ?? req.socket?.remoteAddress ?? 'unknown';
     const email = sanitizeRateLimitKey(
-      req.body?.email || req.body?.username || '',
+      req.body?.email ?? req.body?.username ?? '',
     );
-    const userAgent = req.get('User-Agent') || '';
+    const userAgent = req.get('User-Agent') ?? '';
 
     if (email && email !== 'anonymous') {
       return `auth:${sanitizeRateLimitKey(ip)}:${email}`;
