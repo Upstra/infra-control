@@ -1,14 +1,15 @@
-import { Controller, Body, Post, UseGuards } from '@nestjs/common';
+import { Controller, Body, Post, UseGuards, Query } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBody,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 
 import { ShutdownRequestDto } from '../dto/shutdown-request.dto';
-import { ShutdownPreviewResponseDto } from '../dto/shutdown-preview.response.dto';
+import { ShutdownPreviewListResponseDto } from '../dto/shutdown-preview.list.response.dto';
 import { PreviewShutdownUseCase } from '../use-cases/preview-shutdown.use-case';
 import { ExecuteShutdownUseCase } from '../use-cases/execute-shutdown.use-case';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
@@ -34,11 +35,15 @@ export class GroupShutdownController {
       'Returns the order in which VMs and servers would be shut down',
   })
   @ApiBody({ type: ShutdownRequestDto })
-  @ApiResponse({ status: 200, type: ShutdownPreviewResponseDto })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiResponse({ status: 200, type: ShutdownPreviewListResponseDto })
   async preview(
     @Body() dto: ShutdownRequestDto,
-  ): Promise<ShutdownPreviewResponseDto> {
-    return this.previewShutdown.execute(dto.groupIds);
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+  ): Promise<ShutdownPreviewListResponseDto> {
+    return this.previewShutdown.execute(dto.groupIds, Number(page), Number(limit));
   }
 
   @Post('execute')
@@ -50,11 +55,15 @@ export class GroupShutdownController {
       'Actually performs the shutdown of VMs and servers in the correct order',
   })
   @ApiBody({ type: ShutdownRequestDto })
-  @ApiResponse({ status: 200, type: ShutdownPreviewResponseDto })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiResponse({ status: 200, type: ShutdownPreviewListResponseDto })
   async execute(
     @Body() dto: ShutdownRequestDto,
     @CurrentUser() user: JwtPayload,
-  ): Promise<ShutdownPreviewResponseDto> {
-    return this.executeShutdown.execute(dto.groupIds, user.userId);
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+  ): Promise<ShutdownPreviewListResponseDto> {
+    return this.executeShutdown.execute(dto.groupIds, user.userId, Number(page), Number(limit));
   }
 }

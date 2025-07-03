@@ -1,7 +1,7 @@
 import { ExecuteShutdownUseCase } from '../execute-shutdown.use-case';
 import { PreviewShutdownUseCase } from '../preview-shutdown.use-case';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
-import { ShutdownPreviewResponseDto } from '../../dto/shutdown-preview.response.dto';
+import { ShutdownPreviewListResponseDto } from '../../dto/shutdown-preview.list.response.dto';
 
 describe('ExecuteShutdownUseCase', () => {
   let useCase: ExecuteShutdownUseCase;
@@ -24,8 +24,8 @@ describe('ExecuteShutdownUseCase', () => {
   });
 
   it('should execute shutdown and log history for each step', async () => {
-    const previewResponse: ShutdownPreviewResponseDto = {
-      steps: [
+    const previewResponse: ShutdownPreviewListResponseDto = {
+      items: [
         {
           order: 1,
           type: 'vm',
@@ -45,15 +45,21 @@ describe('ExecuteShutdownUseCase', () => {
           priority: 2,
         },
       ],
+      totalItems: 2,
+      totalPages: 1,
+      currentPage: 1,
       totalVms: 1,
       totalServers: 1,
     };
 
-    previewShutdownUseCase.execute.mockResolvedValue(previewResponse);
+    previewShutdownUseCase.execute
+      .mockResolvedValueOnce({...previewResponse, items: previewResponse.items, totalItems: previewResponse.items.length})
+      .mockResolvedValueOnce(previewResponse);
 
     const result = await useCase.execute(['group-1'], 'user-123');
 
-    expect(previewShutdownUseCase.execute).toHaveBeenCalledWith(['group-1']);
+    expect(previewShutdownUseCase.execute).toHaveBeenNthCalledWith(1, ['group-1'], 1, Number.MAX_SAFE_INTEGER);
+    expect(previewShutdownUseCase.execute).toHaveBeenNthCalledWith(2, ['group-1'], 1, 10);
     expect(logHistoryUseCase.executeStructured).toHaveBeenCalledTimes(2);
     expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith({
       entity: 'vm',
@@ -83,13 +89,18 @@ describe('ExecuteShutdownUseCase', () => {
   });
 
   it('should handle empty shutdown steps', async () => {
-    const previewResponse: ShutdownPreviewResponseDto = {
-      steps: [],
+    const previewResponse: ShutdownPreviewListResponseDto = {
+      items: [],
+      totalItems: 0,
+      totalPages: 0,
+      currentPage: 1,
       totalVms: 0,
       totalServers: 0,
     };
 
-    previewShutdownUseCase.execute.mockResolvedValue(previewResponse);
+    previewShutdownUseCase.execute
+      .mockResolvedValueOnce(previewResponse)
+      .mockResolvedValueOnce(previewResponse);
 
     const result = await useCase.execute([], 'user-123');
 
@@ -98,8 +109,8 @@ describe('ExecuteShutdownUseCase', () => {
   });
 
   it('should fail if logging fails', async () => {
-    const previewResponse: ShutdownPreviewResponseDto = {
-      steps: [
+    const previewResponse: ShutdownPreviewListResponseDto = {
+      items: [
         {
           order: 1,
           type: 'vm',
@@ -110,6 +121,9 @@ describe('ExecuteShutdownUseCase', () => {
           priority: 1,
         },
       ],
+      totalItems: 1,
+      totalPages: 1,
+      currentPage: 1,
       totalVms: 1,
       totalServers: 0,
     };

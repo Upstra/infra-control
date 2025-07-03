@@ -3,10 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { GroupServer } from '../../domain/entities/group.server.entity';
 import { GroupVm } from '../../domain/entities/group.vm.entity';
-import {
-  ShutdownPreviewResponseDto,
-  ShutdownStep,
-} from '../dto/shutdown-preview.response.dto';
+import { ShutdownStep } from '../dto/shutdown-preview.response.dto';
+import { ShutdownPreviewListResponseDto } from '../dto/shutdown-preview.list.response.dto';
 
 @Injectable()
 export class PreviewShutdownUseCase {
@@ -17,7 +15,11 @@ export class PreviewShutdownUseCase {
     private readonly groupVmRepository: Repository<GroupVm>,
   ) {}
 
-  async execute(groupIds: string[]): Promise<ShutdownPreviewResponseDto> {
+  async execute(
+    groupIds: string[],
+    page = 1,
+    limit = 10,
+  ): Promise<ShutdownPreviewListResponseDto> {
     const serverGroups = await this.groupServerRepository.find({
       where: { id: In(groupIds) },
       relations: ['servers', 'vmGroups', 'vmGroups.vms'],
@@ -91,6 +93,21 @@ export class PreviewShutdownUseCase {
       }
     }
 
-    return new ShutdownPreviewResponseDto(steps);
+    const totalItems = steps.length;
+    const totalVms = steps.filter((s) => s.type === 'vm').length;
+    const totalServers = steps.filter((s) => s.type === 'server').length;
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedSteps = steps.slice(startIndex, endIndex);
+
+    return new ShutdownPreviewListResponseDto(
+      paginatedSteps,
+      totalItems,
+      page,
+      limit,
+      totalVms,
+      totalServers,
+    );
   }
 }

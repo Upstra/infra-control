@@ -3,7 +3,7 @@ import { GroupShutdownController } from '../group.shutdown.controller';
 import { PreviewShutdownUseCase } from '../../use-cases/preview-shutdown.use-case';
 import { ExecuteShutdownUseCase } from '../../use-cases/execute-shutdown.use-case';
 import { ShutdownRequestDto } from '../../dto/shutdown-request.dto';
-import { ShutdownPreviewResponseDto } from '../../dto/shutdown-preview.response.dto';
+import { ShutdownPreviewListResponseDto } from '../../dto/shutdown-preview.list.response.dto';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { RoleGuard } from '@/core/guards/role.guard';
@@ -56,8 +56,8 @@ describe('GroupShutdownController', () => {
         groupIds: ['group-1', 'group-2'],
       };
 
-      const expectedResponse: ShutdownPreviewResponseDto = {
-        steps: [
+      const expectedResponse: ShutdownPreviewListResponseDto = {
+        items: [
           {
             order: 1,
             type: 'vm',
@@ -77,6 +77,9 @@ describe('GroupShutdownController', () => {
             priority: 2,
           },
         ],
+        totalItems: 2,
+        totalPages: 1,
+        currentPage: 1,
         totalVms: 1,
         totalServers: 1,
       };
@@ -88,7 +91,7 @@ describe('GroupShutdownController', () => {
       expect(previewShutdownUseCase.execute).toHaveBeenCalledWith([
         'group-1',
         'group-2',
-      ]);
+      ], 1, 10);
       expect(result).toEqual(expectedResponse);
     });
 
@@ -97,14 +100,14 @@ describe('GroupShutdownController', () => {
         groupIds: [],
       };
 
-      const expectedResponse: ShutdownPreviewResponseDto =
-        new ShutdownPreviewResponseDto([]);
+      const expectedResponse: ShutdownPreviewListResponseDto =
+        new ShutdownPreviewListResponseDto([], 0, 1, 10, 0, 0);
 
       previewShutdownUseCase.execute.mockResolvedValue(expectedResponse);
 
       const result = await controller.preview(dto);
 
-      expect(previewShutdownUseCase.execute).toHaveBeenCalledWith([]);
+      expect(previewShutdownUseCase.execute).toHaveBeenCalledWith([], 1, 10);
       expect(result).toEqual(expectedResponse);
     });
   });
@@ -120,8 +123,8 @@ describe('GroupShutdownController', () => {
         email: 'test@example.com',
       };
 
-      const expectedResponse: ShutdownPreviewResponseDto = {
-        steps: [
+      const expectedResponse: ShutdownPreviewListResponseDto = {
+        items: [
           {
             order: 1,
             type: 'server',
@@ -132,6 +135,9 @@ describe('GroupShutdownController', () => {
             priority: 1,
           },
         ],
+        totalItems: 1,
+        totalPages: 1,
+        currentPage: 1,
         totalVms: 0,
         totalServers: 1,
       };
@@ -143,6 +149,8 @@ describe('GroupShutdownController', () => {
       expect(executeShutdownUseCase.execute).toHaveBeenCalledWith(
         ['group-1', 'group-2'],
         'user-123',
+        1,
+        10,
       );
       expect(result).toEqual(expectedResponse);
     });
@@ -158,7 +166,7 @@ describe('GroupShutdownController', () => {
       };
 
       executeShutdownUseCase.execute.mockResolvedValue(
-        new ShutdownPreviewResponseDto([]),
+        new ShutdownPreviewListResponseDto([], 0, 1, 10, 0, 0),
       );
 
       await controller.execute(dto, user);
@@ -166,6 +174,8 @@ describe('GroupShutdownController', () => {
       expect(executeShutdownUseCase.execute).toHaveBeenCalledWith(
         ['group-1'],
         'different-user',
+        1,
+        10,
       );
     });
   });

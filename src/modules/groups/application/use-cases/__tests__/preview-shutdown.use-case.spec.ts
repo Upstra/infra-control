@@ -55,8 +55,11 @@ describe('PreviewShutdownUseCase', () => {
 
     const result = await useCase.execute(['group-server-1', 'group-vm-1']);
 
-    expect(result.steps).toHaveLength(4);
-    expect(result.steps[0]).toEqual({
+    expect(result.items).toHaveLength(4);
+    expect(result.totalItems).toBe(4);
+    expect(result.totalVms).toBe(2);
+    expect(result.totalServers).toBe(2);
+    expect(result.items[0]).toEqual({
       order: 1,
       type: 'vm',
       entityId: 'vm-1',
@@ -65,7 +68,7 @@ describe('PreviewShutdownUseCase', () => {
       groupName: 'VM Group',
       priority: 1,
     });
-    expect(result.steps[1]).toEqual({
+    expect(result.items[1]).toEqual({
       order: 2,
       type: 'vm',
       entityId: 'vm-2',
@@ -74,7 +77,7 @@ describe('PreviewShutdownUseCase', () => {
       groupName: 'VM Group',
       priority: 1,
     });
-    expect(result.steps[2]).toEqual({
+    expect(result.items[2]).toEqual({
       order: 3,
       type: 'server',
       entityId: 'server-1',
@@ -83,7 +86,7 @@ describe('PreviewShutdownUseCase', () => {
       groupName: 'Server Group',
       priority: 2,
     });
-    expect(result.steps[3]).toEqual({
+    expect(result.items[3]).toEqual({
       order: 4,
       type: 'server',
       entityId: 'server-2',
@@ -106,7 +109,8 @@ describe('PreviewShutdownUseCase', () => {
 
     const result = await useCase.execute(['group-server-1']);
 
-    expect(result.steps).toHaveLength(0);
+    expect(result.items).toHaveLength(0);
+    expect(result.totalItems).toBe(0);
     expect(result.totalVms).toBe(0);
     expect(result.totalServers).toBe(0);
   });
@@ -138,9 +142,10 @@ describe('PreviewShutdownUseCase', () => {
 
     const result = await useCase.execute(['group-1', 'group-2']);
 
-    expect(result.steps).toHaveLength(2);
-    expect(result.steps[0].entityName).toBe('High Priority Server');
-    expect(result.steps[1].entityName).toBe('Low Priority Server');
+    expect(result.items).toHaveLength(2);
+    expect(result.totalItems).toBe(2);
+    expect(result.items[0].entityName).toBe('High Priority Server');
+    expect(result.items[1].entityName).toBe('Low Priority Server');
   });
 
   it('should throw error for non-existent groups', async () => {

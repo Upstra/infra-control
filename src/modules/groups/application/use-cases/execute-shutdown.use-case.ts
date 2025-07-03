@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PreviewShutdownUseCase } from './preview-shutdown.use-case';
-import { ShutdownPreviewResponseDto } from '../dto/shutdown-preview.response.dto';
+import { ShutdownPreviewListResponseDto } from '../dto/shutdown-preview.list.response.dto';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 
 @Injectable()
@@ -13,9 +13,14 @@ export class ExecuteShutdownUseCase {
   async execute(
     groupIds: string[],
     userId?: string,
-  ): Promise<ShutdownPreviewResponseDto> {
-    // Get the shutdown sequence
-    const preview = await this.previewShutdownUseCase.execute(groupIds);
+    page = 1,
+    limit = 10,
+  ): Promise<ShutdownPreviewListResponseDto> {
+    const fullPreview = await this.previewShutdownUseCase.execute(
+      groupIds,
+      1,
+      Number.MAX_SAFE_INTEGER,
+    );
 
     // TODO: In a real implementation, this would:
     // 1. Connect to hypervisors to shutdown VMs
@@ -24,7 +29,7 @@ export class ExecuteShutdownUseCase {
     // 4. Track progress and status
 
     // For now, we just log the action
-    for (const step of preview.steps) {
+    for (const step of fullPreview.items) {
       await this.logHistory?.executeStructured({
         entity: step.type === 'vm' ? 'vm' : 'server',
         entityId: step.entityId,
@@ -39,6 +44,7 @@ export class ExecuteShutdownUseCase {
       });
     }
 
-    return preview;
+    // Return paginated response
+    return this.previewShutdownUseCase.execute(groupIds, page, limit);
   }
 }
