@@ -8,6 +8,8 @@ import {
 import { GetGroupVmByIdUseCase } from '../../use-cases/group-vm/get-group-vm-by-id.use-case';
 import { DeleteGroupVmUseCase } from '../../use-cases/group-vm/delete-group-vm.use-case';
 import { GroupVmDto } from '../../dto/group.vm.dto';
+import { GroupVmResponseDto } from '../../dto/group.vm.response.dto';
+import { GroupVmListResponseDto } from '../../dto/group.vm.list.response.dto';
 
 describe('GroupVmController', () => {
   let controller: GroupVmController;
@@ -42,14 +44,15 @@ describe('GroupVmController', () => {
     expect(controller).toBeDefined();
   });
 
-  it('should call getAllGroups', async () => {
-    const groups = [new GroupVmDto({} as any)];
-    getAllUseCase.execute.mockResolvedValue(groups);
+  it('should call getAllGroups with pagination', async () => {
+    const items = [new GroupVmResponseDto({} as any)];
+    const mockResponse = new GroupVmListResponseDto(items, 1, 1, 10);
+    getAllUseCase.execute.mockResolvedValue(mockResponse);
 
     const result = await controller.getAllGroups();
 
-    expect(getAllUseCase.execute).toHaveBeenCalled();
-    expect(result).toEqual(groups);
+    expect(getAllUseCase.execute).toHaveBeenCalledWith(1, 10);
+    expect(result).toEqual(mockResponse);
   });
 
   it('should call getGroupById', async () => {

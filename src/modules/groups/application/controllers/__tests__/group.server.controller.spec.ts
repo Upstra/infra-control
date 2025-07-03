@@ -9,6 +9,7 @@ import {
 } from '../../use-cases/group-server';
 import { GroupServerDto } from '../../dto/group.server.dto';
 import { GroupServerResponseDto } from '../../dto/group.server.response.dto';
+import { GroupServerListResponseDto } from '../../dto/group.server.list.response.dto';
 import { ToggleCascadeUseCase } from '../../use-cases/toggle-cascade.use-case';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
@@ -59,8 +60,8 @@ describe('GroupServerController', () => {
     expect(controller).toBeDefined();
   });
 
-  it('should call getAllGroups', async () => {
-    const mockResponse = [
+  it('should call getAllGroups with pagination', async () => {
+    const mockItems = [
       new GroupServerResponseDto({
         id: 'group-1',
         name: 'Test Group',
@@ -70,11 +71,12 @@ describe('GroupServerController', () => {
         vmGroups: [],
       } as any),
     ];
+    const mockResponse = new GroupServerListResponseDto(mockItems, 1, 1, 10);
     getAllUseCase.execute.mockResolvedValue(mockResponse);
 
     const result = await controller.getAllGroups();
 
-    expect(getAllUseCase.execute).toHaveBeenCalledWith(undefined, undefined);
+    expect(getAllUseCase.execute).toHaveBeenCalledWith(undefined, undefined, 1, 10);
     expect(result).toEqual(mockResponse);
   });
 

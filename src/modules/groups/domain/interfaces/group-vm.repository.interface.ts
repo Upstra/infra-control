@@ -7,4 +7,5 @@ export interface GroupVmRepositoryInterface
   createGroup(name: string, priority: number): Promise<GroupVm>;
   updateGroup(id: string, name: string, priority: number): Promise<GroupVm>;
   deleteGroup(id: string): Promise<void>;
+  findAllPaginated(page: number, limit: number): Promise<[GroupVm[], number]>;
 }

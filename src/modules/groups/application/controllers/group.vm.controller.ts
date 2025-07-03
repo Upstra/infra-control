@@ -8,6 +8,7 @@ import {
   Body,
   ParseUUIDPipe,
   HttpCode,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -15,6 +16,7 @@ import {
   ApiResponse,
   ApiParam,
   ApiBody,
+  ApiQuery,
 } from '@nestjs/swagger';
 
 import { CreateGroupVmUseCase } from '../use-cases/group-vm/create-group-vm.use-case';
@@ -22,6 +24,8 @@ import { GetAllGroupVmUseCase } from '../use-cases/group-vm/get-all-group-vm.use
 import { UpdateGroupVmUseCase } from '../use-cases/group-vm/update-group-vm.use-case';
 import { DeleteGroupVmUseCase } from '../use-cases/group-vm/delete-group-vm.use-case';
 import { GroupVmDto } from '../dto/group.vm.dto';
+import { GroupVmResponseDto } from '../dto/group.vm.response.dto';
+import { GroupVmListResponseDto } from '../dto/group.vm.list.response.dto';
 import { GetGroupVmByIdUseCase } from '../use-cases/group-vm/get-group-vm-by-id.use-case';
 
 @ApiTags('Group VM')
@@ -36,10 +40,15 @@ export class GroupVmController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'Récupérer tous les groupes VM' })
-  @ApiResponse({ status: 200, type: [GroupVmDto] })
-  async getAllGroups(): Promise<GroupVmDto[]> {
-    return this.getAllGroupsVm.execute();
+  @ApiOperation({ summary: 'Récupérer tous les groupes VM avec pagination' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiResponse({ status: 200, type: GroupVmListResponseDto })
+  async getAllGroups(
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+  ): Promise<GroupVmListResponseDto> {
+    return this.getAllGroupsVm.execute(Number(page), Number(limit));
   }
 
   @Get(':id')

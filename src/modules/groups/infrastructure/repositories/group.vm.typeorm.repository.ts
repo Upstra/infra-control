@@ -38,6 +38,14 @@ export class GroupVmTypeormRepository
     });
   }
 
+  async findAllPaginated(page = 1, limit = 10): Promise<[GroupVm[], number]> {
+    return await this.findAndCount({
+      relations: ['vms'],
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+  }
+
   async findGroupById(id: string): Promise<GroupVm | null> {
     return await this.findOne({
       where: { id },

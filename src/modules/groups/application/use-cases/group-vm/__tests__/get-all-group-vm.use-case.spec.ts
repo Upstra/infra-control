@@ -1,6 +1,7 @@
 import { GetAllGroupVmUseCase } from '../get-all-group-vm.use-case';
 import { GroupVmRepositoryInterface } from '@/modules/groups/domain/interfaces/group-vm.repository.interface';
 import { createMockGroupVm } from '@/modules/groups/__mocks__/group.vm.mock';
+import { GroupVmListResponseDto } from '../../../dto/group.vm.list.response.dto';
 
 describe('GetAllGroupVmUseCase', () => {
   let useCase: GetAllGroupVmUseCase;
@@ -9,6 +10,7 @@ describe('GetAllGroupVmUseCase', () => {
   beforeEach(() => {
     repo = {
       findAll: jest.fn(),
+      findAllPaginated: jest.fn(),
     } as any;
 
     useCase = new GetAllGroupVmUseCase(repo);
@@ -29,13 +31,16 @@ describe('GetAllGroupVmUseCase', () => {
         vms: [],
       }),
     ];
-    repo.findAll.mockResolvedValue(mockGroups);
+    repo.findAllPaginated.mockResolvedValue([mockGroups, mockGroups.length]);
 
     const result = await useCase.execute();
 
-    expect(repo.findAll).toHaveBeenCalled();
+    expect(repo.findAllPaginated).toHaveBeenCalledWith(1, 10);
+    expect(result).toBeInstanceOf(GroupVmListResponseDto);
 
-    const minimalResult = result.map((dto) => ({
+    const groupArray = result.items;
+
+    const minimalResult = groupArray.map((dto) => ({
       name: dto.name,
       priority: dto.priority,
       vmIds: dto.vmIds,
@@ -55,9 +60,11 @@ describe('GetAllGroupVmUseCase', () => {
     ]);
   });
 
-  it('should return empty array if no groups', async () => {
-    repo.findAll.mockResolvedValue([]);
+  it('should return empty paginated response if no groups', async () => {
+    repo.findAllPaginated.mockResolvedValue([[], 0]);
     const result = await useCase.execute();
-    expect(result).toEqual([]);
+    expect(result).toBeInstanceOf(GroupVmListResponseDto);
+    expect(result.items).toEqual([]);
+    expect(result.totalItems).toBe(0);
   });
 });

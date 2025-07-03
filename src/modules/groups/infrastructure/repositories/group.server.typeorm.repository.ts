@@ -37,6 +37,33 @@ export class GroupServerTypeormRepository
     return await queryBuilder.getMany();
   }
 
+  async findAllPaginated(
+    relations: string[] = ['servers'],
+    filters?: { roomId?: string; priority?: number },
+    page = 1,
+    limit = 10,
+  ): Promise<[GroupServer[], number]> {
+    const queryBuilder = this.createQueryBuilder('group');
+
+    relations.forEach((relation) => {
+      queryBuilder.leftJoinAndSelect(`group.${relation}`, relation);
+    });
+
+    if (filters?.roomId) {
+      queryBuilder.where('group.roomId = :roomId', { roomId: filters.roomId });
+    }
+
+    if (filters?.priority) {
+      queryBuilder.andWhere('group.priority = :priority', {
+        priority: filters.priority,
+      });
+    }
+
+    queryBuilder.skip((page - 1) * limit).take(limit);
+
+    return await queryBuilder.getManyAndCount();
+  }
+
   async findOneByField<K extends keyof GroupServer>({
     field,
     value,

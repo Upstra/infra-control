@@ -1,6 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { GroupVmRepositoryInterface } from '@/modules/groups/domain/interfaces/group-vm.repository.interface';
-import { GroupVmDto } from '../../dto/group.vm.dto';
+import { GroupVmResponseDto } from '../../dto/group.vm.response.dto';
+import { GroupVmListResponseDto } from '../../dto/group.vm.list.response.dto';
 import { GroupVm } from '@/modules/groups/domain/entities/group.vm.entity';
 
 /**
@@ -9,8 +10,8 @@ import { GroupVm } from '@/modules/groups/domain/entities/group.vm.entity';
  * Delegates to the VM repository, then converts each GroupVm entity
  * into its DTO equivalent for client consumption.
  *
- * @returns {Promise<GroupVmDto[]>}
- *   An array of VM group DTOs containing group info and its VMs.
+ * @returns {Promise<GroupVmListResponseDto>}
+ *   A paginated response containing VM group DTOs and pagination metadata.
  *
  * @remarks
  * Read-only operation without extra domain logic.
@@ -26,8 +27,9 @@ export class GetAllGroupVmUseCase {
     private readonly groupRepository: GroupVmRepositoryInterface,
   ) {}
 
-  async execute(): Promise<GroupVmDto[]> {
-    const groups = await this.groupRepository.findAll();
-    return groups.map((g: GroupVm) => new GroupVmDto(g));
+  async execute(page = 1, limit = 10): Promise<GroupVmListResponseDto> {
+    const [groups, total] = await this.groupRepository.findAllPaginated(page, limit);
+    const items = groups.map((g: GroupVm) => new GroupVmResponseDto(g));
+    return new GroupVmListResponseDto(items, total, page, limit);
   }
 }

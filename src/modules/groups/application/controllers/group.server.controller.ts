@@ -28,6 +28,7 @@ import { UpdateGroupServerUseCase } from '../use-cases/group-server/update-group
 import { DeleteGroupServerUseCase } from '../use-cases/group-server/delete-group-server.use-case';
 import { GroupServerDto } from '../dto/group.server.dto';
 import { GroupServerResponseDto } from '../dto/group.server.response.dto';
+import { GroupServerListResponseDto } from '../dto/group.server.list.response.dto';
 import { GetGroupServerByIdUseCase } from '../use-cases/group-server/get-group-server-by-id.use-case';
 import { ToggleCascadeDto } from '../dto/toggle-cascade.dto';
 import { ToggleCascadeUseCase } from '../use-cases/toggle-cascade.use-case';
@@ -50,15 +51,19 @@ export class GroupServerController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'Récupérer tous les groupes de serveurs' })
+  @ApiOperation({ summary: 'Récupérer tous les groupes de serveurs avec pagination' })
   @ApiQuery({ name: 'roomId', required: false, type: String })
   @ApiQuery({ name: 'priority', required: false, type: Number })
-  @ApiResponse({ status: 200, type: [GroupServerResponseDto] })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiResponse({ status: 200, type: GroupServerListResponseDto })
   async getAllGroups(
     @Query('roomId') roomId?: string,
     @Query('priority', new ParseIntPipe({ optional: true })) priority?: number,
-  ): Promise<GroupServerResponseDto[]> {
-    return this.getAllGroupsServer.execute(roomId, priority);
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+  ): Promise<GroupServerListResponseDto> {
+    return this.getAllGroupsServer.execute(roomId, priority, Number(page), Number(limit));
   }
 
   @Get(':id')

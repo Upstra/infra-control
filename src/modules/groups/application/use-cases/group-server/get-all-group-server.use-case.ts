@@ -1,5 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { GroupServerResponseDto } from '../../dto/group.server.response.dto';
+import { GroupServerListResponseDto } from '../../dto/group.server.list.response.dto';
 import { GroupServerTypeormRepository } from '@/modules/groups/infrastructure/repositories/group.server.typeorm.repository';
 
 /**
@@ -8,8 +9,8 @@ import { GroupServerTypeormRepository } from '@/modules/groups/infrastructure/re
  * Delegates to the repository to load groups with eager-loaded server relations,
  * then maps each group entity to its DTO representation.
  *
- * @returns {Promise<GroupServerResponseDto[]>}
- *   An array of GroupServerResponseDto, each containing group metadata and its servers.
+ * @returns {Promise<GroupServerListResponseDto>}
+ *   A paginated response containing GroupServerResponseDto items and pagination metadata.
  *
  * @remarks
  * This use-case is read-only and applies no additional business rules beyond
@@ -29,11 +30,19 @@ export class GetAllGroupServerUseCase {
   async execute(
     roomId?: string,
     priority?: number,
-  ): Promise<GroupServerResponseDto[]> {
-    const groups = await this.groupRepository.findAll(['servers', 'vmGroups'], {
-      roomId,
-      priority,
-    });
-    return groups.map((group) => new GroupServerResponseDto(group));
+    page = 1,
+    limit = 10,
+  ): Promise<GroupServerListResponseDto> {
+    const [groups, total] = await this.groupRepository.findAllPaginated(
+      ['servers', 'vmGroups'],
+      {
+        roomId,
+        priority,
+      },
+      page,
+      limit,
+    );
+    const items = groups.map((group) => new GroupServerResponseDto(group));
+    return new GroupServerListResponseDto(items, total, page, limit);
   }
 }
