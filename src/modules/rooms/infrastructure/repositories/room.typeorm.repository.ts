@@ -49,6 +49,15 @@ export class RoomTypeormRepository implements RoomRepositoryInterface {
     });
   }
 
+  async paginate(page: number, limit: number): Promise<[Room[], number]> {
+    return this.repo.findAndCount({
+      relations: ['servers', 'servers.ilo', 'ups'],
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { name: 'ASC' },
+    });
+  }
+
   async findRoomById(id: string): Promise<Room> {
     const room = await this.repo.findOne({
       where: { id },

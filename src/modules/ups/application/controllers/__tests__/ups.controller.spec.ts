@@ -12,6 +12,8 @@ import {
 } from '@/modules/ups/__mocks__/ups.mock';
 import { UpsResponseDto } from '../../dto/ups.response.dto';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { RoleGuard } from '@/core/guards/role.guard';
+import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 
 describe('UpsController', () => {
   let controller: UpsController;
@@ -28,6 +30,8 @@ describe('UpsController', () => {
   };
 
   beforeEach(async () => {
+    const mockJwtGuard = { canActivate: jest.fn().mockReturnValue(true) };
+    const mockRoleGuard = { canActivate: jest.fn().mockReturnValue(true) };
     getAllUseCase = { execute: jest.fn() } as any;
     getListUseCase = { execute: jest.fn() } as any;
     getByIdUseCase = { execute: jest.fn() } as any;
@@ -45,7 +49,12 @@ describe('UpsController', () => {
         { provide: UpdateUpsUseCase, useValue: updateUseCase },
         { provide: DeleteUpsUseCase, useValue: deleteUseCase },
       ],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue(mockJwtGuard)
+      .overrideGuard(RoleGuard)
+      .useValue(mockRoleGuard)
+      .compile();
 
     controller = module.get<UpsController>(UpsController);
   });
