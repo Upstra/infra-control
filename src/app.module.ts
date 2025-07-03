@@ -22,6 +22,7 @@ import { HistoryModule } from './modules/history/history.module';
 import { SshModule } from './modules/ssh';
 import { ReleasesModule } from './modules/releases/releases.module';
 import { HealthModule } from './modules/health/health.module';
+import { PrometheusModule } from './modules/prometheus/prometheus.module';
 
 @Module({
   controllers: [],
@@ -47,6 +48,7 @@ import { HealthModule } from './modules/health/health.module';
     SshModule,
     ReleasesModule,
     HealthModule,
+    PrometheusModule,
   ],
   providers: [Logger],
 })
