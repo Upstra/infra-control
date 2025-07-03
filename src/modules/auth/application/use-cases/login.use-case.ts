@@ -11,6 +11,8 @@ import {
 } from '@/modules/users/application/use-cases';
 import { LoginResponseDto } from '../dto';
 import { TokenService } from '../services/token.service';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
+import { RequestContextDto } from '@/core/dto';
 
 /**
  * Authenticates a user by verifying credentials and handling 2FA requirements.
@@ -38,9 +40,13 @@ export class LoginUseCase {
     private readonly findByEmail: GetUserByEmailUseCase,
     private readonly userDomain: UserDomainService,
     private readonly tokenService: TokenService,
+    private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(dto: LoginDto): Promise<LoginResponseDto> {
+  async execute(
+    dto: LoginDto,
+    requestContext?: RequestContextDto,
+  ): Promise<LoginResponseDto> {
     const { identifier, password } = dto;
     const isEmail =
       identifier.includes('@') && identifier.split('@').length === 2;
@@ -49,15 +55,61 @@ export class LoginUseCase {
       ? await this.findByEmail.execute(identifier)
       : await this.findByUsername.execute(identifier);
 
-    if (!user) throw new AuthNotFoundException();
+    if (!user) {
+      await this.logHistory?.executeStructured({
+        entity: 'auth',
+        entityId: 'unknown',
+        action: 'LOGIN_FAILED',
+        metadata: {
+          reason: 'user_not_found',
+          identifier: identifier.substring(0, 3) + '***',
+          loginMethod: isEmail ? 'email' : 'username',
+        },
+        ipAddress: requestContext?.ipAddress,
+        userAgent: requestContext?.userAgent,
+      });
+      throw new AuthNotFoundException();
+    }
 
     const isValidPassword = await this.userDomain.validatePassword(
       user.password,
       password,
     );
-    if (!isValidPassword) throw new AuthPasswordNotValidException();
 
-    if (this.userDomain.isTwoFactorEnabled(user)) {
+    if (!isValidPassword) {
+      await this.logHistory?.executeStructured({
+        entity: 'auth',
+        entityId: user.id,
+        action: 'LOGIN_FAILED',
+        userId: user.id,
+        metadata: {
+          reason: 'invalid_password',
+          identifier: identifier.substring(0, 3) + '***',
+          loginMethod: isEmail ? 'email' : 'username',
+        },
+        ipAddress: requestContext?.ipAddress,
+        userAgent: requestContext?.userAgent,
+      });
+      throw new AuthPasswordNotValidException();
+    }
+
+    const requires2FA = this.userDomain.isTwoFactorEnabled(user);
+
+    await this.logHistory?.executeStructured({
+      entity: 'auth',
+      entityId: user.id,
+      action: requires2FA ? 'LOGIN_2FA_REQUIRED' : 'LOGIN_SUCCESS',
+      userId: user.id,
+      metadata: {
+        loginMethod: isEmail ? 'email' : 'username',
+        requires2FA,
+        userActive: user.active,
+      },
+      ipAddress: requestContext?.ipAddress,
+      userAgent: requestContext?.userAgent,
+    });
+
+    if (requires2FA) {
       const tempToken = this.tokenService.generate2FAToken({
         userId: user.id,
         step: '2fa',

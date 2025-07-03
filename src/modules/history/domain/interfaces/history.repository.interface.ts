@@ -14,4 +14,5 @@ export interface HistoryRepositoryInterface
     relations?: string[],
     filters?: HistoryListFilters,
   ): Promise<[HistoryEvent[], number]>;
+  findDistinctEntityTypes(): Promise<string[]>;
 }

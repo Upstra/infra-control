@@ -8,6 +8,7 @@ import {
   Patch,
   Query,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -22,6 +23,7 @@ import {
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { RequestContextDto } from '@/core/dto';
 
 import { UserResponseDto } from '../dto/user.response.dto';
 import { UserListResponseDto } from '../dto/user.list.response.dto';
@@ -134,8 +136,15 @@ export class UserController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UserUpdateDto,
     @CurrentUser() user: JwtPayload,
+    @Req() req: any,
   ): Promise<UserResponseDto> {
-    return this.updateUserUseCase.execute(id, updateUserDto, user.userId);
+    const requestContext = RequestContextDto.fromRequest(req);
+    return this.updateUserUseCase.execute(
+      id,
+      updateUserDto,
+      user.userId,
+      requestContext,
+    );
   }
 
   @Patch('me/update-account')
@@ -149,8 +158,15 @@ export class UserController {
   async updateCurrentUser(
     @CurrentUser() user: JwtPayload,
     @Body() updateUserDto: UserUpdateDto,
+    @Req() req: any,
   ): Promise<UserResponseDto> {
-    return this.updateUserUseCase.execute(user.userId, updateUserDto);
+    const requestContext = RequestContextDto.fromRequest(req);
+    return this.updateUserUseCase.execute(
+      user.userId,
+      updateUserDto,
+      user.userId,
+      requestContext,
+    );
   }
 
   @Patch('me/reset-password')

@@ -10,6 +10,7 @@ import {
   Query,
   UseFilters,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -42,6 +43,7 @@ import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.except
 import { RoleGuard } from '@/core/guards/role.guard';
 import { RequireRole } from '@/core/decorators/role.decorator';
 import { PermissionGuard } from '@/core/guards';
+import { RequestContextDto } from '@/core/dto';
 
 @ApiTags('Server')
 @Controller('server')
@@ -151,8 +153,14 @@ export class ServerController {
   async createServer(
     @Body() serverDto: ServerCreationDto,
     @CurrentUser() user: JwtPayload,
+    @Req() req: any,
   ): Promise<ServerResponseDto> {
-    return this.createServerUseCase.execute(serverDto, user.userId);
+    const requestContext = RequestContextDto.fromRequest(req);
+    return this.createServerUseCase.execute(
+      serverDto,
+      user.userId,
+      requestContext,
+    );
   }
 
   @Patch(':id')

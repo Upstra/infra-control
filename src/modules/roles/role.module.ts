@@ -9,6 +9,7 @@ import { SafeRoleDeletionDomainService } from './domain/services/safe-role-delet
 import { UserModule } from '../users/user.module';
 import { RoleUseCases } from './application/use-cases';
 import { PresenceModule } from '../presence/presence.module';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
   controllers: [RoleController],
@@ -17,6 +18,7 @@ import { PresenceModule } from '../presence/presence.module';
     PermissionModule,
     forwardRef(() => UserModule),
     forwardRef(() => PresenceModule),
+    AuditModule,
   ],
   providers: [
     ...RoleUseCases,

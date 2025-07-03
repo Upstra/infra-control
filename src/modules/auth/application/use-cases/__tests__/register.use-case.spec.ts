@@ -3,11 +3,14 @@ import { TokenService } from '../../services/token.service';
 import { RegisterDto } from '../../dto/register.dto';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 import { RegisterUserUseCase } from '@/modules/users/application/use-cases';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
+import { RequestContextDto } from '@/core/dto';
 
 describe('RegisterUseCase', () => {
   let useCase: RegisterUseCase;
   let registerUserUseCase: jest.Mocked<RegisterUserUseCase>;
   let tokenService: jest.Mocked<TokenService>;
+  let logHistory: jest.Mocked<LogHistoryUseCase>;
 
   const mockDto: RegisterDto = {
     firstName: 'John',
@@ -26,7 +29,16 @@ describe('RegisterUseCase', () => {
       generateTokens: jest.fn(),
     } as any;
 
-    useCase = new RegisterUseCase(registerUserUseCase, tokenService);
+    logHistory = {
+      execute: jest.fn(),
+      executeStructured: jest.fn(),
+    } as any;
+
+    useCase = new RegisterUseCase(
+      registerUserUseCase,
+      tokenService,
+      logHistory,
+    );
   });
 
   it('should register a new user and return access and refresh tokens', async () => {
@@ -48,6 +60,57 @@ describe('RegisterUseCase', () => {
     expect(result).toEqual({
       accessToken: 'access.jwt.token',
       refreshToken: 'refresh.jwt.token',
+    });
+  });
+
+  describe('Structured Logging', () => {
+    const requestContext = RequestContextDto.forTesting({
+      ipAddress: '10.0.0.1',
+      userAgent: 'Mozilla/5.0 (Test)',
+    });
+
+    it('should log successful registration with structured data', async () => {
+      const fakeUser = createMockUser();
+      registerUserUseCase.execute.mockResolvedValue(fakeUser);
+      tokenService.generateTokens.mockReturnValue({
+        accessToken: 'access.jwt.token',
+        refreshToken: 'refresh.jwt.token',
+      });
+
+      await useCase.execute(mockDto, requestContext);
+
+      expect(logHistory.executeStructured).toHaveBeenCalledWith({
+        entity: 'auth',
+        entityId: fakeUser.id,
+        action: 'REGISTER_SUCCESS',
+        userId: fakeUser.id,
+        metadata: {
+          registrationMethod: 'email',
+          userEmail: fakeUser.email,
+          userName: fakeUser.username,
+          hasInitialRoles: fakeUser.roles?.length > 0,
+        },
+        ipAddress: '10.0.0.1',
+        userAgent: 'Mozilla/5.0 (Test)',
+      });
+    });
+
+    it('should work without request context', async () => {
+      const fakeUser = createMockUser();
+      registerUserUseCase.execute.mockResolvedValue(fakeUser);
+      tokenService.generateTokens.mockReturnValue({
+        accessToken: 'access.jwt.token',
+        refreshToken: 'refresh.jwt.token',
+      });
+
+      await useCase.execute(mockDto);
+
+      expect(logHistory.executeStructured).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ipAddress: undefined,
+          userAgent: undefined,
+        }),
+      );
     });
   });
 });

@@ -19,6 +19,7 @@ import { RenewTokenUseCase } from '../use-cases/renew-token.use-case';
 import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.exception.filter';
 import { LoginResponseDto } from '../dto';
 import { AuthRateLimitGuard } from '@/core/guards/rate-limit.guard';
+import { RequestContextDto } from '@/core/dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -47,9 +48,15 @@ export class AuthController {
     description: 'Connexion réussie',
     type: LoginResponseDto,
   })
-  login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
+  login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+    @Req() req: Request,
+  ) {
+    const requestContext = RequestContextDto.fromRequest(req);
+
     return this.loginUseCase
-      .execute(dto)
+      .execute(dto, requestContext)
       .then(({ accessToken, refreshToken }) => {
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
@@ -77,9 +84,12 @@ export class AuthController {
   register(
     @Body() dto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
+    @Req() req: Request,
   ) {
+    const requestContext = RequestContextDto.fromRequest(req);
+
     return this.registerUseCase
-      .execute(dto)
+      .execute(dto, requestContext)
       .then(({ accessToken, refreshToken }) => {
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
