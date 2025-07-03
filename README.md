@@ -22,6 +22,7 @@
 - **TypeORM** + PostgreSQL
 - **Passport + JWT**
 - **2FA avec Speakeasy + QRCode**
+- **Rate Limiting** multi-niveau (Helmet + express-rate-limit)
 - **Swagger** auto-documenté
 - **Docker** ready
 
@@ -88,6 +89,20 @@ REDIS_TLS=true
 FRONTEND_URL=http://localhost:5173
 BACKEND_URL=http://localhost:3002
 
+# Rate Limiting Configuration (voir docs/rate-limiting.md)
+RATE_LIMIT_GLOBAL_WINDOW_MS=900000    # 15 minutes
+RATE_LIMIT_GLOBAL_MAX=1000            # 1000 requests per window
+
+RATE_LIMIT_AUTH_WINDOW_MS=900000      # 15 minutes  
+RATE_LIMIT_AUTH_STRICT_MAX=5          # Login/register: 5 attempts
+RATE_LIMIT_AUTH_MODERATE_MAX=10       # 2FA: 10 attempts
+
+RATE_LIMIT_SENSITIVE_WINDOW_MS=3600000 # 1 hour
+RATE_LIMIT_SENSITIVE_MAX=3             # 3 operations per hour
+
+RATE_LIMIT_API_WINDOW_MS=300000       # 5 minutes
+RATE_LIMIT_API_MAX=100                # 100 requests per window
+
 GITHUB_TOKEN=
 FRONT_REPO=Upstra/upstra-control_front
 BACK_REPO=Upstra/upstra-control
@@ -149,6 +164,18 @@ pnpm test:watch
 
 ```bash
 pnpm test:cov
+```
+
+#### Pour lancer la couverture sur un module spécifique :
+
+```bash
+pnpm test:cov -- src/modules/auth
+```
+
+#### Pour lancer la couverture sur un test spécifique :
+
+```bash
+pnpm test:cov -- src/modules/auth/__tests__/auth.controller.spec.ts
 ```
 
 ### 🧪 Lancer les **tests e2e**
@@ -213,6 +240,31 @@ pnpm migration:run
 ```
 
 Ces commandes utilisent `-r dotenv/config` pour charger automatiquement les variables d'environnement.
+
+---
+
+## 🔒 Sécurité et Rate Limiting
+
+L'application intègre un système de sécurité multi-niveau :
+
+### 🛡️ Protection des Headers (Helmet)
+- Content Security Policy (CSP)
+- Protection XSS et clickjacking
+- Headers de sécurité automatiques
+
+### ⚡ Rate Limiting Intelligent
+- **Rate limiting global** : Protection DDoS générale
+- **Rate limiting auth** : Limitation des tentatives de connexion/2FA
+- **Rate limiting sensitif** : Protection des opérations critiques (rôles, permissions)
+- **Rate limiting API** : Limitation de l'usage général
+
+📖 **Documentation complète** : [docs/rate-limiting.md](docs/rate-limiting.md)
+
+### Configuration des limites par environnement
+
+Les variables peuvent être ajustées selon l'environnement :
+- **Développement** : Limites permissives pour faciliter les tests
+- **Production** : Limites strictes pour la sécurité
 
 ---
 

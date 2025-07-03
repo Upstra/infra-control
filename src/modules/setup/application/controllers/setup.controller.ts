@@ -14,6 +14,8 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { SensitiveOperationsGuard } from '@/core/guards/sensitive-operations.guard';
+import { ApiUsageGuard } from '@/core/guards/api-usage.guard';
 import {
   CompleteSetupStepUseCase,
   CompleteVmDiscoveryUseCase,
@@ -34,6 +36,7 @@ export class SetupController {
   ) {}
 
   @Get('status')
+  @UseGuards(ApiUsageGuard)
   @ApiOperation({ summary: 'Get application setup status' })
   @ApiResponse({
     status: 200,
@@ -46,7 +49,7 @@ export class SetupController {
   }
 
   @Get('status/authenticated')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(ApiUsageGuard, JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get setup status for authenticated user' })
   @ApiResponse({
@@ -59,7 +62,7 @@ export class SetupController {
   }
 
   @Post('vm-discovery/complete')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SensitiveOperationsGuard, JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Marquer la découverte des VMs comme complétée',
@@ -81,7 +84,7 @@ export class SetupController {
   }
 
   @Post('step/complete')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SensitiveOperationsGuard, JwtAuthGuard)
   @ApiBearerAuth()
   @ApiBody({ type: CompleteSetupStepDto })
   @ApiOperation({ summary: 'Marquer une étape du setup comme complétée' })
@@ -95,7 +98,7 @@ export class SetupController {
   }
 
   @Get('progress')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(ApiUsageGuard, JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Récupérer toute la progression du setup' })
   @ApiResponse({

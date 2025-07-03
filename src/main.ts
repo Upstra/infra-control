@@ -4,6 +4,9 @@ import { setupSwagger } from './core/config/swagger.config';
 import { setupValidationPipe } from './core/config/validation.config';
 import { Logger } from '@nestjs/common';
 import { registerAllGlobalFilters } from './core/utils/index';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import { parseEnvInt } from './core/utils/env-validation.util';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +16,37 @@ async function bootstrap() {
   registerAllGlobalFilters(app);
 
   const cookieParser = require('cookie-parser');
+
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          scriptSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", 'data:', 'https:'],
+        },
+      },
+      crossOriginEmbedderPolicy: false,
+    }),
+  );
+
+  app.use(
+    rateLimit({
+      windowMs: parseEnvInt(
+        process.env.RATE_LIMIT_GLOBAL_WINDOW_MS,
+        900000,
+        60000,
+        3600000,
+      ),
+      max: parseEnvInt(process.env.RATE_LIMIT_GLOBAL_MAX, 1000, 100, 10000),
+      message: {
+        error: 'Trop de requêtes depuis cette IP, essayez plus tard.',
+      },
+      standardHeaders: true,
+      legacyHeaders: false,
+    }),
+  );
 
   app.use(cookieParser());
   app.useGlobalPipes(setupValidationPipe());

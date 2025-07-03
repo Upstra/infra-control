@@ -1,4 +1,12 @@
-import { Controller, Post, Body, UseFilters, Res, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseFilters,
+  Res,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { Response, Request } from 'express';
 import { ApiBody, ApiOperation, ApiTags, ApiResponse } from '@nestjs/swagger';
 
@@ -10,6 +18,7 @@ import { RegisterUseCase } from '../use-cases/register.use-case';
 import { RenewTokenUseCase } from '../use-cases/renew-token.use-case';
 import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.exception.filter';
 import { LoginResponseDto } from '../dto';
+import { AuthRateLimitGuard } from '@/core/guards/rate-limit.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -21,6 +30,7 @@ export class AuthController {
   ) {}
 
   @Post('login')
+  @UseGuards(AuthRateLimitGuard)
   @UseFilters(InvalidQueryExceptionFilter)
   @ApiOperation({
     summary: 'Connexion d’un utilisateur',
@@ -52,6 +62,7 @@ export class AuthController {
   }
 
   @Post('register')
+  @UseGuards(AuthRateLimitGuard)
   @UseFilters(InvalidQueryExceptionFilter)
   @ApiOperation({
     summary: 'Inscription d’un nouvel utilisateur',
