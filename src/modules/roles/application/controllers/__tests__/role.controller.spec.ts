@@ -215,20 +215,42 @@ describe('RoleController', () => {
       const user = new UserResponseDto(createMockUser({ id: 'u1' }));
       updateUserRoleUseCase.execute.mockResolvedValue(user);
 
-      const mockCurrentUser = { userId: 'admin-123', email: 'admin@example.com' };
-      const mockReq = { ip: '127.0.0.1', get: jest.fn().mockReturnValue('Test-Agent') } as any;
-      const result = await controller.updateUserRole('u1', 'r2', mockCurrentUser, mockReq);
+      const mockCurrentUser = {
+        userId: 'admin-123',
+        email: 'admin@example.com',
+      };
+      const mockReq = {
+        ip: '127.0.0.1',
+        get: jest.fn().mockReturnValue('Test-Agent'),
+      } as any;
+      const result = await controller.updateUserRole(
+        'u1',
+        'r2',
+        mockCurrentUser,
+        mockReq,
+      );
       expect(result).toEqual(user);
-      expect(updateUserRoleUseCase.execute).toHaveBeenCalledWith('u1', 'r2', 'admin-123', expect.any(Object));
+      expect(updateUserRoleUseCase.execute).toHaveBeenCalledWith(
+        'u1',
+        'r2',
+        'admin-123',
+        expect.any(Object),
+      );
     });
 
     it('should propagate errors', async () => {
       updateUserRoleUseCase.execute.mockRejectedValue(new Error('fail'));
-      const mockCurrentUser = { userId: 'admin-123', email: 'admin@example.com' };
-      const mockReq = { ip: '127.0.0.1', get: jest.fn().mockReturnValue('Test-Agent') } as any;
-      await expect(controller.updateUserRole('u1', null, mockCurrentUser, mockReq)).rejects.toThrow(
-        'fail',
-      );
+      const mockCurrentUser = {
+        userId: 'admin-123',
+        email: 'admin@example.com',
+      };
+      const mockReq = {
+        ip: '127.0.0.1',
+        get: jest.fn().mockReturnValue('Test-Agent'),
+      } as any;
+      await expect(
+        controller.updateUserRole('u1', null, mockCurrentUser, mockReq),
+      ).rejects.toThrow('fail');
     });
   });
 });

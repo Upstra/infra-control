@@ -202,9 +202,17 @@ describe('UpdateUserRoleUseCase', () => {
     });
 
     it('should log role addition with structured data', async () => {
-      const existingRole = createMockRole({ id: 'r0', name: 'USER', isAdmin: false });
+      const existingRole = createMockRole({
+        id: 'r0',
+        name: 'USER',
+        isAdmin: false,
+      });
       const current = createMockUser({ id: 'u1', roles: [existingRole] });
-      const newRole = createMockRole({ id: 'r1', name: 'ADMIN', isAdmin: true });
+      const newRole = createMockRole({
+        id: 'r1',
+        name: 'ADMIN',
+        isAdmin: true,
+      });
 
       repo.findOneOrFail.mockResolvedValueOnce(current);
       roleRepo.findOneOrFail.mockResolvedValueOnce(newRole);
@@ -246,9 +254,20 @@ describe('UpdateUserRoleUseCase', () => {
     });
 
     it('should log role removal with structured data', async () => {
-      const adminRole = createMockRole({ id: 'r1', name: 'ADMIN', isAdmin: true });
-      const userRole = createMockRole({ id: 'r2', name: 'USER', isAdmin: false });
-      const current = createMockUser({ id: 'u1', roles: [adminRole, userRole] });
+      const adminRole = createMockRole({
+        id: 'r1',
+        name: 'ADMIN',
+        isAdmin: true,
+      });
+      const userRole = createMockRole({
+        id: 'r2',
+        name: 'USER',
+        isAdmin: false,
+      });
+      const current = createMockUser({
+        id: 'u1',
+        roles: [adminRole, userRole],
+      });
 
       repo.findOneOrFail.mockResolvedValueOnce(current);
       roleRepo.findOneOrFail.mockResolvedValueOnce(adminRole);
@@ -290,8 +309,16 @@ describe('UpdateUserRoleUseCase', () => {
     });
 
     it('should log guest role assignment with structured data', async () => {
-      const userRole = createMockRole({ id: 'r1', name: 'USER', isAdmin: false });
-      const guestRole = createMockRole({ id: 'g1', name: 'GUEST', isAdmin: false });
+      const userRole = createMockRole({
+        id: 'r1',
+        name: 'USER',
+        isAdmin: false,
+      });
+      const guestRole = createMockRole({
+        id: 'g1',
+        name: 'GUEST',
+        isAdmin: false,
+      });
       const current = createMockUser({ id: 'u1', roles: [userRole] });
 
       repo.findOneOrFail.mockResolvedValueOnce(current);

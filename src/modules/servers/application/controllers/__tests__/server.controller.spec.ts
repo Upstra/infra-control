@@ -148,7 +148,10 @@ describe('ServerController', () => {
       const dto = createMockServerDto();
       createServerUseCase.execute.mockResolvedValue(dto);
 
-      const mockReq = { ip: '127.0.0.1', get: jest.fn().mockReturnValue('Test-Agent') } as any;
+      const mockReq = {
+        ip: '127.0.0.1',
+        get: jest.fn().mockReturnValue('Test-Agent'),
+      } as any;
       const result = await controller.createServer(
         {
           ...dto,
@@ -166,7 +169,10 @@ describe('ServerController', () => {
         new Error('Server already exists'),
       );
 
-      const mockReq = { ip: '127.0.0.1', get: jest.fn().mockReturnValue('Test-Agent') } as any;
+      const mockReq = {
+        ip: '127.0.0.1',
+        get: jest.fn().mockReturnValue('Test-Agent'),
+      } as any;
       await expect(
         controller.createServer(
           {

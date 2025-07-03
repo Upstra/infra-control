@@ -31,10 +31,7 @@ export class RegisterUseCase {
     private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(
-    dto: RegisterDto,
-    requestContext?: RequestContextDto,
-  ) {
+  async execute(dto: RegisterDto, requestContext?: RequestContextDto) {
     const user = await this.registerUserUseCase.execute(dto);
 
     await this.logHistory?.executeStructured({

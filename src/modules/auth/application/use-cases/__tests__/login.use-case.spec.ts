@@ -190,10 +190,13 @@ describe('LoginUseCase', () => {
         refreshToken: 'refresh.jwt.token',
       });
 
-      await useCase.execute({
-        identifier: 'test@example.com',
-        password: '123456',
-      }, requestContext);
+      await useCase.execute(
+        {
+          identifier: 'test@example.com',
+          password: '123456',
+        },
+        requestContext,
+      );
 
       expect(logHistory.executeStructured).toHaveBeenCalledWith({
         entity: 'auth',
@@ -217,10 +220,13 @@ describe('LoginUseCase', () => {
       userDomain.isTwoFactorEnabled.mockReturnValue(true);
       tokenService.generate2FAToken.mockReturnValue('2fa.jwt.token');
 
-      await useCase.execute({
-        identifier: 'test@example.com',
-        password: '123456',
-      }, requestContext);
+      await useCase.execute(
+        {
+          identifier: 'test@example.com',
+          password: '123456',
+        },
+        requestContext,
+      );
 
       expect(logHistory.executeStructured).toHaveBeenCalledWith({
         entity: 'auth',
@@ -241,10 +247,13 @@ describe('LoginUseCase', () => {
       getUserByEmailUseCase.execute.mockResolvedValue(null);
 
       await expect(
-        useCase.execute({
-          identifier: 'unknown@example.com',
-          password: '123456',
-        }, requestContext),
+        useCase.execute(
+          {
+            identifier: 'unknown@example.com',
+            password: '123456',
+          },
+          requestContext,
+        ),
       ).rejects.toThrow(AuthNotFoundException);
 
       expect(logHistory.executeStructured).toHaveBeenCalledWith({
@@ -267,10 +276,13 @@ describe('LoginUseCase', () => {
       userDomain.validatePassword.mockResolvedValue(false);
 
       await expect(
-        useCase.execute({
-          identifier: 'test@example.com',
-          password: 'wrong',
-        }, requestContext),
+        useCase.execute(
+          {
+            identifier: 'test@example.com',
+            password: 'wrong',
+          },
+          requestContext,
+        ),
       ).rejects.toThrow(AuthPasswordNotValidException);
 
       expect(logHistory.executeStructured).toHaveBeenCalledWith({
@@ -298,10 +310,13 @@ describe('LoginUseCase', () => {
         refreshToken: 'refresh.jwt.token',
       });
 
-      await useCase.execute({
-        identifier: 'tester',
-        password: '123456',
-      }, requestContext);
+      await useCase.execute(
+        {
+          identifier: 'tester',
+          password: '123456',
+        },
+        requestContext,
+      );
 
       expect(logHistory.executeStructured).toHaveBeenCalledWith(
         expect.objectContaining({

@@ -90,4 +90,14 @@ export class HistoryEventTypeormRepository
 
     return qb.getManyAndCount();
   }
+
+  async findDistinctEntityTypes(): Promise<string[]> {
+    const results = await this.repository
+      .createQueryBuilder('history')
+      .select('DISTINCT history.entity', 'entity')
+      .where('history.entity IS NOT NULL')
+      .getRawMany<{ entity: string }>();
+
+    return results.map((result) => result.entity);
+  }
 }

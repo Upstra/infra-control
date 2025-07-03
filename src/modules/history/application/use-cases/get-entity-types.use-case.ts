@@ -1,19 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { HistoryRepositoryInterface } from '../../domain/interfaces/history.repository.interface';
+import { EntityTypesResponseDto } from '../dto/entity-types.response.dto';
 
 @Injectable()
-export class GetHistoryListUseCase {
+export class GetHistoryEntityTypesUseCase {
   constructor(
     @Inject('HistoryRepositoryInterface')
     private readonly repo: HistoryRepositoryInterface,
   ) {}
 
-  async execute(): Promise<string[]> {
-    const entityTypes = await this.repo.findAll({
-      select: ['entity'],
-      distinct: true,
-    });
-
-    return entityTypes;
+  async execute(): Promise<EntityTypesResponseDto> {
+    const entityTypes = await this.repo.findDistinctEntityTypes();
+    return new EntityTypesResponseDto(entityTypes);
   }
 }

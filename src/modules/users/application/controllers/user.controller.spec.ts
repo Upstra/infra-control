@@ -139,7 +139,10 @@ describe('UserController', () => {
         ...mockUser,
         ...updateDto,
       });
-      const mockReq = { ip: '127.0.0.1', get: jest.fn().mockReturnValue('Test-Agent') } as any;
+      const mockReq = {
+        ip: '127.0.0.1',
+        get: jest.fn().mockReturnValue('Test-Agent'),
+      } as any;
       const result = await controller.updateUser(
         mockUser.userId,
         updateDto,
@@ -166,7 +169,10 @@ describe('UserController', () => {
         ...mockUser,
         ...updateDto,
       });
-      const mockReq = { ip: '127.0.0.1', get: jest.fn().mockReturnValue('Test-Agent') } as any;
+      const mockReq = {
+        ip: '127.0.0.1',
+        get: jest.fn().mockReturnValue('Test-Agent'),
+      } as any;
       const result = await controller.updateCurrentUser(
         mockUser as any,
         updateDto,

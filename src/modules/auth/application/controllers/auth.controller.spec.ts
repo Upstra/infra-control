@@ -46,7 +46,10 @@ describe('AuthController', () => {
       refreshToken: 'ref',
     });
 
-    const mockReq = { ip: '127.0.0.1', get: jest.fn().mockReturnValue('Test-Agent') } as any;
+    const mockReq = {
+      ip: '127.0.0.1',
+      get: jest.fn().mockReturnValue('Test-Agent'),
+    } as any;
     const result = await controller.login(dto, res, mockReq);
 
     expect(loginUseCase.execute).toHaveBeenCalledWith(dto, expect.any(Object));
@@ -76,10 +79,16 @@ describe('AuthController', () => {
       refreshToken: 'ref',
     });
 
-    const mockReq = { ip: '127.0.0.1', get: jest.fn().mockReturnValue('Test-Agent') } as any;
+    const mockReq = {
+      ip: '127.0.0.1',
+      get: jest.fn().mockReturnValue('Test-Agent'),
+    } as any;
     const result = await controller.register(dto, res, mockReq);
 
-    expect(registerUseCase.execute).toHaveBeenCalledWith(dto, expect.any(Object));
+    expect(registerUseCase.execute).toHaveBeenCalledWith(
+      dto,
+      expect.any(Object),
+    );
     expect(res.cookie).toHaveBeenCalledWith(
       'refreshToken',
       'ref',

@@ -1,21 +1,31 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HistoryController } from '../history.controller';
 import { GetHistoryListUseCase } from '../../use-cases/get-history-list.use-case';
+import { GetHistoryEntityTypesUseCase } from '../../use-cases/get-entity-types.use-case';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { RoleGuard } from '@/core/guards/role.guard';
+import { EntityTypesResponseDto } from '../../dto/entity-types.response.dto';
 
 describe('HistoryController', () => {
   let controller: HistoryController;
   let getList: jest.Mocked<GetHistoryListUseCase>;
+  let getEntityTypesUseCase: jest.Mocked<GetHistoryEntityTypesUseCase>;
 
   beforeEach(async () => {
     getList = { execute: jest.fn() } as any;
+    getEntityTypesUseCase = { execute: jest.fn() } as any;
     const mockJwtGuard = { canActivate: jest.fn().mockReturnValue(true) };
     const mockRoleGuard = { canActivate: jest.fn().mockReturnValue(true) };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [HistoryController],
-      providers: [{ provide: GetHistoryListUseCase, useValue: getList }],
+      providers: [
+        { provide: GetHistoryListUseCase, useValue: getList },
+        {
+          provide: GetHistoryEntityTypesUseCase,
+          useValue: getEntityTypesUseCase,
+        },
+      ],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue(mockJwtGuard)
@@ -60,6 +70,58 @@ describe('HistoryController', () => {
       userId: 'user',
       from: new Date('2024-01-01'),
       to: new Date('2024-01-31'),
+    });
+  });
+
+  describe('getEntityTypes', () => {
+    it('should return EntityTypesResponseDto from use case', async () => {
+      const mockDto = new EntityTypesResponseDto([
+        'Server',
+        'VM',
+        'User',
+        'Group',
+      ]);
+      getEntityTypesUseCase.execute.mockResolvedValue(mockDto);
+
+      const result = await controller.getEntityTypes();
+
+      expect(getEntityTypesUseCase.execute).toHaveBeenCalledTimes(1);
+      expect(getEntityTypesUseCase.execute).toHaveBeenCalledWith();
+      expect(result).toBeInstanceOf(EntityTypesResponseDto);
+      expect(result.entityTypes).toEqual(['Server', 'VM', 'User', 'Group']);
+      expect(result).toBe(mockDto);
+    });
+
+    it('should return EntityTypesResponseDto with empty array when no entity types exist', async () => {
+      const mockDto = new EntityTypesResponseDto([]);
+      getEntityTypesUseCase.execute.mockResolvedValue(mockDto);
+
+      const result = await controller.getEntityTypes();
+
+      expect(getEntityTypesUseCase.execute).toHaveBeenCalledTimes(1);
+      expect(result).toBeInstanceOf(EntityTypesResponseDto);
+      expect(result.entityTypes).toEqual([]);
+      expect(result).toBe(mockDto);
+    });
+
+    it('should handle errors from use case', async () => {
+      const mockError = new Error('Database error');
+      getEntityTypesUseCase.execute.mockRejectedValue(mockError);
+
+      await expect(controller.getEntityTypes()).rejects.toThrow(
+        'Database error',
+      );
+      expect(getEntityTypesUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should pass through the exact DTO instance from use case', async () => {
+      const mockDto = new EntityTypesResponseDto(['Server', 'VM']);
+      getEntityTypesUseCase.execute.mockResolvedValue(mockDto);
+
+      const result = await controller.getEntityTypes();
+
+      expect(result).toBe(mockDto);
+      expect(result.entityTypes).toEqual(['Server', 'VM']);
     });
   });
 });

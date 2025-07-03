@@ -34,7 +34,11 @@ describe('RegisterUseCase', () => {
       executeStructured: jest.fn(),
     } as any;
 
-    useCase = new RegisterUseCase(registerUserUseCase, tokenService, logHistory);
+    useCase = new RegisterUseCase(
+      registerUserUseCase,
+      tokenService,
+      logHistory,
+    );
   });
 
   it('should register a new user and return access and refresh tokens', async () => {

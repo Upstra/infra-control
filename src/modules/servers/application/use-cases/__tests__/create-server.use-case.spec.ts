@@ -408,7 +408,13 @@ describe('CreateServerUseCase', () => {
           assignedToGroup: !!dto.groupId,
           adminRolesGranted: 1,
           iloConfigured: true,
-          initialPermissions: ['READ', 'WRITE', 'DELETE', 'SHUTDOWN', 'RESTART'],
+          initialPermissions: [
+            'READ',
+            'WRITE',
+            'DELETE',
+            'SHUTDOWN',
+            'RESTART',
+          ],
         },
         ipAddress: '203.0.113.1',
         userAgent: 'Admin-Panel/2.0',
@@ -417,7 +423,11 @@ describe('CreateServerUseCase', () => {
 
     it('should log server creation without group and UPS', async () => {
       const dto = createMockServerCreationDto();
-      const dtoWithoutOptionals = { ...dto, groupId: undefined, upsId: undefined };
+      const dtoWithoutOptionals = {
+        ...dto,
+        groupId: undefined,
+        upsId: undefined,
+      };
       const mockServer = createMockServer({ groupId: null, upsId: null });
       const mockIloDto = createMockIloResponseDto();
       const mockUser = createMockUser({
@@ -431,7 +441,11 @@ describe('CreateServerUseCase', () => {
       roomRepo.findRoomById.mockResolvedValue(mockRoomData);
       permissionRepo.createPermission = jest.fn();
 
-      await useCase.execute(dtoWithoutOptionals, mockPayload.userId, requestContext);
+      await useCase.execute(
+        dtoWithoutOptionals,
+        mockPayload.userId,
+        requestContext,
+      );
 
       expect(logHistory.executeStructured).toHaveBeenCalledWith({
         entity: 'server',
@@ -455,7 +469,13 @@ describe('CreateServerUseCase', () => {
           assignedToGroup: false,
           adminRolesGranted: 0,
           iloConfigured: true,
-          initialPermissions: ['READ', 'WRITE', 'DELETE', 'SHUTDOWN', 'RESTART'],
+          initialPermissions: [
+            'READ',
+            'WRITE',
+            'DELETE',
+            'SHUTDOWN',
+            'RESTART',
+          ],
         },
         ipAddress: '203.0.113.1',
         userAgent: 'Admin-Panel/2.0',
