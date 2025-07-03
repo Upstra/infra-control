@@ -9,6 +9,7 @@ import {
   Post,
   UseGuards,
   Query,
+  Req,
 } from '@nestjs/common';
 import {
   ApiBody,
@@ -43,6 +44,9 @@ import { RoleGuard } from '@/core/guards';
 import { RoleUpdateDto } from '../dto/role.update.dto';
 import { SensitiveOperationsGuard } from '@/core/guards/sensitive-operations.guard';
 import { ApiUsageGuard } from '@/core/guards/api-usage.guard';
+import { CurrentUser } from '@/core/decorators/current-user.decorator';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { RequestContextDto } from '@/core/dto';
 
 @ApiTags('Role')
 @Controller('role')
@@ -249,7 +253,15 @@ export class RoleController {
   async updateUserRole(
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body('roleId') roleId: string | null,
+    @CurrentUser() currentUser: JwtPayload,
+    @Req() req: any,
   ): Promise<UserResponseDto> {
-    return this.updateUserRoleUseCase.execute(userId, roleId);
+    const requestContext = RequestContextDto.fromRequest(req);
+    return this.updateUserRoleUseCase.execute(
+      userId,
+      roleId,
+      currentUser.userId,
+      requestContext,
+    );
   }
 }

@@ -10,6 +10,7 @@ import {
   Query,
   UseGuards,
   UseFilters,
+  Req,
 } from '@nestjs/common';
 import { VmCreationDto } from '../dto/vm.creation.dto';
 import { VmResponseDto } from '../dto/vm.response.dto';
@@ -38,6 +39,9 @@ import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guar
 import { RequireResourcePermission } from '@/core/decorators/ressource-permission.decorator';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.exception.filter';
+import { CurrentUser } from '@/core/decorators/current-user.decorator';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { RequestContextDto } from '@/core/dto';
 
 @ApiTags('VM')
 @Controller('vm')
@@ -110,8 +114,13 @@ export class VmController implements VmEndpointInterface {
       'Crée une machine virtuelle sur un serveur spécifique. Nécessite la permission WRITE sur le serveur hôte.',
   })
   @ApiResponse({ status: 201, type: VmResponseDto })
-  async createVm(@Body() vmDto: VmCreationDto): Promise<VmResponseDto> {
-    return this.createVmUseCase.execute(vmDto);
+  async createVm(
+    @Body() vmDto: VmCreationDto,
+    @CurrentUser() user: JwtPayload,
+    @Req() req: any,
+  ): Promise<VmResponseDto> {
+    const requestContext = RequestContextDto.fromRequest(req);
+    return this.createVmUseCase.execute(vmDto, user.userId, requestContext);
   }
 
   @Patch(':id')

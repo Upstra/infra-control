@@ -20,6 +20,8 @@ import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
+import { RequestContextDto } from '@/core/dto';
 
 jest.mock('@/modules/ilos/application/use-cases');
 
@@ -33,6 +35,7 @@ describe('CreateServerUseCase', () => {
   let upsRepo: jest.Mocked<UpsRepositoryInterface>;
   let userRepo: jest.Mocked<UserRepositoryInterface>;
   let permissionRepo: jest.Mocked<PermissionServerRepositoryInterface>;
+  let logHistory: jest.Mocked<LogHistoryUseCase>;
 
   const mockPayload: JwtPayload = {
     userId: 'user-123',
@@ -69,6 +72,11 @@ describe('CreateServerUseCase', () => {
       findOneByField: jest.fn(),
     } as any;
 
+    logHistory = {
+      execute: jest.fn(),
+      executeStructured: jest.fn(),
+    } as any;
+
     useCase = new CreateServerUseCase(
       repo,
       iloUseCase,
@@ -78,6 +86,7 @@ describe('CreateServerUseCase', () => {
       upsRepo,
       userRepo,
       permissionRepo,
+      logHistory,
     );
   });
 
@@ -346,5 +355,134 @@ describe('CreateServerUseCase', () => {
       mockUser.roles[0].id,
       expect.any(Number),
     );
+  });
+
+  describe('Structured Logging', () => {
+    const requestContext = RequestContextDto.forTesting({
+      ipAddress: '203.0.113.1',
+      userAgent: 'Admin-Panel/2.0',
+    });
+
+    it('should log server creation with structured data', async () => {
+      const dto = createMockServerCreationDto();
+      const mockServer = createMockServer();
+      const mockIloDto = createMockIloResponseDto({
+        name: 'ILO-Test',
+        ip: '10.0.0.1',
+      });
+      const mockUser = createMockUser({
+        id: 'user-123',
+        roles: [{ id: 'role-42', name: 'ADMIN', isAdmin: true }],
+      });
+      const mockRoomData = mockRoom();
+      const mockGroupData = createMockGroupServer();
+
+      repo.save.mockResolvedValue(mockServer);
+      iloUseCase.execute.mockResolvedValue(mockIloDto);
+      userRepo.findOneByField.mockResolvedValue(mockUser);
+      roomRepo.findRoomById.mockResolvedValue(mockRoomData);
+      groupRepo.findOneByField.mockResolvedValue(mockGroupData);
+      permissionRepo.createPermission = jest.fn();
+
+      await useCase.execute(dto, mockPayload.userId, requestContext);
+
+      expect(logHistory.executeStructured).toHaveBeenCalledWith({
+        entity: 'server',
+        entityId: mockServer.id,
+        action: 'CREATE',
+        userId: mockPayload.userId,
+        newValue: {
+          hostname: mockServer.name,
+          description: undefined,
+          roomId: mockServer.roomId,
+          roomName: mockRoomData.name,
+          groupId: mockServer.groupId,
+          groupName: mockGroupData.name,
+          upsId: mockServer.upsId,
+          iloId: mockServer.iloId,
+          iloIpAddress: mockIloDto.ip,
+        },
+        metadata: {
+          serverType: 'physical',
+          hasUpsConnection: !!dto.upsId,
+          assignedToGroup: !!dto.groupId,
+          adminRolesGranted: 1,
+          iloConfigured: true,
+          initialPermissions: ['READ', 'WRITE', 'DELETE', 'SHUTDOWN', 'RESTART'],
+        },
+        ipAddress: '203.0.113.1',
+        userAgent: 'Admin-Panel/2.0',
+      });
+    });
+
+    it('should log server creation without group and UPS', async () => {
+      const dto = createMockServerCreationDto();
+      const dtoWithoutOptionals = { ...dto, groupId: undefined, upsId: undefined };
+      const mockServer = createMockServer({ groupId: null, upsId: null });
+      const mockIloDto = createMockIloResponseDto();
+      const mockUser = createMockUser({
+        roles: [{ id: 'role-42', name: 'USER', isAdmin: false }],
+      });
+      const mockRoomData = mockRoom();
+
+      repo.save.mockResolvedValue(mockServer);
+      iloUseCase.execute.mockResolvedValue(mockIloDto);
+      userRepo.findOneByField.mockResolvedValue(mockUser);
+      roomRepo.findRoomById.mockResolvedValue(mockRoomData);
+      permissionRepo.createPermission = jest.fn();
+
+      await useCase.execute(dtoWithoutOptionals, mockPayload.userId, requestContext);
+
+      expect(logHistory.executeStructured).toHaveBeenCalledWith({
+        entity: 'server',
+        entityId: mockServer.id,
+        action: 'CREATE',
+        userId: mockPayload.userId,
+        newValue: {
+          hostname: mockServer.name,
+          description: undefined,
+          roomId: mockServer.roomId,
+          roomName: mockRoomData.name,
+          groupId: mockServer.groupId,
+          groupName: undefined,
+          upsId: mockServer.upsId,
+          iloId: mockServer.iloId,
+          iloIpAddress: mockIloDto.ip,
+        },
+        metadata: {
+          serverType: 'physical',
+          hasUpsConnection: false,
+          assignedToGroup: false,
+          adminRolesGranted: 0,
+          iloConfigured: true,
+          initialPermissions: ['READ', 'WRITE', 'DELETE', 'SHUTDOWN', 'RESTART'],
+        },
+        ipAddress: '203.0.113.1',
+        userAgent: 'Admin-Panel/2.0',
+      });
+    });
+
+    it('should work without request context', async () => {
+      const dto = createMockServerCreationDto();
+      const mockServer = createMockServer();
+      const mockIloDto = createMockIloResponseDto();
+      const mockUser = createMockUser({ roles: [] });
+
+      repo.save.mockResolvedValue(mockServer);
+      iloUseCase.execute.mockResolvedValue(mockIloDto);
+      userRepo.findOneByField.mockResolvedValue(mockUser);
+      roomRepo.findRoomById.mockResolvedValue(mockRoom());
+      groupRepo.findOneByField.mockResolvedValue(createMockGroupServer());
+      permissionRepo.createPermission = jest.fn();
+
+      await useCase.execute(dto, mockPayload.userId);
+
+      expect(logHistory.executeStructured).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ipAddress: undefined,
+          userAgent: undefined,
+        }),
+      );
+    });
   });
 });

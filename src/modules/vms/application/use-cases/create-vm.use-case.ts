@@ -3,6 +3,9 @@ import { VmRepositoryInterface } from '../../domain/interfaces/vm.repository.int
 import { VmDomainService } from '../../domain/services/vm.domain.service';
 import { VmCreationDto } from '../dto/vm.creation.dto';
 import { VmResponseDto } from '../dto/vm.response.dto';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
+import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
+import { RequestContextDto } from '@/core/dto';
 
 /**
  * Creates a new virtual machine under a specified server.
@@ -27,11 +30,54 @@ export class CreateVmUseCase {
     @Inject('VmRepositoryInterface')
     private readonly repo: VmRepositoryInterface,
     private readonly domain: VmDomainService,
+    @Inject('ServerRepositoryInterface')
+    private readonly serverRepo: ServerRepositoryInterface,
+    private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(dto: VmCreationDto): Promise<VmResponseDto> {
+  async execute(
+    dto: VmCreationDto,
+    userId?: string,
+    requestContext?: RequestContextDto,
+  ): Promise<VmResponseDto> {
+    const server = await this.serverRepo.findOneByField({
+      field: 'id',
+      value: dto.serverId,
+      relations: ['room'],
+    });
+
     const entity = this.domain.createVmEntity(dto);
     const vm = await this.repo.save(entity);
+
+    await this.logHistory?.executeStructured({
+      entity: 'vm',
+      entityId: vm.id,
+      action: 'CREATE',
+      userId,
+      newValue: {
+        name: vm.name,
+        state: vm.state,
+        os: vm.os,
+        ip: vm.ip,
+        serverId: vm.serverId,
+        serverHostname: server?.name,
+        roomId: server?.roomId,
+        roomName: server?.room?.name,
+        priority: vm.priority,
+        groupId: vm.groupId,
+      },
+      metadata: {
+        vmType: 'virtual',
+        operatingSystem: vm.os,
+        parentServer: server?.name,
+        createdOnServer: vm.serverId,
+        assignedToGroup: !!vm.groupId,
+        priority: vm.priority,
+      },
+      ipAddress: requestContext?.ipAddress,
+      userAgent: requestContext?.userAgent,
+    });
+
     return new VmResponseDto(vm);
   }
 }

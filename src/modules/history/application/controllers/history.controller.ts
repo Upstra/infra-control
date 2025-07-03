@@ -17,7 +17,10 @@ import { HistoryListFilters } from '../../domain/interfaces/history-filter.inter
 @ApiTags('History')
 @Controller('history')
 export class HistoryController {
-  constructor(private readonly getList: GetHistoryListUseCase) {}
+  constructor(
+    private readonly getList: GetHistoryListUseCase,
+    private readonly getEntityTypes: GetHistoryEntityTypesUseCase,
+  ) {}
 
   @Get()
   @ApiQuery({ name: 'page', required: false, type: Number })
@@ -50,5 +53,15 @@ export class HistoryController {
     if (to) filters.to = new Date(to);
 
     return this.getList.execute(Number(page), Number(limit), filters);
+  }
+
+  @Get('entity-types')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get available entity types for history' })
+  @RequireRole({ isAdmin: true })
+  @ApiResponse({ status: 200, type: [String] })
+  async getEntityTypes(): Promise<string[]> {
+    return this.getEntityTypes.execute();
   }
 }
