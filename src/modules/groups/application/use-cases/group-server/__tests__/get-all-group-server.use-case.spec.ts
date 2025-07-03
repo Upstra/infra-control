@@ -2,6 +2,7 @@ import { GetAllGroupServerUseCase } from '../get-all-group-server.use-case';
 import { GroupServerTypeormRepository } from '@/modules/groups/infrastructure/repositories/group.server.typeorm.repository';
 import { createMockGroupServer } from '@/modules/groups/__mocks__/group.server.mock';
 import { createMockServer } from '@/modules/servers/__mocks__/servers.mock';
+import { GroupServerResponseDto } from '@/modules/groups/application/dto/group.server.response.dto';
 
 describe('GetAllGroupServerUseCase', () => {
   let useCase: GetAllGroupServerUseCase;
@@ -15,7 +16,7 @@ describe('GetAllGroupServerUseCase', () => {
   });
 
   it('should return all groups as DTOs', async () => {
-    groupRepository.findAll.mockResolvedValue([
+    const groups = [
       createMockGroupServer({
         name: 'Group 1',
         priority: 1,
@@ -29,21 +30,15 @@ describe('GetAllGroupServerUseCase', () => {
         priority: 2,
         servers: [createMockServer({ id: 'server-3' })],
       }),
-    ]);
+    ];
+
+    groupRepository.findAll.mockResolvedValue(groups);
 
     const res = await useCase.execute();
 
     expect(res).toEqual([
-      {
-        name: 'Group 1',
-        priority: 1,
-        serverIds: ['server-1', 'server-2'],
-      },
-      {
-        name: 'Group 2',
-        priority: 2,
-        serverIds: ['server-3'],
-      },
+      new GroupServerResponseDto(groups[0]),
+      new GroupServerResponseDto(groups[1]),
     ]);
   });
 });

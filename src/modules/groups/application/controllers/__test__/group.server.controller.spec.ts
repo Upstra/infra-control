@@ -7,6 +7,7 @@ import {
   UpdateGroupServerUseCase,
   DeleteGroupServerUseCase,
 } from '../../use-cases/group-server';
+import { ToggleCascadeUseCase } from '../../use-cases/toggle-cascade.use-case';
 
 describe('GroupServerController', () => {
   let controller: GroupServerController;
@@ -23,6 +24,7 @@ describe('GroupServerController', () => {
         },
         { provide: UpdateGroupServerUseCase, useValue: { execute: jest.fn() } },
         { provide: DeleteGroupServerUseCase, useValue: { execute: jest.fn() } },
+        { provide: ToggleCascadeUseCase, useValue: { execute: jest.fn() } },
       ],
     }).compile();
 

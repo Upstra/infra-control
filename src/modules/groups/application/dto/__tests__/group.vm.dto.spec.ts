@@ -7,6 +7,7 @@ describe('GroupVmDto', () => {
     const dto = plainToInstance(GroupVmDto, {
       name: 'Test Group',
       priority: 1,
+      serverGroupId: '550e8400-e29b-41d4-a716-446655440000',
       vmIds: [
         '9c53b8d6-1d25-44f1-8c14-df50fc668d8b',
         'ae6a9c0a-238a-4a2b-9491-6b5a93425ee1',
@@ -21,6 +22,7 @@ describe('GroupVmDto', () => {
     const dto = plainToInstance(GroupVmDto, {
       name: 'Test Group',
       priority: 2,
+      serverGroupId: '550e8400-e29b-41d4-a716-446655440000',
     });
 
     const errors = await validate(dto);
@@ -30,6 +32,7 @@ describe('GroupVmDto', () => {
   it('should be invalid with missing name', async () => {
     const dto = plainToInstance(GroupVmDto, {
       priority: 3,
+      serverGroupId: '550e8400-e29b-41d4-a716-446655440000',
       vmIds: ['9c53b8d6-1d25-44f1-8c14-df50fc668d8b'],
     });
 

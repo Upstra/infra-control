@@ -1,10 +1,11 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { GroupServerDto } from '../../dto/group.server.dto';
-
+import { GroupServerResponseDto } from '../../dto/group.server.response.dto';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 import { GroupServerRepositoryInterface } from '@/modules/groups/domain/interfaces/group-server.repository.interface';
 import { GroupNotFoundException } from '@/modules/groups/domain/exceptions/group.exception';
 import { GroupServerDomainService } from '@/modules/groups/domain/services/group.server.domain.service';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 
 /**
  * Updates an existing server group’s metadata and membership.
@@ -17,7 +18,7 @@ import { GroupServerDomainService } from '@/modules/groups/domain/services/group
  *
  * @param id        The UUID of the group to update.
  * @param groupDto  DTO containing new name, priority, and optional serverIds.
- * @returns {Promise<GroupServerDto>}
+ * @returns {Promise<GroupServerResponseDto>}
  *   The updated group DTO with refreshed server associations.
  *
  * @throws {GroupNotFoundException} if the group does not exist.
@@ -36,9 +37,14 @@ export class UpdateGroupServerUseCase {
     private readonly serverRepository: ServerRepositoryInterface,
 
     private readonly domain: GroupServerDomainService,
+    private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(id: string, groupDto: GroupServerDto): Promise<GroupServerDto> {
+  async execute(
+    id: string,
+    groupDto: GroupServerDto,
+    userId?: string,
+  ): Promise<GroupServerResponseDto> {
     const existing = await this.groupRepository.findGroupById(id);
     if (!existing) throw new GroupNotFoundException('server', id);
 
@@ -51,10 +57,43 @@ export class UpdateGroupServerUseCase {
       });
     }
 
+    const oldValue = {
+      name: existing.name,
+      priority: existing.priority,
+      description: existing.description,
+      cascade: existing.cascade,
+      roomId: existing.roomId,
+    };
+
     const entity = this.domain.updateGroupEntityFromDto(existing, groupDto);
     entity.servers = servers;
+    entity.description = groupDto.description;
+    entity.cascade = groupDto.cascade ?? existing.cascade;
+    entity.roomId = groupDto.roomId;
 
     const updated = await this.groupRepository.save(entity);
-    return new GroupServerDto(updated);
+
+    await this.logHistory?.executeStructured({
+      entity: 'group_server',
+      entityId: id,
+      action: 'UPDATE',
+      userId,
+      oldValue,
+      newValue: {
+        name: updated.name,
+        priority: updated.priority,
+        description: updated.description,
+        cascade: updated.cascade,
+        roomId: updated.roomId,
+      },
+    });
+
+    const savedGroup = await this.groupRepository.findOneByField({
+      field: 'id',
+      value: updated.id,
+      relations: ['servers', 'vmGroups'],
+    });
+
+    return new GroupServerResponseDto(savedGroup);
   }
 }

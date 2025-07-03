@@ -1,5 +1,6 @@
 import { GroupServerTypeormRepository } from '@/modules/groups/infrastructure/repositories/group.server.typeorm.repository';
 import { Injectable, Inject } from '@nestjs/common';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 
 /**
  * Deletes a server group by its identifier.
@@ -20,9 +21,11 @@ export class DeleteGroupServerUseCase {
   constructor(
     @Inject('GroupServerRepositoryInterface')
     private readonly groupRepository: GroupServerTypeormRepository,
+    private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(id: string): Promise<void> {
+  async execute(id: string, userId?: string): Promise<void> {
     await this.groupRepository.deleteGroup(id);
+    await this.logHistory?.execute('group_server', id, 'DELETE', userId);
   }
 }

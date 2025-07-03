@@ -6,6 +6,7 @@ import { GroupNotFoundException } from '@/modules/groups/domain/exceptions/group
 import { createMockGroupServer } from '@/modules/groups/__mocks__/group.server.mock';
 import { createMockServer } from '@/modules/servers/__mocks__/servers.mock';
 import { GroupServerDto } from '../../../dto/group.server.dto';
+import { GroupServerResponseDto } from '../../../dto/group.server.response.dto';
 
 describe('UpdateGroupServerUseCase', () => {
   let useCase: UpdateGroupServerUseCase;
@@ -17,6 +18,7 @@ describe('UpdateGroupServerUseCase', () => {
     groupRepository = {
       findGroupById: jest.fn(),
       save: jest.fn(),
+      findOneByField: jest.fn(),
     } as any;
 
     serverRepository = {
@@ -55,6 +57,7 @@ describe('UpdateGroupServerUseCase', () => {
       return entity;
     });
     groupRepository.save.mockImplementation(async (entity) => entity);
+    groupRepository.findOneByField.mockResolvedValue(group);
 
     const res = await useCase.execute('group-123', dto);
 
@@ -66,7 +69,7 @@ describe('UpdateGroupServerUseCase', () => {
     });
     expect(domain.updateGroupEntityFromDto).toHaveBeenCalledWith(group, dto);
 
-    expect(res).toEqual(new GroupServerDto(group));
+    expect(res).toEqual(new GroupServerResponseDto(group));
   });
 
   it('should update group without changing servers if serverIds is not provided', async () => {
@@ -85,11 +88,12 @@ describe('UpdateGroupServerUseCase', () => {
       return entity;
     });
     groupRepository.save.mockImplementation(async (entity) => entity);
+    groupRepository.findOneByField.mockResolvedValue(group);
 
     const res = await useCase.execute('group-456', dto);
 
     expect(serverRepository.findAllByField).not.toHaveBeenCalled();
-    expect(res).toEqual(new GroupServerDto(group));
+    expect(res).toEqual(new GroupServerResponseDto(group));
   });
 
   it('should throw GroupNotFoundException if group does not exist', async () => {
@@ -113,6 +117,7 @@ describe('UpdateGroupServerUseCase', () => {
     serverRepository.findAllByField.mockResolvedValue([]);
     domain.updateGroupEntityFromDto.mockImplementation((entity) => entity);
     groupRepository.save.mockImplementation(async (entity) => entity);
+    groupRepository.findOneByField.mockResolvedValue(group);
 
     const res = await useCase.execute('group-789', dto);
 
@@ -121,6 +126,6 @@ describe('UpdateGroupServerUseCase', () => {
       value: [],
       relations: ['group'],
     });
-    expect(res).toEqual(new GroupServerDto(group));
+    expect(res).toEqual(new GroupServerResponseDto(group));
   });
 });

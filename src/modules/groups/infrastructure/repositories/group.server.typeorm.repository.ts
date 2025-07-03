@@ -14,8 +14,27 @@ export class GroupServerTypeormRepository
     super(GroupServer, dataSource.createEntityManager());
   }
 
-  async findAll(relations: string[] = ['servers']): Promise<GroupServer[]> {
-    return await this.find({ relations });
+  async findAll(
+    relations: string[] = ['servers'],
+    filters?: { roomId?: string; priority?: number },
+  ): Promise<GroupServer[]> {
+    const queryBuilder = this.createQueryBuilder('group');
+
+    relations.forEach((relation) => {
+      queryBuilder.leftJoinAndSelect(`group.${relation}`, relation);
+    });
+
+    if (filters?.roomId) {
+      queryBuilder.where('group.roomId = :roomId', { roomId: filters.roomId });
+    }
+
+    if (filters?.priority) {
+      queryBuilder.andWhere('group.priority = :priority', {
+        priority: filters.priority,
+      });
+    }
+
+    return await queryBuilder.getMany();
   }
 
   async findOneByField<K extends keyof GroupServer>({

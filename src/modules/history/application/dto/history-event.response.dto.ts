@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsUUID, IsString, IsOptional, IsDate, IsObject } from 'class-validator';
+import {
+  IsUUID,
+  IsString,
+  IsOptional,
+  IsDate,
+  IsObject,
+} from 'class-validator';
 import { HistoryEvent } from '../../domain/entities/history-event.entity';
 import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
 import { Type } from 'class-transformer';
@@ -45,12 +51,18 @@ export class HistoryEventResponseDto {
   @IsOptional()
   readonly newValue?: Record<string, any>;
 
-  @ApiProperty({ description: 'Additional metadata and context', required: false })
+  @ApiProperty({
+    description: 'Additional metadata and context',
+    required: false,
+  })
   @IsObject()
   @IsOptional()
   readonly metadata?: Record<string, any>;
 
-  @ApiProperty({ description: 'IP address of the user performing the action', required: false })
+  @ApiProperty({
+    description: 'IP address of the user performing the action',
+    required: false,
+  })
   @IsString()
   @IsOptional()
   readonly ipAddress?: string;
@@ -60,7 +72,10 @@ export class HistoryEventResponseDto {
   @IsOptional()
   readonly userAgent?: string;
 
-  @ApiProperty({ description: 'Correlation ID for tracking related events', required: false })
+  @ApiProperty({
+    description: 'Correlation ID for tracking related events',
+    required: false,
+  })
   @IsString()
   @IsOptional()
   readonly correlationId?: string;

@@ -7,6 +7,7 @@ export const createMockGroupServer = (
     id: 'group-123',
     name: 'Groupe Serveur',
     priority: 1,
+    cascade: true,
     servers: [],
     ...overrides,
   };

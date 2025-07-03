@@ -13,4 +13,16 @@ export abstract class Group extends BaseEntity {
   @ApiProperty()
   @Column()
   priority: number;
+
+  @ApiProperty({ required: false })
+  @Column({ nullable: true })
+  description?: string;
+
+  @ApiProperty()
+  @Column({ default: true })
+  cascade: boolean;
+
+  @ApiProperty({ required: false })
+  @Column({ nullable: true })
+  roomId?: string;
 }

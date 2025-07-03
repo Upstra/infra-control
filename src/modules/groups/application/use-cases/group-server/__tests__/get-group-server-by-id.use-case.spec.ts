@@ -3,6 +3,7 @@ import { GroupServerRepositoryInterface } from '@/modules/groups/domain/interfac
 import { createMockGroupServer } from '@/modules/groups/__mocks__/group.server.mock';
 import { GroupNotFoundException } from '@/modules/groups/domain/exceptions/group.exception';
 import { createMockServer } from '@/modules/servers/__mocks__/servers.mock';
+import { GroupServerResponseDto } from '@/modules/groups/application/dto/group.server.response.dto';
 
 describe('GetGroupServerByIdUseCase', () => {
   let useCase: GetGroupServerByIdUseCase;
@@ -25,15 +26,11 @@ describe('GetGroupServerByIdUseCase', () => {
     groupRepository.findOneByField.mockResolvedValue(group);
 
     const res = await useCase.execute('group-id-123');
-    expect(res).toEqual({
-      name: 'Group X',
-      priority: 5,
-      serverIds: ['server-aaa'],
-    });
+    expect(res).toEqual(new GroupServerResponseDto(group));
     expect(groupRepository.findOneByField).toHaveBeenCalledWith({
       field: 'id',
       value: 'group-id-123',
-      relations: ['servers'],
+      relations: ['servers', 'vmGroups'],
     });
   });
 
@@ -48,7 +45,7 @@ describe('GetGroupServerByIdUseCase', () => {
     expect(groupRepository.findOneByField).toHaveBeenCalledWith({
       field: 'id',
       value: 'notfound-id',
-      relations: ['servers'],
+      relations: ['servers', 'vmGroups'],
     });
   });
 
@@ -58,11 +55,7 @@ describe('GetGroupServerByIdUseCase', () => {
     groupRepository.findOneByField.mockResolvedValue(group);
 
     const res = await useCase.execute('group-empty');
-    expect(res).toEqual({
-      name: group.name,
-      priority: group.priority,
-      serverIds: [],
-    });
+    expect(res).toEqual(new GroupServerResponseDto(group));
   });
 
   it('should handle group with multiple servers', async () => {
@@ -79,10 +72,6 @@ describe('GetGroupServerByIdUseCase', () => {
     groupRepository.findOneByField.mockResolvedValue(group);
 
     const res = await useCase.execute('group-y-id');
-    expect(res).toEqual({
-      name: 'Group Y',
-      priority: 10,
-      serverIds: ['srv-1', 'srv-2', 'srv-3'],
-    });
+    expect(res).toEqual(new GroupServerResponseDto(group));
   });
 });

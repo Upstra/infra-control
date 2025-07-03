@@ -25,7 +25,11 @@ describe('UpdateGroupVmUseCase', () => {
 
   it('should update the group with new values and return DTO', async () => {
     const existing = createMockGroupVm();
-    const inputDto: GroupVmDto = { name: 'NewName', priority: 5 };
+    const inputDto: GroupVmDto = {
+      name: 'NewName',
+      priority: 5,
+      serverGroupId: 'server-group-789',
+    };
     const updatedEntity = createMockGroupVm({ name: 'NewName', priority: 5 });
 
     repo.findGroupById.mockResolvedValue(existing);
@@ -51,7 +55,10 @@ describe('UpdateGroupVmUseCase', () => {
     repo.findGroupById.mockResolvedValue(null);
 
     await expect(
-      useCase.execute('notfound-id', { name: 'irrelevant' }),
+      useCase.execute('notfound-id', {
+        name: 'irrelevant',
+        serverGroupId: 'server-group-999',
+      } as GroupVmDto),
     ).rejects.toThrow(GroupNotFoundException);
   });
 });

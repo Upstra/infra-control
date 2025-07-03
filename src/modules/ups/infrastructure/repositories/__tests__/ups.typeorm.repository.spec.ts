@@ -4,7 +4,6 @@ import { UpsTypeormRepository } from '../ups.typeorm.repository';
 
 describe('UpsTypeormRepository', () => {
   let repository: UpsTypeormRepository;
-  let dataSource: DataSource;
 
   const mockQueryBuilder = {
     leftJoinAndSelect: jest.fn().mockReturnThis(),
@@ -34,8 +33,6 @@ describe('UpsTypeormRepository', () => {
     }).compile();
 
     repository = module.get<UpsTypeormRepository>(UpsTypeormRepository);
-    dataSource = module.get<DataSource>(DataSource);
-
     repository.createQueryBuilder = jest.fn().mockReturnValue(mockQueryBuilder);
   });
 

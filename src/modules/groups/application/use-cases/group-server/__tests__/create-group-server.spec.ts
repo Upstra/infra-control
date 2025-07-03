@@ -2,6 +2,7 @@ import { CreateGroupServerUseCase } from '../create-group-server.use-case';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 import { GroupServerDomainService } from '@/modules/groups/domain/services/group.server.domain.service';
 import { GroupServerDto } from '@/modules/groups/application/dto/group.server.dto';
+import { GroupServerResponseDto } from '@/modules/groups/application/dto/group.server.response.dto';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
 import { GroupServerTypeormRepository } from '@/modules/groups/infrastructure/repositories/group.server.typeorm.repository';
 
@@ -14,6 +15,7 @@ describe('CreateGroupServerUseCase', () => {
   beforeEach(() => {
     groupRepository = {
       save: jest.fn(),
+      findOneByField: jest.fn(),
     } as any;
 
     serverRepository = {
@@ -45,9 +47,11 @@ describe('CreateGroupServerUseCase', () => {
     };
 
     const savedGroup = {
+      id: 'group-id',
       ...groupEntity,
       servers: [{ id: 'server-1' } as Server, { id: 'server-2' } as Server],
-    };
+      vmGroups: [],
+    } as any;
 
     (domain.createGroup as jest.Mock).mockReturnValue(groupEntity);
 
@@ -56,6 +60,7 @@ describe('CreateGroupServerUseCase', () => {
       .mockResolvedValueOnce({ id: 'server-2' });
 
     (groupRepository.save as jest.Mock).mockResolvedValue(savedGroup);
+    (groupRepository.findOneByField as jest.Mock).mockResolvedValue(savedGroup);
 
     const result = await useCase.execute(dto);
 
@@ -65,7 +70,7 @@ describe('CreateGroupServerUseCase', () => {
       ...groupEntity,
       servers: [{ id: 'server-1' }, { id: 'server-2' }],
     });
-    expect(result).toEqual(savedGroup);
+    expect(result).toEqual(new GroupServerResponseDto(savedGroup));
   });
 
   it('should throw if a server is not found', async () => {

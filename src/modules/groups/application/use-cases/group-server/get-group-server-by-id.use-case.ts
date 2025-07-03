@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { GroupServerDto } from '../../dto/group.server.dto';
+import { GroupServerResponseDto } from '../../dto/group.server.response.dto';
 import { GroupServerRepositoryInterface } from '@/modules/groups/domain/interfaces/group-server.repository.interface';
 
 @Injectable()
@@ -13,7 +13,7 @@ export class GetGroupServerByIdUseCase {
    * Retrieves a single server group by its identifier, including its servers.
    *
    * @param id  The UUID of the server group to fetch.
-   * @returns {Promise<GroupServerDto>}
+   * @returns {Promise<GroupServerResponseDto>}
    *   A DTO representing the group and its server list.
    *
    * @throws {NotFoundException} if no group with the given id exists.
@@ -25,13 +25,13 @@ export class GetGroupServerByIdUseCase {
    * @example
    * const group = await getGroupServerByIdUseCase.execute('123e4567-e89b-12d3-a456-426614174000');
    */
-  async execute(id: string): Promise<GroupServerDto> {
+  async execute(id: string): Promise<GroupServerResponseDto> {
     const group = await this.groupRepository.findOneByField({
       field: 'id',
       value: id,
-      relations: ['servers'],
+      relations: ['servers', 'vmGroups'],
     });
 
-    return GroupServerDto.fromEntity(group);
+    return new GroupServerResponseDto(group);
   }
 }

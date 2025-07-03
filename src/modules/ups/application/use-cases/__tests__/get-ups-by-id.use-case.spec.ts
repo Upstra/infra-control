@@ -49,11 +49,15 @@ describe('GetUpsByIdUseCase', () => {
 
       const mockResult = { ups: mockUps, serverCount: 3 };
 
-      mockUpsRepository.findByIdWithServerCount.mockResolvedValueOnce(mockResult);
+      mockUpsRepository.findByIdWithServerCount.mockResolvedValueOnce(
+        mockResult,
+      );
 
       const result = await useCase.execute('test-id');
 
-      expect(repository.findByIdWithServerCount).toHaveBeenCalledWith('test-id');
+      expect(repository.findByIdWithServerCount).toHaveBeenCalledWith(
+        'test-id',
+      );
       expect(result).toBeInstanceOf(UpsResponseDto);
       expect(result.id).toBe('test-id');
       expect(result.serverCount).toBe(3);
@@ -62,8 +66,12 @@ describe('GetUpsByIdUseCase', () => {
     it('should throw UpsNotFoundException when UPS not found', async () => {
       mockUpsRepository.findByIdWithServerCount.mockResolvedValueOnce(null);
 
-      await expect(useCase.execute('non-existent')).rejects.toThrow(UpsNotFoundException);
-      expect(repository.findByIdWithServerCount).toHaveBeenCalledWith('non-existent');
+      await expect(useCase.execute('non-existent')).rejects.toThrow(
+        UpsNotFoundException,
+      );
+      expect(repository.findByIdWithServerCount).toHaveBeenCalledWith(
+        'non-existent',
+      );
     });
 
     it('should handle UPS with zero servers', async () => {
@@ -82,7 +90,9 @@ describe('GetUpsByIdUseCase', () => {
 
       const mockResult = { ups: mockUps, serverCount: 0 };
 
-      mockUpsRepository.findByIdWithServerCount.mockResolvedValueOnce(mockResult);
+      mockUpsRepository.findByIdWithServerCount.mockResolvedValueOnce(
+        mockResult,
+      );
 
       const result = await useCase.execute('test-id');
 
@@ -105,7 +115,9 @@ describe('GetUpsByIdUseCase', () => {
 
       const mockResult = { ups: mockUps, serverCount: 10 };
 
-      mockUpsRepository.findByIdWithServerCount.mockResolvedValueOnce(mockResult);
+      mockUpsRepository.findByIdWithServerCount.mockResolvedValueOnce(
+        mockResult,
+      );
 
       const result = await useCase.execute('test-id');
 

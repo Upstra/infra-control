@@ -1,8 +1,10 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { GroupServerDto } from '../../dto/group.server.dto';
+import { GroupServerResponseDto } from '../../dto/group.server.response.dto';
 import { GroupServerDomainService } from '@/modules/groups/domain/services/group.server.domain.service';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 import { GroupServerTypeormRepository } from '@/modules/groups/infrastructure/repositories/group.server.typeorm.repository';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 
 /**
  * Creates a new server group and optionally associates servers.
@@ -13,7 +15,7 @@ import { GroupServerTypeormRepository } from '@/modules/groups/infrastructure/re
  * 3. Persistence of the new group with assigned servers.
  *
  * @param groupDto  DTO containing group name, priority, and optional serverIds.
- * @returns {Promise<GroupServerDto>}
+ * @returns {Promise<GroupServerResponseDto>}
  *   The persisted group DTO reflecting any assigned servers.
  *
  * @throws {Error} if any serverId does not correspond to an existing server.
@@ -32,10 +34,17 @@ export class CreateGroupServerUseCase {
     private readonly serverRepository: ServerRepositoryInterface,
 
     private readonly domain: GroupServerDomainService,
+    private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(groupDto: GroupServerDto): Promise<GroupServerDto> {
+  async execute(
+    groupDto: GroupServerDto,
+    userId?: string,
+  ): Promise<GroupServerResponseDto> {
     const entity = this.domain.createGroup(groupDto);
+    entity.description = groupDto.description;
+    entity.cascade = groupDto.cascade ?? true;
+    entity.roomId = groupDto.roomId;
 
     if (groupDto.serverIds?.length) {
       entity.servers = await Promise.all(
@@ -55,6 +64,15 @@ export class CreateGroupServerUseCase {
     }
 
     const group = await this.groupRepository.save(entity);
-    return group;
+
+    await this.logHistory?.execute('group_server', group.id, 'CREATE', userId);
+
+    const savedGroup = await this.groupRepository.findOneByField({
+      field: 'id',
+      value: group.id,
+      relations: ['servers', 'vmGroups'],
+    });
+
+    return new GroupServerResponseDto(savedGroup);
   }
 }

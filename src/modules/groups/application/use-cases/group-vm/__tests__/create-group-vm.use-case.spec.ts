@@ -25,6 +25,7 @@ describe('CreateGroupVmUseCase', () => {
     const inputDto: GroupVmDto = {
       name: 'Group VM Test',
       priority: 1,
+      serverGroupId: 'server-group-123',
     };
 
     const entity = new GroupVm();
@@ -54,7 +55,11 @@ describe('CreateGroupVmUseCase', () => {
   });
 
   it('should throw if repo.save throws', async () => {
-    const inputDto: GroupVmDto = { name: 'fail', priority: 2 };
+    const inputDto: GroupVmDto = {
+      name: 'fail',
+      priority: 2,
+      serverGroupId: 'server-group-456',
+    };
     const entity = new GroupVm();
     entity.name = inputDto.name;
     entity.priority = inputDto.priority;

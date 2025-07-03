@@ -1,22 +1,38 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
-  IsNumber,
   IsOptional,
   IsString,
   IsUUID,
+  IsBoolean,
 } from 'class-validator';
 import { GroupDtoInterface } from '../interfaces/group.dto.interface';
 import { GroupServer } from '../../domain/entities/group.server.entity';
+import { IsPriority } from '../validators/priority.validator';
 
 export class GroupServerDto implements GroupDtoInterface {
   @ApiProperty()
   @IsString()
   name?: string;
 
-  @ApiProperty()
-  @IsNumber()
+  @ApiProperty({ minimum: 1, maximum: 4 })
+  @IsPriority()
   priority?: number;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @ApiProperty({ default: true })
+  @IsBoolean()
+  @IsOptional()
+  cascade?: boolean;
+
+  @ApiProperty({ required: false })
+  @IsUUID()
+  @IsOptional()
+  roomId?: string;
 
   @ApiProperty({ type: [String], required: false })
   @IsArray()
@@ -32,6 +48,9 @@ export class GroupServerDto implements GroupDtoInterface {
     return new GroupServerDto({
       name: entity.name,
       priority: entity.priority,
+      description: entity.description,
+      cascade: entity.cascade,
+      roomId: entity.roomId,
       serverIds: entity.servers?.map((s) => s.id) ?? [],
     });
   }

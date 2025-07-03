@@ -8,6 +8,9 @@ import {
   Patch,
   Delete,
   HttpCode,
+  Query,
+  ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -15,6 +18,8 @@ import {
   ApiResponse,
   ApiParam,
   ApiBody,
+  ApiQuery,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 
 import { CreateGroupServerUseCase } from '../use-cases/group-server/create-group-server.use-case';
@@ -22,10 +27,18 @@ import { GetAllGroupServerUseCase } from '../use-cases/group-server/get-all-grou
 import { UpdateGroupServerUseCase } from '../use-cases/group-server/update-group-server.use-case';
 import { DeleteGroupServerUseCase } from '../use-cases/group-server/delete-group-server.use-case';
 import { GroupServerDto } from '../dto/group.server.dto';
+import { GroupServerResponseDto } from '../dto/group.server.response.dto';
 import { GetGroupServerByIdUseCase } from '../use-cases/group-server/get-group-server-by-id.use-case';
+import { ToggleCascadeDto } from '../dto/toggle-cascade.dto';
+import { ToggleCascadeUseCase } from '../use-cases/toggle-cascade.use-case';
+import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { CurrentUser } from '@/core/decorators/current-user.decorator';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 @ApiTags('Group Server')
 @Controller('group/server')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class GroupServerController {
   constructor(
     private readonly createGroupServer: CreateGroupServerUseCase,
@@ -33,43 +46,53 @@ export class GroupServerController {
     private readonly getGroupServerById: GetGroupServerByIdUseCase,
     private readonly updateGroupServer: UpdateGroupServerUseCase,
     private readonly deleteGroupServer: DeleteGroupServerUseCase,
+    private readonly toggleCascade: ToggleCascadeUseCase,
   ) {}
 
   @Get()
   @ApiOperation({ summary: 'Récupérer tous les groupes de serveurs' })
-  @ApiResponse({ status: 200, type: [GroupServerDto] })
-  async getAllGroups(): Promise<GroupServerDto[]> {
-    return this.getAllGroupsServer.execute();
+  @ApiQuery({ name: 'roomId', required: false, type: String })
+  @ApiQuery({ name: 'priority', required: false, type: Number })
+  @ApiResponse({ status: 200, type: [GroupServerResponseDto] })
+  async getAllGroups(
+    @Query('roomId') roomId?: string,
+    @Query('priority', new ParseIntPipe({ optional: true })) priority?: number,
+  ): Promise<GroupServerResponseDto[]> {
+    return this.getAllGroupsServer.execute(roomId, priority);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Récupérer un groupe serveur par ID' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
-  @ApiResponse({ status: 200, type: GroupServerDto })
+  @ApiResponse({ status: 200, type: GroupServerResponseDto })
   async getGroupById(
     @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<GroupServerDto> {
+  ): Promise<GroupServerResponseDto> {
     return this.getGroupServerById.execute(id);
   }
 
   @Post()
   @ApiOperation({ summary: 'Créer un nouveau groupe serveur' })
   @ApiBody({ type: GroupServerDto })
-  @ApiResponse({ status: 201, type: GroupServerDto })
-  async createGroup(@Body() dto: GroupServerDto): Promise<GroupServerDto> {
-    return this.createGroupServer.execute(dto);
+  @ApiResponse({ status: 201, type: GroupServerResponseDto })
+  async createGroup(
+    @Body() dto: GroupServerDto,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<GroupServerResponseDto> {
+    return this.createGroupServer.execute(dto, user.userId);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Mettre à jour un groupe serveur' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
   @ApiBody({ type: GroupServerDto })
-  @ApiResponse({ status: 200, type: GroupServerDto })
+  @ApiResponse({ status: 200, type: GroupServerResponseDto })
   async updateGroup(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: GroupServerDto,
-  ): Promise<GroupServerDto> {
-    return this.updateGroupServer.execute(id, dto);
+    @CurrentUser() user: JwtPayload,
+  ): Promise<GroupServerResponseDto> {
+    return this.updateGroupServer.execute(id, dto, user.userId);
   }
 
   @Delete(':id')
@@ -77,7 +100,28 @@ export class GroupServerController {
   @ApiOperation({ summary: 'Supprimer un groupe serveur' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
   @ApiResponse({ status: 204, description: 'Groupe supprimé avec succès' })
-  async deleteGroup(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    return this.deleteGroupServer.execute(id);
+  async deleteGroup(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<void> {
+    return this.deleteGroupServer.execute(id, user.userId);
+  }
+
+  @Patch(':id/cascade')
+  @ApiOperation({ summary: 'Activer/désactiver cascade sur un groupe serveur' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiBody({ type: ToggleCascadeDto })
+  @ApiResponse({ status: 200, type: GroupServerResponseDto })
+  async toggleGroupCascade(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ToggleCascadeDto,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<GroupServerResponseDto> {
+    return this.toggleCascade.execute(
+      'server',
+      id,
+      dto.cascade,
+      user.userId,
+    ) as Promise<GroupServerResponseDto>;
   }
 }
