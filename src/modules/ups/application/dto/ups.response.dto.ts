@@ -33,12 +33,17 @@ export class UpsResponseDto {
   @IsUUID()
   readonly roomId: string;
 
-  constructor(ups: Ups) {
+  @ApiProperty({ description: 'Number of servers connected to this UPS' })
+  @IsNumber()
+  readonly serverCount: number;
+
+  constructor(ups: Ups, serverCount = 0) {
     this.id = ups.id;
     this.name = ups.name;
     this.ip = ups.ip;
     this.grace_period_on = ups.grace_period_on;
     this.grace_period_off = ups.grace_period_off;
     this.roomId = ups.roomId;
+    this.serverCount = serverCount;
   }
 }

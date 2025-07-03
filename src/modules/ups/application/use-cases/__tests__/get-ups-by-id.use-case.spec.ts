@@ -1,40 +1,121 @@
-import { GetUpsByIdUseCase } from '../../use-cases/get-ups-by-id.use-case';
+import { Test, TestingModule } from '@nestjs/testing';
+import { GetUpsByIdUseCase } from '../get-ups-by-id.use-case';
 import { UpsRepositoryInterface } from '../../../domain/interfaces/ups.repository.interface';
+import { Ups } from '../../../domain/entities/ups.entity';
 import { UpsResponseDto } from '../../dto/ups.response.dto';
 import { UpsNotFoundException } from '../../../domain/exceptions/ups.exception';
-import { createMockUps } from '@/modules/ups/__mocks__/ups.mock';
 
 describe('GetUpsByIdUseCase', () => {
   let useCase: GetUpsByIdUseCase;
-  let repo: jest.Mocked<UpsRepositoryInterface>;
+  let repository: UpsRepositoryInterface;
 
-  beforeEach(() => {
-    repo = {
-      findUpsById: jest.fn(),
-    } as any;
+  const mockUpsRepository = {
+    findByIdWithServerCount: jest.fn(),
+  };
 
-    useCase = new GetUpsByIdUseCase(repo);
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        GetUpsByIdUseCase,
+        {
+          provide: 'UpsRepositoryInterface',
+          useValue: mockUpsRepository,
+        },
+      ],
+    }).compile();
+
+    useCase = module.get<GetUpsByIdUseCase>(GetUpsByIdUseCase);
+    repository = module.get<UpsRepositoryInterface>('UpsRepositoryInterface');
   });
 
-  it('should return an UpsResponseDto when UPS is found', async () => {
-    const mockUps = createMockUps();
-
-    repo.findUpsById.mockResolvedValue(mockUps);
-
-    const result = await useCase.execute('ups-id');
-
-    expect(result).toEqual(new UpsResponseDto(mockUps));
-    expect(repo.findUpsById).toHaveBeenCalledWith('ups-id');
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('should throw UpsNotFoundException if UPS is not found', async () => {
-    repo.findUpsById.mockRejectedValue(
-      new UpsNotFoundException('not-found-id'),
-    );
+  describe('execute', () => {
+    it('should return UPS with server count when found', async () => {
+      const mockUps: Ups = {
+        id: 'test-id',
+        name: 'Test UPS',
+        ip: '192.168.1.100',
+        login: 'admin',
+        password: 'password',
+        grace_period_on: 10,
+        grace_period_off: 5,
+        roomId: 'room-1',
+        servers: [],
+        room: null,
+      } as Ups;
 
-    await expect(useCase.execute('not-found-id')).rejects.toThrow(
-      UpsNotFoundException,
-    );
-    expect(repo.findUpsById).toHaveBeenCalledWith('not-found-id');
+      const mockResult = { ups: mockUps, serverCount: 3 };
+
+      mockUpsRepository.findByIdWithServerCount.mockResolvedValueOnce(mockResult);
+
+      const result = await useCase.execute('test-id');
+
+      expect(repository.findByIdWithServerCount).toHaveBeenCalledWith('test-id');
+      expect(result).toBeInstanceOf(UpsResponseDto);
+      expect(result.id).toBe('test-id');
+      expect(result.serverCount).toBe(3);
+    });
+
+    it('should throw UpsNotFoundException when UPS not found', async () => {
+      mockUpsRepository.findByIdWithServerCount.mockResolvedValueOnce(null);
+
+      await expect(useCase.execute('non-existent')).rejects.toThrow(UpsNotFoundException);
+      expect(repository.findByIdWithServerCount).toHaveBeenCalledWith('non-existent');
+    });
+
+    it('should handle UPS with zero servers', async () => {
+      const mockUps: Ups = {
+        id: 'test-id',
+        name: 'Test UPS',
+        ip: '192.168.1.100',
+        login: 'admin',
+        password: 'password',
+        grace_period_on: 10,
+        grace_period_off: 5,
+        roomId: 'room-1',
+        servers: [],
+        room: null,
+      } as Ups;
+
+      const mockResult = { ups: mockUps, serverCount: 0 };
+
+      mockUpsRepository.findByIdWithServerCount.mockResolvedValueOnce(mockResult);
+
+      const result = await useCase.execute('test-id');
+
+      expect(result.serverCount).toBe(0);
+    });
+
+    it('should map all UPS properties correctly', async () => {
+      const mockUps: Ups = {
+        id: 'test-id',
+        name: 'Test UPS',
+        ip: '10.0.0.1',
+        login: 'testuser',
+        password: 'testpass',
+        grace_period_on: 15,
+        grace_period_off: 8,
+        roomId: 'room-test',
+        servers: [],
+        room: null,
+      } as Ups;
+
+      const mockResult = { ups: mockUps, serverCount: 10 };
+
+      mockUpsRepository.findByIdWithServerCount.mockResolvedValueOnce(mockResult);
+
+      const result = await useCase.execute('test-id');
+
+      expect(result.id).toBe('test-id');
+      expect(result.name).toBe('Test UPS');
+      expect(result.ip).toBe('10.0.0.1');
+      expect(result.grace_period_on).toBe(15);
+      expect(result.grace_period_off).toBe(8);
+      expect(result.roomId).toBe('room-test');
+      expect(result.serverCount).toBe(10);
+    });
   });
 });

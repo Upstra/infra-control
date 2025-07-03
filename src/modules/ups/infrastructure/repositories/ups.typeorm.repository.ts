@@ -98,4 +98,72 @@ export class UpsTypeormRepository
       throw new UpsNotFoundException(id);
     }
   }
+
+  async findAllWithServerCount(): Promise<
+    Array<{ ups: Ups; serverCount: number }>
+  > {
+    try {
+      const upsWithCount = await this.createQueryBuilder('ups')
+        .leftJoinAndSelect('ups.servers', 'server')
+        .loadRelationCountAndMap('ups.serverCount', 'ups.servers')
+        .getMany();
+
+      return upsWithCount.map((ups) => ({
+        ups,
+        serverCount: (ups as any).serverCount ?? 0,
+      }));
+    } catch (error) {
+      Logger.error('Error retrieving UPS with server count:', error);
+      throw new UpsRetrievalException();
+    }
+  }
+
+  async paginateWithServerCount(
+    page: number,
+    limit: number,
+  ): Promise<[Array<{ ups: Ups; serverCount: number }>, number]> {
+    try {
+      const [upsWithCount, total] = await this.createQueryBuilder('ups')
+        .leftJoinAndSelect('ups.servers', 'server')
+        .loadRelationCountAndMap('ups.serverCount', 'ups.servers')
+        .skip((page - 1) * limit)
+        .take(limit)
+        .orderBy('ups.name', 'ASC')
+        .getManyAndCount();
+
+      const result = upsWithCount.map((ups) => ({
+        ups,
+        serverCount: (ups as any).serverCount ?? 0,
+      }));
+
+      return [result, total];
+    } catch (error) {
+      Logger.error('Error paginating UPS with server count:', error);
+      throw new UpsRetrievalException();
+    }
+  }
+
+  async findByIdWithServerCount(
+    id: string,
+  ): Promise<{ ups: Ups; serverCount: number } | null> {
+    try {
+      const ups = await this.createQueryBuilder('ups')
+        .leftJoinAndSelect('ups.servers', 'server')
+        .loadRelationCountAndMap('ups.serverCount', 'ups.servers')
+        .where('ups.id = :id', { id })
+        .getOne();
+
+      if (!ups) {
+        return null;
+      }
+
+      return {
+        ups,
+        serverCount: (ups as any).serverCount ?? 0,
+      };
+    } catch (error) {
+      Logger.error('Error retrieving UPS by ID with server count:', error);
+      throw new UpsRetrievalException();
+    }
+  }
 }

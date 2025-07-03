@@ -4,7 +4,8 @@ import { UpsResponseDto } from '../ups.response.dto';
 
 describe('UpsListResponseDto', () => {
   it('should set all properties correctly', () => {
-    const item = createMockUps();
+    const upsEntity = createMockUps();
+    const item = new UpsResponseDto(upsEntity, 5);
 
     const items = [item];
     const totalItems = 15;
