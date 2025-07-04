@@ -30,6 +30,38 @@ export class PreviewShutdownUseCase {
       relations: ['vms'],
     });
 
+    this.validateGroupsFound(groupIds, serverGroups, vmGroups);
+
+    const steps: ShutdownStep[] = [];
+    let order = 1;
+
+    order = this.processVmGroups(vmGroups, serverGroups, steps, order);
+
+    this.processServerGroups(serverGroups, steps, order);
+
+    const totalItems = steps.length;
+    const totalVms = steps.filter((s) => s.type === 'vm').length;
+    const totalServers = steps.filter((s) => s.type === 'server').length;
+
+    const startIndex = Math.max(0, (page - 1) * limit);
+    const endIndex = Math.min(steps.length, startIndex + limit);
+    const paginatedSteps = steps.slice(startIndex, endIndex);
+
+    return new ShutdownPreviewListResponseDto(
+      paginatedSteps,
+      totalItems,
+      page,
+      limit,
+      totalVms,
+      totalServers,
+    );
+  }
+
+  private validateGroupsFound(
+    groupIds: string[],
+    serverGroups: GroupServer[],
+    vmGroups: GroupVm[],
+  ): void {
     const foundGroupIds = [
       ...serverGroups.map((g) => g.id),
       ...vmGroups.map((g) => g.id),
@@ -39,9 +71,15 @@ export class PreviewShutdownUseCase {
     if (missingIds.length > 0) {
       throw new NotFoundException(`Groups not found: ${missingIds.join(', ')}`);
     }
+  }
 
-    const steps: ShutdownStep[] = [];
-    let order = 1;
+  private processVmGroups(
+    vmGroups: GroupVm[],
+    serverGroups: GroupServer[],
+    steps: ShutdownStep[],
+    startOrder: number,
+  ): number {
+    let order = startOrder;
 
     const allVmGroups = [
       ...vmGroups,
@@ -73,6 +111,15 @@ export class PreviewShutdownUseCase {
       }
     }
 
+    return order;
+  }
+
+  private processServerGroups(
+    serverGroups: GroupServer[],
+    steps: ShutdownStep[],
+    startOrder: number,
+  ): void {
+    let order = startOrder;
     const cascadingServerGroups = serverGroups.filter((g) => g.cascade);
     cascadingServerGroups.sort((a, b) => b.priority - a.priority);
 
@@ -94,22 +141,5 @@ export class PreviewShutdownUseCase {
         );
       }
     }
-
-    const totalItems = steps.length;
-    const totalVms = steps.filter((s) => s.type === 'vm').length;
-    const totalServers = steps.filter((s) => s.type === 'server').length;
-
-    const startIndex = Math.max(0, (page - 1) * limit);
-    const endIndex = Math.min(steps.length, startIndex + limit);
-    const paginatedSteps = steps.slice(startIndex, endIndex);
-
-    return new ShutdownPreviewListResponseDto(
-      paginatedSteps,
-      totalItems,
-      page,
-      limit,
-      totalVms,
-      totalServers,
-    );
   }
 }
