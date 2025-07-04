@@ -1,4 +1,11 @@
-import { Controller, Body, Post, UseGuards, Query, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Body,
+  Post,
+  UseGuards,
+  Query,
+  BadRequestException,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -51,7 +58,9 @@ export class GroupShutdownController {
     }
 
     if (!Number.isInteger(limitNum) || limitNum < 1 || limitNum > 100) {
-      throw new BadRequestException('Limit must be a positive integer between 1 and 100');
+      throw new BadRequestException(
+        'Limit must be a positive integer between 1 and 100',
+      );
     }
 
     return this.previewShutdown.execute(dto.groupIds, pageNum, limitNum);
@@ -83,9 +92,16 @@ export class GroupShutdownController {
     }
 
     if (!Number.isInteger(limitNum) || limitNum < 1 || limitNum > 100) {
-      throw new BadRequestException('Limit must be a positive integer between 1 and 100');
+      throw new BadRequestException(
+        'Limit must be a positive integer between 1 and 100',
+      );
     }
 
-    return this.executeShutdown.execute(dto.groupIds, user.userId, pageNum, limitNum);
+    return this.executeShutdown.execute(
+      dto.groupIds,
+      user.userId,
+      pageNum,
+      limitNum,
+    );
   }
 }

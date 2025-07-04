@@ -100,11 +100,13 @@ describe('CreateGroupVmUseCase', () => {
     expect(domain.createGroup).toHaveBeenCalledWith(inputDto);
     expect(vmRepo.findVmById).toHaveBeenCalledWith('vm-1');
     expect(vmRepo.findVmById).toHaveBeenCalledWith('vm-2');
-    expect(repo.save).toHaveBeenCalledWith(expect.objectContaining({
-      name: inputDto.name,
-      priority: inputDto.priority,
-      vms: [vm1, vm2],
-    }));
+    expect(repo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: inputDto.name,
+        priority: inputDto.priority,
+        vms: [vm1, vm2],
+      }),
+    );
 
     expect(result).toEqual(
       expect.objectContaining({
@@ -148,9 +150,11 @@ describe('CreateGroupVmUseCase', () => {
 
     expect(vmRepo.findVmById).toHaveBeenCalledWith('vm-1');
     expect(vmRepo.findVmById).toHaveBeenCalledWith('invalid-vm');
-    expect(repo.save).toHaveBeenCalledWith(expect.objectContaining({
-      vms: [vm1],
-    }));
+    expect(repo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        vms: [vm1],
+      }),
+    );
 
     expect(result.vmIds).toEqual(['vm-1']);
   });

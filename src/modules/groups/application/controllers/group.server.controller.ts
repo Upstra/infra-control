@@ -51,7 +51,9 @@ export class GroupServerController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'Récupérer tous les groupes de serveurs avec pagination' })
+  @ApiOperation({
+    summary: 'Récupérer tous les groupes de serveurs avec pagination',
+  })
   @ApiQuery({ name: 'roomId', required: false, type: String })
   @ApiQuery({ name: 'priority', required: false, type: Number })
   @ApiQuery({ name: 'page', required: false, type: Number })
@@ -63,7 +65,12 @@ export class GroupServerController {
     @Query('page') page = '1',
     @Query('limit') limit = '10',
   ): Promise<GroupServerListResponseDto> {
-    return this.getAllGroupsServer.execute(roomId, priority, Number(page), Number(limit));
+    return this.getAllGroupsServer.execute(
+      roomId,
+      priority,
+      Number(page),
+      Number(limit),
+    );
   }
 
   @Get(':id')
@@ -122,11 +129,6 @@ export class GroupServerController {
     @Body() dto: ToggleCascadeDto,
     @CurrentUser() user: JwtPayload,
   ): Promise<GroupServerResponseDto> {
-    return this.toggleCascade.execute(
-      'server',
-      id,
-      dto.cascade,
-      user.userId,
-    );
+    return this.toggleCascade.execute('server', id, dto.cascade, user.userId);
   }
 }

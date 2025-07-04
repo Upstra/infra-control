@@ -89,4 +89,35 @@ describe('GroupServerDto', () => {
     const errors = await validate(dto);
     expect(errors.some((e) => e.property === 'serverIds')).toBe(true);
   });
+
+  it('should have cascade default value of true when not provided', () => {
+    const dto = new GroupServerDto({
+      name: 'Test Group',
+      priority: 1,
+    });
+    expect(dto.cascade).toBe(true);
+  });
+
+  it('should override cascade default value when explicitly set to false', () => {
+    const dto = new GroupServerDto({
+      name: 'Test Group',
+      priority: 1,
+      cascade: false,
+    });
+    expect(dto.cascade).toBe(false);
+  });
+
+  it('should be valid with cascade as boolean', async () => {
+    const dto = plainToInstance(
+      GroupServerDto,
+      {
+        name: 'Critique',
+        priority: 1,
+        cascade: false,
+      },
+      { enableImplicitConversion: true },
+    );
+    const errors = await validate(dto);
+    expect(errors.length).toBe(0);
+  });
 });

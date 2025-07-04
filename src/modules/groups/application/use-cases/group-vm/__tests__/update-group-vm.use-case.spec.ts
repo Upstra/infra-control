@@ -106,9 +106,11 @@ describe('UpdateGroupVmUseCase', () => {
 
     expect(vmRepo.findVmById).toHaveBeenCalledWith('vm-1');
     expect(vmRepo.findVmById).toHaveBeenCalledWith('vm-2');
-    expect(repo.save).toHaveBeenCalledWith(expect.objectContaining({
-      vms: [vm1, vm2],
-    }));
+    expect(repo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        vms: [vm1, vm2],
+      }),
+    );
     expect(result.vmIds).toEqual(['vm-1', 'vm-2']);
   });
 
@@ -138,16 +140,21 @@ describe('UpdateGroupVmUseCase', () => {
 
     const result = await useCase.execute('groupvm-1', inputDto);
 
-    expect(domain.updateGroupEntityFromDto).toHaveBeenCalledWith(existing, inputDto);
-    expect(result).toEqual(expect.objectContaining({
-      name: inputDto.name,
-      priority: inputDto.priority,
-      description: inputDto.description,
-      cascade: inputDto.cascade,
-      roomId: inputDto.roomId,
-      serverGroupId: inputDto.serverGroupId,
-      vmIds: [],
-    }));
+    expect(domain.updateGroupEntityFromDto).toHaveBeenCalledWith(
+      existing,
+      inputDto,
+    );
+    expect(result).toEqual(
+      expect.objectContaining({
+        name: inputDto.name,
+        priority: inputDto.priority,
+        description: inputDto.description,
+        cascade: inputDto.cascade,
+        roomId: inputDto.roomId,
+        serverGroupId: inputDto.serverGroupId,
+        vmIds: [],
+      }),
+    );
   });
 
   it('should only update provided fields', async () => {
@@ -173,14 +180,19 @@ describe('UpdateGroupVmUseCase', () => {
 
     await useCase.execute('groupvm-1', inputDto);
 
-    expect(domain.updateGroupEntityFromDto).toHaveBeenCalledWith(existing, inputDto);
-    expect(repo.save).toHaveBeenCalledWith(expect.objectContaining({
-      name: 'Original Name',
-      priority: 2,
-      description: 'Original Description',
-      cascade: true,
-      roomId: 'room-123',
-      serverGroupId: 'server-123',
-    }));
+    expect(domain.updateGroupEntityFromDto).toHaveBeenCalledWith(
+      existing,
+      inputDto,
+    );
+    expect(repo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Original Name',
+        priority: 2,
+        description: 'Original Description',
+        cascade: true,
+        roomId: 'room-123',
+        serverGroupId: 'server-123',
+      }),
+    );
   });
 });

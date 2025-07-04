@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { BadRequestException } from '@nestjs/common';
 import { GroupShutdownController } from '../group.shutdown.controller';
 import { PreviewShutdownUseCase } from '../../use-cases/preview-shutdown.use-case';
 import { ExecuteShutdownUseCase } from '../../use-cases/execute-shutdown.use-case';
@@ -88,10 +89,11 @@ describe('GroupShutdownController', () => {
 
       const result = await controller.preview(dto);
 
-      expect(previewShutdownUseCase.execute).toHaveBeenCalledWith([
-        'group-1',
-        'group-2',
-      ], 1, 10);
+      expect(previewShutdownUseCase.execute).toHaveBeenCalledWith(
+        ['group-1', 'group-2'],
+        1,
+        10,
+      );
       expect(result).toEqual(expectedResponse);
     });
 
@@ -108,6 +110,77 @@ describe('GroupShutdownController', () => {
       const result = await controller.preview(dto);
 
       expect(previewShutdownUseCase.execute).toHaveBeenCalledWith([], 1, 10);
+      expect(result).toEqual(expectedResponse);
+    });
+
+    it('should validate page parameter', async () => {
+      const dto: ShutdownRequestDto = { groupIds: ['group-1'] };
+
+      await expect(controller.preview(dto, '0', '10')).rejects.toThrow(
+        new BadRequestException('Page must be a positive integer'),
+      );
+
+      await expect(controller.preview(dto, '-1', '10')).rejects.toThrow(
+        new BadRequestException('Page must be a positive integer'),
+      );
+
+      await expect(controller.preview(dto, 'abc', '10')).rejects.toThrow(
+        new BadRequestException('Page must be a positive integer'),
+      );
+
+      await expect(controller.preview(dto, '1.5', '10')).rejects.toThrow(
+        new BadRequestException('Page must be a positive integer'),
+      );
+    });
+
+    it('should validate limit parameter', async () => {
+      const dto: ShutdownRequestDto = { groupIds: ['group-1'] };
+
+      await expect(controller.preview(dto, '1', '0')).rejects.toThrow(
+        new BadRequestException(
+          'Limit must be a positive integer between 1 and 100',
+        ),
+      );
+
+      await expect(controller.preview(dto, '1', '-10')).rejects.toThrow(
+        new BadRequestException(
+          'Limit must be a positive integer between 1 and 100',
+        ),
+      );
+
+      await expect(controller.preview(dto, '1', '101')).rejects.toThrow(
+        new BadRequestException(
+          'Limit must be a positive integer between 1 and 100',
+        ),
+      );
+
+      await expect(controller.preview(dto, '1', 'abc')).rejects.toThrow(
+        new BadRequestException(
+          'Limit must be a positive integer between 1 and 100',
+        ),
+      );
+    });
+
+    it('should accept valid page and limit parameters', async () => {
+      const dto: ShutdownRequestDto = { groupIds: ['group-1'] };
+      const expectedResponse = new ShutdownPreviewListResponseDto(
+        [],
+        0,
+        5,
+        20,
+        0,
+        0,
+      );
+
+      previewShutdownUseCase.execute.mockResolvedValue(expectedResponse);
+
+      const result = await controller.preview(dto, '5', '20');
+
+      expect(previewShutdownUseCase.execute).toHaveBeenCalledWith(
+        ['group-1'],
+        5,
+        20,
+      );
       expect(result).toEqual(expectedResponse);
     });
   });
@@ -177,6 +250,84 @@ describe('GroupShutdownController', () => {
         1,
         10,
       );
+    });
+
+    it('should validate page parameter for execute', async () => {
+      const dto: ShutdownRequestDto = { groupIds: ['group-1'] };
+      const user: JwtPayload = {
+        userId: 'user-123',
+        email: 'test@example.com',
+      };
+
+      await expect(controller.execute(dto, user, '0', '10')).rejects.toThrow(
+        new BadRequestException('Page must be a positive integer'),
+      );
+
+      await expect(controller.execute(dto, user, '-1', '10')).rejects.toThrow(
+        new BadRequestException('Page must be a positive integer'),
+      );
+
+      await expect(
+        controller.execute(dto, user, 'invalid', '10'),
+      ).rejects.toThrow(
+        new BadRequestException('Page must be a positive integer'),
+      );
+    });
+
+    it('should validate limit parameter for execute', async () => {
+      const dto: ShutdownRequestDto = { groupIds: ['group-1'] };
+      const user: JwtPayload = {
+        userId: 'user-123',
+        email: 'test@example.com',
+      };
+
+      await expect(controller.execute(dto, user, '1', '0')).rejects.toThrow(
+        new BadRequestException(
+          'Limit must be a positive integer between 1 and 100',
+        ),
+      );
+
+      await expect(controller.execute(dto, user, '1', '150')).rejects.toThrow(
+        new BadRequestException(
+          'Limit must be a positive integer between 1 and 100',
+        ),
+      );
+
+      await expect(
+        controller.execute(dto, user, '1', 'invalid'),
+      ).rejects.toThrow(
+        new BadRequestException(
+          'Limit must be a positive integer between 1 and 100',
+        ),
+      );
+    });
+
+    it('should accept valid page and limit parameters for execute', async () => {
+      const dto: ShutdownRequestDto = { groupIds: ['group-1'] };
+      const user: JwtPayload = {
+        userId: 'user-123',
+        email: 'test@example.com',
+      };
+      const expectedResponse = new ShutdownPreviewListResponseDto(
+        [],
+        0,
+        3,
+        15,
+        0,
+        0,
+      );
+
+      executeShutdownUseCase.execute.mockResolvedValue(expectedResponse);
+
+      const result = await controller.execute(dto, user, '3', '15');
+
+      expect(executeShutdownUseCase.execute).toHaveBeenCalledWith(
+        ['group-1'],
+        'user-123',
+        3,
+        15,
+      );
+      expect(result).toEqual(expectedResponse);
     });
   });
 });

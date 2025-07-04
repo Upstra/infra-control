@@ -156,4 +156,109 @@ describe('PreviewShutdownUseCase', () => {
       'Groups not found: non-existent',
     );
   });
+
+  it('should handle VMs with null properties', async () => {
+    const vmGroups = [
+      createMockGroupVm({
+        id: 'group-vm-1',
+        name: 'VM Group',
+        priority: 1,
+        cascade: true,
+        vms: [
+          { id: 'vm-1', name: 'VM 1' } as any,
+          { id: null, name: 'VM without ID' } as any,
+          { id: 'vm-3', name: null } as any,
+          { id: null, name: null } as any,
+        ],
+      }),
+    ];
+
+    groupVmRepository.find.mockResolvedValue(vmGroups);
+    groupServerRepository.find.mockResolvedValue([]);
+
+    const result = await useCase.execute(['group-vm-1']);
+
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]).toEqual(
+      expect.objectContaining({
+        entityId: 'vm-1',
+        entityName: 'VM 1',
+      }),
+    );
+  });
+
+  it('should handle servers with null properties', async () => {
+    const serverGroups = [
+      createMockGroupServer({
+        id: 'group-server-1',
+        name: 'Server Group',
+        priority: 1,
+        cascade: true,
+        servers: [
+          { id: 'server-1', name: 'Server 1' } as any,
+          { id: null, name: 'Server without ID' } as any,
+          { id: 'server-3', name: null } as any,
+          { id: null, name: null } as any,
+        ],
+      }),
+    ];
+
+    groupServerRepository.find.mockResolvedValue(serverGroups);
+    groupVmRepository.find.mockResolvedValue([]);
+
+    const result = await useCase.execute(['group-server-1']);
+
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]).toEqual(
+      expect.objectContaining({
+        entityId: 'server-1',
+        entityName: 'Server 1',
+      }),
+    );
+  });
+
+  it('should handle pagination bounds correctly', async () => {
+    const vmGroups = Array.from({ length: 5 }, (_, i) =>
+      createMockGroupVm({
+        id: `group-vm-${i}`,
+        name: `VM Group ${i}`,
+        priority: 1,
+        cascade: true,
+        vms: [createMockVm({ id: `vm-${i}`, name: `VM ${i}` })],
+      }),
+    );
+
+    groupVmRepository.find.mockResolvedValue(vmGroups);
+    groupServerRepository.find.mockResolvedValue([]);
+
+    const groupIds = vmGroups.map((g) => g.id);
+    const result = await useCase.execute(groupIds, 10, 10);
+
+    expect(result.items).toHaveLength(0);
+    expect(result.currentPage).toBe(10);
+    expect(result.totalItems).toBe(5);
+  });
+
+  it('should handle edge case with exactly limit items', async () => {
+    const servers = Array.from({ length: 10 }, (_, i) =>
+      createMockServer({ id: `server-${i}`, name: `Server ${i}` }),
+    );
+
+    const serverGroup = createMockGroupServer({
+      id: 'group-server-1',
+      name: 'Server Group',
+      priority: 1,
+      cascade: true,
+      servers,
+    });
+
+    groupServerRepository.find.mockResolvedValue([serverGroup]);
+    groupVmRepository.find.mockResolvedValue([]);
+
+    const result = await useCase.execute(['group-server-1'], 1, 10);
+
+    expect(result.items).toHaveLength(10);
+    expect(result.totalPages).toBe(1);
+    expect(result.currentPage).toBe(1);
+  });
 });

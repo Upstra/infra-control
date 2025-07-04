@@ -76,7 +76,12 @@ describe('GroupServerController', () => {
 
     const result = await controller.getAllGroups();
 
-    expect(getAllUseCase.execute).toHaveBeenCalledWith(undefined, undefined, 1, 10);
+    expect(getAllUseCase.execute).toHaveBeenCalledWith(
+      undefined,
+      undefined,
+      1,
+      10,
+    );
     expect(result).toEqual(mockResponse);
   });
 

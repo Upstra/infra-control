@@ -42,7 +42,10 @@ export class ExecuteShutdownUseCase {
           },
         });
       } catch (error) {
-        console.error(`Failed to log shutdown for ${step.type} ${step.entityId}:`, error);
+        console.error(
+          `Failed to log shutdown for ${step.type} ${step.entityId}:`,
+          error,
+        );
       }
     }
 
@@ -50,8 +53,10 @@ export class ExecuteShutdownUseCase {
     const endIndex = startIndex + limit;
     const paginatedItems = fullPreview.items.slice(startIndex, endIndex);
 
-    const totalVms = fullPreview.items.filter(s => s.type === 'vm').length;
-    const totalServers = fullPreview.items.filter(s => s.type === 'server').length;
+    const totalVms = fullPreview.items.filter((s) => s.type === 'vm').length;
+    const totalServers = fullPreview.items.filter(
+      (s) => s.type === 'server',
+    ).length;
 
     return new ShutdownPreviewListResponseDto(
       paginatedItems,

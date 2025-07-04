@@ -28,7 +28,10 @@ export class GetAllGroupVmUseCase {
   ) {}
 
   async execute(page = 1, limit = 10): Promise<GroupVmListResponseDto> {
-    const [groups, total] = await this.groupRepository.findAllPaginated(page, limit);
+    const [groups, total] = await this.groupRepository.findAllPaginated(
+      page,
+      limit,
+    );
     const items = groups.map((g: GroupVm) => new GroupVmResponseDto(g));
     return new GroupVmListResponseDto(items, total, page, limit);
   }

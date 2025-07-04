@@ -41,7 +41,8 @@ export class GroupVmDomainService {
     if (dto.cascade !== undefined) group.cascade = dto.cascade;
     if (dto.description !== undefined) group.description = dto.description;
     if (dto.roomId !== undefined) group.roomId = dto.roomId;
-    if (dto.serverGroupId !== undefined) group.serverGroupId = dto.serverGroupId;
+    if (dto.serverGroupId !== undefined)
+      group.serverGroupId = dto.serverGroupId;
 
     return group;
   }
