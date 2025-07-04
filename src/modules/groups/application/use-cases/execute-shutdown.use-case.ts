@@ -7,7 +7,7 @@ import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 export class ExecuteShutdownUseCase {
   constructor(
     private readonly previewShutdownUseCase: PreviewShutdownUseCase,
-    private readonly logHistory?: LogHistoryUseCase,
+    private readonly logHistory: LogHistoryUseCase,
   ) {}
 
   async execute(
@@ -27,24 +27,39 @@ export class ExecuteShutdownUseCase {
     // 2. Connect to ILO/IPMI to shutdown servers
     // 3. Handle errors and retries
     // 4. Track progress and status
-
-    // For now, we just log the action
     for (const step of fullPreview.items) {
-      await this.logHistory?.executeStructured({
-        entity: step.type === 'vm' ? 'vm' : 'server',
-        entityId: step.entityId,
-        action: 'SHUTDOWN',
-        userId,
-        metadata: {
-          groupId: step.groupId,
-          groupName: step.groupName,
-          shutdownOrder: step.order,
-          priority: step.priority,
-        },
-      });
+      try {
+        await this.logHistory.executeStructured({
+          entity: step.type === 'vm' ? 'vm' : 'server',
+          entityId: step.entityId,
+          action: 'SHUTDOWN',
+          userId,
+          metadata: {
+            groupId: step.groupId,
+            groupName: step.groupName,
+            shutdownOrder: step.order,
+            priority: step.priority,
+          },
+        });
+      } catch (error) {
+        console.error(`Failed to log shutdown for ${step.type} ${step.entityId}:`, error);
+      }
     }
 
-    // Return paginated response
-    return this.previewShutdownUseCase.execute(groupIds, page, limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedItems = fullPreview.items.slice(startIndex, endIndex);
+
+    const totalVms = fullPreview.items.filter(s => s.type === 'vm').length;
+    const totalServers = fullPreview.items.filter(s => s.type === 'server').length;
+
+    return new ShutdownPreviewListResponseDto(
+      paginatedItems,
+      fullPreview.totalItems,
+      page,
+      limit,
+      totalVms,
+      totalServers,
+    );
   }
 }

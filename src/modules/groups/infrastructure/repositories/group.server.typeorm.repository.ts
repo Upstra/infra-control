@@ -14,12 +14,11 @@ export class GroupServerTypeormRepository
     super(GroupServer, dataSource.createEntityManager());
   }
 
-  async findAll(
-    relations: string[] = ['servers'],
+  private applyFiltersAndRelations(
+    queryBuilder: any,
+    relations: string[],
     filters?: { roomId?: string; priority?: number },
-  ): Promise<GroupServer[]> {
-    const queryBuilder = this.createQueryBuilder('group');
-
+  ): void {
     relations.forEach((relation) => {
       queryBuilder.leftJoinAndSelect(`group.${relation}`, relation);
     });
@@ -33,7 +32,14 @@ export class GroupServerTypeormRepository
         priority: filters.priority,
       });
     }
+  }
 
+  async findAll(
+    relations: string[] = ['servers'],
+    filters?: { roomId?: string; priority?: number },
+  ): Promise<GroupServer[]> {
+    const queryBuilder = this.createQueryBuilder('group');
+    this.applyFiltersAndRelations(queryBuilder, relations, filters);
     return await queryBuilder.getMany();
   }
 
@@ -44,23 +50,8 @@ export class GroupServerTypeormRepository
     limit = 10,
   ): Promise<[GroupServer[], number]> {
     const queryBuilder = this.createQueryBuilder('group');
-
-    relations.forEach((relation) => {
-      queryBuilder.leftJoinAndSelect(`group.${relation}`, relation);
-    });
-
-    if (filters?.roomId) {
-      queryBuilder.where('group.roomId = :roomId', { roomId: filters.roomId });
-    }
-
-    if (filters?.priority) {
-      queryBuilder.andWhere('group.priority = :priority', {
-        priority: filters.priority,
-      });
-    }
-
+    this.applyFiltersAndRelations(queryBuilder, relations, filters);
     queryBuilder.skip((page - 1) * limit).take(limit);
-
     return await queryBuilder.getManyAndCount();
   }
 

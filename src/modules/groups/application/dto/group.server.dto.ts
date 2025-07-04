@@ -27,7 +27,7 @@ export class GroupServerDto implements GroupDtoInterface {
   @ApiProperty({ default: true })
   @IsBoolean()
   @IsOptional()
-  cascade?: boolean;
+  cascade?: boolean = true;
 
   @ApiProperty({ required: false })
   @IsUUID()

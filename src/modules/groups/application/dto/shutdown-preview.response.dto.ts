@@ -23,7 +23,13 @@ export class ShutdownStep {
   priority: number;
 
   constructor(partial: Partial<ShutdownStep>) {
-    Object.assign(this, partial);
+    this.order = partial.order ?? 0;
+    this.type = partial.type ?? 'vm';
+    this.entityId = partial.entityId ?? '';
+    this.entityName = partial.entityName ?? '';
+    this.groupId = partial.groupId ?? '';
+    this.groupName = partial.groupName ?? '';
+    this.priority = partial.priority ?? 0;
   }
 }
 

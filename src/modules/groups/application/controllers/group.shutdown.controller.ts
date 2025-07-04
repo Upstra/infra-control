@@ -1,4 +1,4 @@
-import { Controller, Body, Post, UseGuards, Query } from '@nestjs/common';
+import { Controller, Body, Post, UseGuards, Query, BadRequestException } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -43,7 +43,18 @@ export class GroupShutdownController {
     @Query('page') page = '1',
     @Query('limit') limit = '10',
   ): Promise<ShutdownPreviewListResponseDto> {
-    return this.previewShutdown.execute(dto.groupIds, Number(page), Number(limit));
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
+
+    if (!Number.isInteger(pageNum) || pageNum < 1) {
+      throw new BadRequestException('Page must be a positive integer');
+    }
+
+    if (!Number.isInteger(limitNum) || limitNum < 1 || limitNum > 100) {
+      throw new BadRequestException('Limit must be a positive integer between 1 and 100');
+    }
+
+    return this.previewShutdown.execute(dto.groupIds, pageNum, limitNum);
   }
 
   @Post('execute')
@@ -64,6 +75,17 @@ export class GroupShutdownController {
     @Query('page') page = '1',
     @Query('limit') limit = '10',
   ): Promise<ShutdownPreviewListResponseDto> {
-    return this.executeShutdown.execute(dto.groupIds, user.userId, Number(page), Number(limit));
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
+
+    if (!Number.isInteger(pageNum) || pageNum < 1) {
+      throw new BadRequestException('Page must be a positive integer');
+    }
+
+    if (!Number.isInteger(limitNum) || limitNum < 1 || limitNum > 100) {
+      throw new BadRequestException('Limit must be a positive integer between 1 and 100');
+    }
+
+    return this.executeShutdown.execute(dto.groupIds, user.userId, pageNum, limitNum);
   }
 }

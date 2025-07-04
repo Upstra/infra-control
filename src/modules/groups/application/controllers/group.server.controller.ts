@@ -127,6 +127,6 @@ export class GroupServerController {
       id,
       dto.cascade,
       user.userId,
-    ) as Promise<GroupServerResponseDto>;
+    );
   }
 }

@@ -58,6 +58,7 @@ export class PreviewShutdownUseCase {
       if (!vmGroup.vms) continue;
 
       for (const vm of vmGroup.vms) {
+        if (!vm?.id || !vm?.name) continue;
         steps.push(
           new ShutdownStep({
             order: order++,
@@ -79,6 +80,7 @@ export class PreviewShutdownUseCase {
       if (!serverGroup.servers) continue;
 
       for (const server of serverGroup.servers) {
+        if (!server?.id || !server?.name) continue;
         steps.push(
           new ShutdownStep({
             order: order++,
@@ -97,8 +99,8 @@ export class PreviewShutdownUseCase {
     const totalVms = steps.filter((s) => s.type === 'vm').length;
     const totalServers = steps.filter((s) => s.type === 'server').length;
 
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
+    const startIndex = Math.max(0, (page - 1) * limit);
+    const endIndex = Math.min(steps.length, startIndex + limit);
     const paginatedSteps = steps.slice(startIndex, endIndex);
 
     return new ShutdownPreviewListResponseDto(

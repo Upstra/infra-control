@@ -52,14 +52,12 @@ describe('ExecuteShutdownUseCase', () => {
       totalServers: 1,
     };
 
-    previewShutdownUseCase.execute
-      .mockResolvedValueOnce({...previewResponse, items: previewResponse.items, totalItems: previewResponse.items.length})
-      .mockResolvedValueOnce(previewResponse);
+    previewShutdownUseCase.execute.mockResolvedValue({...previewResponse, items: previewResponse.items, totalItems: previewResponse.items.length});
 
     const result = await useCase.execute(['group-1'], 'user-123');
 
-    expect(previewShutdownUseCase.execute).toHaveBeenNthCalledWith(1, ['group-1'], 1, Number.MAX_SAFE_INTEGER);
-    expect(previewShutdownUseCase.execute).toHaveBeenNthCalledWith(2, ['group-1'], 1, 10);
+    expect(previewShutdownUseCase.execute).toHaveBeenCalledTimes(1);
+    expect(previewShutdownUseCase.execute).toHaveBeenCalledWith(['group-1'], 1, Number.MAX_SAFE_INTEGER);
     expect(logHistoryUseCase.executeStructured).toHaveBeenCalledTimes(2);
     expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith({
       entity: 'vm',
@@ -85,7 +83,14 @@ describe('ExecuteShutdownUseCase', () => {
         priority: 2,
       },
     });
-    expect(result).toEqual(previewResponse);
+    expect(result).toEqual({
+      items: previewResponse.items,
+      totalItems: previewResponse.items.length,
+      currentPage: 1,
+      totalPages: 1,
+      totalVms: 1,
+      totalServers: 1,
+    });
   });
 
   it('should handle empty shutdown steps', async () => {
@@ -98,17 +103,22 @@ describe('ExecuteShutdownUseCase', () => {
       totalServers: 0,
     };
 
-    previewShutdownUseCase.execute
-      .mockResolvedValueOnce(previewResponse)
-      .mockResolvedValueOnce(previewResponse);
+    previewShutdownUseCase.execute.mockResolvedValue(previewResponse);
 
     const result = await useCase.execute([], 'user-123');
 
     expect(logHistoryUseCase.executeStructured).not.toHaveBeenCalled();
-    expect(result).toEqual(previewResponse);
+    expect(result).toEqual({
+      items: previewResponse.items,
+      totalItems: previewResponse.items.length,
+      currentPage: 1,
+      totalPages: 0,
+      totalVms: 0,
+      totalServers: 0,
+    });
   });
 
-  it('should fail if logging fails', async () => {
+  it('should continue execution even if logging fails', async () => {
     const previewResponse: ShutdownPreviewListResponseDto = {
       items: [
         {
@@ -133,8 +143,16 @@ describe('ExecuteShutdownUseCase', () => {
       new Error('Logging failed'),
     );
 
-    await expect(useCase.execute(['group-1'], 'user-123')).rejects.toThrow(
-      'Logging failed',
-    );
+    const result = await useCase.execute(['group-1'], 'user-123');
+
+    expect(logHistoryUseCase.executeStructured).toHaveBeenCalled();
+    expect(result).toEqual({
+      items: previewResponse.items,
+      totalItems: previewResponse.items.length,
+      currentPage: 1,
+      totalPages: 1,
+      totalVms: 1,
+      totalServers: 0,
+    });
   });
 });

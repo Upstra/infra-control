@@ -18,6 +18,18 @@ export class ToggleCascadeUseCase {
   ) {}
 
   async execute(
+    type: 'server',
+    id: string,
+    cascade: boolean,
+    userId?: string,
+  ): Promise<GroupServerResponseDto>;
+  async execute(
+    type: 'vm',
+    id: string,
+    cascade: boolean,
+    userId?: string,
+  ): Promise<GroupVmResponseDto>;
+  async execute(
     type: 'server' | 'vm',
     id: string,
     cascade: boolean,
