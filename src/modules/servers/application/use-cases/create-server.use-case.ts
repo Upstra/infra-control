@@ -11,7 +11,7 @@ import { CreateIloUseCase } from '@/modules/ilos/application/use-cases';
 import { ServerCreationDto } from '../dto/server.creation.dto';
 import { ServerResponseDto } from '../dto/server.response.dto';
 import { RoomRepositoryInterface } from '@/modules/rooms/domain/interfaces/room.repository.interface';
-import { GroupServerRepositoryInterface } from '@/modules/groups/domain/interfaces/group-server.repository.interface';
+import { GroupRepository } from '@/modules/groups/infrastructure/repositories/group.repository';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
@@ -46,8 +46,7 @@ export class CreateServerUseCase {
     private readonly serverDomain: ServerDomainService,
     @Inject('RoomRepositoryInterface')
     private readonly roomRepository: RoomRepositoryInterface,
-    @Inject('GroupServerRepositoryInterface')
-    private readonly groupRepository: GroupServerRepositoryInterface,
+    private readonly groupRepository: GroupRepository,
     @Inject('UpsRepositoryInterface')
     private readonly upsRepository: UpsRepositoryInterface,
     @Inject('UserRepositoryInterface')
@@ -76,10 +75,7 @@ export class CreateServerUseCase {
     }
 
     if (dto.groupId) {
-      group = await this.groupRepository.findOneByField({
-        field: 'id',
-        value: dto.groupId,
-      });
+      group = await this.groupRepository.findById(dto.groupId);
     }
 
     const ilo = await this.createIloUsecase.execute(dto.ilo);

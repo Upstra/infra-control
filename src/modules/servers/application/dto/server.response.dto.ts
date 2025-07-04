@@ -50,10 +50,10 @@ export class ServerResponseDto {
   @IsNumber()
   readonly priority!: number;
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true })
   @IsOptional()
   @IsUUID()
-  readonly groupId?: string;
+  readonly groupId?: string | null;
 
   @ApiProperty()
   @IsNotEmpty()
@@ -78,6 +78,7 @@ export class ServerResponseDto {
     this.ip = server.ip;
     this.type = server.type;
     this.priority = server.priority;
+    this.groupId = server.groupId;
     this.roomId = server.roomId;
     this.upsId = server.upsId;
     this.ilo = ilo;

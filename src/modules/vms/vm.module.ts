@@ -7,6 +7,7 @@ import { VmDomainService } from './domain/services/vm.domain.service';
 import { VmUseCase } from './application/use-cases';
 import { ServerModule } from '../servers/server.module';
 import { AuditModule } from '../audit/audit.module';
+import { GroupModule } from '../groups/group.module';
 
 @Module({
   controllers: [VmController],
@@ -15,6 +16,7 @@ import { AuditModule } from '../audit/audit.module';
     TypeOrmModule.forFeature([Vm]),
     forwardRef(() => ServerModule),
     AuditModule,
+    GroupModule,
   ],
   providers: [
     ...VmUseCase,

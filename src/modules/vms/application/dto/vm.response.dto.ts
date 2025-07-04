@@ -1,8 +1,19 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString, IsUUID } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  IsUUID,
+  IsOptional,
+} from 'class-validator';
 import { Vm } from '../../domain/entities/vm.entity';
 
 export class VmResponseDto {
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsUUID()
+  readonly id: string;
+
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
@@ -43,17 +54,18 @@ export class VmResponseDto {
   @IsNumber()
   readonly priority: number;
 
-  @ApiProperty()
-  @IsNotEmpty()
+  @ApiProperty({ nullable: true })
+  @IsOptional()
   @IsUUID()
-  readonly groupId: string;
+  readonly groupId?: string | null;
 
-  @ApiProperty()
-  @IsNotEmpty()
+  @ApiProperty({ nullable: true })
+  @IsOptional()
   @IsUUID()
-  readonly serverId: string;
+  readonly serverId?: string | null;
 
   constructor(vm: Vm) {
+    this.id = vm.id;
     this.name = vm.name;
     this.state = vm.state;
     this.grace_period_on = vm.grace_period_on;

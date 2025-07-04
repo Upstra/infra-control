@@ -1,33 +1,36 @@
 import { UpdateServerUseCase } from '../update-server.use-case';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
-import { ServerDomainService } from '@/modules/servers/domain/services/server.domain.service';
 import { UpdateIloUseCase } from '@/modules/ilos/application/use-cases';
 import { ServerUpdateDto } from '../../dto/server.update.dto';
 import { createMockServer } from '@/modules/servers/__mocks__/servers.mock';
 import { createMockIlo } from '@/modules/ilos/__mocks__/ilo.mock';
 import { ServerNotFoundException } from '@/modules/servers/domain/exceptions/server.exception';
+import { GroupRepository } from '@/modules/groups/infrastructure/repositories/group.repository';
+import { GroupTypeMismatchException } from '@/modules/groups/domain/exceptions/group-type-mismatch.exception';
+import { GroupType } from '@/modules/groups/domain/enums/group-type.enum';
 
 describe('UpdateServerUseCase', () => {
   let useCase: UpdateServerUseCase;
   let repo: jest.Mocked<ServerRepositoryInterface>;
   let updateIlo: jest.Mocked<UpdateIloUseCase>;
-  let domain: jest.Mocked<ServerDomainService>;
+  let groupRepo: jest.Mocked<GroupRepository>;
 
   beforeEach(() => {
     repo = {
       findServerById: jest.fn(),
       save: jest.fn(),
+      updateServer: jest.fn(),
     } as any;
 
     updateIlo = {
       execute: jest.fn(),
     } as any;
 
-    domain = {
-      updateServerEntityFromDto: jest.fn(),
+    groupRepo = {
+      findById: jest.fn(),
     } as any;
 
-    useCase = new UpdateServerUseCase(repo, updateIlo, domain);
+    useCase = new UpdateServerUseCase(repo, updateIlo, groupRepo);
   });
 
   it('should update the server and its ILO', async () => {
@@ -36,20 +39,17 @@ describe('UpdateServerUseCase', () => {
       ilo: { ip: '10.0.0.2', name: 'ILO-2' },
     };
     const existing = createMockServer();
-    const updated = createMockServer({ name: 'Updated' }); // 👈 c’est bien ce qu’on veut tester
+    const updated = createMockServer({ name: 'Updated' });
 
-    repo.findServerById.mockResolvedValue(existing);
-    domain.updateServerEntityFromDto.mockReturnValue(updated);
-    repo.save.mockResolvedValue(updated);
+    repo.updateServer.mockResolvedValue(updated);
     updateIlo.execute.mockResolvedValue(createMockIlo({ name: 'ILO-2' }));
 
     const result = await useCase.execute(existing.id, dto);
 
-    expect(repo.findServerById).toHaveBeenCalledWith(existing.id);
-    expect(domain.updateServerEntityFromDto).toHaveBeenCalledWith(
-      existing,
-      dto,
-    );
+    expect(repo.updateServer).toHaveBeenCalledWith(existing.id, {
+      name: 'Updated',
+      ilo: { ip: '10.0.0.2', name: 'ILO-2' },
+    });
     expect(updateIlo.execute).toHaveBeenCalledWith(existing.id, dto.ilo);
     expect(result.name).toBe('Updated');
     expect(result.ilo.name).toBe('ILO-2');
@@ -59,10 +59,7 @@ describe('UpdateServerUseCase', () => {
     const dto: ServerUpdateDto = { name: 'NoILO' };
     const existing = createMockServer();
     const updated = createMockServer({ name: 'NoILO' });
-    repo.findServerById.mockResolvedValue(existing);
-    domain.updateServerEntityFromDto.mockReturnValue(updated);
-    repo.save.mockResolvedValue(updated);
-    updateIlo.execute.mockResolvedValue(existing.ilo);
+    repo.updateServer.mockResolvedValue(updated);
 
     const result = await useCase.execute(existing.id, dto);
 
@@ -71,12 +68,81 @@ describe('UpdateServerUseCase', () => {
   });
 
   it('should throw if server is not found', async () => {
-    repo.findServerById.mockImplementation(() => {
-      throw new ServerNotFoundException('not-found');
-    });
+    repo.updateServer.mockRejectedValue(
+      new ServerNotFoundException('not-found'),
+    );
 
     await expect(useCase.execute('not-found', {})).rejects.toThrow(
       ServerNotFoundException,
     );
+  });
+
+  it('should allow assigning server to a SERVER type group', async () => {
+    const dto: ServerUpdateDto = {
+      groupId: 'group-123',
+    };
+    const existing = createMockServer();
+    const updated = createMockServer({ groupId: 'group-123' });
+    const serverGroup = {
+      id: 'group-123',
+      type: GroupType.SERVER,
+      name: 'Server Group',
+    };
+
+    groupRepo.findById.mockResolvedValue(serverGroup as any);
+    repo.updateServer.mockResolvedValue(updated);
+
+    const result = await useCase.execute(existing.id, dto);
+
+    expect(groupRepo.findById).toHaveBeenCalledWith('group-123');
+    expect(result.groupId).toBe('group-123');
+  });
+
+  it('should throw when trying to assign server to a VM type group', async () => {
+    const dto: ServerUpdateDto = {
+      groupId: 'vm-group-123',
+    };
+    const existing = createMockServer();
+    const vmGroup = {
+      id: 'vm-group-123',
+      type: GroupType.VM,
+      name: 'VM Group',
+    };
+
+    groupRepo.findById.mockResolvedValue(vmGroup as any);
+
+    await expect(useCase.execute(existing.id, dto)).rejects.toThrow(
+      GroupTypeMismatchException,
+    );
+    expect(groupRepo.findById).toHaveBeenCalledWith('vm-group-123');
+  });
+
+  it('should skip group validation when groupId is not provided', async () => {
+    const dto: ServerUpdateDto = {
+      name: 'Updated',
+    };
+    const existing = createMockServer();
+    const updated = createMockServer({ name: 'Updated' });
+
+    repo.updateServer.mockResolvedValue(updated);
+
+    await useCase.execute(existing.id, dto);
+
+    expect(groupRepo.findById).not.toHaveBeenCalled();
+  });
+
+  it('should allow removing group by setting groupId to null', async () => {
+    const dto: ServerUpdateDto = {
+      groupId: null,
+    };
+    const existing = createMockServer({ groupId: 'old-group-123' });
+    const updated = createMockServer({ groupId: null });
+
+    repo.updateServer.mockResolvedValue(updated);
+
+    const result = await useCase.execute(existing.id, dto);
+
+    expect(groupRepo.findById).not.toHaveBeenCalled();
+    expect(result.groupId).toBeNull();
   });
 });

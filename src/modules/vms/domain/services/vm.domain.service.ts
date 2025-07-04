@@ -11,7 +11,7 @@ import { VmUpdateDto } from '../../application/dto/vm.update.dto';
  * - Validate and persist VM entities with correct server associations and resource quotas.
  * - Start, stop, and reboot VMs, enforcing graceful shutdown protocols if necessary.
  * - Monitor VM status and propagate errors via domain exceptions.
- * - Support grouping and permission checks via collaboration with GroupVmDomainService and PermissionDomainVmService.
+ * - Support grouping and permission checks via collaboration with GroupDomainService and PermissionDomainVmService.
  *
  * @remarks
  * Consumed by application-layer use-cases; avoid direct controller usage to preserve domain rules.
@@ -52,8 +52,9 @@ export class VmDomainService {
     vm.login = dto.login ?? vm.login;
     vm.password = dto.password ?? vm.password;
     vm.priority = dto.priority ?? vm.priority;
-    vm.serverId = dto.serverId ?? vm.serverId;
-    vm.groupId = dto.groupId ?? vm.groupId;
+
+    if ('serverId' in dto) vm.serverId = dto.serverId;
+    if ('groupId' in dto) vm.groupId = dto.groupId;
 
     return vm;
   }
