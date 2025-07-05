@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Script principal pour gérer l'infrastructure
+# Usage: ./infra [start|stop|status|logs]
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+case "$1" in
+    start)
+        $SCRIPT_DIR/scripts/start.sh
+        ;;
+    stop)
+        $SCRIPT_DIR/scripts/stop.sh
+        ;;
+    status|health)
+        $SCRIPT_DIR/scripts/health-check.sh
+        ;;
+    logs)
+        docker-compose -f docker-compose.prod.yml logs -f "${@:2}"
+        ;;
+    restart)
+        $SCRIPT_DIR/scripts/stop.sh
+        echo "⏳ Attente avant redémarrage..."
+        sleep 5
+        $SCRIPT_DIR/scripts/start.sh
+        ;;
+    *)
+        echo "🛠️  Infrastructure Control"
+        echo ""
+        echo "Usage: ./infra [commande]"
+        echo ""
+        echo "Commandes disponibles:"
+        echo "  start    - Démarrer tous les services"
+        echo "  stop     - Arrêter tous les services"
+        echo "  status   - Vérifier l'état des services"
+        echo "  logs     - Afficher les logs (optionnel: nom du service)"
+        echo "  restart  - Redémarrer tous les services"
+        echo ""
+        echo "Exemples:"
+        echo "  ./infra start"
+        echo "  ./infra logs backend"
+        echo "  ./infra status"
+        ;;
+esac
