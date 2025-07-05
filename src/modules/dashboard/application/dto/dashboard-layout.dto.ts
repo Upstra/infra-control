@@ -90,6 +90,11 @@ export class CreateDashboardLayoutDto {
   @Min(20)
   rowHeight?: number;
 
+  @ApiPropertyOptional({ example: false })
+  @IsOptional()
+  @IsBoolean()
+  isDefault?: boolean;
+
   @ApiPropertyOptional({ type: [DashboardWidgetDto] })
   @IsOptional()
   @IsArray()

@@ -14,7 +14,7 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { CurrentUser } from '../../../../core/decorators/current-user.decorator';
-import { User } from '../../../users/domain/entities/user.entity';
+import { JwtPayload } from '../../../../core/types/jwt-payload.interface';
 import {
   DashboardTemplateListResponseDto,
   CreateLayoutFromTemplateDto,
@@ -54,9 +54,9 @@ export class DashboardTemplateController {
     type: DashboardLayoutResponseDto,
   })
   async createLayoutFromTemplate(
-    @CurrentUser() user: User,
+    @CurrentUser() user: JwtPayload,
     @Body() dto: CreateLayoutFromTemplateDto,
   ): Promise<DashboardLayoutResponseDto> {
-    return this.createLayoutFromTemplateUseCase.execute(user.id, dto);
+    return this.createLayoutFromTemplateUseCase.execute(user.userId, dto);
   }
 }

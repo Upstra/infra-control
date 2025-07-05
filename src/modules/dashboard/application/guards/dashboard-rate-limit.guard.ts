@@ -57,7 +57,7 @@ export class DashboardRateLimitGuard implements CanActivate {
       200,
       10,
       2000,
-    ), // Plus permissif pour les widgets
+    ), // plus permissif pour les widgets
     message: {
       error: 'Trop de requêtes sur les widgets. Réessayez plus tard.',
       statusCode: 429,

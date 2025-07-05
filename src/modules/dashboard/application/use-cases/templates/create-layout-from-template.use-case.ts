@@ -1,8 +1,8 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DashboardLayout } from '../../../domain/entities/dashboard-layout.entity';
 import { DashboardWidget } from '../../../domain/entities/dashboard-widget.entity';
-import { IDashboardLayoutRepository } from '../../../domain/interfaces/dashboard-layout.repository.interface';
-import { IDashboardTemplateRepository } from '../../../domain/interfaces/dashboard-template.repository.interface';
+import { DashboardLayoutRepository } from '../../../infrastructure/repositories/dashboard-layout.repository';
+import { DashboardTemplateRepository } from '../../../infrastructure/repositories/dashboard-template.repository';
 import {
   CreateLayoutFromTemplateDto,
   DashboardLayoutResponseDto,
@@ -15,10 +15,8 @@ import {
 @Injectable()
 export class CreateLayoutFromTemplateUseCase {
   constructor(
-    @Inject('DashboardLayoutRepository')
-    private readonly layoutRepository: IDashboardLayoutRepository,
-    @Inject('DashboardTemplateRepository')
-    private readonly templateRepository: IDashboardTemplateRepository,
+    private readonly layoutRepository: DashboardLayoutRepository,
+    private readonly templateRepository: DashboardTemplateRepository,
   ) {}
 
   async execute(

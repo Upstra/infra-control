@@ -1,12 +1,11 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { IDashboardLayoutRepository } from '../../../domain/interfaces/dashboard-layout.repository.interface';
+import { DashboardLayoutRepository } from '../../../infrastructure/repositories/dashboard-layout.repository';
 import { DashboardLayoutListResponseDto } from '../../dto/dashboard-layout.dto';
 
 @Injectable()
 export class ListLayoutsUseCase {
   constructor(
-    @Inject('DashboardLayoutRepository')
-    private readonly layoutRepository: IDashboardLayoutRepository,
+    private readonly layoutRepository: DashboardLayoutRepository,
   ) {}
 
   async execute(userId: string): Promise<DashboardLayoutListResponseDto> {

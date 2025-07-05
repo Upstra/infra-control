@@ -105,6 +105,9 @@ RATE_LIMIT_SENSITIVE_MAX=3             # 3 operations per hour
 RATE_LIMIT_API_WINDOW_MS=300000       # 5 minutes
 RATE_LIMIT_API_MAX=100                # 100 requests per window
 
+RATE_LIMIT_DASHBOARD_WINDOW_MS=60000  # 1 minute
+RATE_LIMIT_DASHBOARD_WIDGET_MAX=200  # 200 requests per minute
+
 GITHUB_TOKEN=
 FRONT_REPO=Upstra/upstra-control_front
 BACK_REPO=Upstra/upstra-control
