@@ -1,5 +1,5 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { IDashboardLayoutRepository } from '../../../domain/interfaces/dashboard-layout.repository.interface';
+import { Injectable } from '@nestjs/common';
+import { DashboardLayoutRepository } from '../../../infrastructure/repositories/dashboard-layout.repository';
 import { DashboardLayoutResponseDto } from '../../dto/dashboard-layout.dto';
 import {
   DashboardLayoutNotFoundException,
@@ -9,8 +9,7 @@ import {
 @Injectable()
 export class GetLayoutUseCase {
   constructor(
-    @Inject('DashboardLayoutRepository')
-    private readonly layoutRepository: IDashboardLayoutRepository,
+    private readonly layoutRepository: DashboardLayoutRepository,
   ) {}
 
   async execute(

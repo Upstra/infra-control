@@ -1,6 +1,6 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { IDashboardPreferenceRepository } from '../../../domain/interfaces/dashboard-preference.repository.interface';
-import { IDashboardLayoutRepository } from '../../../domain/interfaces/dashboard-layout.repository.interface';
+import { Injectable } from '@nestjs/common';
+import { DashboardPreferenceRepository } from '../../../infrastructure/repositories/dashboard-preference.repository';
+import { DashboardLayoutRepository } from '../../../infrastructure/repositories/dashboard-layout.repository';
 import {
   DashboardPreferenceResponseDto,
   UpdateDashboardPreferenceDto,
@@ -10,10 +10,8 @@ import { DashboardLayoutNotFoundException } from '../../../domain/exceptions/das
 @Injectable()
 export class UpdatePreferencesUseCase {
   constructor(
-    @Inject('DashboardPreferenceRepository')
-    private readonly preferenceRepository: IDashboardPreferenceRepository,
-    @Inject('DashboardLayoutRepository')
-    private readonly layoutRepository: IDashboardLayoutRepository,
+    private readonly preferenceRepository: DashboardPreferenceRepository,
+    private readonly layoutRepository: DashboardLayoutRepository,
   ) {}
 
   async execute(

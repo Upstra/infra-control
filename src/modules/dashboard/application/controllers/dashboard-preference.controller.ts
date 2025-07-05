@@ -14,7 +14,7 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { CurrentUser } from '../../../../core/decorators/current-user.decorator';
-import { User } from '../../../users/domain/entities/user.entity';
+import { JwtPayload } from '../../../../core/types/jwt-payload.interface';
 import { DashboardRateLimitGuard } from '../guards/dashboard-rate-limit.guard';
 import {
   DashboardPreferenceResponseDto,
@@ -43,9 +43,9 @@ export class DashboardPreferenceController {
     type: DashboardPreferenceResponseDto,
   })
   async getPreferences(
-    @CurrentUser() user: User,
+    @CurrentUser() user: JwtPayload,
   ): Promise<DashboardPreferenceResponseDto> {
-    return this.getPreferencesUseCase.execute(user.id);
+    return this.getPreferencesUseCase.execute(user.userId);
   }
 
   @Put()
@@ -56,9 +56,9 @@ export class DashboardPreferenceController {
     type: DashboardPreferenceResponseDto,
   })
   async updatePreferences(
-    @CurrentUser() user: User,
+    @CurrentUser() user: JwtPayload,
     @Body() dto: UpdateDashboardPreferenceDto,
   ): Promise<DashboardPreferenceResponseDto> {
-    return this.updatePreferencesUseCase.execute(user.id, dto);
+    return this.updatePreferencesUseCase.execute(user.userId, dto);
   }
 }

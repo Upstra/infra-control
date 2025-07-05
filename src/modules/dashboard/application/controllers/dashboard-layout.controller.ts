@@ -19,7 +19,7 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { CurrentUser } from '../../../../core/decorators/current-user.decorator';
-import { User } from '../../../users/domain/entities/user.entity';
+import { JwtPayload } from '../../../../core/types/jwt-payload.interface';
 import { DashboardRateLimitGuard } from '../guards/dashboard-rate-limit.guard';
 import {
   CreateDashboardLayoutDto,
@@ -58,9 +58,9 @@ export class DashboardLayoutController {
     type: DashboardLayoutListResponseDto,
   })
   async getLayouts(
-    @CurrentUser() user: User,
+    @CurrentUser() user: JwtPayload,
   ): Promise<DashboardLayoutListResponseDto> {
-    return this.listLayoutsUseCase.execute(user.id);
+    return this.listLayoutsUseCase.execute(user.userId);
   }
 
   @Get(':id')
@@ -71,10 +71,10 @@ export class DashboardLayoutController {
     type: DashboardLayoutResponseDto,
   })
   async getLayout(
-    @CurrentUser() user: User,
+    @CurrentUser() user: JwtPayload,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<DashboardLayoutResponseDto> {
-    return this.getLayoutUseCase.execute(id, user.id);
+    return this.getLayoutUseCase.execute(id, user.userId);
   }
 
   @Post()
@@ -85,10 +85,10 @@ export class DashboardLayoutController {
     type: DashboardLayoutResponseDto,
   })
   async createLayout(
-    @CurrentUser() user: User,
+    @CurrentUser() user: JwtPayload,
     @Body() dto: CreateDashboardLayoutDto,
   ): Promise<DashboardLayoutResponseDto> {
-    return this.createLayoutUseCase.execute(user.id, dto);
+    return this.createLayoutUseCase.execute(user.userId, dto);
   }
 
   @Put(':id')
@@ -99,11 +99,11 @@ export class DashboardLayoutController {
     type: DashboardLayoutResponseDto,
   })
   async updateLayout(
-    @CurrentUser() user: User,
+    @CurrentUser() user: JwtPayload,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateDashboardLayoutDto,
   ): Promise<DashboardLayoutResponseDto> {
-    return this.updateLayoutUseCase.execute(id, user.id, dto);
+    return this.updateLayoutUseCase.execute(id, user.userId, dto);
   }
 
   @Delete(':id')
@@ -114,10 +114,10 @@ export class DashboardLayoutController {
     description: 'Dashboard layout deleted',
   })
   async deleteLayout(
-    @CurrentUser() user: User,
+    @CurrentUser() user: JwtPayload,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<void> {
-    await this.deleteLayoutUseCase.execute(id, user.id);
+    await this.deleteLayoutUseCase.execute(id, user.userId);
   }
 
   @Post(':id/default')
@@ -128,9 +128,9 @@ export class DashboardLayoutController {
     description: 'Default layout set',
   })
   async setDefaultLayout(
-    @CurrentUser() user: User,
+    @CurrentUser() user: JwtPayload,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<void> {
-    await this.setDefaultLayoutUseCase.execute(id, user.id);
+    await this.setDefaultLayoutUseCase.execute(id, user.userId);
   }
 }

@@ -1,12 +1,11 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { IDashboardTemplateRepository } from '../../../domain/interfaces/dashboard-template.repository.interface';
+import { Injectable } from '@nestjs/common';
+import { DashboardTemplateRepository } from '../../../infrastructure/repositories/dashboard-template.repository';
 import { DashboardTemplateListResponseDto } from '../../dto/dashboard-template.dto';
 
 @Injectable()
 export class ListTemplatesUseCase {
   constructor(
-    @Inject('DashboardTemplateRepository')
-    private readonly templateRepository: IDashboardTemplateRepository,
+    private readonly templateRepository: DashboardTemplateRepository,
   ) {}
 
   async execute(): Promise<DashboardTemplateListResponseDto> {

@@ -1,6 +1,6 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DashboardWidget } from '../../../domain/entities/dashboard-widget.entity';
-import { IDashboardLayoutRepository } from '../../../domain/interfaces/dashboard-layout.repository.interface';
+import { DashboardLayoutRepository } from '../../../infrastructure/repositories/dashboard-layout.repository';
 import {
   UpdateDashboardLayoutDto,
   DashboardLayoutResponseDto,
@@ -15,8 +15,7 @@ import {
 @Injectable()
 export class UpdateLayoutUseCase {
   constructor(
-    @Inject('DashboardLayoutRepository')
-    private readonly layoutRepository: IDashboardLayoutRepository,
+    private readonly layoutRepository: DashboardLayoutRepository,
     private readonly layoutDomainService: DashboardLayoutDomainService,
   ) {}
 

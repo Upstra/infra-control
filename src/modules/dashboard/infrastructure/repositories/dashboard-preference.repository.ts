@@ -19,8 +19,23 @@ export class DashboardPreferenceRepository
     });
   }
 
-  async save(preference: DashboardPreference): Promise<DashboardPreference> {
+  async save(
+    preference: Partial<DashboardPreference>,
+  ): Promise<DashboardPreference> {
     return this.repository.save(preference);
+  }
+
+  async create(
+    preference: Partial<DashboardPreference>,
+  ): Promise<DashboardPreference> {
+    const defaultPreference = {
+      refreshInterval: 30000,
+      theme: 'light' as const,
+      notifications: { alerts: true, activities: false },
+      ...preference,
+    };
+    const entity = this.repository.create(defaultPreference);
+    return this.repository.save(entity);
   }
 
   async upsert(
