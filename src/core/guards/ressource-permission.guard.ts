@@ -9,6 +9,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
+import { UserRepository } from '@/modules/users/infrastructure/repositories/user.repository';
 
 import { PermissionStrategyFactory } from './strategies/permission-strategy.interface';
 import {
@@ -22,6 +23,7 @@ export class ResourcePermissionGuard implements CanActivate {
     private readonly reflector: Reflector,
     @Inject('PermissionStrategyFactory')
     private readonly strategyFactory: PermissionStrategyFactory,
+    private readonly userRepository: UserRepository,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -39,6 +41,18 @@ export class ResourcePermissionGuard implements CanActivate {
 
     if (!user) {
       throw new ForbiddenException('User not authenticated');
+    }
+
+    const fullUser = await this.userRepository.findOneByField({
+      field: 'id',
+      value: user.userId,
+      relations: ['roles'],
+    });
+
+    const isAdmin = fullUser.roles.some((role) => role.isAdmin);
+
+    if (isAdmin) {
+      return true;
     }
 
     const resourceId = this.extractResourceId(request, metadata);
