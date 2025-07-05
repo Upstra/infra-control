@@ -17,6 +17,8 @@ import { RoomModule } from '../rooms/room.module';
 import { UpsModule } from '../ups/ups.module';
 import { RoleModule } from '../roles/role.module';
 import { HistoryModule } from '../history/history.module';
+import { AuditModule } from '../audit/audit.module';
+import { HealthModule } from '../health/health.module';
 import { DashboardLayout } from './domain/entities/dashboard-layout.entity';
 import { DashboardWidget } from './domain/entities/dashboard-widget.entity';
 import { DashboardPreference } from './domain/entities/dashboard-preference.entity';
@@ -25,6 +27,7 @@ import { DashboardLayoutRepository } from './infrastructure/repositories/dashboa
 import { DashboardPreferenceRepository } from './infrastructure/repositories/dashboard-preference.repository';
 import { DashboardTemplateRepository } from './infrastructure/repositories/dashboard-template.repository';
 import { DashboardRateLimitGuard } from './application/guards/dashboard-rate-limit.guard';
+import { DashboardLayoutDomainService } from './domain/services/dashboard-layout.domain.service';
 
 @Module({
   controllers: [
@@ -39,6 +42,7 @@ import { DashboardRateLimitGuard } from './application/guards/dashboard-rate-lim
     DashboardLayoutRepository,
     DashboardPreferenceRepository,
     DashboardTemplateRepository,
+    DashboardLayoutDomainService,
     DashboardRateLimitGuard,
     {
       provide: 'StatisticsPort',
@@ -62,6 +66,8 @@ import { DashboardRateLimitGuard } from './application/guards/dashboard-rate-lim
     forwardRef(() => RoleModule),
     UpsModule,
     HistoryModule,
+    AuditModule,
+    HealthModule,
   ],
 })
 export class DashboardModule {}

@@ -18,7 +18,7 @@ import { UserModule } from '../users/user.module';
     forwardRef(() => ServerModule),
     AuditModule,
     GroupModule,
-    UserModule,
+    forwardRef(() => UserModule),
   ],
   providers: [
     ...VmUseCase,

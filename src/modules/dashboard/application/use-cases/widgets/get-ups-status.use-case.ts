@@ -1,12 +1,12 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { UpsTypeormRepository } from '../../../../ups/infrastructure/repositories/ups.typeorm.repository';
+import { UpsRepositoryInterface } from '../../../../ups/domain/interfaces/ups.repository.interface';
 import { UpsStatusResponseDto } from '../../dto/widget-data.dto';
 
 @Injectable()
 export class GetUpsStatusUseCase {
   constructor(
-    @Inject(UpsTypeormRepository)
-    private readonly upsRepository: UpsTypeormRepository,
+    @Inject('UpsRepositoryInterface')
+    private readonly upsRepository: UpsRepositoryInterface,
   ) {}
 
   async execute(): Promise<UpsStatusResponseDto> {

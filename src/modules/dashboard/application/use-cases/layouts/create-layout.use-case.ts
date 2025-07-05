@@ -1,7 +1,7 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DashboardLayout } from '../../../domain/entities/dashboard-layout.entity';
 import { DashboardWidget } from '../../../domain/entities/dashboard-widget.entity';
-import { IDashboardLayoutRepository } from '../../../domain/interfaces/dashboard-layout.repository.interface';
+import { DashboardLayoutRepository } from '../../../infrastructure/repositories/dashboard-layout.repository';
 import {
   CreateDashboardLayoutDto,
   DashboardLayoutResponseDto,
@@ -12,8 +12,7 @@ import { DashboardLayoutNameAlreadyExistsException } from '../../../domain/excep
 @Injectable()
 export class CreateLayoutUseCase {
   constructor(
-    @Inject('DashboardLayoutRepository')
-    private readonly layoutRepository: IDashboardLayoutRepository,
+    private readonly layoutRepository: DashboardLayoutRepository,
     private readonly layoutDomainService: DashboardLayoutDomainService,
   ) {}
 
@@ -36,6 +35,14 @@ export class CreateLayoutUseCase {
     layout.columns = dto.columns ?? 12;
     layout.rowHeight = dto.rowHeight ?? 80;
     layout.isDefault = existingLayouts.length === 0;
+    if (dto.isDefault !== undefined) {
+      layout.isDefault = dto.isDefault;
+      if (dto.isDefault) {
+        await this.layoutRepository.unsetAllDefaultLayouts(userId);
+      }
+    } else {
+      layout.isDefault = existingLayouts.length === 0;
+    }
 
     if (dto.widgets && dto.widgets.length > 0) {
       layout.widgets = dto.widgets.map((widgetDto) => {

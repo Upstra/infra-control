@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { HistoryEventTypeormRepository } from '../../../../history/infrastructure/repositories/history-event.typeorm.repository';
+import { HistoryRepositoryInterface } from '../../../../history/domain/interfaces/history.repository.interface';
 import { HistoryEvent } from '../../../../history/domain/entities/history-event.entity';
 import {
   ActivityFeedResponseDto,
@@ -9,31 +9,30 @@ import {
 @Injectable()
 export class GetActivityFeedUseCase {
   constructor(
-    @Inject(HistoryEventTypeormRepository)
-    private readonly historyRepository: HistoryEventTypeormRepository,
+    @Inject('HistoryRepositoryInterface')
+    private readonly historyRepository: HistoryRepositoryInterface,
   ) {}
 
   async execute(query: WidgetDataQueryDto): Promise<ActivityFeedResponseDto> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
 
-    const filter: any = {};
+    const filters: any = {};
 
     if (query.dateFrom) {
-      filter.createdAt = { $gte: new Date(query.dateFrom) };
+      filters.dateFrom = new Date(query.dateFrom);
     }
 
     if (query.dateTo) {
-      filter.createdAt = { ...filter.createdAt, $lte: new Date(query.dateTo) };
+      filters.dateTo = new Date(query.dateTo);
     }
 
-    // TODO: Implement proper history repository method
-    const events = await this.historyRepository.find({
-      take: limit,
-      skip: (page - 1) * limit,
-      order: { createdAt: 'DESC' },
-    });
-    const total = await this.historyRepository.count();
+    const [events, total] = await this.historyRepository.paginate(
+      page,
+      limit,
+      ['user'],
+      filters,
+    );
 
     const activities = events.map((event) => ({
       id: event.id,
