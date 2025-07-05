@@ -10,7 +10,6 @@ import { PermissionBit } from '../../../../permissions/domain/value-objects/perm
 
 describe('SwapVmPrioritiesUseCase', () => {
   let useCase: SwapVmPrioritiesUseCase;
-  let vmRepository: jest.Mocked<Repository<Vm>>;
   let getUserPermissionVm: jest.Mocked<GetUserVmPermissionsUseCase>;
   let logHistory: jest.Mocked<LogHistoryUseCase>;
   let dataSource: jest.Mocked<DataSource>;
@@ -78,7 +77,6 @@ describe('SwapVmPrioritiesUseCase', () => {
     }).compile();
 
     useCase = module.get<SwapVmPrioritiesUseCase>(SwapVmPrioritiesUseCase);
-    vmRepository = module.get(getRepositoryToken(Vm));
     getUserPermissionVm = module.get(GetUserVmPermissionsUseCase);
     logHistory = module.get(LogHistoryUseCase);
   });
@@ -89,9 +87,11 @@ describe('SwapVmPrioritiesUseCase', () => {
 
   describe('execute', () => {
     beforeEach(() => {
-      dataSource.transaction.mockImplementation(async (runInTransaction: any) => {
-        return runInTransaction(entityManager);
-      });
+      dataSource.transaction.mockImplementation(
+        async (runInTransaction: any) => {
+          return runInTransaction(entityManager);
+        },
+      );
     });
 
     it('should successfully swap priorities between two VMs', async () => {
@@ -99,7 +99,7 @@ describe('SwapVmPrioritiesUseCase', () => {
         { vmId: vm1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
         { vmId: vm2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
       ];
-      
+
       getUserPermissionVm.execute.mockResolvedValue(permissions);
       transactionalRepository.findOne.mockResolvedValueOnce(mockVm1);
       transactionalRepository.findOne.mockResolvedValueOnce(mockVm2);
@@ -111,8 +111,12 @@ describe('SwapVmPrioritiesUseCase', () => {
       const result = await useCase.execute(vm1Id, vm2Id, mockUserId);
 
       expect(getUserPermissionVm.execute).toHaveBeenCalledWith(mockUserId);
-      expect(transactionalRepository.findOne).toHaveBeenCalledWith({ where: { id: vm1Id } });
-      expect(transactionalRepository.findOne).toHaveBeenCalledWith({ where: { id: vm2Id } });
+      expect(transactionalRepository.findOne).toHaveBeenCalledWith({
+        where: { id: vm1Id },
+      });
+      expect(transactionalRepository.findOne).toHaveBeenCalledWith({
+        where: { id: vm2Id },
+      });
       expect(transactionalRepository.save).toHaveBeenCalledWith([
         { ...mockVm1, priority: 2 },
         { ...mockVm2, priority: 1 },
@@ -158,11 +162,11 @@ describe('SwapVmPrioritiesUseCase', () => {
         { vmId: vm1Id, bitmask: PermissionBit.READ }, // No WRITE
         { vmId: vm2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
       ];
-      
+
       getUserPermissionVm.execute.mockResolvedValue(permissions);
 
       await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow(
-        new ForbiddenException('You do not have write permissions on both VMs')
+        new ForbiddenException('You do not have write permissions on both VMs'),
       );
 
       expect(dataSource.transaction).not.toHaveBeenCalled();
@@ -173,11 +177,11 @@ describe('SwapVmPrioritiesUseCase', () => {
         { vmId: vm1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
         { vmId: vm2Id, bitmask: PermissionBit.READ }, // No WRITE
       ];
-      
+
       getUserPermissionVm.execute.mockResolvedValue(permissions);
 
       await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow(
-        new ForbiddenException('You do not have write permissions on both VMs')
+        new ForbiddenException('You do not have write permissions on both VMs'),
       );
     });
 
@@ -185,11 +189,11 @@ describe('SwapVmPrioritiesUseCase', () => {
       const permissions = [
         { vmId: vm2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
       ];
-      
+
       getUserPermissionVm.execute.mockResolvedValue(permissions);
 
       await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow(
-        new ForbiddenException('You do not have write permissions on both VMs')
+        new ForbiddenException('You do not have write permissions on both VMs'),
       );
     });
 
@@ -197,7 +201,7 @@ describe('SwapVmPrioritiesUseCase', () => {
       getUserPermissionVm.execute.mockResolvedValue([]);
 
       await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow(
-        new ForbiddenException('You do not have write permissions on both VMs')
+        new ForbiddenException('You do not have write permissions on both VMs'),
       );
     });
 
@@ -206,12 +210,12 @@ describe('SwapVmPrioritiesUseCase', () => {
         { vmId: vm1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
         { vmId: vm2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
       ];
-      
+
       getUserPermissionVm.execute.mockResolvedValue(permissions);
       transactionalRepository.findOne.mockResolvedValueOnce(null);
 
       await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow(
-        new NotFoundException(`VM with id "${vm1Id}" not found`)
+        new NotFoundException(`VM with id "${vm1Id}" not found`),
       );
     });
 
@@ -220,28 +224,32 @@ describe('SwapVmPrioritiesUseCase', () => {
         { vmId: vm1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
         { vmId: vm2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
       ];
-      
+
       getUserPermissionVm.execute.mockResolvedValue(permissions);
       transactionalRepository.findOne.mockResolvedValueOnce(mockVm1);
       transactionalRepository.findOne.mockResolvedValueOnce(null);
 
       await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow(
-        new NotFoundException(`VM with id "${vm2Id}" not found`)
+        new NotFoundException(`VM with id "${vm2Id}" not found`),
       );
     });
 
     it('should handle swapping VMs with same priority', async () => {
       const samePriorityVm1 = { ...mockVm1, priority: 5 };
       const samePriorityVm2 = { ...mockVm2, priority: 5 };
-      
+
       const permissions = [
         { vmId: vm1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
         { vmId: vm2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
       ];
-      
+
       getUserPermissionVm.execute.mockResolvedValue(permissions);
-      transactionalRepository.findOne.mockResolvedValueOnce(samePriorityVm1 as Vm);
-      transactionalRepository.findOne.mockResolvedValueOnce(samePriorityVm2 as Vm);
+      transactionalRepository.findOne.mockResolvedValueOnce(
+        samePriorityVm1 as Vm,
+      );
+      transactionalRepository.findOne.mockResolvedValueOnce(
+        samePriorityVm2 as Vm,
+      );
       transactionalRepository.save.mockImplementation(async (entities) => {
         // TypeORM save returns the saved entities
         return entities as any;
@@ -257,32 +265,41 @@ describe('SwapVmPrioritiesUseCase', () => {
 
     it('should handle swapping with complex permission bitmasks', async () => {
       const permissions = [
-        { vmId: vm1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE | PermissionBit.DELETE | PermissionBit.RESTART | PermissionBit.SHUTDOWN | PermissionBit.SNAPSHOT }, // All permissions
+        {
+          vmId: vm1Id,
+          bitmask:
+            PermissionBit.READ |
+            PermissionBit.WRITE |
+            PermissionBit.DELETE |
+            PermissionBit.RESTART |
+            PermissionBit.SHUTDOWN |
+            PermissionBit.SNAPSHOT,
+        }, // All permissions
         { vmId: vm2Id, bitmask: PermissionBit.WRITE | PermissionBit.DELETE }, // WRITE + DELETE
       ];
-      
+
       // Create mutable copies that will be mutated by the use case
       const vm1Mock = { ...mockVm1, priority: 1 };
       const vm2Mock = { ...mockVm2, priority: 2 };
-      
+
       getUserPermissionVm.execute.mockResolvedValue(permissions);
-      
+
       // Return the mocks that will be mutated
       transactionalRepository.findOne
         .mockResolvedValueOnce(vm1Mock as Vm)
         .mockResolvedValueOnce(vm2Mock as Vm);
-        
+
       transactionalRepository.save.mockImplementation(async (entities) => {
         // TypeORM save returns the saved entities
         return entities as any;
       });
 
       const result = await useCase.execute(vm1Id, vm2Id, mockUserId);
-      
+
       // The mocks should have been mutated
       expect(vm1Mock.priority).toBe(2);
       expect(vm2Mock.priority).toBe(1);
-      
+
       // And the result should reflect the swapped values
       expect(result).toEqual({
         vm1: { id: vm1Id, priority: 2 },
@@ -293,15 +310,19 @@ describe('SwapVmPrioritiesUseCase', () => {
     it('should handle null priorities correctly', async () => {
       const nullPriorityVm1 = { ...mockVm1, priority: null } as any;
       const nullPriorityVm2 = { ...mockVm2, priority: null } as any;
-      
+
       const permissions = [
         { vmId: vm1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
         { vmId: vm2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
       ];
-      
+
       getUserPermissionVm.execute.mockResolvedValue(permissions);
-      transactionalRepository.findOne.mockResolvedValueOnce(nullPriorityVm1 as Vm);
-      transactionalRepository.findOne.mockResolvedValueOnce(nullPriorityVm2 as Vm);
+      transactionalRepository.findOne.mockResolvedValueOnce(
+        nullPriorityVm1 as Vm,
+      );
+      transactionalRepository.findOne.mockResolvedValueOnce(
+        nullPriorityVm2 as Vm,
+      );
       transactionalRepository.save.mockImplementation(async (entities) => {
         // TypeORM save returns the saved entities
         return entities as any;
@@ -320,14 +341,18 @@ describe('SwapVmPrioritiesUseCase', () => {
         { vmId: vm1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
         { vmId: vm2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
       ];
-      
+
       getUserPermissionVm.execute.mockResolvedValue(permissions);
       transactionalRepository.findOne.mockResolvedValueOnce(mockVm1);
       transactionalRepository.findOne.mockResolvedValueOnce(mockVm2);
-      transactionalRepository.save.mockRejectedValue(new Error('Database error'));
+      transactionalRepository.save.mockRejectedValue(
+        new Error('Database error'),
+      );
 
-      await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow('Database error');
-      
+      await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow(
+        'Database error',
+      );
+
       // Verify that logHistory was not called since transaction rolled back
       expect(logHistory.executeStructured).not.toHaveBeenCalled();
     });
@@ -335,15 +360,19 @@ describe('SwapVmPrioritiesUseCase', () => {
     it('should handle VMs from different servers', async () => {
       const vm1DifferentServer = { ...mockVm1, serverId: 'server-a' };
       const vm2DifferentServer = { ...mockVm2, serverId: 'server-b' };
-      
+
       const permissions = [
         { vmId: vm1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
         { vmId: vm2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
       ];
-      
+
       getUserPermissionVm.execute.mockResolvedValue(permissions);
-      transactionalRepository.findOne.mockResolvedValueOnce({ ...vm1DifferentServer } as Vm);
-      transactionalRepository.findOne.mockResolvedValueOnce({ ...vm2DifferentServer } as Vm);
+      transactionalRepository.findOne.mockResolvedValueOnce({
+        ...vm1DifferentServer,
+      } as Vm);
+      transactionalRepository.findOne.mockResolvedValueOnce({
+        ...vm2DifferentServer,
+      } as Vm);
       transactionalRepository.save.mockImplementation(async (entities) => {
         // TypeORM save returns the saved entities
         return entities as any;
@@ -355,7 +384,7 @@ describe('SwapVmPrioritiesUseCase', () => {
         vm1: { id: vm1Id, priority: 2 },
         vm2: { id: vm2Id, priority: 1 },
       });
-      
+
       expect(logHistory.executeStructured).toHaveBeenCalledWith({
         entity: 'vm',
         entityId: vm1Id,

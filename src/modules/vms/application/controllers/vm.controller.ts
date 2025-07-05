@@ -169,8 +169,8 @@ export class VmController implements VmEndpointInterface {
     required: true,
   })
   @ApiOperation({
-    summary: 'Mettre à jour la priorité d\'une VM',
-    description: 'Met à jour uniquement la priorité d\'une VM',
+    summary: "Mettre à jour la priorité d'une VM",
+    description: "Met à jour uniquement la priorité d'une VM",
   })
   @ApiBody({
     type: UpdatePriorityDto,

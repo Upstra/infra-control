@@ -56,7 +56,7 @@ export class Vm extends BaseEntity {
   password!: string;
 
   @ApiProperty()
-  @Column({ unique: true })
+  @Column()
   priority: number;
 
   @ApiProperty({ type: () => Group })

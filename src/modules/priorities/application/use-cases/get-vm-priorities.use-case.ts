@@ -15,14 +15,19 @@ export class GetVmPrioritiesUseCase {
 
   async execute(userId: string): Promise<VmPriorityResponseDto[]> {
     const permissions = await this.getUserPermissionVm.execute(userId);
-    
+    console.log('Permissions:', permissions);
+
     const vmIds = permissions
-      .filter(perm => (perm.bitmask & PermissionBit.READ) === PermissionBit.READ)
-      .map(perm => perm.vmId);
+      .filter(
+        (perm) => (perm.bitmask & PermissionBit.READ) === PermissionBit.READ,
+      )
+      .map((perm) => perm.vmId);
 
     if (vmIds.length === 0) {
       return [];
     }
+
+    console.log('VM IDs:', vmIds);
 
     const vms = await this.vmRepository
       .createQueryBuilder('vm')
@@ -31,7 +36,7 @@ export class GetVmPrioritiesUseCase {
       .addOrderBy('vm.name', 'ASC')
       .getMany();
 
-    return vms.map(vm => ({
+    return vms.map((vm) => ({
       id: vm.id,
       name: vm.name,
       serverId: vm.serverId,

@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  UseGuards,
-  Req,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -124,6 +117,10 @@ export class PriorityController {
     @Body() dto: SwapVmPriorityDto,
     @Req() req: ExpressRequestWithUser,
   ): Promise<SwapVmResponseDto> {
-    return this.swapVmPriorities.execute(dto.vm1Id, dto.vm2Id, req.user?.userId);
+    return this.swapVmPriorities.execute(
+      dto.vm1Id,
+      dto.vm2Id,
+      req.user?.userId,
+    );
   }
 }

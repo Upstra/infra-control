@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Server } from '../../../servers/domain/entities/server.entity';
@@ -24,14 +28,15 @@ export class SwapServerPrioritiesUseCase {
   ): Promise<SwapServerResponseDto> {
     const permissions = await this.getUserPermissionServer.execute(userId);
     const permissionMap = new Map(
-      permissions.map(p => [p.serverId, p.bitmask]),
+      permissions.map((p) => [p.serverId, p.bitmask]),
     );
 
     const perm1 = permissionMap.get(server1Id);
     const perm2 = permissionMap.get(server2Id);
 
-    const hasWritePermission = (bitmask: number | undefined) => 
-      bitmask !== undefined && (bitmask & PermissionBit.WRITE) === PermissionBit.WRITE;
+    const hasWritePermission = (bitmask: number | undefined) =>
+      bitmask !== undefined &&
+      (bitmask & PermissionBit.WRITE) === PermissionBit.WRITE;
 
     if (!hasWritePermission(perm1) || !hasWritePermission(perm2)) {
       throw new ForbiddenException(
@@ -39,7 +44,7 @@ export class SwapServerPrioritiesUseCase {
       );
     }
 
-    return await this.dataSource.transaction(async manager => {
+    return await this.dataSource.transaction(async (manager) => {
       const serverRepo = manager.getRepository(Server);
 
       const server1 = await serverRepo.findOne({ where: { id: server1Id } });

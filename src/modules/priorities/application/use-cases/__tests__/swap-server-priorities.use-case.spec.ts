@@ -10,7 +10,6 @@ import { PermissionBit } from '../../../../permissions/domain/value-objects/perm
 
 describe('SwapServerPrioritiesUseCase', () => {
   let useCase: SwapServerPrioritiesUseCase;
-  let serverRepository: jest.Mocked<Repository<Server>>;
   let getUserPermissionServer: jest.Mocked<GetUserServerPermissionsUseCase>;
   let logHistory: jest.Mocked<LogHistoryUseCase>;
   let dataSource: jest.Mocked<DataSource>;
@@ -77,8 +76,9 @@ describe('SwapServerPrioritiesUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<SwapServerPrioritiesUseCase>(SwapServerPrioritiesUseCase);
-    serverRepository = module.get(getRepositoryToken(Server));
+    useCase = module.get<SwapServerPrioritiesUseCase>(
+      SwapServerPrioritiesUseCase,
+    );
     getUserPermissionServer = module.get(GetUserServerPermissionsUseCase);
     logHistory = module.get(LogHistoryUseCase);
   });
@@ -89,17 +89,25 @@ describe('SwapServerPrioritiesUseCase', () => {
 
   describe('execute', () => {
     beforeEach(() => {
-      dataSource.transaction.mockImplementation(async (runInTransaction: any) => {
-        return runInTransaction(entityManager);
-      });
+      dataSource.transaction.mockImplementation(
+        async (runInTransaction: any) => {
+          return runInTransaction(entityManager);
+        },
+      );
     });
 
     it('should successfully swap priorities between two servers', async () => {
       const permissions = [
-        { serverId: server1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-        { serverId: server2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
+        {
+          serverId: server1Id,
+          bitmask: PermissionBit.READ | PermissionBit.WRITE,
+        },
+        {
+          serverId: server2Id,
+          bitmask: PermissionBit.READ | PermissionBit.WRITE,
+        },
       ];
-      
+
       getUserPermissionServer.execute.mockResolvedValue(permissions);
       transactionalRepository.findOne.mockResolvedValueOnce(mockServer1);
       transactionalRepository.findOne.mockResolvedValueOnce(mockServer2);
@@ -111,8 +119,12 @@ describe('SwapServerPrioritiesUseCase', () => {
       const result = await useCase.execute(server1Id, server2Id, mockUserId);
 
       expect(getUserPermissionServer.execute).toHaveBeenCalledWith(mockUserId);
-      expect(transactionalRepository.findOne).toHaveBeenCalledWith({ where: { id: server1Id } });
-      expect(transactionalRepository.findOne).toHaveBeenCalledWith({ where: { id: server2Id } });
+      expect(transactionalRepository.findOne).toHaveBeenCalledWith({
+        where: { id: server1Id },
+      });
+      expect(transactionalRepository.findOne).toHaveBeenCalledWith({
+        where: { id: server2Id },
+      });
       expect(transactionalRepository.save).toHaveBeenCalledWith([
         { ...mockServer1, priority: 2 },
         { ...mockServer2, priority: 1 },
@@ -154,13 +166,20 @@ describe('SwapServerPrioritiesUseCase', () => {
     it('should throw ForbiddenException when user lacks WRITE permission on server1', async () => {
       const permissions = [
         { serverId: server1Id, bitmask: PermissionBit.READ }, // No WRITE
-        { serverId: server2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
+        {
+          serverId: server2Id,
+          bitmask: PermissionBit.READ | PermissionBit.WRITE,
+        },
       ];
-      
+
       getUserPermissionServer.execute.mockResolvedValue(permissions);
 
-      await expect(useCase.execute(server1Id, server2Id, mockUserId)).rejects.toThrow(
-        new ForbiddenException('You do not have write permissions on both servers')
+      await expect(
+        useCase.execute(server1Id, server2Id, mockUserId),
+      ).rejects.toThrow(
+        new ForbiddenException(
+          'You do not have write permissions on both servers',
+        ),
       );
 
       expect(dataSource.transaction).not.toHaveBeenCalled();
@@ -168,78 +187,122 @@ describe('SwapServerPrioritiesUseCase', () => {
 
     it('should throw ForbiddenException when user lacks WRITE permission on server2', async () => {
       const permissions = [
-        { serverId: server1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
+        {
+          serverId: server1Id,
+          bitmask: PermissionBit.READ | PermissionBit.WRITE,
+        },
         { serverId: server2Id, bitmask: PermissionBit.READ }, // No WRITE
       ];
-      
+
       getUserPermissionServer.execute.mockResolvedValue(permissions);
 
-      await expect(useCase.execute(server1Id, server2Id, mockUserId)).rejects.toThrow(
-        new ForbiddenException('You do not have write permissions on both servers')
+      await expect(
+        useCase.execute(server1Id, server2Id, mockUserId),
+      ).rejects.toThrow(
+        new ForbiddenException(
+          'You do not have write permissions on both servers',
+        ),
       );
     });
 
     it('should throw ForbiddenException when user has no permission on server1', async () => {
       const permissions = [
-        { serverId: server2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
+        {
+          serverId: server2Id,
+          bitmask: PermissionBit.READ | PermissionBit.WRITE,
+        },
       ];
-      
+
       getUserPermissionServer.execute.mockResolvedValue(permissions);
 
-      await expect(useCase.execute(server1Id, server2Id, mockUserId)).rejects.toThrow(
-        new ForbiddenException('You do not have write permissions on both servers')
+      await expect(
+        useCase.execute(server1Id, server2Id, mockUserId),
+      ).rejects.toThrow(
+        new ForbiddenException(
+          'You do not have write permissions on both servers',
+        ),
       );
     });
 
     it('should throw ForbiddenException when user has no permissions at all', async () => {
       getUserPermissionServer.execute.mockResolvedValue([]);
 
-      await expect(useCase.execute(server1Id, server2Id, mockUserId)).rejects.toThrow(
-        new ForbiddenException('You do not have write permissions on both servers')
+      await expect(
+        useCase.execute(server1Id, server2Id, mockUserId),
+      ).rejects.toThrow(
+        new ForbiddenException(
+          'You do not have write permissions on both servers',
+        ),
       );
     });
 
     it('should throw NotFoundException when server1 does not exist', async () => {
       const permissions = [
-        { serverId: server1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-        { serverId: server2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
+        {
+          serverId: server1Id,
+          bitmask: PermissionBit.READ | PermissionBit.WRITE,
+        },
+        {
+          serverId: server2Id,
+          bitmask: PermissionBit.READ | PermissionBit.WRITE,
+        },
       ];
-      
+
       getUserPermissionServer.execute.mockResolvedValue(permissions);
       transactionalRepository.findOne.mockResolvedValueOnce(null);
 
-      await expect(useCase.execute(server1Id, server2Id, mockUserId)).rejects.toThrow(
-        new NotFoundException(`Server with id "${server1Id}" not found`)
+      await expect(
+        useCase.execute(server1Id, server2Id, mockUserId),
+      ).rejects.toThrow(
+        new NotFoundException(`Server with id "${server1Id}" not found`),
       );
     });
 
     it('should throw NotFoundException when server2 does not exist', async () => {
       const permissions = [
-        { serverId: server1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-        { serverId: server2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
+        {
+          serverId: server1Id,
+          bitmask: PermissionBit.READ | PermissionBit.WRITE,
+        },
+        {
+          serverId: server2Id,
+          bitmask: PermissionBit.READ | PermissionBit.WRITE,
+        },
       ];
-      
+
       getUserPermissionServer.execute.mockResolvedValue(permissions);
       transactionalRepository.findOne.mockResolvedValueOnce(mockServer1);
       transactionalRepository.findOne.mockResolvedValueOnce(null);
 
-      await expect(useCase.execute(server1Id, server2Id, mockUserId)).rejects.toThrow(
-        new NotFoundException(`Server with id "${server2Id}" not found`)
+      await expect(
+        useCase.execute(server1Id, server2Id, mockUserId),
+      ).rejects.toThrow(
+        new NotFoundException(`Server with id "${server2Id}" not found`),
       );
     });
 
     it('should handle swapping servers with same priority', async () => {
       const samePriorityServer1 = { ...mockServer1, priority: 5 };
       const samePriorityServer2 = { ...mockServer2, priority: 5 };
-      
+
       const permissions = [
-        { serverId: server1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-        { serverId: server2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
+        {
+          serverId: server1Id,
+          bitmask: PermissionBit.READ | PermissionBit.WRITE,
+        },
+        {
+          serverId: server2Id,
+          bitmask: PermissionBit.READ | PermissionBit.WRITE,
+        },
       ];
-      
+
       getUserPermissionServer.execute.mockResolvedValue(permissions);
-      transactionalRepository.findOne.mockResolvedValueOnce(samePriorityServer1 as Server);
-      transactionalRepository.findOne.mockResolvedValueOnce(samePriorityServer2 as Server);
+      transactionalRepository.findOne.mockResolvedValueOnce(
+        samePriorityServer1 as Server,
+      );
+      transactionalRepository.findOne.mockResolvedValueOnce(
+        samePriorityServer2 as Server,
+      );
       transactionalRepository.save.mockImplementation(async (entities) => {
         // TypeORM save returns the saved entities
         return entities as any;
@@ -255,32 +318,44 @@ describe('SwapServerPrioritiesUseCase', () => {
 
     it('should handle swapping with complex permission bitmasks', async () => {
       const permissions = [
-        { serverId: server1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE | PermissionBit.DELETE | PermissionBit.RESTART | PermissionBit.SHUTDOWN | PermissionBit.SNAPSHOT }, // All permissions
-        { serverId: server2Id, bitmask: PermissionBit.WRITE | PermissionBit.DELETE }, // WRITE + DELETE
+        {
+          serverId: server1Id,
+          bitmask:
+            PermissionBit.READ |
+            PermissionBit.WRITE |
+            PermissionBit.DELETE |
+            PermissionBit.RESTART |
+            PermissionBit.SHUTDOWN |
+            PermissionBit.SNAPSHOT,
+        }, // All permissions
+        {
+          serverId: server2Id,
+          bitmask: PermissionBit.WRITE | PermissionBit.DELETE,
+        }, // WRITE + DELETE
       ];
-      
+
       // Create mutable copies that will be mutated by the use case
       const server1Mock = { ...mockServer1, priority: 1 };
       const server2Mock = { ...mockServer2, priority: 2 };
-      
+
       getUserPermissionServer.execute.mockResolvedValue(permissions);
-      
+
       // Return the mocks that will be mutated
       transactionalRepository.findOne
         .mockResolvedValueOnce(server1Mock as Server)
         .mockResolvedValueOnce(server2Mock as Server);
-        
+
       transactionalRepository.save.mockImplementation(async (entities) => {
         // TypeORM save returns the saved entities
         return entities as any;
       });
 
       const result = await useCase.execute(server1Id, server2Id, mockUserId);
-      
+
       // The mocks should have been mutated
       expect(server1Mock.priority).toBe(2);
       expect(server2Mock.priority).toBe(1);
-      
+
       // And the result should reflect the swapped values
       expect(result).toEqual({
         server1: { id: server1Id, priority: 2 },
@@ -291,15 +366,25 @@ describe('SwapServerPrioritiesUseCase', () => {
     it('should handle null priorities correctly', async () => {
       const nullPriorityServer1 = { ...mockServer1, priority: null } as any;
       const nullPriorityServer2 = { ...mockServer2, priority: null } as any;
-      
+
       const permissions = [
-        { serverId: server1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-        { serverId: server2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
+        {
+          serverId: server1Id,
+          bitmask: PermissionBit.READ | PermissionBit.WRITE,
+        },
+        {
+          serverId: server2Id,
+          bitmask: PermissionBit.READ | PermissionBit.WRITE,
+        },
       ];
-      
+
       getUserPermissionServer.execute.mockResolvedValue(permissions);
-      transactionalRepository.findOne.mockResolvedValueOnce(nullPriorityServer1 as Server);
-      transactionalRepository.findOne.mockResolvedValueOnce(nullPriorityServer2 as Server);
+      transactionalRepository.findOne.mockResolvedValueOnce(
+        nullPriorityServer1 as Server,
+      );
+      transactionalRepository.findOne.mockResolvedValueOnce(
+        nullPriorityServer2 as Server,
+      );
       transactionalRepository.save.mockImplementation(async (entities) => {
         // TypeORM save returns the saved entities
         return entities as any;
@@ -315,17 +400,27 @@ describe('SwapServerPrioritiesUseCase', () => {
 
     it('should rollback transaction on error', async () => {
       const permissions = [
-        { serverId: server1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-        { serverId: server2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
+        {
+          serverId: server1Id,
+          bitmask: PermissionBit.READ | PermissionBit.WRITE,
+        },
+        {
+          serverId: server2Id,
+          bitmask: PermissionBit.READ | PermissionBit.WRITE,
+        },
       ];
-      
+
       getUserPermissionServer.execute.mockResolvedValue(permissions);
       transactionalRepository.findOne.mockResolvedValueOnce(mockServer1);
       transactionalRepository.findOne.mockResolvedValueOnce(mockServer2);
-      transactionalRepository.save.mockRejectedValue(new Error('Database error'));
+      transactionalRepository.save.mockRejectedValue(
+        new Error('Database error'),
+      );
 
-      await expect(useCase.execute(server1Id, server2Id, mockUserId)).rejects.toThrow('Database error');
-      
+      await expect(
+        useCase.execute(server1Id, server2Id, mockUserId),
+      ).rejects.toThrow('Database error');
+
       // Verify that logHistory was not called since transaction rolled back
       expect(logHistory.executeStructured).not.toHaveBeenCalled();
     });

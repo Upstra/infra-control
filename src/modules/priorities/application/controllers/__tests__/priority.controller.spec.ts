@@ -121,7 +121,8 @@ describe('PriorityController', () => {
 
       getServerPriorities.execute.mockResolvedValue([]);
 
-      const result = await controller.getServerPrioritiesList(requestWithoutUser);
+      const result =
+        await controller.getServerPrioritiesList(requestWithoutUser);
 
       expect(getServerPriorities.execute).toHaveBeenCalledWith(undefined);
       expect(result).toEqual([]);
@@ -139,7 +140,9 @@ describe('PriorityController', () => {
       const error = new Error('Database error');
       getServerPriorities.execute.mockRejectedValue(error);
 
-      await expect(controller.getServerPrioritiesList(mockRequest)).rejects.toThrow(error);
+      await expect(
+        controller.getServerPrioritiesList(mockRequest),
+      ).rejects.toThrow(error);
     });
   });
 
@@ -178,7 +181,9 @@ describe('PriorityController', () => {
       const error = new Error('Database error');
       getVmPriorities.execute.mockRejectedValue(error);
 
-      await expect(controller.getVmPrioritiesList(mockRequest)).rejects.toThrow(error);
+      await expect(controller.getVmPrioritiesList(mockRequest)).rejects.toThrow(
+        error,
+      );
     });
   });
 
@@ -196,12 +201,15 @@ describe('PriorityController', () => {
     it('should swap server priorities successfully', async () => {
       swapServerPriorities.execute.mockResolvedValue(mockSwapResponse);
 
-      const result = await controller.swapServerPrioritiesHandler(swapDto, mockRequest);
+      const result = await controller.swapServerPrioritiesHandler(
+        swapDto,
+        mockRequest,
+      );
 
       expect(swapServerPriorities.execute).toHaveBeenCalledWith(
         swapDto.server1Id,
         swapDto.server2Id,
-        mockUserId
+        mockUserId,
       );
       expect(result).toEqual(mockSwapResponse);
     });
@@ -213,12 +221,15 @@ describe('PriorityController', () => {
 
       swapServerPriorities.execute.mockResolvedValue(mockSwapResponse);
 
-      const result = await controller.swapServerPrioritiesHandler(swapDto, requestWithoutUser);
+      const result = await controller.swapServerPrioritiesHandler(
+        swapDto,
+        requestWithoutUser,
+      );
 
       expect(swapServerPriorities.execute).toHaveBeenCalledWith(
         swapDto.server1Id,
         swapDto.server2Id,
-        undefined
+        undefined,
       );
       expect(result).toEqual(mockSwapResponse);
     });
@@ -228,7 +239,7 @@ describe('PriorityController', () => {
       swapServerPriorities.execute.mockRejectedValue(error);
 
       await expect(
-        controller.swapServerPrioritiesHandler(swapDto, mockRequest)
+        controller.swapServerPrioritiesHandler(swapDto, mockRequest),
       ).rejects.toThrow(error);
     });
 
@@ -237,7 +248,7 @@ describe('PriorityController', () => {
       swapServerPriorities.execute.mockRejectedValue(error);
 
       await expect(
-        controller.swapServerPrioritiesHandler(swapDto, mockRequest)
+        controller.swapServerPrioritiesHandler(swapDto, mockRequest),
       ).rejects.toThrow(error);
     });
   });
@@ -256,12 +267,15 @@ describe('PriorityController', () => {
     it('should swap VM priorities successfully', async () => {
       swapVmPriorities.execute.mockResolvedValue(mockSwapResponse);
 
-      const result = await controller.swapVmPrioritiesHandler(swapDto, mockRequest);
+      const result = await controller.swapVmPrioritiesHandler(
+        swapDto,
+        mockRequest,
+      );
 
       expect(swapVmPriorities.execute).toHaveBeenCalledWith(
         swapDto.vm1Id,
         swapDto.vm2Id,
-        mockUserId
+        mockUserId,
       );
       expect(result).toEqual(mockSwapResponse);
     });
@@ -273,12 +287,15 @@ describe('PriorityController', () => {
 
       swapVmPriorities.execute.mockResolvedValue(mockSwapResponse);
 
-      const result = await controller.swapVmPrioritiesHandler(swapDto, requestWithoutUser);
+      const result = await controller.swapVmPrioritiesHandler(
+        swapDto,
+        requestWithoutUser,
+      );
 
       expect(swapVmPriorities.execute).toHaveBeenCalledWith(
         swapDto.vm1Id,
         swapDto.vm2Id,
-        undefined
+        undefined,
       );
       expect(result).toEqual(mockSwapResponse);
     });
@@ -288,7 +305,7 @@ describe('PriorityController', () => {
       swapVmPriorities.execute.mockRejectedValue(error);
 
       await expect(
-        controller.swapVmPrioritiesHandler(swapDto, mockRequest)
+        controller.swapVmPrioritiesHandler(swapDto, mockRequest),
       ).rejects.toThrow(error);
     });
 
@@ -297,7 +314,7 @@ describe('PriorityController', () => {
       swapVmPriorities.execute.mockRejectedValue(error);
 
       await expect(
-        controller.swapVmPrioritiesHandler(swapDto, mockRequest)
+        controller.swapVmPrioritiesHandler(swapDto, mockRequest),
       ).rejects.toThrow(error);
     });
   });

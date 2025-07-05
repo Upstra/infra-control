@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Vm } from '../../../vms/domain/entities/vm.entity';
@@ -23,15 +27,14 @@ export class SwapVmPrioritiesUseCase {
     userId: string,
   ): Promise<SwapVmResponseDto> {
     const permissions = await this.getUserPermissionVm.execute(userId);
-    const permissionMap = new Map(
-      permissions.map(p => [p.vmId, p.bitmask]),
-    );
+    const permissionMap = new Map(permissions.map((p) => [p.vmId, p.bitmask]));
 
     const perm1 = permissionMap.get(vm1Id);
     const perm2 = permissionMap.get(vm2Id);
 
-    const hasWritePermission = (bitmask: number | undefined) => 
-      bitmask !== undefined && (bitmask & PermissionBit.WRITE) === PermissionBit.WRITE;
+    const hasWritePermission = (bitmask: number | undefined) =>
+      bitmask !== undefined &&
+      (bitmask & PermissionBit.WRITE) === PermissionBit.WRITE;
 
     if (!hasWritePermission(perm1) || !hasWritePermission(perm2)) {
       throw new ForbiddenException(
@@ -39,7 +42,7 @@ export class SwapVmPrioritiesUseCase {
       );
     }
 
-    return await this.dataSource.transaction(async manager => {
+    return await this.dataSource.transaction(async (manager) => {
       const vmRepo = manager.getRepository(Vm);
 
       const vm1 = await vmRepo.findOne({ where: { id: vm1Id } });

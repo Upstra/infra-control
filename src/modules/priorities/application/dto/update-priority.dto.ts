@@ -3,13 +3,13 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdatePriorityDto {
   @ApiProperty({
-    description: 'Priority level (1-4)',
+    description: 'Priority level (1-999)',
     minimum: 1,
-    maximum: 4,
+    maximum: 999,
     example: 1,
   })
   @IsNumber()
   @Min(1)
-  @Max(4)
+  @Max(999)
   priority: number;
 }

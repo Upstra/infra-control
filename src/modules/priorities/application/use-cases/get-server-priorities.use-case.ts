@@ -15,10 +15,12 @@ export class GetServerPrioritiesUseCase {
 
   async execute(userId: string): Promise<ServerPriorityResponseDto[]> {
     const permissions = await this.getUserPermissionServer.execute(userId);
-    
+
     const serverIds = permissions
-      .filter(perm => (perm.bitmask & PermissionBit.READ) === PermissionBit.READ)
-      .map(perm => perm.serverId);
+      .filter(
+        (perm) => (perm.bitmask & PermissionBit.READ) === PermissionBit.READ,
+      )
+      .map((perm) => perm.serverId);
 
     if (serverIds.length === 0) {
       return [];
@@ -31,7 +33,7 @@ export class GetServerPrioritiesUseCase {
       .addOrderBy('server.name', 'ASC')
       .getMany();
 
-    return servers.map(server => ({
+    return servers.map((server) => ({
       id: server.id,
       name: server.name,
       priority: server.priority,

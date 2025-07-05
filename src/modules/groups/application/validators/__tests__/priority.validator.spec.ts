@@ -13,7 +13,7 @@ class TestClassWithMessage {
 
 describe('IsPriority Validator', () => {
   describe('valid values', () => {
-    it.each([1, 2, 3, 4])(
+    it.each([1, 2, 3, 4, 10, 50, 100, 500, 999])(
       'should validate priority %i as valid',
       async (value) => {
         const testObj = new TestClass();
@@ -28,22 +28,22 @@ describe('IsPriority Validator', () => {
 
   describe('invalid values', () => {
     it.each([
-      [0, 'Priority must be an integer between 1 and 4'],
-      [5, 'Priority must be an integer between 1 and 4'],
-      [-1, 'Priority must be an integer between 1 and 4'],
-      [1.5, 'Priority must be an integer between 1 and 4'],
-      [2.1, 'Priority must be an integer between 1 and 4'],
-      ['1', 'Priority must be an integer between 1 and 4'],
-      ['two', 'Priority must be an integer between 1 and 4'],
-      [null, 'Priority must be an integer between 1 and 4'],
-      [undefined, 'Priority must be an integer between 1 and 4'],
-      [true, 'Priority must be an integer between 1 and 4'],
-      [false, 'Priority must be an integer between 1 and 4'],
-      [{}, 'Priority must be an integer between 1 and 4'],
-      [[], 'Priority must be an integer between 1 and 4'],
-      [NaN, 'Priority must be an integer between 1 and 4'],
-      [Infinity, 'Priority must be an integer between 1 and 4'],
-      [-Infinity, 'Priority must be an integer between 1 and 4'],
+      [0, 'Priority must be an integer between 1 and 999'],
+      [1000, 'Priority must be an integer between 1 and 999'],
+      [-1, 'Priority must be an integer between 1 and 999'],
+      [1.5, 'Priority must be an integer between 1 and 999'],
+      [2.1, 'Priority must be an integer between 1 and 999'],
+      ['1', 'Priority must be an integer between 1 and 999'],
+      ['two', 'Priority must be an integer between 1 and 999'],
+      [null, 'Priority must be an integer between 1 and 999'],
+      [undefined, 'Priority must be an integer between 1 and 999'],
+      [true, 'Priority must be an integer between 1 and 999'],
+      [false, 'Priority must be an integer between 1 and 999'],
+      [{}, 'Priority must be an integer between 1 and 999'],
+      [[], 'Priority must be an integer between 1 and 999'],
+      [NaN, 'Priority must be an integer between 1 and 999'],
+      [Infinity, 'Priority must be an integer between 1 and 999'],
+      [-Infinity, 'Priority must be an integer between 1 and 999'],
     ])('should reject %p with message: %s', async (value, expectedMessage) => {
       const testObj = new TestClass();
       testObj.priority = value;
@@ -66,7 +66,7 @@ describe('IsPriority Validator', () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0].constraints?.isPriority).toBe(
-        'Priority must be an integer between 1 and 4',
+        'Priority must be an integer between 1 and 999',
       );
     });
 
@@ -78,7 +78,7 @@ describe('IsPriority Validator', () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0].constraints?.isPriority).toBe(
-        'Priority must be an integer between 1 and 4',
+        'Priority must be an integer between 1 and 999',
       );
     });
 
@@ -90,7 +90,7 @@ describe('IsPriority Validator', () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0].constraints?.isPriority).toBe(
-        'Priority must be an integer between 1 and 4',
+        'Priority must be an integer between 1 and 999',
       );
     });
 
@@ -102,7 +102,7 @@ describe('IsPriority Validator', () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0].constraints?.isPriority).toBe(
-        'Priority must be an integer between 1 and 4',
+        'Priority must be an integer between 1 and 999',
       );
     });
   });
@@ -110,7 +110,7 @@ describe('IsPriority Validator', () => {
   describe('custom error message', () => {
     it('should use custom error message when provided', async () => {
       const testObj = new TestClassWithMessage();
-      testObj.priority = 10;
+      testObj.priority = 1000;
 
       const errors = await validate(testObj);
 
@@ -136,7 +136,7 @@ describe('IsPriority Validator', () => {
     it('should validate multiple properties independently', async () => {
       const testObj = new MultiplePropertiesClass();
       testObj.priority1 = 1;
-      testObj.priority2 = 5;
+      testObj.priority2 = 1000;
       testObj.priority3 = 3;
 
       const errors = await validate(testObj);
@@ -148,7 +148,7 @@ describe('IsPriority Validator', () => {
     it('should report errors for all invalid properties', async () => {
       const testObj = new MultiplePropertiesClass();
       testObj.priority1 = 0;
-      testObj.priority2 = 5;
+      testObj.priority2 = 1000;
       testObj.priority3 = 'invalid';
 
       const errors = await validate(testObj);
@@ -167,7 +167,7 @@ describe('IsPriority Validator', () => {
       @IsPriority()
       priority: any;
 
-      @IsPriority({ message: 'Second priority must be between 1 and 4' })
+      @IsPriority({ message: 'Second priority must be between 1 and 999' })
       secondPriority: any;
     }
 
@@ -181,7 +181,7 @@ describe('IsPriority Validator', () => {
       expect(errors).toHaveLength(1);
       expect(errors[0].property).toBe('secondPriority');
       expect(errors[0].constraints?.isPriority).toBe(
-        'Second priority must be between 1 and 4',
+        'Second priority must be between 1 and 999',
       );
     });
   });
@@ -195,7 +195,7 @@ describe('IsPriority Validator', () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0].constraints?.isPriority).toBe(
-        'Priority must be an integer between 1 and 4',
+        'Priority must be an integer between 1 and 999',
       );
     });
 
@@ -207,7 +207,7 @@ describe('IsPriority Validator', () => {
 
       expect(errors).toHaveLength(1);
       expect(errors[0].constraints?.isPriority).toBe(
-        'Priority must be an integer between 1 and 4',
+        'Priority must be an integer between 1 and 999',
       );
     });
   });

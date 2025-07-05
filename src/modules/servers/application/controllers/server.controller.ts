@@ -207,8 +207,8 @@ export class ServerController {
     required: true,
   })
   @ApiOperation({
-    summary: 'Mettre à jour la priorité d\'un serveur',
-    description: 'Met à jour uniquement la priorité d\'un serveur',
+    summary: "Mettre à jour la priorité d'un serveur",
+    description: "Met à jour uniquement la priorité d'un serveur",
   })
   @ApiBody({
     type: UpdatePriorityDto,
@@ -238,7 +238,11 @@ export class ServerController {
     @Body() dto: UpdatePriorityDto,
     @CurrentUser() user: JwtPayload,
   ): Promise<{ id: string; priority: number }> {
-    return this.updateServerPriorityUseCase.execute(id, dto.priority, user.userId);
+    return this.updateServerPriorityUseCase.execute(
+      id,
+      dto.priority,
+      user.userId,
+    );
   }
 
   @Delete(':id')

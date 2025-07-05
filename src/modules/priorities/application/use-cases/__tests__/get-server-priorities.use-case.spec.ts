@@ -40,7 +40,10 @@ describe('GetServerPrioritiesUseCase', () => {
   const mockPermissions = [
     { serverId: 'server-1', bitmask: PermissionBit.READ | PermissionBit.WRITE },
     { serverId: 'server-2', bitmask: PermissionBit.READ },
-    { serverId: 'server-3', bitmask: PermissionBit.READ | PermissionBit.WRITE | PermissionBit.DELETE },
+    {
+      serverId: 'server-3',
+      bitmask: PermissionBit.READ | PermissionBit.WRITE | PermissionBit.DELETE,
+    },
     { serverId: 'server-4', bitmask: PermissionBit.WRITE }, // No READ permission
   ];
 
@@ -70,7 +73,9 @@ describe('GetServerPrioritiesUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<GetServerPrioritiesUseCase>(GetServerPrioritiesUseCase);
+    useCase = module.get<GetServerPrioritiesUseCase>(
+      GetServerPrioritiesUseCase,
+    );
     serverRepository = module.get(getRepositoryToken(Server));
     getUserPermissionServer = module.get(GetUserServerPermissionsUseCase);
   });
@@ -82,20 +87,28 @@ describe('GetServerPrioritiesUseCase', () => {
   describe('execute', () => {
     it('should return servers with priorities ordered by priority then name', async () => {
       getUserPermissionServer.execute.mockResolvedValue(mockPermissions);
-      
+
       const queryBuilder = serverRepository.createQueryBuilder();
       (queryBuilder.getMany as jest.Mock).mockResolvedValue(mockServers);
 
       const result = await useCase.execute(mockUserId);
 
       expect(getUserPermissionServer.execute).toHaveBeenCalledWith(mockUserId);
-      expect(serverRepository.createQueryBuilder).toHaveBeenCalledWith('server');
+      expect(serverRepository.createQueryBuilder).toHaveBeenCalledWith(
+        'server',
+      );
       expect(queryBuilder.where).toHaveBeenCalledWith(
         'server.id IN (:...ids)',
-        { ids: ['server-1', 'server-2', 'server-3'] }
+        { ids: ['server-1', 'server-2', 'server-3'] },
       );
-      expect(queryBuilder.orderBy).toHaveBeenCalledWith('server.priority', 'ASC');
-      expect(queryBuilder.addOrderBy).toHaveBeenCalledWith('server.name', 'ASC');
+      expect(queryBuilder.orderBy).toHaveBeenCalledWith(
+        'server.priority',
+        'ASC',
+      );
+      expect(queryBuilder.addOrderBy).toHaveBeenCalledWith(
+        'server.name',
+        'ASC',
+      );
       expect(queryBuilder.getMany).toHaveBeenCalled();
 
       expect(result).toEqual([
@@ -129,9 +142,9 @@ describe('GetServerPrioritiesUseCase', () => {
         { serverId: 'server-2', bitmask: PermissionBit.DELETE },
         { serverId: 'server-3', bitmask: PermissionBit.READ },
       ];
-      
+
       getUserPermissionServer.execute.mockResolvedValue(permissionsWithoutRead);
-      
+
       const queryBuilder = serverRepository.createQueryBuilder();
       (queryBuilder.getMany as jest.Mock).mockResolvedValue([mockServers[2]]);
 
@@ -139,7 +152,7 @@ describe('GetServerPrioritiesUseCase', () => {
 
       expect(queryBuilder.where).toHaveBeenCalledWith(
         'server.id IN (:...ids)',
-        { ids: ['server-3'] }
+        { ids: ['server-3'] },
       );
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('server-3');
@@ -159,7 +172,7 @@ describe('GetServerPrioritiesUseCase', () => {
         { serverId: 'server-1', bitmask: PermissionBit.WRITE },
         { serverId: 'server-2', bitmask: PermissionBit.DELETE },
       ];
-      
+
       getUserPermissionServer.execute.mockResolvedValue(noReadPermissions);
 
       const result = await useCase.execute(mockUserId);
@@ -172,7 +185,7 @@ describe('GetServerPrioritiesUseCase', () => {
       getUserPermissionServer.execute.mockResolvedValue([
         { serverId: 'server-1', bitmask: PermissionBit.READ },
       ]);
-      
+
       const serverWithNulls = {
         id: 'server-1',
         name: 'Server A',
@@ -180,7 +193,7 @@ describe('GetServerPrioritiesUseCase', () => {
         ip: null,
         state: null,
       } as any as Server;
-      
+
       const queryBuilder = serverRepository.createQueryBuilder();
       (queryBuilder.getMany as jest.Mock).mockResolvedValue([serverWithNulls]);
 
@@ -200,20 +213,30 @@ describe('GetServerPrioritiesUseCase', () => {
     it('should handle permission check with complex bitmasks', async () => {
       const complexPermissions = [
         { serverId: 'server-1', bitmask: 0 }, // No permissions
-        { serverId: 'server-2', bitmask: PermissionBit.READ | PermissionBit.WRITE | PermissionBit.DELETE | PermissionBit.RESTART },
+        {
+          serverId: 'server-2',
+          bitmask:
+            PermissionBit.READ |
+            PermissionBit.WRITE |
+            PermissionBit.DELETE |
+            PermissionBit.RESTART,
+        },
         { serverId: 'server-3', bitmask: PermissionBit.READ },
       ];
-      
+
       getUserPermissionServer.execute.mockResolvedValue(complexPermissions);
-      
+
       const queryBuilder = serverRepository.createQueryBuilder();
-      (queryBuilder.getMany as jest.Mock).mockResolvedValue([mockServers[1], mockServers[2]]);
+      (queryBuilder.getMany as jest.Mock).mockResolvedValue([
+        mockServers[1],
+        mockServers[2],
+      ]);
 
       const result = await useCase.execute(mockUserId);
 
       expect(queryBuilder.where).toHaveBeenCalledWith(
         'server.id IN (:...ids)',
-        { ids: ['server-2', 'server-3'] }
+        { ids: ['server-2', 'server-3'] },
       );
       expect(result).toHaveLength(2);
     });

@@ -17,11 +17,11 @@ export function IsPriority(validationOptions?: ValidationOptions) {
             typeof value === 'number' &&
             Number.isInteger(value) &&
             value >= 1 &&
-            value <= 4
+            value <= 999
           );
         },
         defaultMessage(_: ValidationArguments) {
-          return 'Priority must be an integer between 1 and 4';
+          return 'Priority must be an integer between 1 and 999';
         },
       },
     });
