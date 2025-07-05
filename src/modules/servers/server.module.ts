@@ -23,7 +23,7 @@ import { UpsModule } from '../ups/ups.module';
     forwardRef(() => UserModule),
     forwardRef(() => RoomModule),
     forwardRef(() => UpsModule),
-    GroupModule,
+    forwardRef(() => GroupModule),
     PermissionModule,
     AuditModule,
   ],

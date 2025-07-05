@@ -189,4 +189,14 @@ export class ServerTypeormRepository
       throw new ServerRetrievalException('Error retrieving server by field');
     }
   }
+
+  async updateServer(id: string, data: Partial<Server>): Promise<Server> {
+    try {
+      await this.update(id, data);
+      return await this.findServerById(id);
+    } catch (error) {
+      this.logger.error(`Error updating server with id ${id}:`, error);
+      throw new ServerRetrievalException(`Error updating server with id ${id}`);
+    }
+  }
 }

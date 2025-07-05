@@ -1,11 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
-import { ServerDomainService } from '@/modules/servers/domain/services/server.domain.service';
 import { UpdateIloUseCase } from '@/modules/ilos/application/use-cases';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
+import { GroupRepository } from '@/modules/groups/infrastructure/repositories/group.repository';
+import { GroupTypeMismatchException } from '@/modules/groups/domain/exceptions/group-type-mismatch.exception';
+import { GroupType } from '@/modules/groups/domain/enums/group-type.enum';
 
 import { ServerUpdateDto } from '../dto/server.update.dto';
 import { ServerResponseDto } from '../dto/server.response.dto';
+import { Server } from '../../domain/entities/server.entity';
 
 /**
  * Updates metadata or state of an existing server.
@@ -33,7 +36,7 @@ export class UpdateServerUseCase {
     @Inject('ServerRepositoryInterface')
     private readonly serverRepository: ServerRepositoryInterface,
     private readonly updateIloUsecase: UpdateIloUseCase,
-    private readonly serverDomain: ServerDomainService,
+    private readonly groupRepository: GroupRepository,
     private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
@@ -42,9 +45,22 @@ export class UpdateServerUseCase {
     dto: ServerUpdateDto,
     userId?: string,
   ): Promise<ServerResponseDto> {
-    const existing = await this.serverRepository.findServerById(id);
-    const entity = this.serverDomain.updateServerEntityFromDto(existing, dto);
-    const updated = await this.serverRepository.save(entity);
+    if (dto.groupId) {
+      const group = await this.groupRepository.findById(dto.groupId);
+      if (group && group.type !== GroupType.SERVER) {
+        throw new GroupTypeMismatchException('server', group.type);
+      }
+    }
+
+    const updateData: Partial<Server> = {};
+
+    Object.keys(dto).forEach((key) => {
+      if (dto[key] !== undefined) {
+        updateData[key] = dto[key];
+      }
+    });
+
+    const updated = await this.serverRepository.updateServer(id, updateData);
     await this.logHistory?.execute('server', updated.id, 'UPDATE', userId);
 
     const ilo = dto.ilo

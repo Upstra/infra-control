@@ -60,9 +60,10 @@ export class ServerDomainService {
     server.password = dto.password ?? server.password;
     server.type = dto.type ?? server.type;
     server.priority = dto.priority ?? server.priority;
-    server.roomId = dto.roomId ?? server.roomId;
-    server.groupId = dto.groupId ?? server.groupId;
-    server.upsId = dto.upsId ?? server.upsId;
+
+    if ('roomId' in dto) server.roomId = dto.roomId;
+    if ('groupId' in dto) server.groupId = dto.groupId;
+    if ('upsId' in dto) server.upsId = dto.upsId;
 
     return server;
   }

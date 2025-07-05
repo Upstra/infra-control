@@ -13,10 +13,14 @@ import {
   ResourcePermissionMetadata,
 } from '@/core/decorators/ressource-permission.decorator';
 
+import { User } from '@/modules/users/domain/entities/user.entity';
+import { UserTypeormRepository } from '@/modules/users/infrastructure/repositories/user.typeorm.repository';
+
 describe('ResourcePermissionGuard', () => {
   let guard: ResourcePermissionGuard;
   let reflector: jest.Mocked<Reflector>;
   let strategyFactory: jest.Mocked<PermissionStrategyFactory>;
+  let userRepository: jest.Mocked<UserTypeormRepository>;
   let mockContext: jest.Mocked<ExecutionContext>;
   let mockRequest: any;
   let mockStrategy: any;
@@ -46,6 +50,10 @@ describe('ResourcePermissionGuard', () => {
       getStrategy: jest.fn().mockReturnValue(mockStrategy),
     } as any;
 
+    userRepository = {
+      findOneByField: jest.fn(),
+    } as any;
+
     mockRequest = {
       user: mockUser,
       params: { serverId: 'server-123' },
@@ -60,7 +68,11 @@ describe('ResourcePermissionGuard', () => {
       }),
     } as any;
 
-    guard = new ResourcePermissionGuard(reflector, strategyFactory);
+    guard = new ResourcePermissionGuard(
+      reflector,
+      strategyFactory,
+      userRepository,
+    );
   });
 
   describe('canActivate', () => {
@@ -82,6 +94,12 @@ describe('ResourcePermissionGuard', () => {
         reflector.get.mockReturnValue(mockMetadata);
         mockStrategy.checkPermission.mockResolvedValue(true);
 
+        const mockFullUser = {
+          id: 'user-123',
+          roles: [{ id: 'role-1', name: 'user', isAdmin: false }],
+        } as User;
+        userRepository.findOneByField.mockResolvedValue(mockFullUser);
+
         const result = await guard.canActivate(mockContext);
 
         expect(result).toBe(true);
@@ -89,12 +107,58 @@ describe('ResourcePermissionGuard', () => {
           RESOURCE_PERMISSION_KEY,
           mockContext.getHandler(),
         );
+        expect(userRepository.findOneByField).toHaveBeenCalledWith({
+          field: 'id',
+          value: 'user-123',
+          relations: ['roles'],
+        });
         expect(strategyFactory.getStrategy).toHaveBeenCalledWith('server');
         expect(mockStrategy.checkPermission).toHaveBeenCalledWith(
           'user-123',
           'server-123',
           PermissionBit.READ,
         );
+      });
+
+      it('should return true when user is admin (bypass permissions)', async () => {
+        reflector.get.mockReturnValue(mockMetadata);
+
+        const mockAdminUser = {
+          id: 'user-123',
+          roles: [{ id: 'role-1', name: 'admin', isAdmin: true }],
+        } as User;
+        userRepository.findOneByField.mockResolvedValue(mockAdminUser);
+
+        const result = await guard.canActivate(mockContext);
+
+        expect(result).toBe(true);
+        expect(userRepository.findOneByField).toHaveBeenCalledWith({
+          field: 'id',
+          value: 'user-123',
+          relations: ['roles'],
+        });
+        expect(strategyFactory.getStrategy).not.toHaveBeenCalled();
+        expect(mockStrategy.checkPermission).not.toHaveBeenCalled();
+      });
+
+      it('should return true when user has multiple roles including admin', async () => {
+        reflector.get.mockReturnValue(mockMetadata);
+
+        const mockMultiRoleUser = {
+          id: 'user-123',
+          roles: [
+            { id: 'role-1', name: 'user', isAdmin: false },
+            { id: 'role-2', name: 'admin', isAdmin: true },
+            { id: 'role-3', name: 'moderator', isAdmin: false },
+          ],
+        } as User;
+        userRepository.findOneByField.mockResolvedValue(mockMultiRoleUser);
+
+        const result = await guard.canActivate(mockContext);
+
+        expect(result).toBe(true);
+        expect(strategyFactory.getStrategy).not.toHaveBeenCalled();
+        expect(mockStrategy.checkPermission).not.toHaveBeenCalled();
       });
 
       it('should work with different resource ID sources (body)', async () => {
@@ -104,6 +168,12 @@ describe('ResourcePermissionGuard', () => {
           resourceIdField: 'serverId',
         };
         mockRequest.body = { serverId: 'server-456' };
+
+        const mockFullUser = {
+          id: 'user-123',
+          roles: [{ id: 'role-1', name: 'user', isAdmin: false }],
+        } as User;
+        userRepository.findOneByField.mockResolvedValue(mockFullUser);
 
         reflector.get.mockReturnValue(bodyMetadata);
         mockStrategy.checkPermission.mockResolvedValue(true);
@@ -125,6 +195,12 @@ describe('ResourcePermissionGuard', () => {
           resourceIdField: 'serverId',
         };
         mockRequest.query = { serverId: 'server-789' };
+
+        const mockFullUser = {
+          id: 'user-123',
+          roles: [{ id: 'role-1', name: 'user', isAdmin: false }],
+        } as User;
+        userRepository.findOneByField.mockResolvedValue(mockFullUser);
 
         reflector.get.mockReturnValue(queryMetadata);
         mockStrategy.checkPermission.mockResolvedValue(true);
@@ -168,6 +244,12 @@ describe('ResourcePermissionGuard', () => {
         reflector.get.mockReturnValue(mockMetadata);
         mockRequest.params = {}; // Pas de serverId
 
+        const mockFullUser = {
+          id: 'user-123',
+          roles: [{ id: 'role-1', name: 'user', isAdmin: false }],
+        } as User;
+        userRepository.findOneByField.mockResolvedValue(mockFullUser);
+
         await expect(guard.canActivate(mockContext)).rejects.toThrow(
           new BadRequestException('server ID is required for this operation'),
         );
@@ -180,6 +262,12 @@ describe('ResourcePermissionGuard', () => {
         reflector.get.mockReturnValue(mockMetadata);
         mockRequest.params = { serverId: null };
 
+        const mockFullUser = {
+          id: 'user-123',
+          roles: [{ id: 'role-1', name: 'user', isAdmin: false }],
+        } as User;
+        userRepository.findOneByField.mockResolvedValue(mockFullUser);
+
         await expect(guard.canActivate(mockContext)).rejects.toThrow(
           new BadRequestException('server ID is required for this operation'),
         );
@@ -189,6 +277,12 @@ describe('ResourcePermissionGuard', () => {
         reflector.get.mockReturnValue(mockMetadata);
         mockRequest.params = { serverId: '' };
 
+        const mockFullUser = {
+          id: 'user-123',
+          roles: [{ id: 'role-1', name: 'user', isAdmin: false }],
+        } as User;
+        userRepository.findOneByField.mockResolvedValue(mockFullUser);
+
         await expect(guard.canActivate(mockContext)).rejects.toThrow(
           new BadRequestException('server ID is required for this operation'),
         );
@@ -197,6 +291,12 @@ describe('ResourcePermissionGuard', () => {
       it('should throw BadRequestException when source object is missing', async () => {
         reflector.get.mockReturnValue(mockMetadata);
         delete mockRequest.params; // Source manquante
+
+        const mockFullUser = {
+          id: 'user-123',
+          roles: [{ id: 'role-1', name: 'user', isAdmin: false }],
+        } as User;
+        userRepository.findOneByField.mockResolvedValue(mockFullUser);
 
         await expect(guard.canActivate(mockContext)).rejects.toThrow(
           new BadRequestException('server ID is required for this operation'),
@@ -208,6 +308,12 @@ describe('ResourcePermissionGuard', () => {
       it('should throw ForbiddenException when user lacks required permission', async () => {
         reflector.get.mockReturnValue(mockMetadata);
         mockStrategy.checkPermission.mockResolvedValue(false);
+
+        const mockFullUser = {
+          id: 'user-123',
+          roles: [{ id: 'role-1', name: 'user', isAdmin: false }],
+        } as User;
+        userRepository.findOneByField.mockResolvedValue(mockFullUser);
 
         await expect(guard.canActivate(mockContext)).rejects.toThrow(
           new ForbiddenException(
@@ -231,6 +337,12 @@ describe('ResourcePermissionGuard', () => {
         reflector.get.mockReturnValue(writeMetadata);
         mockStrategy.checkPermission.mockResolvedValue(false);
 
+        const mockFullUser = {
+          id: 'user-123',
+          roles: [{ id: 'role-1', name: 'user', isAdmin: false }],
+        } as User;
+        userRepository.findOneByField.mockResolvedValue(mockFullUser);
+
         await expect(guard.canActivate(mockContext)).rejects.toThrow(
           new ForbiddenException(
             `You need ${PermissionBit[PermissionBit.WRITE]} permission on the server`,
@@ -248,6 +360,12 @@ describe('ResourcePermissionGuard', () => {
           resourceIdField: 'vmId',
         };
         mockRequest.params = { vmId: 'vm-123' };
+
+        const mockFullUser = {
+          id: 'user-123',
+          roles: [{ id: 'role-1', name: 'user', isAdmin: false }],
+        } as User;
+        userRepository.findOneByField.mockResolvedValue(mockFullUser);
 
         reflector.get.mockReturnValue(vmMetadata);
         mockStrategy.checkPermission.mockResolvedValue(true);
@@ -272,6 +390,12 @@ describe('ResourcePermissionGuard', () => {
           throw strategyError;
         });
 
+        const mockFullUser = {
+          id: 'user-123',
+          roles: [{ id: 'role-1', name: 'user', isAdmin: false }],
+        } as User;
+        userRepository.findOneByField.mockResolvedValue(mockFullUser);
+
         await expect(guard.canActivate(mockContext)).rejects.toThrow(
           strategyError,
         );
@@ -281,6 +405,12 @@ describe('ResourcePermissionGuard', () => {
         reflector.get.mockReturnValue(mockMetadata);
         const permissionError = new Error('Database connection failed');
         mockStrategy.checkPermission.mockRejectedValue(permissionError);
+
+        const mockFullUser = {
+          id: 'user-123',
+          roles: [{ id: 'role-1', name: 'user', isAdmin: false }],
+        } as User;
+        userRepository.findOneByField.mockResolvedValue(mockFullUser);
 
         await expect(guard.canActivate(mockContext)).rejects.toThrow(
           permissionError,

@@ -33,7 +33,10 @@ describe('UpdateUpsUseCase', () => {
     repo.findUpsById.mockResolvedValue(existing);
     domain.createUpsEntityFromUpdateDto.mockResolvedValue(updated);
     repo.save.mockResolvedValue(updated);
-    repo.findByIdWithServerCount.mockResolvedValue({ ups: updated, serverCount: 3 });
+    repo.findByIdWithServerCount.mockResolvedValue({
+      ups: updated,
+      serverCount: 3,
+    });
 
     const result = await useCase.execute('ups-id', dto);
 
@@ -57,7 +60,10 @@ describe('UpdateUpsUseCase', () => {
     repo.findUpsById.mockResolvedValue(existing);
     domain.createUpsEntityFromUpdateDto.mockResolvedValue(updated);
     repo.save.mockResolvedValue(updated);
-    repo.findByIdWithServerCount.mockResolvedValue({ ups: updated, serverCount: 0 });
+    repo.findByIdWithServerCount.mockResolvedValue({
+      ups: updated,
+      serverCount: 0,
+    });
 
     const result = await useCase.execute('ups-id', dto);
 

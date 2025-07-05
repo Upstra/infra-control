@@ -1,4 +1,4 @@
-import { createMockGroupServer } from '@/modules/groups/__mocks__/group.server.mock';
+import { createMockGroup } from '@/modules/groups/__mocks__/group.mock';
 import { createMockRoom } from '@/modules/rooms/__mocks__/rooms.mock';
 import { createMockUps } from '@/modules/ups/__mocks__/ups.mock';
 import { createMockVm } from '@/modules/vms/__mocks__/vms.mock';
@@ -21,7 +21,7 @@ export const createMockServer = (overrides?: Partial<Server>): Server => {
     password: 'password',
     type: 'physical',
     priority: 1,
-    group: createMockGroupServer(),
+    group: createMockGroup(),
     groupId: 'group-1',
     room: createMockRoom(),
     roomId: 'room-1',

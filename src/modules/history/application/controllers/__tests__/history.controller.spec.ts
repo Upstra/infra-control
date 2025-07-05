@@ -93,10 +93,10 @@ describe('HistoryController', () => {
 
     const eventDto = new HistoryEventResponseDto(event);
     const mockResponse = new HistoryListResponseDto([eventDto], 1, 1, 10);
-    
+
     getList.execute.mockResolvedValue(mockResponse);
     const result = await controller.getHistory('1', '10');
-    
+
     expect(result.items[0].ipAddress).toBe('192.168.1.100');
     expect(result.items[0].userAgent).toBe('Mozilla/5.0');
     expect(result.items[0].correlationId).toBe('corr-123');

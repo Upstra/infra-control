@@ -44,7 +44,7 @@ export class UpdateUpsUseCase {
     const saved = await this.upsRepository.save(ups);
     ups = Array.isArray(saved) ? saved[0] : saved;
     await this.logHistory?.execute('ups', ups.id, 'UPDATE', userId);
-    
+
     const result = await this.upsRepository.findByIdWithServerCount(ups.id);
     return new UpsResponseDto(result.ups, result.serverCount);
   }

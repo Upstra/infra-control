@@ -7,8 +7,12 @@ import {
   GetVmListUseCase,
   GetVmByIdUseCase,
   UpdateVmUseCase,
+  UpdateVmPriorityUseCase,
 } from '../../use-cases';
-import { createMockVm } from '../../../__mocks__/vms.mock';
+import {
+  createMockVm,
+  createMockVmResponseDto,
+} from '../../../__mocks__/vms.mock';
 import { VmCreationDto } from '../../dto/vm.creation.dto';
 import { VmUpdateDto } from '../../dto/vm.update.dto';
 import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
@@ -23,6 +27,7 @@ describe('VmController', () => {
   let createVmUseCase: jest.Mocked<CreateVmUseCase>;
   let updateVmUseCase: jest.Mocked<UpdateVmUseCase>;
   let deleteVmUseCase: jest.Mocked<DeleteVmUseCase>;
+  let updateVmPriorityUseCase: jest.Mocked<UpdateVmPriorityUseCase>;
 
   beforeEach(async () => {
     const mockJwtAuthGuard = {
@@ -52,6 +57,7 @@ describe('VmController', () => {
     createVmUseCase = { execute: jest.fn() } as any;
     updateVmUseCase = { execute: jest.fn() } as any;
     deleteVmUseCase = { execute: jest.fn() } as any;
+    updateVmPriorityUseCase = { execute: jest.fn() } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [VmController],
@@ -62,7 +68,7 @@ describe('VmController', () => {
         { provide: CreateVmUseCase, useValue: createVmUseCase },
         { provide: UpdateVmUseCase, useValue: updateVmUseCase },
         { provide: DeleteVmUseCase, useValue: deleteVmUseCase },
-
+        { provide: UpdateVmPriorityUseCase, useValue: updateVmPriorityUseCase },
         {
           provide: 'PermissionStrategyFactory',
           useValue: mockPermissionStrategyFactory,
@@ -82,7 +88,7 @@ describe('VmController', () => {
 
   describe('getAllVms', () => {
     it('should return all VMs', async () => {
-      const vm = createMockVm();
+      const vm = createMockVmResponseDto();
       getAllVmsUseCase.execute.mockResolvedValue([vm]);
 
       const result = await controller.getAllVms();
@@ -112,7 +118,7 @@ describe('VmController', () => {
 
   describe('getVmById', () => {
     it('should return a VM by ID', async () => {
-      const vm = createMockVm();
+      const vm = createMockVmResponseDto();
       getVmByIdUseCase.execute.mockResolvedValue(vm);
 
       const result = await controller.getVmById('vm-1');
@@ -132,7 +138,7 @@ describe('VmController', () => {
 
   describe('createVm', () => {
     it('should create a VM', async () => {
-      const vm = createMockVm();
+      const vm = createMockVmResponseDto();
       const dto: VmCreationDto = {
         name: vm.name,
         state: vm.state,
@@ -141,8 +147,8 @@ describe('VmController', () => {
         os: vm.os,
         adminUrl: vm.adminUrl,
         ip: vm.ip,
-        login: vm.login,
-        password: vm.password,
+        login: 'admin',
+        password: 'password',
         priority: vm.priority,
         serverId: vm.serverId,
         groupId: vm.groupId,
@@ -197,7 +203,7 @@ describe('VmController', () => {
 
   describe('updateVm', () => {
     it('should update a VM', async () => {
-      const vm = createMockVm();
+      const vm = createMockVmResponseDto();
       const dto: VmUpdateDto = {
         name: 'Updated Name',
       };

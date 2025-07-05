@@ -15,6 +15,7 @@ import {
   RESOURCE_PERMISSION_KEY,
   ResourcePermissionMetadata,
 } from '../decorators/ressource-permission.decorator';
+import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 
 @Injectable()
 export class ResourcePermissionGuard implements CanActivate {
@@ -22,6 +23,8 @@ export class ResourcePermissionGuard implements CanActivate {
     private readonly reflector: Reflector,
     @Inject('PermissionStrategyFactory')
     private readonly strategyFactory: PermissionStrategyFactory,
+    @Inject('UserRepositoryInterface')
+    private readonly userRepository: UserRepositoryInterface,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -39,6 +42,18 @@ export class ResourcePermissionGuard implements CanActivate {
 
     if (!user) {
       throw new ForbiddenException('User not authenticated');
+    }
+
+    const fullUser = await this.userRepository.findOneByField({
+      field: 'id',
+      value: user.userId,
+      relations: ['roles'],
+    });
+
+    const isAdmin = fullUser.roles.some((role) => role.isAdmin);
+
+    if (isAdmin) {
+      return true;
     }
 
     const resourceId = this.extractResourceId(request, metadata);
