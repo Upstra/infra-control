@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { DashboardWidget } from '../../../domain/entities/dashboard-widget.entity';
 import { DashboardLayoutRepository } from '../../../infrastructure/repositories/dashboard-layout.repository';
 import {
@@ -17,6 +19,8 @@ export class UpdateLayoutUseCase {
   constructor(
     private readonly layoutRepository: DashboardLayoutRepository,
     private readonly layoutDomainService: DashboardLayoutDomainService,
+    @InjectRepository(DashboardWidget)
+    private readonly widgetRepository: Repository<DashboardWidget>,
   ) {}
 
   async execute(
@@ -50,6 +54,16 @@ export class UpdateLayoutUseCase {
 
     if (dto.widgets !== undefined) {
       const existingWidgetsMap = new Map(layout.widgets.map((w) => [w.id, w]));
+      const updatedWidgetIds = new Set(
+        dto.widgets.filter((w) => w.id).map((w) => w.id),
+      );
+
+      const widgetsToDelete = layout.widgets.filter(
+        (w) => !updatedWidgetIds.has(w.id),
+      );
+      if (widgetsToDelete.length > 0) {
+        await this.widgetRepository.delete(widgetsToDelete.map((w) => w.id));
+      }
 
       layout.widgets = dto.widgets.map((widgetDto) => {
         let widget: DashboardWidget;
@@ -71,6 +85,7 @@ export class UpdateLayoutUseCase {
           widget.settings = widgetDto.settings;
           widget.refreshInterval = widgetDto.refreshInterval;
           widget.visible = widgetDto.visible ?? true;
+          widget.layoutId = layout.id;
         }
 
         this.layoutDomainService.validateWidgetPosition(widget, layout.columns);

@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DashboardPreferenceRepository } from '../../../infrastructure/repositories/dashboard-preference.repository';
 import { DashboardPreferenceResponseDto } from '../../dto/dashboard-preference.dto';
-import { DashboardPreference } from '../../../domain/entities/dashboard-preference.entity';
 
 @Injectable()
 export class GetPreferencesUseCase {

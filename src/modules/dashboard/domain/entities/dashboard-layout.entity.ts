@@ -38,6 +38,7 @@ export class DashboardLayout {
   @OneToMany(() => DashboardWidget, (widget) => widget.layout, {
     cascade: true,
     eager: true,
+    orphanedRowAction: 'delete',
   })
   widgets: DashboardWidget[];
 
