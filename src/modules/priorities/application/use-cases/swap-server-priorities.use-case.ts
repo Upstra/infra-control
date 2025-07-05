@@ -52,14 +52,43 @@ export class SwapServerPrioritiesUseCase {
         throw new NotFoundException(`Server with id "${server2Id}" not found`);
       }
 
-      const tempPriority = server1.priority;
-      server1.priority = server2.priority;
-      server2.priority = tempPriority;
+      const server1OriginalPriority = server1.priority;
+      const server2OriginalPriority = server2.priority;
+
+      server1.priority = server2OriginalPriority;
+      server2.priority = server1OriginalPriority;
 
       await serverRepo.save([server1, server2]);
 
-      await this.logHistory.execute('server', server1.id, 'UPDATE', userId);
-      await this.logHistory.execute('server', server2.id, 'UPDATE', userId);
+      await this.logHistory.executeStructured({
+        entity: 'server',
+        entityId: server1.id,
+        action: 'PRIORITY_SWAP',
+        userId,
+        oldValue: { priority: server1OriginalPriority },
+        newValue: { priority: server1.priority },
+        metadata: {
+          swapPartner: server2.id,
+          swapPartnerName: server2.name,
+          oldPriority: server1OriginalPriority,
+          newPriority: server1.priority,
+        },
+      });
+
+      await this.logHistory.executeStructured({
+        entity: 'server',
+        entityId: server2.id,
+        action: 'PRIORITY_SWAP',
+        userId,
+        oldValue: { priority: server2OriginalPriority },
+        newValue: { priority: server2.priority },
+        metadata: {
+          swapPartner: server1.id,
+          swapPartnerName: server1.name,
+          oldPriority: server2OriginalPriority,
+          newPriority: server2.priority,
+        },
+      });
 
       return {
         server1: { id: server1.id, priority: server1.priority },

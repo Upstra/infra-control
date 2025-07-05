@@ -52,14 +52,45 @@ export class SwapVmPrioritiesUseCase {
         throw new NotFoundException(`VM with id "${vm2Id}" not found`);
       }
 
-      const tempPriority = vm1.priority;
-      vm1.priority = vm2.priority;
-      vm2.priority = tempPriority;
+      const vm1OriginalPriority = vm1.priority;
+      const vm2OriginalPriority = vm2.priority;
+
+      vm1.priority = vm2OriginalPriority;
+      vm2.priority = vm1OriginalPriority;
 
       await vmRepo.save([vm1, vm2]);
 
-      await this.logHistory.execute('vm', vm1.id, 'UPDATE', userId);
-      await this.logHistory.execute('vm', vm2.id, 'UPDATE', userId);
+      await this.logHistory.executeStructured({
+        entity: 'vm',
+        entityId: vm1.id,
+        action: 'PRIORITY_SWAP',
+        userId,
+        oldValue: { priority: vm1OriginalPriority },
+        newValue: { priority: vm1.priority },
+        metadata: {
+          swapPartner: vm2.id,
+          swapPartnerName: vm2.name,
+          vmServerId: vm1.serverId,
+          oldPriority: vm1OriginalPriority,
+          newPriority: vm1.priority,
+        },
+      });
+
+      await this.logHistory.executeStructured({
+        entity: 'vm',
+        entityId: vm2.id,
+        action: 'PRIORITY_SWAP',
+        userId,
+        oldValue: { priority: vm2OriginalPriority },
+        newValue: { priority: vm2.priority },
+        metadata: {
+          swapPartner: vm1.id,
+          swapPartnerName: vm1.name,
+          vmServerId: vm2.serverId,
+          oldPriority: vm2OriginalPriority,
+          newPriority: vm2.priority,
+        },
+      });
 
       return {
         vm1: { id: vm1.id, priority: vm1.priority },
