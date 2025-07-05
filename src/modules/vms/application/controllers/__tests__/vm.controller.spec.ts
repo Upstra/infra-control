@@ -7,6 +7,7 @@ import {
   GetVmListUseCase,
   GetVmByIdUseCase,
   UpdateVmUseCase,
+  UpdateVmPriorityUseCase,
 } from '../../use-cases';
 import {
   createMockVm,
@@ -26,6 +27,7 @@ describe('VmController', () => {
   let createVmUseCase: jest.Mocked<CreateVmUseCase>;
   let updateVmUseCase: jest.Mocked<UpdateVmUseCase>;
   let deleteVmUseCase: jest.Mocked<DeleteVmUseCase>;
+  let updateVmPriorityUseCase: jest.Mocked<UpdateVmPriorityUseCase>;
 
   beforeEach(async () => {
     const mockJwtAuthGuard = {
@@ -55,6 +57,7 @@ describe('VmController', () => {
     createVmUseCase = { execute: jest.fn() } as any;
     updateVmUseCase = { execute: jest.fn() } as any;
     deleteVmUseCase = { execute: jest.fn() } as any;
+    updateVmPriorityUseCase = { execute: jest.fn() } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [VmController],
@@ -65,7 +68,7 @@ describe('VmController', () => {
         { provide: CreateVmUseCase, useValue: createVmUseCase },
         { provide: UpdateVmUseCase, useValue: updateVmUseCase },
         { provide: DeleteVmUseCase, useValue: deleteVmUseCase },
-
+        { provide: UpdateVmPriorityUseCase, useValue: updateVmPriorityUseCase },
         {
           provide: 'PermissionStrategyFactory',
           useValue: mockPermissionStrategyFactory,

@@ -13,8 +13,8 @@ export const buildTypeOrmOptions = (): TypeOrmModuleOptions => ({
   password: process.env.DB_PASSWORD,
   entities: [__dirname + '/../modules/**/*.entity{.ts,.js}'],
   migrations: [__dirname + '/../migrations/*{.ts,.js}'],
-  synchronize: false,
-  migrationsRun: true,
+  synchronize: process.env.NODE_ENV !== 'production',
+  migrationsRun: process.env.NODE_ENV === 'production',
   logging: false,
   autoLoadEntities: true,
 });

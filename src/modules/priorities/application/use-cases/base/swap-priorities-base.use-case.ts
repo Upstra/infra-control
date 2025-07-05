@@ -8,13 +8,10 @@ interface PrioritizedEntity {
   priority: number;
   name: string;
 }
-
-type SwapResult = any;
-
 export abstract class SwapPrioritiesBaseUseCase<
   TEntity extends PrioritizedEntity,
   TPermission extends { bitmask: number },
-  TResult extends SwapResult,
+  TResult,
 > {
   constructor(
     protected readonly dataSource: DataSource,

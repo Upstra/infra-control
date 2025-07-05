@@ -8,11 +8,13 @@ import {
   GetServerByIdWithPermissionCheckUseCase,
   GetUserServersUseCase,
   UpdateServerUseCase,
+  UpdateServerPriorityUseCase,
 } from '@/modules/servers/application/use-cases';
 import { createMockServerDto } from '@/modules/servers/__mocks__/servers.mock';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { PermissionGuard } from '@/core/guards/permission.guard';
 import { RoleGuard } from '@/core/guards/role.guard';
+import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { GetUserWithRoleUseCase } from '@/modules/users/application/use-cases';
 import { Reflector } from '@nestjs/core';
@@ -27,6 +29,7 @@ describe('ServerController', () => {
   let deleteServerUseCase: jest.Mocked<DeleteServerUseCase>;
   let getUserServersUseCase: jest.Mocked<GetUserServersUseCase>;
   let getServerByIdWithPermissionCheckUseCase: jest.Mocked<GetServerByIdWithPermissionCheckUseCase>;
+  let updateServerPriorityUseCase: jest.Mocked<UpdateServerPriorityUseCase>;
 
   const mockPayload: JwtPayload = {
     userId: 'user-123',
@@ -64,6 +67,7 @@ describe('ServerController', () => {
     deleteServerUseCase = { execute: jest.fn() } as any;
     getUserServersUseCase = { execute: jest.fn() } as any;
     getServerByIdWithPermissionCheckUseCase = { execute: jest.fn() } as any;
+    updateServerPriorityUseCase = { execute: jest.fn() } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ServerController],
@@ -78,7 +82,10 @@ describe('ServerController', () => {
           provide: GetServerByIdWithPermissionCheckUseCase,
           useValue: getServerByIdWithPermissionCheckUseCase,
         },
-
+        {
+          provide: UpdateServerPriorityUseCase,
+          useValue: updateServerPriorityUseCase,
+        },
         {
           provide: GetUserWithRoleUseCase,
           useValue: mockGetUserWithRoleUseCase,
@@ -93,6 +100,8 @@ describe('ServerController', () => {
       .useValue(mockPermissionGuard)
       .overrideGuard(RoleGuard)
       .useValue(mockRoleGuard)
+      .overrideGuard(ResourcePermissionGuard)
+      .useValue({ canActivate: jest.fn().mockReturnValue(true) })
       .compile();
 
     controller = module.get(ServerController);
