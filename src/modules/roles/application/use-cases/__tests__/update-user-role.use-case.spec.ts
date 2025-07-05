@@ -6,12 +6,15 @@ import { createMockRole } from '@/modules/roles/__mocks__/role.mock';
 import { CannotRemoveGuestRoleException } from '@/modules/roles/domain/exceptions/role.exception';
 import { DataSource, EntityManager } from 'typeorm';
 import { CannotRemoveLastAdminException } from '@/modules/users/domain/exceptions/user.exception';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
+import { RequestContextDto } from '@/core/dto';
 
 describe('UpdateUserRoleUseCase', () => {
   let useCase: UpdateUserRoleUseCase;
   let repo: any;
   let roleRepo: any;
   let dataSource: jest.Mocked<DataSource>;
+  let logHistory: jest.Mocked<LogHistoryUseCase>;
 
   beforeEach(() => {
     repo = {
@@ -31,7 +34,11 @@ describe('UpdateUserRoleUseCase', () => {
           }),
       ),
     } as any;
-    useCase = new UpdateUserRoleUseCase(dataSource);
+    logHistory = {
+      execute: jest.fn(),
+      executeStructured: jest.fn(),
+    } as any;
+    useCase = new UpdateUserRoleUseCase(dataSource, logHistory);
   });
 
   it('should add role to user', async () => {
@@ -186,5 +193,188 @@ describe('UpdateUserRoleUseCase', () => {
 
     expect(emptyUser.roles).toEqual([guestRole]);
     expect(result).toEqual(new UserResponseDto(updated));
+  });
+
+  describe('Structured Logging', () => {
+    const requestContext = RequestContextDto.forTesting({
+      ipAddress: '172.16.0.1',
+      userAgent: 'Test-Browser/1.0',
+    });
+
+    it('should log role addition with structured data', async () => {
+      const existingRole = createMockRole({
+        id: 'r0',
+        name: 'USER',
+        isAdmin: false,
+      });
+      const current = createMockUser({ id: 'u1', roles: [existingRole] });
+      const newRole = createMockRole({
+        id: 'r1',
+        name: 'ADMIN',
+        isAdmin: true,
+      });
+
+      repo.findOneOrFail.mockResolvedValueOnce(current);
+      roleRepo.findOneOrFail.mockResolvedValueOnce(newRole);
+
+      const updated = Object.setPrototypeOf(
+        { ...current, roles: [existingRole, newRole] },
+        User.prototype,
+      );
+      repo.save.mockResolvedValueOnce(updated);
+
+      await useCase.execute('u1', 'r1', 'admin-user', requestContext);
+
+      expect(logHistory.executeStructured).toHaveBeenCalledWith({
+        entity: 'user_role',
+        entityId: 'u1',
+        action: 'UPDATE_ROLE',
+        userId: 'admin-user',
+        oldValue: {
+          roles: [{ id: 'r0', name: 'USER', isAdmin: false }],
+        },
+        newValue: {
+          roles: [
+            { id: 'r0', name: 'USER', isAdmin: false },
+            { id: 'r1', name: 'ADMIN', isAdmin: true },
+          ],
+        },
+        metadata: {
+          operationType: 'ADD_ROLE',
+          targetRoleName: 'ADMIN',
+          targetRoleIsAdmin: true,
+          previousRoleCount: 1,
+          newRoleCount: 2,
+          isElevationToAdmin: true,
+          isRemovalFromAdmin: false,
+        },
+        ipAddress: '172.16.0.1',
+        userAgent: 'Test-Browser/1.0',
+      });
+    });
+
+    it('should log role removal with structured data', async () => {
+      const adminRole = createMockRole({
+        id: 'r1',
+        name: 'ADMIN',
+        isAdmin: true,
+      });
+      const userRole = createMockRole({
+        id: 'r2',
+        name: 'USER',
+        isAdmin: false,
+      });
+      const current = createMockUser({
+        id: 'u1',
+        roles: [adminRole, userRole],
+      });
+
+      repo.findOneOrFail.mockResolvedValueOnce(current);
+      roleRepo.findOneOrFail.mockResolvedValueOnce(adminRole);
+
+      const updated = Object.setPrototypeOf(
+        { ...current, roles: [userRole] },
+        User.prototype,
+      );
+      repo.save.mockResolvedValueOnce(updated);
+
+      await useCase.execute('u1', 'r1', 'admin-user', requestContext);
+
+      expect(logHistory.executeStructured).toHaveBeenCalledWith({
+        entity: 'user_role',
+        entityId: 'u1',
+        action: 'UPDATE_ROLE',
+        userId: 'admin-user',
+        oldValue: {
+          roles: [
+            { id: 'r1', name: 'ADMIN', isAdmin: true },
+            { id: 'r2', name: 'USER', isAdmin: false },
+          ],
+        },
+        newValue: {
+          roles: [{ id: 'r2', name: 'USER', isAdmin: false }],
+        },
+        metadata: {
+          operationType: 'REMOVE_ROLE',
+          targetRoleName: 'ADMIN',
+          targetRoleIsAdmin: true,
+          previousRoleCount: 2,
+          newRoleCount: 1,
+          isElevationToAdmin: false,
+          isRemovalFromAdmin: true,
+        },
+        ipAddress: '172.16.0.1',
+        userAgent: 'Test-Browser/1.0',
+      });
+    });
+
+    it('should log guest role assignment with structured data', async () => {
+      const userRole = createMockRole({
+        id: 'r1',
+        name: 'USER',
+        isAdmin: false,
+      });
+      const guestRole = createMockRole({
+        id: 'g1',
+        name: 'GUEST',
+        isAdmin: false,
+      });
+      const current = createMockUser({ id: 'u1', roles: [userRole] });
+
+      repo.findOneOrFail.mockResolvedValueOnce(current);
+      roleRepo.findOneOrFail
+        .mockResolvedValueOnce(userRole)
+        .mockResolvedValueOnce(guestRole);
+
+      const updated = Object.setPrototypeOf(
+        { ...current, roles: [guestRole] },
+        User.prototype,
+      );
+      repo.save.mockResolvedValueOnce(updated);
+
+      await useCase.execute('u1', 'r1', 'admin-user', requestContext);
+
+      expect(logHistory.executeStructured).toHaveBeenCalledWith({
+        entity: 'user_role',
+        entityId: 'u1',
+        action: 'UPDATE_ROLE',
+        userId: 'admin-user',
+        oldValue: {
+          roles: [{ id: 'r1', name: 'USER', isAdmin: false }],
+        },
+        newValue: {
+          roles: [{ id: 'g1', name: 'GUEST', isAdmin: false }],
+        },
+        metadata: {
+          operationType: 'ASSIGN_GUEST',
+          targetRoleName: 'GUEST',
+          targetRoleIsAdmin: false,
+          previousRoleCount: 1,
+          newRoleCount: 1,
+          isElevationToAdmin: false,
+          isRemovalFromAdmin: false,
+        },
+        ipAddress: '172.16.0.1',
+        userAgent: 'Test-Browser/1.0',
+      });
+    });
+
+    it('should work without request context', async () => {
+      const existingRole = createMockRole({ id: 'r0', isAdmin: true });
+      const current = createMockUser({ id: 'u1', roles: [existingRole] });
+
+      repo.findOneOrFail.mockResolvedValueOnce(current);
+      const updated = Object.setPrototypeOf(current, User.prototype);
+      repo.save.mockResolvedValueOnce(updated);
+
+      await useCase.execute('u1', null, 'admin-user');
+
+      expect(logHistory.executeStructured).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ipAddress: undefined,
+          userAgent: undefined,
+        }),
+      );
+    });
   });
 });

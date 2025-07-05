@@ -139,15 +139,21 @@ describe('UserController', () => {
         ...mockUser,
         ...updateDto,
       });
+      const mockReq = {
+        ip: '127.0.0.1',
+        get: jest.fn().mockReturnValue('Test-Agent'),
+      } as any;
       const result = await controller.updateUser(
         mockUser.userId,
         updateDto,
         mockPayload,
+        mockReq,
       );
       expect(updateUserUseCase.execute).toHaveBeenCalledWith(
         mockUser.userId,
         updateDto,
         mockPayload.userId,
+        expect.any(Object),
       );
       expect(result).toEqual({ ...mockUser, ...updateDto });
     });
@@ -163,13 +169,20 @@ describe('UserController', () => {
         ...mockUser,
         ...updateDto,
       });
+      const mockReq = {
+        ip: '127.0.0.1',
+        get: jest.fn().mockReturnValue('Test-Agent'),
+      } as any;
       const result = await controller.updateCurrentUser(
         mockUser as any,
         updateDto,
+        mockReq,
       );
       expect(updateUserUseCase.execute).toHaveBeenCalledWith(
         mockUser.userId,
         updateDto,
+        mockUser.userId,
+        expect.any(Object),
       );
       expect(result).toEqual({ ...mockUser, ...updateDto });
     });

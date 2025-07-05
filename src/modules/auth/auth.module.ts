@@ -10,11 +10,13 @@ import { TwoFAController } from './application/controllers/twofa.controller';
 import { RecoveryCodeService } from './domain/services/recovery-code.domain.service';
 import { AuthUseCases } from './application/use-cases';
 import { TokenService } from './application/services/token.service';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [
     UserModule,
     PassportModule,
+    AuditModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

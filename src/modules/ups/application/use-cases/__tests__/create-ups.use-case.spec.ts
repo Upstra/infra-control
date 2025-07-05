@@ -32,6 +32,7 @@ describe('CreateUpsUseCase', () => {
 
     expect(result).toBeInstanceOf(UpsResponseDto);
     expect(result.id).toBe(entity.id);
+    expect(result.serverCount).toBe(0);
     expect(mockRepo.save).toHaveBeenCalledWith(entity);
   });
 
@@ -46,6 +47,7 @@ describe('CreateUpsUseCase', () => {
 
     expect(result).toBeInstanceOf(UpsResponseDto);
     expect(result.id).toBe(entity.id);
+    expect(result.serverCount).toBe(0);
   });
 
   it('should throw if domain service fails', async () => {

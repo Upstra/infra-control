@@ -4,6 +4,8 @@ import { UserResponseDto } from '../dto/user.response.dto';
 import { UserUpdateDto } from '../dto/user.update.dto';
 import { UserDomainService } from '../../domain/services/user.domain.service';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
+import { User } from '../../domain/entities/user.entity';
+import { RequestContextDto } from '@/core/dto';
 
 /**
  * Updates all modifiable attributes of an existing user.
@@ -37,12 +39,15 @@ export class UpdateUserUseCase {
     id: string,
     dto: UserUpdateDto,
     userId?: string,
+    requestContext?: RequestContextDto,
   ): Promise<UserResponseDto> {
     let user = await this.repo.findOneByField({
       field: 'id',
       value: id,
       relations: ['roles'],
     });
+
+    const oldUserData = this.extractUserData(user);
 
     await this.userDomainService.ensureUniqueEmail(dto.email, id);
     await this.userDomainService.ensureUniqueUsername(dto.username, id);
@@ -54,7 +59,53 @@ export class UpdateUserUseCase {
       userId = user.id;
     }
 
-    await this.logHistory?.execute('user', user.id, 'UPDATE', userId);
+    const newUserData = this.extractUserData(user);
+    const changedFields = this.getChangedFields(oldUserData, newUserData);
+
+    await this.logHistory?.executeStructured({
+      entity: 'user',
+      entityId: user.id,
+      action: 'UPDATE',
+      userId,
+      oldValue: oldUserData,
+      newValue: newUserData,
+      metadata: {
+        changedFields,
+        updateType: 'full_update',
+        hasRoleChanges: changedFields.includes('roles'),
+        has2faChanges: changedFields.includes('isTwoFactorEnabled'),
+      },
+      ipAddress: requestContext?.ipAddress,
+      userAgent: requestContext?.userAgent,
+    });
+
     return new UserResponseDto(user);
+  }
+
+  private extractUserData(user: User): Record<string, any> {
+    return {
+      email: user.email,
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      isTwoFactorEnabled: user.isTwoFactorEnabled,
+      roles: user.roles?.map((role) => role.name) ?? [],
+      active: user.active,
+    };
+  }
+
+  private getChangedFields(
+    oldData: Record<string, any>,
+    newData: Record<string, any>,
+  ): string[] {
+    const changedFields: string[] = [];
+
+    for (const key in newData) {
+      if (JSON.stringify(oldData[key]) !== JSON.stringify(newData[key])) {
+        changedFields.push(key);
+      }
+    }
+
+    return changedFields;
   }
 }

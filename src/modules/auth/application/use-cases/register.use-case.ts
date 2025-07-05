@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { RegisterDto } from '../dto/register.dto';
 import { RegisterUserUseCase } from '@/modules/users/application/use-cases';
 import { TokenService } from '../services/token.service';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
+import { RequestContextDto } from '@/core/dto';
 
 /**
  * Registers a new user account and issues authentication tokens.
@@ -26,10 +28,27 @@ export class RegisterUseCase {
   constructor(
     private readonly registerUserUseCase: RegisterUserUseCase,
     private readonly tokenService: TokenService,
+    private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(dto: RegisterDto) {
+  async execute(dto: RegisterDto, requestContext?: RequestContextDto) {
     const user = await this.registerUserUseCase.execute(dto);
+
+    await this.logHistory?.executeStructured({
+      entity: 'auth',
+      entityId: user.id,
+      action: 'REGISTER_SUCCESS',
+      userId: user.id,
+      metadata: {
+        registrationMethod: 'email',
+        userEmail: user.email,
+        userName: user.username,
+        hasInitialRoles: user.roles?.length > 0,
+      },
+      ipAddress: requestContext?.ipAddress,
+      userAgent: requestContext?.userAgent,
+    });
+
     return this.tokenService.generateTokens({
       userId: user.id,
       email: user.email,

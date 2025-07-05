@@ -60,7 +60,7 @@ describe('UpsController', () => {
   });
 
   it('should return paginated UPS list', async () => {
-    const mock = { items: [new UpsResponseDto(createMockUps())] } as any;
+    const mock = { items: [new UpsResponseDto(createMockUps(), 3)] } as any;
     getListUseCase.execute.mockResolvedValue(mock);
     const result = await controller.getUps('1', '5');
     expect(result).toBe(mock);
@@ -81,7 +81,7 @@ describe('UpsController', () => {
   });
 
   it('should return all UPSs', async () => {
-    const mock = [new UpsResponseDto(createMockUps())];
+    const mock = [new UpsResponseDto(createMockUps(), 5)];
     getAllUseCase.execute.mockResolvedValue(mock);
     const result = await controller.getAllUps();
     expect(result).toEqual(mock);
@@ -94,7 +94,7 @@ describe('UpsController', () => {
   });
 
   it('should return a UPS by ID', async () => {
-    const mock = new UpsResponseDto(createMockUps());
+    const mock = new UpsResponseDto(createMockUps(), 2);
     getByIdUseCase.execute.mockResolvedValue(mock);
     const result = await controller.getUpsById('ups-123');
     expect(result).toEqual(mock);
@@ -108,7 +108,7 @@ describe('UpsController', () => {
 
   it('should create a new UPS', async () => {
     const dto = createMockUpsDto();
-    const mock = new UpsResponseDto({ ...dto, id: 'ups-123' } as any);
+    const mock = new UpsResponseDto({ ...dto, id: 'ups-123' } as any, 0);
     createUseCase.execute.mockResolvedValue(mock);
     const result = await controller.createUps(dto, mockPayload);
     expect(result).toEqual(mock);
@@ -125,7 +125,7 @@ describe('UpsController', () => {
 
   it('should update a UPS', async () => {
     const dto = { name: 'Updated UPS' };
-    const mock = new UpsResponseDto(createMockUps({ name: 'Updated UPS' }));
+    const mock = new UpsResponseDto(createMockUps({ name: 'Updated UPS' }), 4);
     updateUseCase.execute.mockResolvedValue(mock);
     const result = await controller.updateUps('ups-123', dto, mockPayload);
     expect(result).toEqual(mock);

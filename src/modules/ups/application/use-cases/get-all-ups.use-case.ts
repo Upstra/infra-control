@@ -26,7 +26,7 @@ export class GetAllUpsUseCase {
   ) {}
 
   async execute(): Promise<UpsResponseDto[]> {
-    const ups = await this.upsRepository.findAll();
-    return ups.map((u) => new UpsResponseDto(u));
+    const upsWithCount = await this.upsRepository.findAllWithServerCount();
+    return upsWithCount.map(({ ups, serverCount }) => new UpsResponseDto(ups, serverCount));
   }
 }

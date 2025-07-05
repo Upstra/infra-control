@@ -17,6 +17,7 @@ import { PermissionBit } from '@/modules/permissions/domain/value-objects/permis
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 import { UpsRepositoryInterface } from '@/modules/ups/domain/interfaces/ups.repository.interface';
+import { RequestContextDto } from '@/core/dto';
 
 /**
  * Creates a new server record and optionally provisions initial VMs.
@@ -59,11 +60,14 @@ export class CreateServerUseCase {
   async execute(
     dto: ServerCreationDto,
     userId: string,
+    requestContext?: RequestContextDto,
   ): Promise<ServerResponseDto> {
-    await this.roomRepository.findRoomById(dto.roomId);
+    const room = await this.roomRepository.findRoomById(dto.roomId);
+    let ups = null;
+    let group = null;
 
     if (dto.upsId) {
-      const ups = await this.upsRepository.findUpsById(dto.upsId);
+      ups = await this.upsRepository.findUpsById(dto.upsId);
       if (ups.roomId !== dto.roomId) {
         throw new BadRequestException(
           "L'UPS sélectionné n'appartient pas à la salle spécifiée",
@@ -72,7 +76,7 @@ export class CreateServerUseCase {
     }
 
     if (dto.groupId) {
-      await this.groupRepository.findOneByField({
+      group = await this.groupRepository.findOneByField({
         field: 'id',
         value: dto.groupId,
       });
@@ -87,7 +91,6 @@ export class CreateServerUseCase {
 
     const entity = this.serverDomain.createServerEntityFromDto(dto, ilo.id);
     const server = await this.serverRepository.save(entity);
-    await this.logHistory?.execute('server', server.id, 'CREATE', userId);
 
     const user = await this.userRepository.findOneByField({
       field: 'id',
@@ -97,6 +100,7 @@ export class CreateServerUseCase {
 
     const adminRoleIds =
       user?.roles?.filter((r) => r.isAdmin).map((r) => r.id) ?? [];
+
     for (const roleId of adminRoleIds) {
       await this.permissionRepository.createPermission(
         server.id,
@@ -108,6 +112,34 @@ export class CreateServerUseCase {
           PermissionBit.RESTART,
       );
     }
+
+    await this.logHistory?.executeStructured({
+      entity: 'server',
+      entityId: server.id,
+      action: 'CREATE',
+      userId,
+      newValue: {
+        hostname: server.name,
+        description: undefined,
+        roomId: server.roomId,
+        roomName: room?.name,
+        groupId: server.groupId,
+        groupName: group?.name,
+        upsId: server.upsId,
+        iloId: server.iloId,
+        iloIpAddress: ilo.ip,
+      },
+      metadata: {
+        serverType: 'physical',
+        hasUpsConnection: !!dto.upsId,
+        assignedToGroup: !!dto.groupId,
+        adminRolesGranted: adminRoleIds.length,
+        iloConfigured: true,
+        initialPermissions: ['READ', 'WRITE', 'DELETE', 'SHUTDOWN', 'RESTART'],
+      },
+      ipAddress: requestContext?.ipAddress,
+      userAgent: requestContext?.userAgent,
+    });
 
     return new ServerResponseDto(server, ilo);
   }

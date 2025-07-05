@@ -11,6 +11,8 @@ import {
   GetUserByEmailUseCase,
   GetUserByUsernameUseCase,
 } from '@/modules/users/application/use-cases';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
+import { RequestContextDto } from '@/core/dto';
 
 describe('LoginUseCase', () => {
   let useCase: LoginUseCase;
@@ -18,6 +20,7 @@ describe('LoginUseCase', () => {
   let getUserByUsernameUseCase: jest.Mocked<GetUserByUsernameUseCase>;
   let userDomain: jest.Mocked<UserDomainService>;
   let tokenService: jest.Mocked<TokenService>;
+  let logHistory: jest.Mocked<LogHistoryUseCase>;
 
   const mockUser = (overrides?: Partial<User>): User =>
     Object.assign(new User(), {
@@ -49,11 +52,17 @@ describe('LoginUseCase', () => {
       generate2FAToken: jest.fn(),
     } as any;
 
+    logHistory = {
+      execute: jest.fn(),
+      executeStructured: jest.fn(),
+    } as any;
+
     useCase = new LoginUseCase(
       getUserByUsernameUseCase,
       getUserByEmailUseCase,
       userDomain,
       tokenService,
+      logHistory,
     );
   });
 
@@ -163,5 +172,182 @@ describe('LoginUseCase', () => {
     await expect(
       useCase.execute({ identifier: 'test@example.com', password: 'wrong' }),
     ).rejects.toThrow(AuthPasswordNotValidException);
+  });
+
+  describe('Structured Logging', () => {
+    const requestContext = RequestContextDto.forTesting({
+      ipAddress: '192.168.1.100',
+      userAgent: 'Test-Agent/1.0',
+    });
+
+    it('should log successful login with structured data', async () => {
+      const user = mockUser();
+      getUserByEmailUseCase.execute.mockResolvedValue(user);
+      userDomain.validatePassword.mockResolvedValue(true);
+      userDomain.isTwoFactorEnabled.mockReturnValue(false);
+      tokenService.generateTokens.mockReturnValue({
+        accessToken: 'access.jwt.token',
+        refreshToken: 'refresh.jwt.token',
+      });
+
+      await useCase.execute(
+        {
+          identifier: 'test@example.com',
+          password: '123456',
+        },
+        requestContext,
+      );
+
+      expect(logHistory.executeStructured).toHaveBeenCalledWith({
+        entity: 'auth',
+        entityId: user.id,
+        action: 'LOGIN_SUCCESS',
+        userId: user.id,
+        metadata: {
+          loginMethod: 'email',
+          requires2FA: false,
+          userActive: user.active,
+        },
+        ipAddress: '192.168.1.100',
+        userAgent: 'Test-Agent/1.0',
+      });
+    });
+
+    it('should log 2FA required with structured data', async () => {
+      const user = mockUser({ isTwoFactorEnabled: true });
+      getUserByEmailUseCase.execute.mockResolvedValue(user);
+      userDomain.validatePassword.mockResolvedValue(true);
+      userDomain.isTwoFactorEnabled.mockReturnValue(true);
+      tokenService.generate2FAToken.mockReturnValue('2fa.jwt.token');
+
+      await useCase.execute(
+        {
+          identifier: 'test@example.com',
+          password: '123456',
+        },
+        requestContext,
+      );
+
+      expect(logHistory.executeStructured).toHaveBeenCalledWith({
+        entity: 'auth',
+        entityId: user.id,
+        action: 'LOGIN_2FA_REQUIRED',
+        userId: user.id,
+        metadata: {
+          loginMethod: 'email',
+          requires2FA: true,
+          userActive: user.active,
+        },
+        ipAddress: '192.168.1.100',
+        userAgent: 'Test-Agent/1.0',
+      });
+    });
+
+    it('should log failed login for user not found', async () => {
+      getUserByEmailUseCase.execute.mockResolvedValue(null);
+
+      await expect(
+        useCase.execute(
+          {
+            identifier: 'unknown@example.com',
+            password: '123456',
+          },
+          requestContext,
+        ),
+      ).rejects.toThrow(AuthNotFoundException);
+
+      expect(logHistory.executeStructured).toHaveBeenCalledWith({
+        entity: 'auth',
+        entityId: 'unknown',
+        action: 'LOGIN_FAILED',
+        metadata: {
+          reason: 'user_not_found',
+          identifier: 'unk***',
+          loginMethod: 'email',
+        },
+        ipAddress: '192.168.1.100',
+        userAgent: 'Test-Agent/1.0',
+      });
+    });
+
+    it('should log failed login for invalid password', async () => {
+      const user = mockUser();
+      getUserByEmailUseCase.execute.mockResolvedValue(user);
+      userDomain.validatePassword.mockResolvedValue(false);
+
+      await expect(
+        useCase.execute(
+          {
+            identifier: 'test@example.com',
+            password: 'wrong',
+          },
+          requestContext,
+        ),
+      ).rejects.toThrow(AuthPasswordNotValidException);
+
+      expect(logHistory.executeStructured).toHaveBeenCalledWith({
+        entity: 'auth',
+        entityId: user.id,
+        action: 'LOGIN_FAILED',
+        userId: user.id,
+        metadata: {
+          reason: 'invalid_password',
+          identifier: 'tes***',
+          loginMethod: 'email',
+        },
+        ipAddress: '192.168.1.100',
+        userAgent: 'Test-Agent/1.0',
+      });
+    });
+
+    it('should detect username login method correctly', async () => {
+      const user = mockUser();
+      getUserByUsernameUseCase.execute.mockResolvedValue(user);
+      userDomain.validatePassword.mockResolvedValue(true);
+      userDomain.isTwoFactorEnabled.mockReturnValue(false);
+      tokenService.generateTokens.mockReturnValue({
+        accessToken: 'access.jwt.token',
+        refreshToken: 'refresh.jwt.token',
+      });
+
+      await useCase.execute(
+        {
+          identifier: 'tester',
+          password: '123456',
+        },
+        requestContext,
+      );
+
+      expect(logHistory.executeStructured).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: expect.objectContaining({
+            loginMethod: 'username',
+          }),
+        }),
+      );
+    });
+
+    it('should work without request context', async () => {
+      const user = mockUser();
+      getUserByEmailUseCase.execute.mockResolvedValue(user);
+      userDomain.validatePassword.mockResolvedValue(true);
+      userDomain.isTwoFactorEnabled.mockReturnValue(false);
+      tokenService.generateTokens.mockReturnValue({
+        accessToken: 'access.jwt.token',
+        refreshToken: 'refresh.jwt.token',
+      });
+
+      await useCase.execute({
+        identifier: 'test@example.com',
+        password: '123456',
+      });
+
+      expect(logHistory.executeStructured).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ipAddress: undefined,
+          userAgent: undefined,
+        }),
+      );
+    });
   });
 });

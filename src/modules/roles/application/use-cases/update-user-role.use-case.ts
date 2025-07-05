@@ -5,10 +5,15 @@ import { Role } from '../../domain/entities/role.entity';
 import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
 import { CannotRemoveGuestRoleException } from '../../domain/exceptions/role.exception';
 import { CannotRemoveLastAdminException } from '@/modules/users/domain/exceptions/user.exception';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
+import { RequestContextDto } from '@/core/dto';
 
 @Injectable()
 export class UpdateUserRoleUseCase {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly logHistory?: LogHistoryUseCase,
+  ) {}
 
   /**
    * Add a role to a user.
@@ -23,6 +28,8 @@ export class UpdateUserRoleUseCase {
   async execute(
     userId: string,
     roleId: string | null,
+    currentUserId?: string,
+    requestContext?: RequestContextDto,
   ): Promise<UserResponseDto> {
     return this.dataSource.transaction(async (manager) => {
       const userRepo = manager.getRepository(User);
@@ -33,20 +40,63 @@ export class UpdateUserRoleUseCase {
         relations: ['roles'],
       });
 
+      const oldRoles =
+        user.roles?.map((role) => ({
+          id: role.id,
+          name: role.name,
+          isAdmin: role.isAdmin,
+        })) ?? [];
+      let operationType: 'ADD_ROLE' | 'REMOVE_ROLE' | 'ASSIGN_GUEST' =
+        'ASSIGN_GUEST';
+      let targetRole: Role | null = null;
+
       if (roleId) {
-        const role = await roleRepo.findOneOrFail({ where: { id: roleId } });
+        targetRole = await roleRepo.findOneOrFail({ where: { id: roleId } });
         if (this.hasRole(user, roleId)) {
-          await this.handleRoleRemoval(user, role, userRepo);
+          operationType = 'REMOVE_ROLE';
+          await this.handleRoleRemoval(user, targetRole, userRepo);
         } else if (user.roles && user.roles.length > 0) {
-          user.roles = [...user.roles, role];
+          operationType = 'ADD_ROLE';
+          user.roles = [...user.roles, targetRole];
         }
       }
 
       if (!user.roles || user.roles.length === 0) {
-        user.roles = [await this.getGuestRole(roleRepo)];
+        targetRole = await this.getGuestRole(roleRepo);
+        user.roles = [targetRole];
+        operationType = 'ASSIGN_GUEST';
       }
 
       const saved = await userRepo.save(user);
+      const newRoles =
+        saved.roles?.map((role) => ({
+          id: role.id,
+          name: role.name,
+          isAdmin: role.isAdmin,
+        })) ?? [];
+
+      await this.logHistory?.executeStructured({
+        entity: 'user_role',
+        entityId: userId,
+        action: 'UPDATE_ROLE',
+        userId: currentUserId,
+        oldValue: { roles: oldRoles },
+        newValue: { roles: newRoles },
+        metadata: {
+          operationType,
+          targetRoleName: targetRole?.name,
+          targetRoleIsAdmin: targetRole?.isAdmin,
+          previousRoleCount: oldRoles.length,
+          newRoleCount: newRoles.length,
+          isElevationToAdmin:
+            !oldRoles.some((r) => r.isAdmin) && newRoles.some((r) => r.isAdmin),
+          isRemovalFromAdmin:
+            oldRoles.some((r) => r.isAdmin) && !newRoles.some((r) => r.isAdmin),
+        },
+        ipAddress: requestContext?.ipAddress,
+        userAgent: requestContext?.userAgent,
+      });
+
       return new UserResponseDto(saved);
     });
   }

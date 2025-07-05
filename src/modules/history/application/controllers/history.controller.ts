@@ -8,7 +8,9 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { GetHistoryListUseCase } from '../use-cases/get-history-list.use-case';
+import { GetHistoryEntityTypesUseCase } from '../use-cases/get-entity-types.use-case';
 import { HistoryListResponseDto } from '../dto/history.list.response.dto';
+import { EntityTypesResponseDto } from '../dto/entity-types.response.dto';
 import { RoleGuard } from '@/core/guards';
 import { RequireRole } from '@/core/decorators/role.decorator';
 import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.exception.filter';
@@ -17,7 +19,10 @@ import { HistoryListFilters } from '../../domain/interfaces/history-filter.inter
 @ApiTags('History')
 @Controller('history')
 export class HistoryController {
-  constructor(private readonly getList: GetHistoryListUseCase) {}
+  constructor(
+    private readonly getList: GetHistoryListUseCase,
+    private readonly getEntityTypesUseCase: GetHistoryEntityTypesUseCase,
+  ) {}
 
   @Get()
   @ApiQuery({ name: 'page', required: false, type: Number })
@@ -50,5 +55,15 @@ export class HistoryController {
     if (to) filters.to = new Date(to);
 
     return this.getList.execute(Number(page), Number(limit), filters);
+  }
+
+  @Get('entity-types')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get available entity types for history' })
+  @RequireRole({ isAdmin: true })
+  @ApiResponse({ status: 200, type: EntityTypesResponseDto })
+  async getEntityTypes(): Promise<EntityTypesResponseDto> {
+    return this.getEntityTypesUseCase.execute();
   }
 }

@@ -148,12 +148,17 @@ describe('ServerController', () => {
       const dto = createMockServerDto();
       createServerUseCase.execute.mockResolvedValue(dto);
 
+      const mockReq = {
+        ip: '127.0.0.1',
+        get: jest.fn().mockReturnValue('Test-Agent'),
+      } as any;
       const result = await controller.createServer(
         {
           ...dto,
           ilo: undefined,
         } as any,
         mockPayload,
+        mockReq,
       );
       expect(result).toEqual(dto);
       expect(createServerUseCase.execute).toHaveBeenCalledTimes(1);
@@ -164,12 +169,17 @@ describe('ServerController', () => {
         new Error('Server already exists'),
       );
 
+      const mockReq = {
+        ip: '127.0.0.1',
+        get: jest.fn().mockReturnValue('Test-Agent'),
+      } as any;
       await expect(
         controller.createServer(
           {
             name: 'Duplicate Server',
           } as any,
           mockPayload,
+          mockReq,
         ),
       ).rejects.toThrow('Server already exists');
     });
