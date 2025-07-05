@@ -23,6 +23,7 @@ import { SshModule } from './modules/ssh';
 import { ReleasesModule } from './modules/releases/releases.module';
 import { HealthModule } from './modules/health/health.module';
 import { PriorityModule } from './modules/priorities/priority.module';
+import { PrometheusModule } from './modules/prometheus/prometheus.module';
 
 @Module({
   controllers: [],
@@ -49,6 +50,7 @@ import { PriorityModule } from './modules/priorities/priority.module';
     ReleasesModule,
     HealthModule,
     PriorityModule,
+    PrometheusModule,
   ],
   providers: [Logger],
 })
