@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Put,
   Query,
   UseFilters,
   UseGuards,
@@ -30,19 +31,23 @@ import {
   DeleteServerUseCase,
   GetUserServersUseCase,
   GetServerByIdWithPermissionCheckUseCase,
+  UpdateServerPriorityUseCase,
 } from '@/modules/servers/application/use-cases';
 
 import { ServerResponseDto } from '../dto/server.response.dto';
 import { ServerCreationDto } from '../dto/server.creation.dto';
 import { ServerUpdateDto } from '../dto/server.update.dto';
 import { ServerListResponseDto } from '../dto/server.list.response.dto';
+import { UpdatePriorityDto } from '../../../priorities/application/dto/update-priority.dto';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.exception.filter';
 import { RoleGuard } from '@/core/guards/role.guard';
 import { RequireRole } from '@/core/decorators/role.decorator';
-import { PermissionGuard } from '@/core/guards';
+import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
+import { RequireResourcePermission } from '@/core/decorators/ressource-permission.decorator';
+import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 import { RequestContextDto } from '@/core/dto';
 
 @ApiTags('Server')
@@ -56,22 +61,30 @@ export class ServerController {
     private readonly deleteServerUseCase: DeleteServerUseCase,
     private readonly getServerByIdWithPermissionCheckUseCase: GetServerByIdWithPermissionCheckUseCase,
     private readonly getUserServersUseCase: GetUserServersUseCase,
+    private readonly updateServerPriorityUseCase: UpdateServerPriorityUseCase,
   ) {}
 
   @Get('admin/all')
   @UseFilters(InvalidQueryExceptionFilter)
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
   @ApiOperation({
     summary: 'Lister tous les serveurs',
     description:
-      'Renvoie la liste de tous les serveurs enregistrés dans le système.',
+      'Renvoie la liste de tous les serveurs enregistrés dans le système. Nécessite le rôle admin.',
   })
   @ApiResponse({ status: 200, type: [ServerResponseDto] })
+  @ApiResponse({
+    status: 403,
+    description: 'Accès refusé - Rôle admin requis',
+  })
   async getAllServers(): Promise<ServerResponseDto[]> {
     return this.getAllServersUseCase.execute();
   }
 
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
   @Get('admin/:id')
   @UseFilters(InvalidQueryExceptionFilter)
   @ApiBearerAuth()
@@ -87,6 +100,10 @@ export class ServerController {
       'Renvoie les informations d’un serveur spécifique via son UUID.',
   })
   @ApiResponse({ status: 200, type: ServerResponseDto })
+  @ApiResponse({
+    status: 403,
+    description: 'Accès refusé - Rôle admin requis',
+  })
   async getServerByIdAdmin(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<ServerResponseDto> {
@@ -163,6 +180,13 @@ export class ServerController {
     );
   }
 
+  @UseGuards(JwtAuthGuard, ResourcePermissionGuard)
+  @RequireResourcePermission({
+    resourceType: 'server',
+    requiredBit: PermissionBit.WRITE,
+    resourceIdSource: 'params',
+    resourceIdField: 'id',
+  })
   @Patch(':id')
   @UseFilters(InvalidQueryExceptionFilter)
   @ApiBearerAuth()
@@ -184,13 +208,80 @@ export class ServerController {
       'Met à jour les informations d’un serveur existant via son UUID.',
   })
   @ApiResponse({ status: 200, type: ServerResponseDto })
+  @ApiResponse({
+    status: 403,
+    description: 'Permissions insuffisantes',
+  })
   async updateServer(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() serverDto: ServerUpdateDto,
+    @CurrentUser() user: JwtPayload,
   ): Promise<ServerResponseDto> {
-    return this.updateServerUseCase.execute(id, serverDto);
+    return this.updateServerUseCase.execute(id, serverDto, user.userId);
   }
 
+  @Put(':id/priority')
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, ResourcePermissionGuard)
+  @RequireResourcePermission({
+    resourceType: 'server',
+    requiredBit: PermissionBit.WRITE,
+    resourceIdSource: 'params',
+    resourceIdField: 'id',
+  })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'UUID du serveur',
+    required: true,
+  })
+  @ApiOperation({
+    summary: "Mettre à jour la priorité d'un serveur",
+    description: "Met à jour uniquement la priorité d'un serveur",
+  })
+  @ApiBody({
+    type: UpdatePriorityDto,
+    description: 'Nouvelle priorité du serveur',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Priorité mise à jour avec succès',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        priority: { type: 'number' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Permissions insuffisantes',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Serveur non trouvé',
+  })
+  async updatePriority(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdatePriorityDto,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<{ id: string; priority: number }> {
+    return this.updateServerPriorityUseCase.execute(
+      id,
+      dto.priority,
+      user.userId,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard, ResourcePermissionGuard)
+  @RequireResourcePermission({
+    resourceType: 'server',
+    requiredBit: PermissionBit.DELETE,
+    resourceIdSource: 'params',
+    resourceIdField: 'id',
+  })
   @Delete(':id')
   @UseFilters(InvalidQueryExceptionFilter)
   @ApiBearerAuth()
@@ -203,9 +294,13 @@ export class ServerController {
   @ApiOperation({
     summary: 'Supprimer un serveur',
     description:
-      'Supprime un serveur du système à partir de son UUID. Action irréversible.',
+      'Supprime un serveur du système à partir de son UUID. Action irréversible. Nécessite la permission DELETE sur le serveur.',
   })
   @ApiResponse({ status: 204, description: 'Serveur supprimé avec succès' })
+  @ApiResponse({
+    status: 403,
+    description: 'Permissions insuffisantes',
+  })
   async deleteServer(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.deleteServerUseCase.execute(id);
   }

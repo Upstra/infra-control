@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   ParseUUIDPipe,
   Query,
   UseGuards,
@@ -33,7 +34,9 @@ import {
   GetAllVmsUseCase,
   GetVmByIdUseCase,
   UpdateVmUseCase,
+  UpdateVmPriorityUseCase,
 } from '@/modules/vms/application/use-cases';
+import { UpdatePriorityDto } from '../../../priorities/application/dto/update-priority.dto';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
 import { RequireResourcePermission } from '@/core/decorators/ressource-permission.decorator';
@@ -53,9 +56,12 @@ export class VmController implements VmEndpointInterface {
     private readonly createVmUseCase: CreateVmUseCase,
     private readonly updateVmUseCase: UpdateVmUseCase,
     private readonly deleteVmUseCase: DeleteVmUseCase,
+    private readonly updateVmPriorityUseCase: UpdateVmPriorityUseCase,
   ) {}
 
   @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiOperation({ summary: 'Lister les VMs paginées' })
@@ -68,12 +74,16 @@ export class VmController implements VmEndpointInterface {
   }
 
   @Get('all')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Lister toutes les machines virtuelles' })
   @ApiResponse({ status: 200, type: [VmResponseDto] })
   async getAllVms(): Promise<VmResponseDto[]> {
     return this.getAllVmsUseCase.execute();
   }
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Get(':id')
   @ApiParam({
     name: 'id',
@@ -123,6 +133,14 @@ export class VmController implements VmEndpointInterface {
     return this.createVmUseCase.execute(vmDto, user.userId, requestContext);
   }
 
+  @UseGuards(JwtAuthGuard, ResourcePermissionGuard)
+  @RequireResourcePermission({
+    resourceType: 'vm',
+    requiredBit: PermissionBit.WRITE,
+    resourceIdSource: 'params',
+    resourceIdField: 'id',
+  })
+  @ApiBearerAuth()
   @Patch(':id')
   @ApiParam({
     name: 'id',
@@ -141,6 +159,10 @@ export class VmController implements VmEndpointInterface {
       'Met à jour les informations d’une machine virtuelle existante.',
   })
   @ApiResponse({ status: 200, type: VmResponseDto })
+  @ApiResponse({
+    status: 403,
+    description: 'Permissions insuffisantes',
+  })
   async updateVm(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() vmDto: VmUpdateDto,
@@ -148,6 +170,65 @@ export class VmController implements VmEndpointInterface {
     return this.updateVmUseCase.execute(id, vmDto);
   }
 
+  @Put(':id/priority')
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, ResourcePermissionGuard)
+  @RequireResourcePermission({
+    resourceType: 'vm',
+    requiredBit: PermissionBit.WRITE,
+    resourceIdSource: 'params',
+    resourceIdField: 'id',
+  })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'UUID de la VM',
+    required: true,
+  })
+  @ApiOperation({
+    summary: "Mettre à jour la priorité d'une VM",
+    description: "Met à jour uniquement la priorité d'une VM",
+  })
+  @ApiBody({
+    type: UpdatePriorityDto,
+    description: 'Nouvelle priorité de la VM',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Priorité mise à jour avec succès',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        priority: { type: 'number' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Permissions insuffisantes',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'VM non trouvée',
+  })
+  async updatePriority(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdatePriorityDto,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<{ id: string; priority: number }> {
+    return this.updateVmPriorityUseCase.execute(id, dto.priority, user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard, ResourcePermissionGuard)
+  @RequireResourcePermission({
+    resourceType: 'vm',
+    requiredBit: PermissionBit.DELETE,
+    resourceIdSource: 'params',
+    resourceIdField: 'id',
+  })
+  @ApiBearerAuth()
   @Delete(':id')
   @ApiParam({
     name: 'id',
@@ -158,9 +239,13 @@ export class VmController implements VmEndpointInterface {
   @ApiOperation({
     summary: 'Supprimer une VM',
     description:
-      'Supprime une machine virtuelle du système à partir de son identifiant. Action irréversible.',
+      'Supprime une machine virtuelle du système à partir de son identifiant. Action irréversible. Nécessite la permission DELETE sur la VM.',
   })
   @ApiResponse({ status: 204, description: 'VM supprimée avec succès' })
+  @ApiResponse({
+    status: 403,
+    description: 'Permissions insuffisantes',
+  })
   async deleteVm(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.deleteVmUseCase.execute(id);
   }

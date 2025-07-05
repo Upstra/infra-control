@@ -53,7 +53,10 @@ describe('GetUpsListUseCase', () => {
       ];
       const total = 10;
 
-      mockUpsRepository.paginateWithServerCount.mockResolvedValueOnce([mockData, total]);
+      mockUpsRepository.paginateWithServerCount.mockResolvedValueOnce([
+        mockData,
+        total,
+      ]);
 
       const result = await useCase.execute(1, 10);
 

@@ -38,7 +38,7 @@ export class CreateUpsUseCase {
 
     const ups = Array.isArray(saved) ? saved[0] : saved;
     await this.logHistory?.execute('ups', ups.id, 'CREATE', userId);
-    
+
     return new UpsResponseDto(ups, 0);
   }
 }

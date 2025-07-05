@@ -11,7 +11,11 @@ import { UserModule } from '../users/user.module';
 @Module({
   controllers: [UpsController],
   exports: [...UpsUseCases, 'UpsRepositoryInterface'],
-  imports: [TypeOrmModule.forFeature([Ups]), AuditModule, forwardRef(() => UserModule)],
+  imports: [
+    TypeOrmModule.forFeature([Ups]),
+    AuditModule,
+    forwardRef(() => UserModule),
+  ],
   providers: [
     ...UpsUseCases,
     UpsDomainService,

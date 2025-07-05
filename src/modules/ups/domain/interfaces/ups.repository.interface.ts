@@ -27,12 +27,17 @@ export interface UpsRepositoryInterface
    * @param limit - number of items per page
    * @returns tuple of entities with server count and total count
    */
-  paginateWithServerCount(page: number, limit: number): Promise<[Array<{ ups: Ups; serverCount: number }>, number]>;
+  paginateWithServerCount(
+    page: number,
+    limit: number,
+  ): Promise<[Array<{ ups: Ups; serverCount: number }>, number]>;
   /**
    * Retrieve a single UPS with server count.
    *
    * @param id - UPS id
    * @returns UPS entity with server count or null
    */
-  findByIdWithServerCount(id: string): Promise<{ ups: Ups; serverCount: number } | null>;
+  findByIdWithServerCount(
+    id: string,
+  ): Promise<{ ups: Ups; serverCount: number } | null>;
 }

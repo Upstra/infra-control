@@ -1,47 +1,36 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Group } from './domain/entities/group.entity';
-import { GroupServer } from './domain/entities/group.server.entity';
-import { GroupVm } from './domain/entities/group.vm.entity';
-
-import { GroupServerController } from './application/controllers/group.server.controller';
-import { GroupVmController } from './application/controllers/group.vm.controller';
-
-import { GroupServerTypeormRepository } from './infrastructure/repositories/group.server.typeorm.repository';
-import { GroupVmTypeormRepository } from './infrastructure/repositories/group.vm.typeorm.repository';
-import { GroupServerUseCases } from './application/use-cases/group-server';
-import { GroupVmUseCases } from './application/use-cases/group-vm';
-import { GroupVmDomainService } from './domain/services/group.vm.domain.service';
-import { GroupServerDomainService } from './domain/services/group.server.domain.service';
-import { ServerTypeormRepository } from '../servers/infrastructure/repositories/server.typeorm.repository';
+import { Vm } from '../vms/domain/entities/vm.entity';
+import { Server } from '../servers/domain/entities/server.entity';
+import { GroupRepository } from './infrastructure/repositories/group.repository';
+import { GroupController } from './application/controllers/group.controller';
+import { CreateGroupUseCase } from './application/use-cases/create-group.use-case';
+import { UpdateGroupUseCase } from './application/use-cases/update-group.use-case';
+import { DeleteGroupUseCase } from './application/use-cases/delete-group.use-case';
+import { GetGroupUseCase } from './application/use-cases/get-group.use-case';
+import { ListGroupsUseCase } from './application/use-cases/list-groups.use-case';
+import { PreviewGroupShutdownUseCase } from './application/use-cases/preview-group-shutdown.use-case';
+import { ExecuteGroupShutdownUseCase } from './application/use-cases/execute-group-shutdown.use-case';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Group, GroupServer, GroupVm])],
-  controllers: [GroupServerController, GroupVmController],
+  imports: [TypeOrmModule.forFeature([Group, Vm, Server]), AuditModule],
+  controllers: [GroupController],
   providers: [
-    ...GroupVmUseCases,
-    ...GroupServerUseCases,
+    GroupRepository,
     {
-      provide: 'GroupServerRepositoryInterface',
-      useClass: GroupServerTypeormRepository,
+      provide: 'GroupRepositoryInterface',
+      useClass: GroupRepository,
     },
-    {
-      provide: 'GroupVmRepositoryInterface',
-      useClass: GroupVmTypeormRepository,
-    },
-    {
-      provide: 'ServerRepositoryInterface',
-      useClass: ServerTypeormRepository,
-    },
-    GroupServerDomainService,
-    GroupVmDomainService,
+    CreateGroupUseCase,
+    UpdateGroupUseCase,
+    DeleteGroupUseCase,
+    GetGroupUseCase,
+    ListGroupsUseCase,
+    PreviewGroupShutdownUseCase,
+    ExecuteGroupShutdownUseCase,
   ],
-  exports: [
-    ...GroupVmUseCases,
-    ...GroupServerUseCases,
-    'GroupServerRepositoryInterface',
-    'GroupVmRepositoryInterface',
-    'ServerRepositoryInterface',
-  ],
+  exports: [GroupRepository, 'GroupRepositoryInterface'],
 })
 export class GroupModule {}

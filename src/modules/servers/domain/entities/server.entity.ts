@@ -11,7 +11,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { GroupServer } from '../../../groups/domain/entities/group.server.entity';
+import { Group } from '../../../groups/domain/entities/group.entity';
 import { Room } from '../../../rooms/domain/entities/room.entity';
 import { Ups } from '../../../ups/domain/entities/ups.entity';
 import { Vm } from '../../../vms/domain/entities/vm.entity';
@@ -64,14 +64,14 @@ export class Server extends BaseEntity {
   @Column()
   priority: number;
 
-  @ApiProperty({ type: () => GroupServer })
-  @ManyToOne(() => GroupServer, (group) => group.servers)
-  @JoinColumn({ name: 'groupId' })
-  group: GroupServer;
+  @ApiProperty({ type: () => Group })
+  @ManyToOne(() => Group, { nullable: true })
+  @JoinColumn({ name: 'group_id' })
+  group?: Group;
 
   @ApiProperty()
-  @Column({ nullable: true })
-  groupId!: string;
+  @Column({ nullable: true, name: 'group_id' })
+  groupId?: string;
 
   @ApiProperty({ type: () => Room, required: false })
   @ManyToOne(() => Room, (room) => room.servers, { nullable: true })
