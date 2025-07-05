@@ -12,15 +12,15 @@ import {
   RESOURCE_PERMISSION_KEY,
   ResourcePermissionMetadata,
 } from '@/core/decorators/ressource-permission.decorator';
-import { UserRepository } from '@/modules/users/infrastructure/repositories/user.repository';
+
 import { User } from '@/modules/users/domain/entities/user.entity';
-import { Role } from '@/modules/roles/domain/entities/role.entity';
+import { UserTypeormRepository } from '@/modules/users/infrastructure/repositories/user.typeorm.repository';
 
 describe('ResourcePermissionGuard', () => {
   let guard: ResourcePermissionGuard;
   let reflector: jest.Mocked<Reflector>;
   let strategyFactory: jest.Mocked<PermissionStrategyFactory>;
-  let userRepository: jest.Mocked<UserRepository>;
+  let userRepository: jest.Mocked<UserTypeormRepository>;
   let mockContext: jest.Mocked<ExecutionContext>;
   let mockRequest: any;
   let mockStrategy: any;
@@ -68,7 +68,11 @@ describe('ResourcePermissionGuard', () => {
       }),
     } as any;
 
-    guard = new ResourcePermissionGuard(reflector, strategyFactory, userRepository);
+    guard = new ResourcePermissionGuard(
+      reflector,
+      strategyFactory,
+      userRepository,
+    );
   });
 
   describe('canActivate', () => {

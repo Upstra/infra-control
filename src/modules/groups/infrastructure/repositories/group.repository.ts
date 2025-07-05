@@ -49,11 +49,12 @@ export class GroupRepository implements IGroupRepository {
 
     return result.entities.map((group, index) => {
       const raw = result.raw[index];
-      return {
+      const groupWithCounts: GroupWithCounts = {
         ...group,
         serverCount: parseInt(raw.serverCount) || 0,
         vmCount: parseInt(raw.vmCount) || 0,
-      } as GroupWithCounts;
+      };
+      return groupWithCounts;
     });
   }
 
@@ -127,11 +128,12 @@ export class GroupRepository implements IGroupRepository {
 
     const data = result.entities.map((group, index) => {
       const raw = result.raw[index];
-      return {
+      const groupWithCounts: GroupWithCounts = {
         ...group,
         serverCount: parseInt(raw.serverCount) || 0,
         vmCount: parseInt(raw.vmCount) || 0,
-      } as GroupWithCounts;
+      };
+      return groupWithCounts;
     });
 
     const totalPages = Math.ceil(total / limit);
@@ -146,13 +148,14 @@ export class GroupRepository implements IGroupRepository {
   }
 
   async findById(id: string): Promise<Group | null> {
-    return this.repository.findOne({ where: { id } });
+    return this.repository.findOne({ where: { id, isActive: true } });
   }
 
   async findByIdWithCounts(id: string): Promise<GroupWithCounts | null> {
     const query = this.repository
       .createQueryBuilder('group')
       .where('group.id = :id', { id })
+      .andWhere('group.isActive = :isActive', { isActive: true })
       .leftJoin('group.servers', 'server')
       .leftJoin('group.vms', 'vm')
       .select('group')
@@ -166,13 +169,16 @@ export class GroupRepository implements IGroupRepository {
       return null;
     }
 
-    const group = result.entities[0] as GroupWithCounts;
+    const group = result.entities[0];
     const raw = result.raw[0];
 
-    group.serverCount = parseInt(raw.serverCount) || 0;
-    group.vmCount = parseInt(raw.vmCount) || 0;
+    const groupWithCounts: GroupWithCounts = {
+      ...group,
+      serverCount: parseInt(raw.serverCount) || 0,
+      vmCount: parseInt(raw.vmCount) || 0,
+    };
 
-    return group;
+    return groupWithCounts;
   }
 
   async findByName(name: string): Promise<Group | null> {

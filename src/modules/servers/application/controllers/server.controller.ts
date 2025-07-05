@@ -103,7 +103,8 @@ export class ServerController {
   @ApiResponse({
     status: 403,
     description: 'Accès refusé - Rôle admin requis',
-  })  async getServerByIdAdmin(
+  })
+  async getServerByIdAdmin(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<ServerResponseDto> {
     return this.getServerByIdUseCase.execute(id);
@@ -210,7 +211,8 @@ export class ServerController {
   @ApiResponse({
     status: 403,
     description: 'Permissions insuffisantes',
-  })  async updateServer(
+  })
+  async updateServer(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() serverDto: ServerUpdateDto,
     @CurrentUser() user: JwtPayload,

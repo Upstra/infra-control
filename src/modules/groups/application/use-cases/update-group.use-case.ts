@@ -6,8 +6,8 @@ import {
 import { GroupRepository } from '../../infrastructure/repositories/group.repository';
 import { UpdateGroupDto } from '../dto/update-group.dto';
 import { GroupResponseDto } from '../dto/group-response.dto';
-import { Group } from '../../domain/entities/group.entity';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
+import { GroupMapper } from '../mappers/group.mapper';
 
 @Injectable()
 export class UpdateGroupUseCase {
@@ -42,18 +42,6 @@ export class UpdateGroupUseCase {
 
     await this.logHistory.execute('group', updatedGroup.id, 'UPDATE', userId);
 
-    return this.mapToResponseDto(updatedGroup);
-  }
-
-  private mapToResponseDto(group: Group): GroupResponseDto {
-    return {
-      id: group.id,
-      name: group.name,
-      description: group.description,
-      type: group.type,
-      isActive: group.isActive,
-      createdAt: group.createdAt,
-      updatedAt: group.updatedAt,
-    };
+    return GroupMapper.toResponseDto(updatedGroup);
   }
 }

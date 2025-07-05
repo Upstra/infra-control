@@ -4,7 +4,7 @@ import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { RoleGuard } from '@/core/guards/role.guard';
-import { UserRepository } from '@/modules/users/infrastructure/repositories/user.repository';
+import { UserTypeormRepository } from '@/modules/users/infrastructure/repositories/user.typeorm.repository';
 import { User } from '@/modules/users/domain/entities/user.entity';
 import { Role } from '@/modules/roles/domain/entities/role.entity';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
@@ -17,7 +17,7 @@ import {
 
 describe('ServerController - Admin Bypass Tests', () => {
   let controller: ServerController;
-  let userRepository: jest.Mocked<UserRepository>;
+  let userRepository: jest.Mocked<UserTypeormRepository>;
   let updateServerUseCase: jest.Mocked<UpdateServerUseCase>;
   let deleteServerUseCase: jest.Mocked<DeleteServerUseCase>;
   let updateServerPriorityUseCase: jest.Mocked<UpdateServerPriorityUseCase>;
@@ -76,7 +76,7 @@ describe('ServerController - Admin Bypass Tests', () => {
       controllers: [ServerController],
       providers: [
         {
-          provide: UserRepository,
+          provide: 'UserRepositoryInterface',
           useValue: userRepository,
         },
         {

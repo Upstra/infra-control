@@ -1,104 +1,61 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Vm } from '../../../vms/domain/entities/vm.entity';
 import { SwapVmResponseDto } from '../dto/swap-response.dto';
 import { GetUserVmPermissionsUseCase } from '../../../permissions/application/use-cases/permission-vm';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
-import { PermissionBit } from '../../../permissions/domain/value-objects/permission-bit.enum';
+import { SwapPrioritiesBaseUseCase } from './base/swap-priorities-base.use-case';
 
 @Injectable()
-export class SwapVmPrioritiesUseCase {
+export class SwapVmPrioritiesUseCase extends SwapPrioritiesBaseUseCase<
+  Vm,
+  { vmId?: string; bitmask: number },
+  SwapVmResponseDto
+> {
   constructor(
     @InjectRepository(Vm)
     private readonly vmRepository: Repository<Vm>,
     private readonly getUserPermissionVm: GetUserVmPermissionsUseCase,
-    private readonly logHistory: LogHistoryUseCase,
-    private readonly dataSource: DataSource,
-  ) {}
+    protected readonly logHistory: LogHistoryUseCase,
+    protected readonly dataSource: DataSource,
+  ) {
+    super(dataSource, logHistory);
+  }
 
-  async execute(
-    vm1Id: string,
-    vm2Id: string,
-    userId: string,
-  ): Promise<SwapVmResponseDto> {
-    const permissions = await this.getUserPermissionVm.execute(userId);
-    const permissionMap = new Map(permissions.map((p) => [p.vmId, p.bitmask]));
+  protected getEntityRepository(): Repository<Vm> {
+    return this.vmRepository;
+  }
 
-    const perm1 = permissionMap.get(vm1Id);
-    const perm2 = permissionMap.get(vm2Id);
+  protected getEntityName(): string {
+    return 'VM';
+  }
 
-    const hasWritePermission = (bitmask: number | undefined) =>
-      bitmask !== undefined &&
-      (bitmask & PermissionBit.WRITE) === PermissionBit.WRITE;
+  protected getEntityNamePlural(): string {
+    return 'VMs';
+  }
 
-    if (!hasWritePermission(perm1) || !hasWritePermission(perm2)) {
-      throw new ForbiddenException(
-        'You do not have write permissions on both VMs',
-      );
-    }
+  protected async getUserPermissions(userId: string) {
+    return this.getUserPermissionVm.execute(userId);
+  }
 
-    return await this.dataSource.transaction(async (manager) => {
-      const vmRepo = manager.getRepository(Vm);
+  protected getPermissionId(permission: {
+    vmId?: string;
+    bitmask: number;
+  }): string {
+    return permission.vmId ?? '';
+  }
 
-      const vm1 = await vmRepo.findOne({ where: { id: vm1Id } });
-      const vm2 = await vmRepo.findOne({ where: { id: vm2Id } });
+  protected getLogMetadata(entity: Vm, _swapPartner: Vm): Record<string, any> {
+    return {
+      vmServerId: entity.serverId,
+    };
+  }
 
-      if (!vm1) {
-        throw new NotFoundException(`VM with id "${vm1Id}" not found`);
-      }
-      if (!vm2) {
-        throw new NotFoundException(`VM with id "${vm2Id}" not found`);
-      }
-
-      const vm1OriginalPriority = vm1.priority;
-      const vm2OriginalPriority = vm2.priority;
-
-      vm1.priority = vm2OriginalPriority;
-      vm2.priority = vm1OriginalPriority;
-
-      await vmRepo.save([vm1, vm2]);
-
-      await this.logHistory.executeStructured({
-        entity: 'vm',
-        entityId: vm1.id,
-        action: 'PRIORITY_SWAP',
-        userId,
-        oldValue: { priority: vm1OriginalPriority },
-        newValue: { priority: vm1.priority },
-        metadata: {
-          swapPartner: vm2.id,
-          swapPartnerName: vm2.name,
-          vmServerId: vm1.serverId,
-          oldPriority: vm1OriginalPriority,
-          newPriority: vm1.priority,
-        },
-      });
-
-      await this.logHistory.executeStructured({
-        entity: 'vm',
-        entityId: vm2.id,
-        action: 'PRIORITY_SWAP',
-        userId,
-        oldValue: { priority: vm2OriginalPriority },
-        newValue: { priority: vm2.priority },
-        metadata: {
-          swapPartner: vm1.id,
-          swapPartnerName: vm1.name,
-          vmServerId: vm2.serverId,
-          oldPriority: vm2OriginalPriority,
-          newPriority: vm2.priority,
-        },
-      });
-
-      return {
-        vm1: { id: vm1.id, priority: vm1.priority },
-        vm2: { id: vm2.id, priority: vm2.priority },
-      };
-    });
+  protected formatResult(entity1: Vm, entity2: Vm): SwapVmResponseDto {
+    return {
+      vm1: { id: entity1.id, priority: entity1.priority },
+      vm2: { id: entity2.id, priority: entity2.priority },
+    };
   }
 }

@@ -19,6 +19,10 @@ import { AuditModule } from '../audit/audit.module';
   controllers: [GroupController],
   providers: [
     GroupRepository,
+    {
+      provide: 'GroupRepositoryInterface',
+      useClass: GroupRepository,
+    },
     CreateGroupUseCase,
     UpdateGroupUseCase,
     DeleteGroupUseCase,
@@ -27,6 +31,6 @@ import { AuditModule } from '../audit/audit.module';
     PreviewGroupShutdownUseCase,
     ExecuteGroupShutdownUseCase,
   ],
-  exports: [GroupRepository],
+  exports: [GroupRepository, 'GroupRepositoryInterface'],
 })
 export class GroupModule {}

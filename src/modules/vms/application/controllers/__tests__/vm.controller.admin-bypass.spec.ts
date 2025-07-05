@@ -3,7 +3,7 @@ import { VmController } from '../vm.controller';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
-import { UserRepository } from '@/modules/users/infrastructure/repositories/user.repository';
+import { UserTypeormRepository } from '@/modules/users/infrastructure/repositories/user.typeorm.repository';
 import { User } from '@/modules/users/domain/entities/user.entity';
 import { Role } from '@/modules/roles/domain/entities/role.entity';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
@@ -14,12 +14,15 @@ import {
   DeleteVmUseCase,
   UpdateVmPriorityUseCase,
   CreateVmUseCase,
+  GetAllVmsUseCase,
+  GetVmListUseCase,
+  GetVmByIdUseCase,
 } from '../../use-cases';
 import { RequestContextDto } from '@/core/dto';
 
 describe('VmController - Admin Bypass Tests', () => {
   let controller: VmController;
-  let userRepository: jest.Mocked<UserRepository>;
+  let userRepository: jest.Mocked<UserTypeormRepository>;
   let updateVmUseCase: jest.Mocked<UpdateVmUseCase>;
   let deleteVmUseCase: jest.Mocked<DeleteVmUseCase>;
   let updateVmPriorityUseCase: jest.Mocked<UpdateVmPriorityUseCase>;
@@ -90,7 +93,7 @@ describe('VmController - Admin Bypass Tests', () => {
       controllers: [VmController],
       providers: [
         {
-          provide: UserRepository,
+          provide: 'UserRepositoryInterface',
           useValue: userRepository,
         },
         {
@@ -98,31 +101,31 @@ describe('VmController - Admin Bypass Tests', () => {
           useValue: mockStrategyFactory,
         },
         {
-          provide: 'UpdateVmUseCase',
+          provide: UpdateVmUseCase,
           useValue: updateVmUseCase,
         },
         {
-          provide: 'DeleteVmUseCase',
+          provide: DeleteVmUseCase,
           useValue: deleteVmUseCase,
         },
         {
-          provide: 'UpdateVmPriorityUseCase',
+          provide: UpdateVmPriorityUseCase,
           useValue: updateVmPriorityUseCase,
         },
         {
-          provide: 'CreateVmUseCase',
+          provide: CreateVmUseCase,
           useValue: createVmUseCase,
         },
         {
-          provide: 'GetAllVmsUseCase',
+          provide: GetAllVmsUseCase,
           useValue: { execute: jest.fn() },
         },
         {
-          provide: 'GetVmListUseCase',
+          provide: GetVmListUseCase,
           useValue: { execute: jest.fn() },
         },
         {
-          provide: 'GetVmByIdUseCase',
+          provide: GetVmByIdUseCase,
           useValue: { execute: jest.fn() },
         },
       ],
@@ -143,6 +146,14 @@ describe('VmController - Admin Bypass Tests', () => {
         name: 'Test VM',
         serverId: 'server-123',
         priority: 1,
+        state: 'running',
+        grace_period_on: 60,
+        grace_period_off: 30,
+        os: 'Ubuntu 22.04',
+        adminUrl: 'https://admin.example.com',
+        ip: '192.168.1.100',
+        login: 'admin',
+        password: 'securePassword123',
       };
 
       it('should allow admin to create VM without server WRITE permission', async () => {

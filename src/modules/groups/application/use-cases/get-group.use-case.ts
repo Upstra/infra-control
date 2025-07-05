@@ -1,8 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { GroupRepository } from '../../infrastructure/repositories/group.repository';
 import { GroupResponseDto } from '../dto/group-response.dto';
-import { GroupWithCounts } from '../../domain/interfaces/group.repository.interface';
-import { GroupType } from '../../domain/enums/group-type.enum';
+import { GroupMapper } from '../mappers/group.mapper';
 
 @Injectable()
 export class GetGroupUseCase {
@@ -14,21 +13,6 @@ export class GetGroupUseCase {
       throw new NotFoundException(`Group with id "${id}" not found`);
     }
 
-    return this.mapToResponseDto(group);
-  }
-
-  private mapToResponseDto(group: GroupWithCounts): GroupResponseDto {
-    return {
-      id: group.id,
-      name: group.name,
-      description: group.description,
-      type: group.type,
-      isActive: group.isActive,
-      createdAt: group.createdAt,
-      updatedAt: group.updatedAt,
-      serverCount:
-        group.type === GroupType.SERVER ? group.serverCount : undefined,
-      vmCount: group.type === GroupType.VM ? group.vmCount : undefined,
-    };
+    return GroupMapper.toResponseDtoWithCounts(group);
   }
 }

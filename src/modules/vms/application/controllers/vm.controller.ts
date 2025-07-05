@@ -162,7 +162,8 @@ export class VmController implements VmEndpointInterface {
   @ApiResponse({
     status: 403,
     description: 'Permissions insuffisantes',
-  })  async updateVm(
+  })
+  async updateVm(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() vmDto: VmUpdateDto,
   ): Promise<VmResponseDto> {
@@ -244,7 +245,8 @@ export class VmController implements VmEndpointInterface {
   @ApiResponse({
     status: 403,
     description: 'Permissions insuffisantes',
-  })  async deleteVm(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+  })
+  async deleteVm(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.deleteVmUseCase.execute(id);
   }
 }

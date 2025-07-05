@@ -11,7 +11,7 @@ import { CreateIloUseCase } from '@/modules/ilos/application/use-cases';
 import { ServerCreationDto } from '../dto/server.creation.dto';
 import { ServerResponseDto } from '../dto/server.response.dto';
 import { RoomRepositoryInterface } from '@/modules/rooms/domain/interfaces/room.repository.interface';
-import { GroupRepository } from '@/modules/groups/infrastructure/repositories/group.repository';
+import { IGroupRepository } from '@/modules/groups/domain/interfaces/group.repository.interface';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
@@ -46,7 +46,8 @@ export class CreateServerUseCase {
     private readonly serverDomain: ServerDomainService,
     @Inject('RoomRepositoryInterface')
     private readonly roomRepository: RoomRepositoryInterface,
-    private readonly groupRepository: GroupRepository,
+    @Inject('GroupRepositoryInterface')
+    private readonly groupRepository: IGroupRepository,
     @Inject('UpsRepositoryInterface')
     private readonly upsRepository: UpsRepositoryInterface,
     @Inject('UserRepositoryInterface')

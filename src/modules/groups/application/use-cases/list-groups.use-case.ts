@@ -1,13 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { GroupRepository } from '../../infrastructure/repositories/group.repository';
-import { GroupResponseDto } from '../dto/group-response.dto';
 import { GroupQueryDto } from '../dto/group-query.dto';
 import {
   PaginatedGroupResponseDto,
   PaginationMetaDto,
 } from '../dto/paginated-group-response.dto';
-import { GroupWithCounts } from '../../domain/interfaces/group.repository.interface';
-import { GroupType } from '../../domain/enums/group-type.enum';
+import { GroupMapper } from '../mappers/group.mapper';
 
 @Injectable()
 export class ListGroupsUseCase {
@@ -33,23 +31,10 @@ export class ListGroupsUseCase {
     };
 
     return {
-      data: result.data.map((group) => this.mapToResponseDto(group)),
+      data: result.data.map((group) =>
+        GroupMapper.toResponseDtoWithCounts(group),
+      ),
       meta,
-    };
-  }
-
-  private mapToResponseDto(group: GroupWithCounts): GroupResponseDto {
-    return {
-      id: group.id,
-      name: group.name,
-      description: group.description,
-      type: group.type,
-      isActive: group.isActive,
-      createdAt: group.createdAt,
-      updatedAt: group.updatedAt,
-      serverCount:
-        group.type === GroupType.SERVER ? group.serverCount : undefined,
-      vmCount: group.type === GroupType.VM ? group.vmCount : undefined,
     };
   }
 }

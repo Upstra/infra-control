@@ -9,13 +9,13 @@ import {
 import { Reflector } from '@nestjs/core';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
-import { UserRepository } from '@/modules/users/infrastructure/repositories/user.repository';
 
 import { PermissionStrategyFactory } from './strategies/permission-strategy.interface';
 import {
   RESOURCE_PERMISSION_KEY,
   ResourcePermissionMetadata,
 } from '../decorators/ressource-permission.decorator';
+import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 
 @Injectable()
 export class ResourcePermissionGuard implements CanActivate {
@@ -23,7 +23,8 @@ export class ResourcePermissionGuard implements CanActivate {
     private readonly reflector: Reflector,
     @Inject('PermissionStrategyFactory')
     private readonly strategyFactory: PermissionStrategyFactory,
-    private readonly userRepository: UserRepository,
+    @Inject('UserRepositoryInterface')
+    private readonly userRepository: UserRepositoryInterface,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

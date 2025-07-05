@@ -1,10 +1,11 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class RemoveUniqueConstraintOnGroupId1751726035833 implements MigrationInterface {
-
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        // Remove any unique constraint on group_id in server table
-        await queryRunner.query(`
+export class RemoveUniqueConstraintOnGroupId1751726035833
+  implements MigrationInterface
+{
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    // Remove any unique constraint on group_id in server table
+    await queryRunner.query(`
             DO $$ 
             BEGIN
                 -- Drop unique constraint if it exists
@@ -43,8 +44,8 @@ export class RemoveUniqueConstraintOnGroupId1751726035833 implements MigrationIn
             END $$;
         `);
 
-        // Same for VM table
-        await queryRunner.query(`
+    // Same for VM table
+    await queryRunner.query(`
             DO $$ 
             BEGIN
                 -- Drop unique constraint if it exists
@@ -82,11 +83,10 @@ export class RemoveUniqueConstraintOnGroupId1751726035833 implements MigrationIn
                 END IF;
             END $$;
         `);
-    }
+  }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        // We don't want to recreate the unique constraints in rollback
-        // as they shouldn't exist in the first place
-    }
-
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    // We don't want to recreate the unique constraints in rollback
+    // as they shouldn't exist in the first place
+  }
 }

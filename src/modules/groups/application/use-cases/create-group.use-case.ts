@@ -4,6 +4,7 @@ import { Group } from '../../domain/entities/group.entity';
 import { CreateGroupDto } from '../dto/create-group.dto';
 import { GroupResponseDto } from '../dto/group-response.dto';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
+import { GroupMapper } from '../mappers/group.mapper';
 
 @Injectable()
 export class CreateGroupUseCase {
@@ -34,18 +35,6 @@ export class CreateGroupUseCase {
 
     await this.logHistory.execute('group', savedGroup.id, 'CREATE', userId);
 
-    return this.mapToResponseDto(savedGroup);
-  }
-
-  private mapToResponseDto(group: Group): GroupResponseDto {
-    return {
-      id: group.id,
-      name: group.name,
-      description: group.description,
-      type: group.type,
-      isActive: group.isActive,
-      createdAt: group.createdAt,
-      updatedAt: group.updatedAt,
-    };
+    return GroupMapper.toResponseDto(savedGroup);
   }
 }

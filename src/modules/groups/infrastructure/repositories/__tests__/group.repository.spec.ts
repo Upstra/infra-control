@@ -111,7 +111,7 @@ describe('GroupRepository', () => {
 
       expect(result).toEqual(mockGroup);
       expect(mockRepository.findOne).toHaveBeenCalledWith({
-        where: { id: '1' },
+        where: { id: '1', isActive: true },
       });
     });
 
@@ -193,6 +193,7 @@ describe('GroupRepository', () => {
 
       const mockQueryBuilder = {
         where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
         leftJoin: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
         addSelect: jest.fn().mockReturnThis(),
@@ -227,6 +228,7 @@ describe('GroupRepository', () => {
     it('should return null when group not found', async () => {
       const mockQueryBuilder = {
         where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
         leftJoin: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
         addSelect: jest.fn().mockReturnThis(),
