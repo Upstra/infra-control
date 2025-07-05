@@ -19,15 +19,17 @@ import { RoleModule } from '../roles/role.module';
 import { HistoryModule } from '../history/history.module';
 import { AuditModule } from '../audit/audit.module';
 import { HealthModule } from '../health/health.module';
-import { DashboardLayout } from './domain/entities/dashboard-layout.entity';
-import { DashboardWidget } from './domain/entities/dashboard-widget.entity';
-import { DashboardPreference } from './domain/entities/dashboard-preference.entity';
-import { DashboardTemplate } from './domain/entities/dashboard-template.entity';
 import { DashboardLayoutRepository } from './infrastructure/repositories/dashboard-layout.repository';
 import { DashboardPreferenceRepository } from './infrastructure/repositories/dashboard-preference.repository';
 import { DashboardTemplateRepository } from './infrastructure/repositories/dashboard-template.repository';
 import { DashboardRateLimitGuard } from './application/guards/dashboard-rate-limit.guard';
 import { DashboardLayoutDomainService } from './domain/services/dashboard-layout.domain.service';
+import {
+  DashboardLayout,
+  DashboardPreference,
+  DashboardTemplate,
+  DashboardWidget,
+} from './domain/entities';
 
 @Module({
   controllers: [

@@ -17,11 +17,11 @@ describe('CustomValidationPipe translateConstraint', () => {
     ['must be an integer number', 'doit être un entier'],
     [
       'must be one of the following values: VM, SERVER',
-      'doit être l\'une des valeurs suivantes: VM, SERVER',
+      "doit être l'une des valeurs suivantes: VM, SERVER",
     ],
     [
       'must be one of the following values: ADMIN, USER',
-      'doit être l\'une des valeurs suivantes: ADMIN, USER',
+      "doit être l'une des valeurs suivantes: ADMIN, USER",
     ],
   ];
 
@@ -59,7 +59,7 @@ describe('CustomValidationPipe exceptionFactory', () => {
     ]) as BadRequestException;
     expect(exception).toBeInstanceOf(BadRequestException);
     expect((exception.getResponse() as any).message).toEqual([
-      'type: doit être l\'une des valeurs suivantes: VM, SERVER',
+      "type: doit être l'une des valeurs suivantes: VM, SERVER",
     ]);
   });
 

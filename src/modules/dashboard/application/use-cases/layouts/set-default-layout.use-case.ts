@@ -7,9 +7,7 @@ import {
 
 @Injectable()
 export class SetDefaultLayoutUseCase {
-  constructor(
-    private readonly layoutRepository: DashboardLayoutRepository,
-  ) {}
+  constructor(private readonly layoutRepository: DashboardLayoutRepository) {}
 
   async execute(layoutId: string, userId: string): Promise<void> {
     const layout = await this.layoutRepository.findById(layoutId);

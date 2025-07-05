@@ -8,9 +8,7 @@ import {
 
 @Injectable()
 export class GetLayoutUseCase {
-  constructor(
-    private readonly layoutRepository: DashboardLayoutRepository,
-  ) {}
+  constructor(private readonly layoutRepository: DashboardLayoutRepository) {}
 
   async execute(
     layoutId: string,
