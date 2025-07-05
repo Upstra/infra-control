@@ -1,5 +1,5 @@
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 
@@ -56,14 +56,14 @@ export abstract class SwapPrioritiesBaseUseCase<
 
     return await this.dataSource.transaction(async (manager) => {
       const entityRepo = manager.getRepository<TEntity>(
-        this.getEntityRepository().target as any,
+        this.getEntityRepository().target,
       );
 
       const entity1 = await entityRepo.findOne({
-        where: { id: entity1Id } as any,
+        where: { id: entity1Id } as FindOptionsWhere<TEntity>,
       });
       const entity2 = await entityRepo.findOne({
-        where: { id: entity2Id } as any,
+        where: { id: entity2Id } as FindOptionsWhere<TEntity>,
       });
 
       if (!entity1) {
