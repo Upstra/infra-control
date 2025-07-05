@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Put,
   Query,
   UseFilters,
   UseGuards,
@@ -30,12 +31,14 @@ import {
   DeleteServerUseCase,
   GetUserServersUseCase,
   GetServerByIdWithPermissionCheckUseCase,
+  UpdateServerPriorityUseCase,
 } from '@/modules/servers/application/use-cases';
 
 import { ServerResponseDto } from '../dto/server.response.dto';
 import { ServerCreationDto } from '../dto/server.creation.dto';
 import { ServerUpdateDto } from '../dto/server.update.dto';
 import { ServerListResponseDto } from '../dto/server.list.response.dto';
+import { UpdatePriorityDto } from '../../../priorities/application/dto/update-priority.dto';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
@@ -56,6 +59,7 @@ export class ServerController {
     private readonly deleteServerUseCase: DeleteServerUseCase,
     private readonly getServerByIdWithPermissionCheckUseCase: GetServerByIdWithPermissionCheckUseCase,
     private readonly getUserServersUseCase: GetUserServersUseCase,
+    private readonly updateServerPriorityUseCase: UpdateServerPriorityUseCase,
   ) {}
 
   @Get('admin/all')
@@ -187,8 +191,54 @@ export class ServerController {
   async updateServer(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() serverDto: ServerUpdateDto,
+    @CurrentUser() user: JwtPayload,
   ): Promise<ServerResponseDto> {
-    return this.updateServerUseCase.execute(id, serverDto);
+    return this.updateServerUseCase.execute(id, serverDto, user.userId);
+  }
+
+  @Put(':id/priority')
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'UUID du serveur',
+    required: true,
+  })
+  @ApiOperation({
+    summary: 'Mettre à jour la priorité d\'un serveur',
+    description: 'Met à jour uniquement la priorité d\'un serveur',
+  })
+  @ApiBody({
+    type: UpdatePriorityDto,
+    description: 'Nouvelle priorité du serveur',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Priorité mise à jour avec succès',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        priority: { type: 'number' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Permissions insuffisantes',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Serveur non trouvé',
+  })
+  async updatePriority(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdatePriorityDto,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<{ id: string; priority: number }> {
+    return this.updateServerPriorityUseCase.execute(id, dto.priority, user.userId);
   }
 
   @Delete(':id')

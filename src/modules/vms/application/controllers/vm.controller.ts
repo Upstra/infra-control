@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   ParseUUIDPipe,
   Query,
   UseGuards,
@@ -33,7 +34,9 @@ import {
   GetAllVmsUseCase,
   GetVmByIdUseCase,
   UpdateVmUseCase,
+  UpdateVmPriorityUseCase,
 } from '@/modules/vms/application/use-cases';
+import { UpdatePriorityDto } from '../../../priorities/application/dto/update-priority.dto';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
 import { RequireResourcePermission } from '@/core/decorators/ressource-permission.decorator';
@@ -53,6 +56,7 @@ export class VmController implements VmEndpointInterface {
     private readonly createVmUseCase: CreateVmUseCase,
     private readonly updateVmUseCase: UpdateVmUseCase,
     private readonly deleteVmUseCase: DeleteVmUseCase,
+    private readonly updateVmPriorityUseCase: UpdateVmPriorityUseCase,
   ) {}
 
   @Get()
@@ -146,6 +150,57 @@ export class VmController implements VmEndpointInterface {
     @Body() vmDto: VmUpdateDto,
   ): Promise<VmResponseDto> {
     return this.updateVmUseCase.execute(id, vmDto);
+  }
+
+  @Put(':id/priority')
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, ResourcePermissionGuard)
+  @RequireResourcePermission({
+    resourceType: 'vm',
+    requiredBit: PermissionBit.WRITE,
+    resourceIdSource: 'params',
+    resourceIdField: 'id',
+  })
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'UUID de la VM',
+    required: true,
+  })
+  @ApiOperation({
+    summary: 'Mettre à jour la priorité d\'une VM',
+    description: 'Met à jour uniquement la priorité d\'une VM',
+  })
+  @ApiBody({
+    type: UpdatePriorityDto,
+    description: 'Nouvelle priorité de la VM',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Priorité mise à jour avec succès',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        priority: { type: 'number' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Permissions insuffisantes',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'VM non trouvée',
+  })
+  async updatePriority(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdatePriorityDto,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<{ id: string; priority: number }> {
+    return this.updateVmPriorityUseCase.execute(id, dto.priority, user.userId);
   }
 
   @Delete(':id')

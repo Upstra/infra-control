@@ -190,14 +190,22 @@ describe('ServerController', () => {
       const dto = createMockServerDto();
       updateServerUseCase.execute.mockResolvedValue(dto);
 
-      const result = await controller.updateServer('server-uuid', {
-        name: 'Updated',
-      });
+      const result = await controller.updateServer(
+        'server-uuid',
+        {
+          name: 'Updated',
+        },
+        mockPayload,
+      );
 
       expect(result).toEqual(dto);
-      expect(updateServerUseCase.execute).toHaveBeenCalledWith('server-uuid', {
-        name: 'Updated',
-      });
+      expect(updateServerUseCase.execute).toHaveBeenCalledWith(
+        'server-uuid',
+        {
+          name: 'Updated',
+        },
+        mockPayload.userId,
+      );
     });
 
     it('should throw if update fails (e.g., server not found)', async () => {
@@ -206,7 +214,7 @@ describe('ServerController', () => {
       );
 
       await expect(
-        controller.updateServer('invalid-id', { name: 'Updated' }),
+        controller.updateServer('invalid-id', { name: 'Updated' }, mockPayload),
       ).rejects.toThrow('Update failed: server not found');
     });
   });
