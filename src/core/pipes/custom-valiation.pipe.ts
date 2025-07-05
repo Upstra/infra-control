@@ -55,7 +55,6 @@ export function translateConstraint(message: string): string {
     return 'Erreur de validation';
   }
 
-  // Handle enum validation with dynamic values
   if (message.includes('must be one of the following values:')) {
     const enumValues = message.split(':')[1]?.trim() ?? '';
     return `doit être l'une des valeurs suivantes: ${enumValues}`;
@@ -68,7 +67,10 @@ export function translateConstraint(message: string): string {
     .replace('characters', 'caractères')
     .replace('must be shorter than or equal to', 'doit contenir au maximum')
     .replace('each value in', 'chaque valeur de')
-    .replace('must be a valid enum value', 'doit être une valeur valide')
+    .replace(
+      'must be a valid enum value',
+      'doit être une valeur valide parmi: stats, activity-feed, alerts, resource-usage, user-presence, system-health, ups-status',
+    )
     .replace('must be a boolean value', 'doit être un booléen')
     .replace('must be an integer number', 'doit être un entier')
     .replace(
