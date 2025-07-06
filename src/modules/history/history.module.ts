@@ -4,6 +4,7 @@ import {
   GetHistoryStatsUseCase,
   GetHistoryListUseCase,
   GetHistoryEntityTypesUseCase,
+  GetHistoryActionTypesUseCase,
 } from './application/use-cases';
 import { HistoryController } from './application/controllers/history.controller';
 import { AuditModule } from '../audit/audit.module';
@@ -17,12 +18,14 @@ import { UserModule } from '../users/user.module';
     GetHistoryStatsUseCase,
     GetHistoryListUseCase,
     GetHistoryEntityTypesUseCase,
+    GetHistoryActionTypesUseCase,
   ],
   exports: [
     GetHistoryStatisticsUseCase,
     GetHistoryStatsUseCase,
     GetHistoryListUseCase,
     GetHistoryEntityTypesUseCase,
+    GetHistoryActionTypesUseCase,
   ],
 })
 export class HistoryModule {}

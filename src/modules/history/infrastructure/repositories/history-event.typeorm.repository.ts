@@ -68,15 +68,20 @@ export class HistoryEventTypeormRepository
     const qb = this.repository
       .createQueryBuilder('history')
       .skip((page - 1) * limit)
-      .take(limit)
-      .orderBy('history.createdAt', 'DESC');
+      .take(limit);
 
     relations.forEach((rel) => {
       qb.leftJoinAndSelect(`history.${rel}`, rel);
     });
 
     if (filters.action) {
-      qb.andWhere('history.action = :action', { action: filters.action });
+      if (Array.isArray(filters.action)) {
+        qb.andWhere('history.action IN (:...actions)', {
+          actions: filters.action,
+        });
+      } else {
+        qb.andWhere('history.action = :action', { action: filters.action });
+      }
     }
     if (filters.entity) {
       qb.andWhere('history.entity = :entity', { entity: filters.entity });
@@ -91,6 +96,11 @@ export class HistoryEventTypeormRepository
       qb.andWhere('history.createdAt <= :to', { to: filters.to });
     }
 
+    const sortField = filters.sort || 'createdAt';
+    const sortOrder =
+      (filters.order?.toUpperCase() as 'ASC' | 'DESC') || 'DESC';
+    qb.orderBy(`history.${sortField}`, sortOrder);
+
     return qb.getManyAndCount();
   }
 
@@ -102,6 +112,17 @@ export class HistoryEventTypeormRepository
       .getRawMany<{ entity: string }>();
 
     return results.map((result) => result.entity);
+  }
+
+  async findDistinctActionTypes(): Promise<string[]> {
+    const results = await this.repository
+      .createQueryBuilder('history')
+      .select('DISTINCT history.action', 'action')
+      .where('history.action IS NOT NULL')
+      .orderBy('history.action', 'ASC')
+      .getRawMany<{ action: string }>();
+
+    return results.map((result) => result.action);
   }
 
   async getStats(): Promise<HistoryStatsData> {

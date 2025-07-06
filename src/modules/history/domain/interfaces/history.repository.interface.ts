@@ -23,5 +23,6 @@ export interface HistoryRepositoryInterface
     filters?: HistoryListFilters,
   ): Promise<[HistoryEvent[], number]>;
   findDistinctEntityTypes(): Promise<string[]>;
+  findDistinctActionTypes(): Promise<string[]>;
   getStats(): Promise<HistoryStatsData>;
 }

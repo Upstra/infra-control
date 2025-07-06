@@ -3,6 +3,7 @@ import { HistoryController } from '../history.controller';
 import { GetHistoryListUseCase } from '../../use-cases/get-history-list.use-case';
 import { GetHistoryEntityTypesUseCase } from '../../use-cases/get-entity-types.use-case';
 import { GetHistoryStatisticsUseCase } from '../../use-cases/get-history-statistics.use-case';
+import { GetHistoryActionTypesUseCase } from '../../use-cases/get-action-types.use-case';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { RoleGuard } from '@/core/guards/role.guard';
 import { EntityTypesResponseDto } from '../../dto/entity-types.response.dto';
@@ -15,11 +16,13 @@ describe('HistoryController', () => {
   let getList: jest.Mocked<GetHistoryListUseCase>;
   let getEntityTypesUseCase: jest.Mocked<GetHistoryEntityTypesUseCase>;
   let getHistoryStatisticsUseCase: jest.Mocked<GetHistoryStatisticsUseCase>;
+  let getHistoryActionTypesUseCase: jest.Mocked<GetHistoryActionTypesUseCase>;
 
   beforeEach(async () => {
     getList = { execute: jest.fn() } as any;
     getEntityTypesUseCase = { execute: jest.fn() } as any;
     getHistoryStatisticsUseCase = { execute: jest.fn() } as any;
+    getHistoryActionTypesUseCase = { execute: jest.fn() } as any;
     const mockJwtGuard = { canActivate: jest.fn().mockReturnValue(true) };
     const mockRoleGuard = { canActivate: jest.fn().mockReturnValue(true) };
 
@@ -34,6 +37,10 @@ describe('HistoryController', () => {
         {
           provide: GetHistoryStatisticsUseCase,
           useValue: getHistoryStatisticsUseCase,
+        },
+        {
+          provide: GetHistoryActionTypesUseCase,
+          useValue: getHistoryActionTypesUseCase,
         },
       ],
     })
@@ -58,7 +65,7 @@ describe('HistoryController', () => {
     const mock = { items: [] } as any;
     getList.execute.mockResolvedValue(mock);
     const result = await controller.getHistory();
-    expect(getList.execute).toHaveBeenCalledWith(1, 10, {});
+    expect(getList.execute).toHaveBeenCalledWith(1, 20, {});
     expect(result).toBe(mock);
   });
 
