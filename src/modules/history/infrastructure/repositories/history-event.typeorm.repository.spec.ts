@@ -73,9 +73,9 @@ describe('HistoryEventTypeormRepository', () => {
         { action: 'DELETE', count: '50' },
       ];
       const mockActivityTrends = [
-        { date: new Date('2025-01-01'), count: '10' },
-        { date: new Date('2025-01-02'), count: '15' },
-        { date: new Date('2025-01-03'), count: '12' },
+        { date: '2025-01-01', count: '10' },
+        { date: '2025-01-02', count: '15' },
+        { date: '2025-01-03', count: '12' },
       ];
       const mockTopUsers = [
         { userId: 'user1', username: 'john.doe', count: '25' },
@@ -144,7 +144,7 @@ describe('HistoryEventTypeormRepository', () => {
       await repository.getStats();
 
       const whereCall = mockQueryBuilder.where.mock.calls[0];
-      expect(whereCall[0]).toBe('history.createdAt >= :thirtyDaysAgo');
+      expect(whereCall[0]).toBe('history."createdAt" >= :thirtyDaysAgo');
       expect(whereCall[1]).toHaveProperty('thirtyDaysAgo');
 
       const thirtyDaysAgo = whereCall[1].thirtyDaysAgo as Date;
@@ -172,7 +172,7 @@ describe('HistoryEventTypeormRepository', () => {
 
       expect(mockQueryBuilder.orderBy).toHaveBeenNthCalledWith(
         1,
-        'date',
+        'history."createdAt"::date',
         'ASC',
       );
       expect(mockQueryBuilder.orderBy).toHaveBeenNthCalledWith(
@@ -243,6 +243,49 @@ describe('HistoryEventTypeormRepository', () => {
         'user',
       );
     });
+
+    it('should handle multiple action filters', async () => {
+      const mockEvents = [];
+      const mockTotal = 0;
+
+      mockQueryBuilder.getManyAndCount.mockResolvedValue([
+        mockEvents,
+        mockTotal,
+      ]);
+
+      const filters = {
+        action: ['CREATE', 'UPDATE', 'DELETE'],
+      };
+
+      await repository.paginate(1, 10, [], filters);
+
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'history.action IN (:...actions)',
+        { actions: ['CREATE', 'UPDATE', 'DELETE'] },
+      );
+    });
+
+    it('should apply sort and order', async () => {
+      const mockEvents = [];
+      const mockTotal = 0;
+
+      mockQueryBuilder.getManyAndCount.mockResolvedValue([
+        mockEvents,
+        mockTotal,
+      ]);
+
+      const filters = {
+        sort: 'entity',
+        order: 'asc' as const,
+      };
+
+      await repository.paginate(1, 10, [], filters);
+
+      expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith(
+        'history.entity',
+        'ASC',
+      );
+    });
   });
 
   describe('findDistinctEntityTypes', () => {
@@ -261,6 +304,30 @@ describe('HistoryEventTypeormRepository', () => {
       expect(mockQueryBuilder.select).toHaveBeenCalledWith(
         'DISTINCT history.entity',
         'entity',
+      );
+    });
+  });
+
+  describe('findDistinctActionTypes', () => {
+    it('should return distinct action types sorted alphabetically', async () => {
+      const mockResults = [
+        { action: 'CREATE' },
+        { action: 'DELETE' },
+        { action: 'UPDATE' },
+      ];
+
+      mockQueryBuilder.getRawMany.mockResolvedValue(mockResults);
+
+      const result = await repository.findDistinctActionTypes();
+
+      expect(result).toEqual(['CREATE', 'DELETE', 'UPDATE']);
+      expect(mockQueryBuilder.select).toHaveBeenCalledWith(
+        'DISTINCT history.action',
+        'action',
+      );
+      expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith(
+        'history.action',
+        'ASC',
       );
     });
   });
