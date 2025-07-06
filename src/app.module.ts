@@ -16,6 +16,7 @@ import { VmModule } from './modules/vms/vm.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { PresenceModule } from './modules/presence/presence.module';
 import { GuardsModule } from './core/guards.module';
+import { InterceptorsModule } from './core/interceptors.module';
 import { SetupModule } from './modules/setup/setup.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { HistoryModule } from './modules/history/history.module';
@@ -31,6 +32,7 @@ import { PrometheusModule } from './modules/prometheus/prometheus.module';
     configModule,
     TypeOrmModule.forRoot(typeOrmConfig),
     GuardsModule,
+    InterceptorsModule,
     AuthModule,
     GroupModule,
     IloModule,
