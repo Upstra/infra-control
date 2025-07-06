@@ -11,7 +11,6 @@ import {
   Query,
   UseGuards,
   UseFilters,
-  Req,
 } from '@nestjs/common';
 import { VmCreationDto } from '../dto/vm.creation.dto';
 import { VmResponseDto } from '../dto/vm.response.dto';
@@ -44,7 +43,6 @@ import { PermissionBit } from '@/modules/permissions/domain/value-objects/permis
 import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.exception.filter';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
-import { RequestContextDto } from '@/core/dto';
 import { LogToHistory } from '@/core/decorators/logging-context.decorator';
 
 @ApiTags('VM')
@@ -129,18 +127,13 @@ export class VmController implements VmEndpointInterface {
     extractMetadata: (data) => ({
       vmType: 'virtual',
       operatingSystem: data.os,
-      parentServer: data.server?.name,
+      serverId: data.serverId,
       assignedToGroup: !!data.groupId,
       priority: data.priority,
     }),
   })
-  async createVm(
-    @Body() vmDto: VmCreationDto,
-    @CurrentUser() user: JwtPayload,
-    @Req() req: any,
-  ): Promise<VmResponseDto> {
-    const requestContext = RequestContextDto.fromRequest(req);
-    return this.createVmUseCase.execute(vmDto, user.userId, requestContext);
+  async createVm(@Body() vmDto: VmCreationDto): Promise<VmResponseDto> {
+    return this.createVmUseCase.execute(vmDto);
   }
 
   @UseGuards(JwtAuthGuard, ResourcePermissionGuard)

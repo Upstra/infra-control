@@ -14,7 +14,7 @@ import {
   SwapServerResponseDto,
   SwapVmResponseDto,
 } from '../../dto';
-import { ExpressRequestWithUser } from '@/core/types/express-with-user.interface';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 describe('PriorityController', () => {
   let controller: PriorityController;
@@ -24,9 +24,10 @@ describe('PriorityController', () => {
   let swapVmPriorities: jest.Mocked<SwapVmPrioritiesUseCase>;
 
   const mockUserId = 'user-123';
-  const mockRequest = {
-    user: { userId: mockUserId },
-  } as ExpressRequestWithUser;
+  const mockUser: JwtPayload = {
+    userId: mockUserId,
+    email: 'test@example.com',
+  };
 
   const mockServerPriorities: ServerPriorityResponseDto[] = [
     {
@@ -108,21 +109,22 @@ describe('PriorityController', () => {
     it('should return server priorities list', async () => {
       getServerPriorities.execute.mockResolvedValue(mockServerPriorities);
 
-      const result = await controller.getServerPrioritiesList(mockRequest);
+      const result = await controller.getServerPrioritiesList(mockUser);
 
       expect(getServerPriorities.execute).toHaveBeenCalledWith(mockUserId);
       expect(result).toEqual(mockServerPriorities);
     });
 
     it('should handle request with no user', async () => {
-      const requestWithoutUser = {
-        user: undefined,
-      } as ExpressRequestWithUser;
+      const userWithoutId: JwtPayload = {
+        userId: undefined as any,
+        email: 'test@example.com',
+      };
 
       getServerPriorities.execute.mockResolvedValue([]);
 
       const result =
-        await controller.getServerPrioritiesList(requestWithoutUser);
+        await controller.getServerPrioritiesList(userWithoutId);
 
       expect(getServerPriorities.execute).toHaveBeenCalledWith(undefined);
       expect(result).toEqual([]);
@@ -131,7 +133,7 @@ describe('PriorityController', () => {
     it('should handle empty server list', async () => {
       getServerPriorities.execute.mockResolvedValue([]);
 
-      const result = await controller.getServerPrioritiesList(mockRequest);
+      const result = await controller.getServerPrioritiesList(mockUser);
 
       expect(result).toEqual([]);
     });
@@ -141,7 +143,7 @@ describe('PriorityController', () => {
       getServerPriorities.execute.mockRejectedValue(error);
 
       await expect(
-        controller.getServerPrioritiesList(mockRequest),
+        controller.getServerPrioritiesList(mockUser),
       ).rejects.toThrow(error);
     });
   });
@@ -150,20 +152,21 @@ describe('PriorityController', () => {
     it('should return VM priorities list', async () => {
       getVmPriorities.execute.mockResolvedValue(mockVmPriorities);
 
-      const result = await controller.getVmPrioritiesList(mockRequest);
+      const result = await controller.getVmPrioritiesList(mockUser);
 
       expect(getVmPriorities.execute).toHaveBeenCalledWith(mockUserId);
       expect(result).toEqual(mockVmPriorities);
     });
 
     it('should handle request with no user', async () => {
-      const requestWithoutUser = {
-        user: undefined,
-      } as ExpressRequestWithUser;
+      const userWithoutId: JwtPayload = {
+        userId: undefined as any,
+        email: 'test@example.com',
+      };
 
       getVmPriorities.execute.mockResolvedValue([]);
 
-      const result = await controller.getVmPrioritiesList(requestWithoutUser);
+      const result = await controller.getVmPrioritiesList(userWithoutId);
 
       expect(getVmPriorities.execute).toHaveBeenCalledWith(undefined);
       expect(result).toEqual([]);
@@ -172,7 +175,7 @@ describe('PriorityController', () => {
     it('should handle empty VM list', async () => {
       getVmPriorities.execute.mockResolvedValue([]);
 
-      const result = await controller.getVmPrioritiesList(mockRequest);
+      const result = await controller.getVmPrioritiesList(mockUser);
 
       expect(result).toEqual([]);
     });
@@ -181,7 +184,7 @@ describe('PriorityController', () => {
       const error = new Error('Database error');
       getVmPriorities.execute.mockRejectedValue(error);
 
-      await expect(controller.getVmPrioritiesList(mockRequest)).rejects.toThrow(
+      await expect(controller.getVmPrioritiesList(mockUser)).rejects.toThrow(
         error,
       );
     });
@@ -203,7 +206,7 @@ describe('PriorityController', () => {
 
       const result = await controller.swapServerPrioritiesHandler(
         swapDto,
-        mockRequest,
+        mockUser,
       );
 
       expect(swapServerPriorities.execute).toHaveBeenCalledWith(
@@ -215,15 +218,16 @@ describe('PriorityController', () => {
     });
 
     it('should handle request with no user', async () => {
-      const requestWithoutUser = {
-        user: undefined,
-      } as ExpressRequestWithUser;
+      const userWithoutId: JwtPayload = {
+        userId: undefined as any,
+        email: 'test@example.com',
+      };
 
       swapServerPriorities.execute.mockResolvedValue(mockSwapResponse);
 
       const result = await controller.swapServerPrioritiesHandler(
         swapDto,
-        requestWithoutUser,
+        userWithoutId,
       );
 
       expect(swapServerPriorities.execute).toHaveBeenCalledWith(
@@ -239,7 +243,7 @@ describe('PriorityController', () => {
       swapServerPriorities.execute.mockRejectedValue(error);
 
       await expect(
-        controller.swapServerPrioritiesHandler(swapDto, mockRequest),
+        controller.swapServerPrioritiesHandler(swapDto, mockUser),
       ).rejects.toThrow(error);
     });
 
@@ -248,7 +252,7 @@ describe('PriorityController', () => {
       swapServerPriorities.execute.mockRejectedValue(error);
 
       await expect(
-        controller.swapServerPrioritiesHandler(swapDto, mockRequest),
+        controller.swapServerPrioritiesHandler(swapDto, mockUser),
       ).rejects.toThrow(error);
     });
   });
@@ -269,7 +273,7 @@ describe('PriorityController', () => {
 
       const result = await controller.swapVmPrioritiesHandler(
         swapDto,
-        mockRequest,
+        mockUser,
       );
 
       expect(swapVmPriorities.execute).toHaveBeenCalledWith(
@@ -281,15 +285,16 @@ describe('PriorityController', () => {
     });
 
     it('should handle request with no user', async () => {
-      const requestWithoutUser = {
-        user: undefined,
-      } as ExpressRequestWithUser;
+      const userWithoutId: JwtPayload = {
+        userId: undefined as any,
+        email: 'test@example.com',
+      };
 
       swapVmPriorities.execute.mockResolvedValue(mockSwapResponse);
 
       const result = await controller.swapVmPrioritiesHandler(
         swapDto,
-        requestWithoutUser,
+        userWithoutId,
       );
 
       expect(swapVmPriorities.execute).toHaveBeenCalledWith(
@@ -305,7 +310,7 @@ describe('PriorityController', () => {
       swapVmPriorities.execute.mockRejectedValue(error);
 
       await expect(
-        controller.swapVmPrioritiesHandler(swapDto, mockRequest),
+        controller.swapVmPrioritiesHandler(swapDto, mockUser),
       ).rejects.toThrow(error);
     });
 
@@ -314,7 +319,7 @@ describe('PriorityController', () => {
       swapVmPriorities.execute.mockRejectedValue(error);
 
       await expect(
-        controller.swapVmPrioritiesHandler(swapDto, mockRequest),
+        controller.swapVmPrioritiesHandler(swapDto, mockUser),
       ).rejects.toThrow(error);
     });
   });
