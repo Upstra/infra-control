@@ -122,16 +122,17 @@ export class HistoryEventTypeormRepository
       .getRawMany<{ action: string; count: string }>();
 
     const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
+    thirtyDaysAgo.setHours(0, 0, 0, 0);
 
     const activityTrendsPromise = this.repository
       .createQueryBuilder('history')
-      .select('DATE(history.createdAt)', 'date')
+      .select('TO_CHAR(history."createdAt"::date, \'YYYY-MM-DD\')', 'date')
       .addSelect('COUNT(*)', 'count')
-      .where('history.createdAt >= :thirtyDaysAgo', { thirtyDaysAgo })
-      .groupBy('date')
-      .orderBy('date', 'ASC')
-      .getRawMany<{ date: Date; count: string }>();
+      .where('history."createdAt" >= :thirtyDaysAgo', { thirtyDaysAgo })
+      .groupBy('history."createdAt"::date')
+      .orderBy('history."createdAt"::date', 'ASC')
+      .getRawMany<{ date: string; count: string }>();
 
     const topUsersPromise = this.repository
       .createQueryBuilder('history')
@@ -177,7 +178,7 @@ export class HistoryEventTypeormRepository
     );
 
     const activityTrends = activityTrendsRaw.map((trend) => ({
-      date: trend.date.toISOString().split('T')[0],
+      date: trend.date,
       count: Number(trend.count),
     }));
 
