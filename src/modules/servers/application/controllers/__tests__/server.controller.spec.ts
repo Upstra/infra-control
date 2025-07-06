@@ -232,10 +232,10 @@ describe('ServerController', () => {
     it('should delete a server', async () => {
       deleteServerUseCase.execute.mockResolvedValue(undefined);
 
-      const result = await controller.deleteServer('server-uuid');
+      const result = await controller.deleteServer('server-uuid', mockPayload);
 
       expect(result).toBeUndefined();
-      expect(deleteServerUseCase.execute).toHaveBeenCalledWith('server-uuid');
+      expect(deleteServerUseCase.execute).toHaveBeenCalledWith('server-uuid', mockPayload.userId);
     });
   });
 

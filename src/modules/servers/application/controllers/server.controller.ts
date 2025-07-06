@@ -48,6 +48,7 @@ import { RequireRole } from '@/core/decorators/role.decorator';
 import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
 import { RequireResourcePermission } from '@/core/decorators/ressource-permission.decorator';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
+import { LogToHistory } from '@/core/decorators/logging-context.decorator';
 import { RequestContextDto } from '@/core/dto';
 
 @ApiTags('Server')
@@ -301,7 +302,11 @@ export class ServerController {
     status: 403,
     description: 'Permissions insuffisantes',
   })
-  async deleteServer(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    return this.deleteServerUseCase.execute(id);
+  @LogToHistory('server', 'DELETE')
+  async deleteServer(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<void> {
+    return this.deleteServerUseCase.execute(id, user.userId);
   }
 }

@@ -155,9 +155,9 @@ describe('ServerController - Admin Bypass Tests', () => {
 
     describe('DELETE /server/:id', () => {
       it('should allow delete when guard permits', async () => {
-        await controller.deleteServer('server-123');
+        await controller.deleteServer('server-123', mockAdminUser);
 
-        expect(deleteServerUseCase.execute).toHaveBeenCalledWith('server-123');
+        expect(deleteServerUseCase.execute).toHaveBeenCalledWith('server-123', 'admin-123');
       });
     });
 
