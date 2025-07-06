@@ -14,7 +14,6 @@ import {
   GetVmListUseCase,
   GetVmByIdUseCase,
 } from '../../use-cases';
-import { RequestContextDto } from '@/core/dto';
 import { Reflector } from '@nestjs/core';
 
 describe('VmController - Admin Bypass Tests', () => {
@@ -34,7 +33,7 @@ describe('VmController - Admin Bypass Tests', () => {
     email: 'user@example.com',
   };
 
-  const mockRequest = {
+  const mockRequest: any = {
     ip: '127.0.0.1',
     headers: {
       'user-agent': 'test-agent',
@@ -159,17 +158,9 @@ describe('VmController - Admin Bypass Tests', () => {
           name: 'Test VM',
         } as any);
 
-        const result = await controller.createVm(
-          vmDto,
-          mockAdminUser,
-          mockRequest,
-        );
+        const result = await controller.createVm(vmDto);
 
-        expect(createVmUseCase.execute).toHaveBeenCalledWith(
-          vmDto,
-          'admin-123',
-          expect.any(RequestContextDto),
-        );
+        expect(createVmUseCase.execute).toHaveBeenCalledWith(vmDto);
         expect(result.name).toBe('Test VM');
       });
 
@@ -179,17 +170,9 @@ describe('VmController - Admin Bypass Tests', () => {
           name: 'Test VM',
         } as any);
 
-        const result = await controller.createVm(
-          vmDto,
-          mockNormalUser,
-          mockRequest,
-        );
+        const result = await controller.createVm(vmDto);
 
-        expect(createVmUseCase.execute).toHaveBeenCalledWith(
-          vmDto,
-          'user-123',
-          expect.any(RequestContextDto),
-        );
+        expect(createVmUseCase.execute).toHaveBeenCalledWith(vmDto);
         expect(result.name).toBe('Test VM');
       });
     });

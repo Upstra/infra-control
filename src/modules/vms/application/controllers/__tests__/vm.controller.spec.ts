@@ -156,18 +156,10 @@ describe('VmController', () => {
       createVmUseCase.execute.mockResolvedValue(vm);
 
       const mockUser = { userId: 'user-123', email: 'user@example.com' };
-      const mockReq = {
-        ip: '127.0.0.1',
-        get: jest.fn().mockReturnValue('Test-Agent'),
-      } as any;
-      const result = await controller.createVm(dto, mockUser, mockReq);
+      const result = await controller.createVm(dto);
 
       expect(result).toEqual(vm);
-      expect(createVmUseCase.execute).toHaveBeenCalledWith(
-        dto,
-        'user-123',
-        expect.any(Object),
-      );
+      expect(createVmUseCase.execute).toHaveBeenCalledWith(dto);
     });
 
     it('should throw if VM creation fails', async () => {
@@ -195,7 +187,7 @@ describe('VmController', () => {
         ip: '127.0.0.1',
         get: jest.fn().mockReturnValue('Test-Agent'),
       } as any;
-      await expect(controller.createVm(dto, mockUser, mockReq)).rejects.toThrow(
+      await expect(controller.createVm(dto)).rejects.toThrow(
         'VM creation failed',
       );
     });
