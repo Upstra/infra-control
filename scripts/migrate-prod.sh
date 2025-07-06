@@ -71,9 +71,9 @@ case $choice in
     
     2)
         echo -e "\n${YELLOW}⚠️  ATTENTION: Vous êtes sur le point d'exécuter les migrations en production!${NC}"
-        read -p "Êtes-vous sûr de vouloir continuer? (oui/non): " confirm
+        read -p "Êtes-vous sûr de vouloir continuer? (y/n): " confirm
         
-        if [ "$confirm" = "oui" ]; then
+        if [ "$confirm" =~ ^[Yy]$ ]; then
             echo -e "\n${YELLOW}🔄 Exécution des migrations...${NC}"
             
             # Créer une sauvegarde automatique
@@ -136,9 +136,9 @@ case $choice in
     4)
         echo -e "\n${YELLOW}⚠️  ATTENTION: Rollback de migration!${NC}"
         echo "Cette opération va annuler la dernière migration exécutée."
-        read -p "Êtes-vous sûr de vouloir continuer? (oui/non): " confirm
-        
-        if [ "$confirm" = "oui" ]; then
+        read -p "Êtes-vous sûr de vouloir continuer? (y/n): " confirm
+
+        if [ "$confirm" =~ ^[Yy]$ ]; then
             echo -e "\n${YELLOW}🔄 Rollback en cours...${NC}"
             exec_in_backend pnpm typeorm migration:revert -d dist/src/core/config/data-source.js
             

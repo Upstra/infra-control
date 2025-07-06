@@ -40,6 +40,7 @@ Usage: ./infra <commande>
   backup/restore Sauvegarde / restauration DB (local ou Docker)
   migrate       Lance les migrations (local ou Docker)
   clean         Nettoie les containers Docker
+  uninstall-db  Désinstalle PostgreSQL et Redis (local)
   help          Cette aide
 EOF
 }
@@ -61,8 +62,13 @@ start_backend_local() {
   command -v pnpm >/dev/null 2>&1 || { echo -e "${YELLOW}Installation pnpm…${NC}"; npm install -g pnpm; }
   cd "$SCRIPT_DIR"
   pnpm install && pnpm run build
-  mkdir -p "$SCRIPT_DIR/logs"
-  nohup pnpm run start:prod > "$SCRIPT_DIR/logs/backend.log" 2>&1 & echo $! > "$SCRIPT_DIR/backend.pid"
+
+  date=$(date +%Y%m%d_%H%M%S)
+  logs_dir="$SCRIPT_DIR/logs"
+  log_name="backend_$date.log"
+
+  mkdir -p "$logs_dir"
+  nohup pnpm run start:prod > "$logs_dir/$log_name" 2>&1 & echo $! > "$SCRIPT_DIR/backend.pid"
   echo -e "${GREEN}Backend local lancé (PID $(cat backend.pid))${NC}"
 }
 
