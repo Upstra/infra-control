@@ -45,6 +45,7 @@ import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.except
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { RequestContextDto } from '@/core/dto';
+import { LogToHistory } from '@/core/decorators/logging-context.decorator';
 
 @ApiTags('VM')
 @Controller('vm')
@@ -124,6 +125,15 @@ export class VmController implements VmEndpointInterface {
       'Crée une machine virtuelle sur un serveur spécifique. Nécessite la permission WRITE sur le serveur hôte.',
   })
   @ApiResponse({ status: 201, type: VmResponseDto })
+  @LogToHistory('vm', 'CREATE', {
+    extractMetadata: (data) => ({
+      vmType: 'virtual',
+      operatingSystem: data.os,
+      parentServer: data.server?.name,
+      assignedToGroup: !!data.groupId,
+      priority: data.priority,
+    }),
+  })
   async createVm(
     @Body() vmDto: VmCreationDto,
     @CurrentUser() user: JwtPayload,

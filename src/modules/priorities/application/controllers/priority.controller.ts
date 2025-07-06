@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -6,7 +6,9 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
-import { ExpressRequestWithUser } from '@/core/types/express-with-user.interface';
+import { CurrentUser } from '@/core/decorators/current-user.decorator';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { UseLoggingContext, LogToHistory } from '@/core/decorators/logging-context.decorator';
 import {
   GetServerPrioritiesUseCase,
   GetVmPrioritiesUseCase,
@@ -44,10 +46,14 @@ export class PriorityController {
     description: 'List of servers with priorities',
     type: [ServerPriorityResponseDto],
   })
+  @UseLoggingContext({
+    entityType: 'server-priority',
+    action: 'LIST',
+  })
   async getServerPrioritiesList(
-    @Req() req: ExpressRequestWithUser,
+    @CurrentUser() user: JwtPayload,
   ): Promise<ServerPriorityResponseDto[]> {
-    return this.getServerPriorities.execute(req.user?.userId);
+    return this.getServerPriorities.execute(user.userId);
   }
 
   @Get('vms')
@@ -60,10 +66,14 @@ export class PriorityController {
     description: 'List of VMs with priorities',
     type: [VmPriorityResponseDto],
   })
+  @UseLoggingContext({
+    entityType: 'vm-priority',
+    action: 'LIST',
+  })
   async getVmPrioritiesList(
-    @Req() req: ExpressRequestWithUser,
+    @CurrentUser() user: JwtPayload,
   ): Promise<VmPriorityResponseDto[]> {
-    return this.getVmPriorities.execute(req.user?.userId);
+    return this.getVmPriorities.execute(user.userId);
   }
 
   @Post('servers/swap')
@@ -84,14 +94,22 @@ export class PriorityController {
     status: 404,
     description: 'One or both servers not found',
   })
+  @LogToHistory('server-priority', 'SWAP', {
+    extractEntityId: (data) => `${data.server1.id}-${data.server2.id}`,
+    extractMetadata: (data) => ({
+      server1: { id: data.server1.id, name: data.server1.name, oldPriority: data.server1.priority },
+      server2: { id: data.server2.id, name: data.server2.name, oldPriority: data.server2.priority },
+      swapType: 'server_priority_swap',
+    }),
+  })
   async swapServerPrioritiesHandler(
     @Body() dto: SwapServerPriorityDto,
-    @Req() req: ExpressRequestWithUser,
+    @CurrentUser() user: JwtPayload,
   ): Promise<SwapServerResponseDto> {
     return this.swapServerPriorities.execute(
       dto.server1Id,
       dto.server2Id,
-      req.user?.userId,
+      user.userId,
     );
   }
 
@@ -113,14 +131,22 @@ export class PriorityController {
     status: 404,
     description: 'One or both VMs not found',
   })
+  @LogToHistory('vm-priority', 'SWAP', {
+    extractEntityId: (data) => `${data.vm1.id}-${data.vm2.id}`,
+    extractMetadata: (data) => ({
+      vm1: { id: data.vm1.id, name: data.vm1.name, oldPriority: data.vm1.priority },
+      vm2: { id: data.vm2.id, name: data.vm2.name, oldPriority: data.vm2.priority },
+      swapType: 'vm_priority_swap',
+    }),
+  })
   async swapVmPrioritiesHandler(
     @Body() dto: SwapVmPriorityDto,
-    @Req() req: ExpressRequestWithUser,
+    @CurrentUser() user: JwtPayload,
   ): Promise<SwapVmResponseDto> {
     return this.swapVmPriorities.execute(
       dto.vm1Id,
       dto.vm2Id,
-      req.user?.userId,
+      user.userId,
     );
   }
 }
