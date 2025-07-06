@@ -16,6 +16,7 @@ describe('GetHistoryEntityTypesUseCase', () => {
       findOneByField: jest.fn(),
       countCreatedByMonth: jest.fn(),
       paginate: jest.fn(),
+      getStats: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
