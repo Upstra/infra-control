@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { HistoryController } from '../history.controller';
 import { GetHistoryListUseCase } from '../../use-cases/get-history-list.use-case';
 import { GetHistoryEntityTypesUseCase } from '../../use-cases/get-entity-types.use-case';
+import { GetHistoryStatisticsUseCase } from '../../use-cases/get-history-statistics.use-case';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { RoleGuard } from '@/core/guards/role.guard';
 import { EntityTypesResponseDto } from '../../dto/entity-types.response.dto';
@@ -13,10 +14,12 @@ describe('HistoryController', () => {
   let controller: HistoryController;
   let getList: jest.Mocked<GetHistoryListUseCase>;
   let getEntityTypesUseCase: jest.Mocked<GetHistoryEntityTypesUseCase>;
+  let getHistoryStatisticsUseCase: jest.Mocked<GetHistoryStatisticsUseCase>;
 
   beforeEach(async () => {
     getList = { execute: jest.fn() } as any;
     getEntityTypesUseCase = { execute: jest.fn() } as any;
+    getHistoryStatisticsUseCase = { execute: jest.fn() } as any;
     const mockJwtGuard = { canActivate: jest.fn().mockReturnValue(true) };
     const mockRoleGuard = { canActivate: jest.fn().mockReturnValue(true) };
 
@@ -27,6 +30,10 @@ describe('HistoryController', () => {
         {
           provide: GetHistoryEntityTypesUseCase,
           useValue: getEntityTypesUseCase,
+        },
+        {
+          provide: GetHistoryStatisticsUseCase,
+          useValue: getHistoryStatisticsUseCase,
         },
       ],
     })

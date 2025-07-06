@@ -1,5 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
 import {
+  GetHistoryStatisticsUseCase,
   GetHistoryStatsUseCase,
   GetHistoryListUseCase,
   GetHistoryEntityTypesUseCase,
@@ -12,11 +13,13 @@ import { UserModule } from '../users/user.module';
   imports: [AuditModule, forwardRef(() => UserModule)],
   controllers: [HistoryController],
   providers: [
+    GetHistoryStatisticsUseCase,
     GetHistoryStatsUseCase,
     GetHistoryListUseCase,
     GetHistoryEntityTypesUseCase,
   ],
   exports: [
+    GetHistoryStatisticsUseCase,
     GetHistoryStatsUseCase,
     GetHistoryListUseCase,
     GetHistoryEntityTypesUseCase,

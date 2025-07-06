@@ -9,8 +9,10 @@ import {
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { GetHistoryListUseCase } from '../use-cases/get-history-list.use-case';
 import { GetHistoryEntityTypesUseCase } from '../use-cases/get-entity-types.use-case';
+import { GetHistoryStatisticsUseCase } from '../use-cases/get-history-statistics.use-case';
 import { HistoryListResponseDto } from '../dto/history.list.response.dto';
 import { EntityTypesResponseDto } from '../dto/entity-types.response.dto';
+import { HistoryStatsResponseDto } from '../dto/history-stats-response.dto';
 import { RoleGuard } from '@/core/guards';
 import { RequireRole } from '@/core/decorators/role.decorator';
 import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.exception.filter';
@@ -22,6 +24,7 @@ export class HistoryController {
   constructor(
     private readonly getList: GetHistoryListUseCase,
     private readonly getEntityTypesUseCase: GetHistoryEntityTypesUseCase,
+    private readonly getHistoryStatisticsUseCase: GetHistoryStatisticsUseCase,
   ) {}
 
   @Get()
@@ -65,5 +68,15 @@ export class HistoryController {
   @ApiResponse({ status: 200, type: EntityTypesResponseDto })
   async getEntityTypes(): Promise<EntityTypesResponseDto> {
     return this.getEntityTypesUseCase.execute();
+  }
+
+  @Get('stats')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get history statistics' })
+  @RequireRole({ isAdmin: true })
+  @ApiResponse({ status: 200, type: HistoryStatsResponseDto })
+  async getStats(): Promise<HistoryStatsResponseDto> {
+    return this.getHistoryStatisticsUseCase.execute();
   }
 }
