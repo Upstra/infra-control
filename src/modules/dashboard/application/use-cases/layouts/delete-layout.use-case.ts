@@ -22,7 +22,7 @@ export class DeleteLayoutUseCase {
 
     if (layout.isDefault) {
       const userLayouts = await this.layoutRepository.findByUserId(userId);
-      const otherLayout = userLayouts.find((l) => l.id !== layoutId);
+      const otherLayout = userLayouts?.find((l) => l.id !== layoutId);
 
       if (otherLayout) {
         await this.layoutRepository.setDefaultLayout(otherLayout.id, userId);
