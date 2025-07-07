@@ -45,7 +45,7 @@ export class CreateBatchPermissionVmUseCase {
         const entity =
           this.domainService.createPermissionEntityFromDto(permissionDto);
         const saved = await this.repository.save(entity);
-        response.created.push(new PermissionVmDto(saved));
+        response.created.push(PermissionVmDto.fromEntity(saved));
         response.successCount++;
       } catch (error) {
         response.failed.push({
