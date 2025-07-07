@@ -37,6 +37,19 @@ export class GetAlertsUseCase {
         timestamp: new Date(),
         acknowledged: false,
       },
+      {
+        id: 'alert-003',
+        severity: 'info' as const,
+        type: 'maintenance_scheduled',
+        resource: {
+          type: 'server',
+          id: 'server-789',
+          name: 'backup-server-01',
+        },
+        message: 'Scheduled maintenance in 2 hours',
+        timestamp: new Date(),
+        acknowledged: false,
+      },
     ];
 
     const filteredAlerts = query.severity
@@ -46,7 +59,7 @@ export class GetAlertsUseCase {
     const summary = {
       critical: mockAlerts.filter((a) => a.severity === 'critical').length,
       warning: mockAlerts.filter((a) => a.severity === 'warning').length,
-      info: mockAlerts.filter((a) => (a as any).severity === 'info').length,
+      info: mockAlerts.filter((a) => a.severity === 'info').length,
     };
 
     return {
