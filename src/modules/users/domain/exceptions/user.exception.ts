@@ -1,3 +1,5 @@
+import { NotFoundException } from '@nestjs/common';
+
 export class UserNotFoundException extends Error {
   constructor(id: string) {
     super(`Utilisateur avec l'ID ${id} introuvable.`);

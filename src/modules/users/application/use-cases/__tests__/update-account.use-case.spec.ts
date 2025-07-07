@@ -5,7 +5,7 @@ import { UserDomainService } from '@modules/users/domain/services/user.domain.se
 import { UpdateAccountDto } from '../../dto/update-account.dto';
 import { UserResponseDto } from '../../dto/user.response.dto';
 import { User } from '@modules/users/domain/entities/user.entity';
-import { UserNotFoundError } from '@modules/users/domain/exceptions/user-not-found.error';
+import { UserExceptions } from '@modules/users/domain/exceptions/user.exception';
 
 describe('UpdateAccountUseCase', () => {
   let useCase: UpdateAccountUseCase;
@@ -137,9 +137,7 @@ describe('UpdateAccountUseCase', () => {
         firstName: 'Updated',
       };
 
-      userRepository.findById.mockRejectedValue(
-        new UserNotFoundError('User not found'),
-      );
+      userRepository.findById.mockResolvedValue(null);
 
       await expect(
         useCase.execute('non-existent-id', updateData),
