@@ -173,5 +173,48 @@ describe('DeleteLayoutUseCase', () => {
         userId,
       );
     });
+
+    it('should handle deleting default layout when findByUserId returns empty array', async () => {
+      const layoutId = 'layout-2';
+      const userId = 'user-1';
+
+      layoutRepository.findById.mockResolvedValue(mockDefaultLayout as any);
+      layoutRepository.findByUserId.mockResolvedValue([]);
+
+      await useCase.execute(layoutId, userId);
+
+      expect(layoutRepository.findById).toHaveBeenCalledWith(layoutId);
+      expect(layoutRepository.findByUserId).toHaveBeenCalledWith(userId);
+      expect(layoutRepository.setDefaultLayout).not.toHaveBeenCalled();
+      expect(layoutRepository.delete).toHaveBeenCalledWith(layoutId);
+    });
+
+    it('should handle deleting default layout when findByUserId returns null', async () => {
+      const layoutId = 'layout-2';
+      const userId = 'user-1';
+
+      layoutRepository.findById.mockResolvedValue(mockDefaultLayout as any);
+      layoutRepository.findByUserId.mockResolvedValue(null as any);
+
+      await useCase.execute(layoutId, userId);
+
+      expect(layoutRepository.findById).toHaveBeenCalledWith(layoutId);
+      expect(layoutRepository.findByUserId).toHaveBeenCalledWith(userId);
+      expect(layoutRepository.setDefaultLayout).not.toHaveBeenCalled();
+      expect(layoutRepository.delete).toHaveBeenCalledWith(layoutId);
+    });
+
+    it('should handle repository errors gracefully', async () => {
+      const layoutId = 'layout-1';
+      const userId = 'user-1';
+
+      layoutRepository.findById.mockResolvedValue(mockLayout as any);
+      layoutRepository.delete.mockRejectedValue(new Error('Database error'));
+
+      await expect(useCase.execute(layoutId, userId)).rejects.toThrow('Database error');
+
+      expect(layoutRepository.findById).toHaveBeenCalledWith(layoutId);
+      expect(layoutRepository.delete).toHaveBeenCalledWith(layoutId);
+    });
   });
 });
