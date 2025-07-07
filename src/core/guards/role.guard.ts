@@ -39,6 +39,16 @@ export class RoleGuard implements CanActivate {
       throw new ForbiddenException('User has no role assigned');
     }
 
+    if (requirement.isAdmin !== undefined) {
+      const isAdmin = userWithRole.roles.some((r) => r.isAdmin === true);
+      if (requirement.isAdmin && !isAdmin) {
+        throw new ForbiddenException('This action requires admin privileges');
+      }
+      if (!requirement.isAdmin && isAdmin) {
+        throw new ForbiddenException('This action requires non-admin privileges');
+      }
+    }
+
     if (requirement.canCreateServer !== undefined) {
       const hasPerm = userWithRole.roles.some(
         (r) => r.canCreateServer === requirement.canCreateServer,
