@@ -173,6 +173,8 @@ export class PermissionVmController {
   }
 
   @Get('user/:userId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: "Récupérer les permissions d'un utilisateur" })
   @ApiParam({ name: 'userId', type: 'string', format: 'uuid' })
   @ApiResponse({ status: 200, type: [PermissionVmDto] })
