@@ -49,7 +49,9 @@ describe('DashboardPreferenceController', () => {
       ],
     }).compile();
 
-    controller = module.get<DashboardPreferenceController>(DashboardPreferenceController);
+    controller = module.get<DashboardPreferenceController>(
+      DashboardPreferenceController,
+    );
     getPreferencesUseCase = module.get(GetPreferencesUseCase);
     updatePreferencesUseCase = module.get(UpdatePreferencesUseCase);
   });
@@ -61,7 +63,9 @@ describe('DashboardPreferenceController', () => {
       const result = await controller.getPreferences(mockUser);
 
       expect(result).toEqual(mockPreferences);
-      expect(getPreferencesUseCase.execute).toHaveBeenCalledWith(mockUser.userId);
+      expect(getPreferencesUseCase.execute).toHaveBeenCalledWith(
+        mockUser.userId,
+      );
     });
 
     it('should handle when preferences do not exist', async () => {
@@ -69,18 +73,20 @@ describe('DashboardPreferenceController', () => {
         theme: 'light',
         refreshInterval: 60,
         defaultLayoutId: null,
-            notifications: {
+        notifications: {
           alerts: true,
           activities: true,
         },
-              };
-      
+      };
+
       getPreferencesUseCase.execute.mockResolvedValue(defaultPreferences);
 
       const result = await controller.getPreferences(mockUser);
 
       expect(result).toEqual(defaultPreferences);
-      expect(getPreferencesUseCase.execute).toHaveBeenCalledWith(mockUser.userId);
+      expect(getPreferencesUseCase.execute).toHaveBeenCalledWith(
+        mockUser.userId,
+      );
     });
 
     it('should propagate errors from use case', async () => {
@@ -109,7 +115,10 @@ describe('DashboardPreferenceController', () => {
       const result = await controller.updatePreferences(mockUser, updateDto);
 
       expect(result).toEqual(updatedPreferences);
-      expect(updatePreferencesUseCase.execute).toHaveBeenCalledWith(mockUser.userId, updateDto);
+      expect(updatePreferencesUseCase.execute).toHaveBeenCalledWith(
+        mockUser.userId,
+        updateDto,
+      );
     });
 
     it('should handle partial updates', async () => {
@@ -117,13 +126,22 @@ describe('DashboardPreferenceController', () => {
         theme: 'light',
       };
 
-      const updatedPreferences = { ...mockPreferences, theme: 'light' as const };
+      const updatedPreferences = {
+        ...mockPreferences,
+        theme: 'light' as const,
+      };
       updatePreferencesUseCase.execute.mockResolvedValue(updatedPreferences);
 
-      const result = await controller.updatePreferences(mockUser, partialUpdateDto);
+      const result = await controller.updatePreferences(
+        mockUser,
+        partialUpdateDto,
+      );
 
       expect(result).toEqual(updatedPreferences);
-      expect(updatePreferencesUseCase.execute).toHaveBeenCalledWith(mockUser.userId, partialUpdateDto);
+      expect(updatePreferencesUseCase.execute).toHaveBeenCalledWith(
+        mockUser.userId,
+        partialUpdateDto,
+      );
     });
 
     it('should handle validation errors', async () => {
@@ -131,10 +149,14 @@ describe('DashboardPreferenceController', () => {
         refreshInterval: -1, // Invalid value
       };
 
-      const error = new Error('Validation failed: refreshInterval must be positive');
+      const error = new Error(
+        'Validation failed: refreshInterval must be positive',
+      );
       updatePreferencesUseCase.execute.mockRejectedValue(error);
 
-      await expect(controller.updatePreferences(mockUser, invalidDto)).rejects.toThrow(error);
+      await expect(
+        controller.updatePreferences(mockUser, invalidDto),
+      ).rejects.toThrow(error);
     });
 
     it('should handle database errors during update', async () => {
@@ -145,7 +167,9 @@ describe('DashboardPreferenceController', () => {
       const error = new Error('Database connection failed');
       updatePreferencesUseCase.execute.mockRejectedValue(error);
 
-      await expect(controller.updatePreferences(mockUser, updateDto)).rejects.toThrow(error);
+      await expect(
+        controller.updatePreferences(mockUser, updateDto),
+      ).rejects.toThrow(error);
     });
   });
 });

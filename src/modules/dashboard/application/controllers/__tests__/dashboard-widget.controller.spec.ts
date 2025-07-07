@@ -198,7 +198,9 @@ describe('DashboardWidgetController', () => {
       ],
     }).compile();
 
-    controller = module.get<DashboardWidgetController>(DashboardWidgetController);
+    controller = module.get<DashboardWidgetController>(
+      DashboardWidgetController,
+    );
     getActivityFeedUseCase = module.get(GetActivityFeedUseCase);
     getAlertsUseCase = module.get(GetAlertsUseCase);
     getResourceUsageUseCase = module.get(GetResourceUsageUseCase);
@@ -391,8 +393,14 @@ describe('DashboardWidgetController', () => {
 
       await controller.exportWidgetData(widgetId, query, mockResponse);
 
-      expect(exportWidgetDataUseCase.execute).toHaveBeenCalledWith(widgetId, query);
-      expect(mockResponse.setHeader).toHaveBeenCalledWith('Content-Type', 'text/csv');
+      expect(exportWidgetDataUseCase.execute).toHaveBeenCalledWith(
+        widgetId,
+        query,
+      );
+      expect(mockResponse.setHeader).toHaveBeenCalledWith(
+        'Content-Type',
+        'text/csv',
+      );
       expect(mockResponse.setHeader).toHaveBeenCalledWith(
         'Content-Disposition',
         'attachment; filename="widget-data.csv"',
@@ -417,7 +425,10 @@ describe('DashboardWidgetController', () => {
 
       await controller.exportWidgetData(widgetId, query, mockResponse);
 
-      expect(exportWidgetDataUseCase.execute).toHaveBeenCalledWith(widgetId, query);
+      expect(exportWidgetDataUseCase.execute).toHaveBeenCalledWith(
+        widgetId,
+        query,
+      );
       expect(mockResponse.setHeader).toHaveBeenCalledWith(
         'Content-Type',
         'application/json',

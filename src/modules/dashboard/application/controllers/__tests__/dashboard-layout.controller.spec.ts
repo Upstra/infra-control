@@ -89,7 +89,9 @@ describe('DashboardLayoutController', () => {
       ],
     }).compile();
 
-    controller = module.get<DashboardLayoutController>(DashboardLayoutController);
+    controller = module.get<DashboardLayoutController>(
+      DashboardLayoutController,
+    );
     createLayoutUseCase = module.get(CreateLayoutUseCase);
     updateLayoutUseCase = module.get(UpdateLayoutUseCase);
     deleteLayoutUseCase = module.get(DeleteLayoutUseCase);
@@ -117,7 +119,10 @@ describe('DashboardLayoutController', () => {
       const result = await controller.getLayout(mockUser, layoutId);
 
       expect(result).toEqual(mockLayout);
-      expect(getLayoutUseCase.execute).toHaveBeenCalledWith(layoutId, mockUser.userId);
+      expect(getLayoutUseCase.execute).toHaveBeenCalledWith(
+        layoutId,
+        mockUser.userId,
+      );
     });
   });
 
@@ -132,7 +137,10 @@ describe('DashboardLayoutController', () => {
       const result = await controller.createLayout(mockUser, createDto);
 
       expect(result).toEqual(mockLayout);
-      expect(createLayoutUseCase.execute).toHaveBeenCalledWith(mockUser.userId, createDto);
+      expect(createLayoutUseCase.execute).toHaveBeenCalledWith(
+        mockUser.userId,
+        createDto,
+      );
     });
   });
 
@@ -146,10 +154,18 @@ describe('DashboardLayoutController', () => {
       const updatedLayout = { ...mockLayout, ...updateDto };
       updateLayoutUseCase.execute.mockResolvedValue(updatedLayout);
 
-      const result = await controller.updateLayout(mockUser, layoutId, updateDto);
+      const result = await controller.updateLayout(
+        mockUser,
+        layoutId,
+        updateDto,
+      );
 
       expect(result).toEqual(updatedLayout);
-      expect(updateLayoutUseCase.execute).toHaveBeenCalledWith(layoutId, mockUser.userId, updateDto);
+      expect(updateLayoutUseCase.execute).toHaveBeenCalledWith(
+        layoutId,
+        mockUser.userId,
+        updateDto,
+      );
     });
   });
 
@@ -160,7 +176,10 @@ describe('DashboardLayoutController', () => {
 
       await controller.deleteLayout(mockUser, layoutId);
 
-      expect(deleteLayoutUseCase.execute).toHaveBeenCalledWith(layoutId, mockUser.userId);
+      expect(deleteLayoutUseCase.execute).toHaveBeenCalledWith(
+        layoutId,
+        mockUser.userId,
+      );
     });
   });
 
@@ -171,7 +190,10 @@ describe('DashboardLayoutController', () => {
 
       await controller.setDefaultLayout(mockUser, layoutId);
 
-      expect(setDefaultLayoutUseCase.execute).toHaveBeenCalledWith(layoutId, mockUser.userId);
+      expect(setDefaultLayoutUseCase.execute).toHaveBeenCalledWith(
+        layoutId,
+        mockUser.userId,
+      );
     });
   });
 });

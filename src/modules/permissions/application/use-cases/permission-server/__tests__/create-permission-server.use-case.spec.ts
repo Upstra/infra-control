@@ -141,7 +141,10 @@ describe('CreatePermissionServerUseCase', () => {
         { bitmask: PermissionBit.READ },
         { bitmask: PermissionBit.WRITE },
         { bitmask: PermissionBit.DELETE },
-        { bitmask: PermissionBit.READ | PermissionBit.WRITE | PermissionBit.DELETE },
+        {
+          bitmask:
+            PermissionBit.READ | PermissionBit.WRITE | PermissionBit.DELETE,
+        },
         { bitmask: 255 },
       ];
 
@@ -175,7 +178,9 @@ describe('CreatePermissionServerUseCase', () => {
         throw new Error('Domain service error');
       });
 
-      await expect(useCase.execute(dto)).rejects.toThrow('Domain service error');
+      await expect(useCase.execute(dto)).rejects.toThrow(
+        'Domain service error',
+      );
       expect(repository.save).not.toHaveBeenCalled();
       expect(logHistory.executeStructured).not.toHaveBeenCalled();
     });
@@ -225,27 +230,29 @@ describe('CreatePermissionServerUseCase', () => {
         createPermissionEntityFromDto: jest.fn(),
       };
 
-      const moduleWithoutLogging: TestingModule = await Test.createTestingModule({
-        providers: [
-          CreatePermissionServerUseCase,
-          {
-            provide: 'PermissionServerRepositoryInterface',
-            useValue: mockRepositoryWithoutLogging,
-          },
-          {
-            provide: PermissionDomainServerService,
-            useValue: mockDomainServiceWithoutLogging,
-          },
-          {
-            provide: LogHistoryUseCase,
-            useValue: undefined,
-          },
-        ],
-      }).compile();
+      const moduleWithoutLogging: TestingModule =
+        await Test.createTestingModule({
+          providers: [
+            CreatePermissionServerUseCase,
+            {
+              provide: 'PermissionServerRepositoryInterface',
+              useValue: mockRepositoryWithoutLogging,
+            },
+            {
+              provide: PermissionDomainServerService,
+              useValue: mockDomainServiceWithoutLogging,
+            },
+            {
+              provide: LogHistoryUseCase,
+              useValue: undefined,
+            },
+          ],
+        }).compile();
 
-      const useCaseWithoutLogging = moduleWithoutLogging.get<CreatePermissionServerUseCase>(
-        CreatePermissionServerUseCase,
-      );
+      const useCaseWithoutLogging =
+        moduleWithoutLogging.get<CreatePermissionServerUseCase>(
+          CreatePermissionServerUseCase,
+        );
 
       const dto = new PermissionServerDto({
         roleId: 'role-123',
@@ -256,7 +263,9 @@ describe('CreatePermissionServerUseCase', () => {
       const entity = mockPermission();
       const savedEntity = mockPermission();
 
-      mockDomainServiceWithoutLogging.createPermissionEntityFromDto.mockReturnValue(entity);
+      mockDomainServiceWithoutLogging.createPermissionEntityFromDto.mockReturnValue(
+        entity,
+      );
       mockRepositoryWithoutLogging.save.mockResolvedValue(savedEntity);
 
       const result = await useCaseWithoutLogging.execute(dto);

@@ -3,7 +3,10 @@ import { DashboardLayoutRepository } from '../../../../infrastructure/repositori
 import { DashboardLayoutDomainService } from '../../../../domain/services/dashboard-layout.domain.service';
 import { DashboardLayoutNameAlreadyExistsException } from '../../../../domain/exceptions/dashboard.exception';
 import { DashboardLayout } from '../../../../domain/entities/dashboard-layout.entity';
-import { DashboardWidget, WidgetType } from '../../../../domain/entities/dashboard-widget.entity';
+import {
+  DashboardWidget,
+  WidgetType,
+} from '../../../../domain/entities/dashboard-widget.entity';
 import { CreateDashboardLayoutDto } from '../../../dto/dashboard-layout.dto';
 
 describe('CreateLayoutUseCase', () => {

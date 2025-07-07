@@ -34,7 +34,7 @@ describe('ExportWidgetDataUseCase', () => {
 
       expect(result.contentType).toBe('application/json');
       expect(result.filename).toBe('widget-widget-123-export-2024-01-01.json');
-      
+
       const parsedData = JSON.parse(result.data as string);
       expect(parsedData).toEqual({
         widgetId: 'widget-123',

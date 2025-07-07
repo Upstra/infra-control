@@ -172,8 +172,9 @@ describe('GetAlertsUseCase', () => {
 
     it('should return empty alerts array when no alerts match severity filter', async () => {
       const mockGetAlertsUseCase = new GetAlertsUseCase();
-      jest.spyOn(mockGetAlertsUseCase as any, 'execute').mockImplementation(
-        async (query: WidgetDataQueryDto) => {
+      jest
+        .spyOn(mockGetAlertsUseCase as any, 'execute')
+        .mockImplementation(async (query: WidgetDataQueryDto) => {
           const mockAlerts: any[] = [];
           return {
             alerts: query.severity ? [] : mockAlerts,
@@ -183,8 +184,7 @@ describe('GetAlertsUseCase', () => {
               info: 0,
             },
           };
-        },
-      );
+        });
 
       const query: WidgetDataQueryDto = {
         severity: 'critical',

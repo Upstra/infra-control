@@ -445,9 +445,7 @@ describe('HistoryController', () => {
         eventsByAction: {
           CREATE: 999999999,
         },
-        activityTrends: [
-          { date: '2024-01-01', count: 999999999 },
-        ],
+        activityTrends: [{ date: '2024-01-01', count: 999999999 }],
         topUsers: [
           { userId: 'user-1', username: 'superuser', count: 999999999 },
         ],
