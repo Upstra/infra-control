@@ -73,7 +73,7 @@ export class CannotDeactivateLastAdminException extends Error {
 
 export class UserExceptions {
   static notFound(id?: string): UserNotFoundException {
-    return new UserNotFoundException(id ?? 'User not found');
+    return new UserNotFoundException(id ?? 'Utilisateur introuvable');
   }
 
   static updateFailed(message?: string): UserUpdateException {
