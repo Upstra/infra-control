@@ -136,5 +136,68 @@ describe('GetUpsStatusUseCase', () => {
       expect(upsRepository.findAll).toHaveBeenCalledTimes(1);
       expect(upsRepository.findAll).toHaveBeenCalledWith();
     });
+
+    it('should handle repository errors gracefully', async () => {
+      upsRepository.findAll.mockRejectedValue(new Error('Database error'));
+
+      await expect(useCase.execute()).rejects.toThrow('Database error');
+
+      expect(upsRepository.findAll).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle null UPS list', async () => {
+      upsRepository.findAll.mockResolvedValue(null as any);
+
+      const result = await useCase.execute();
+
+      expect(result.ups).toEqual([]);
+      expect(result.summary).toEqual({
+        total: 0,
+        online: 0,
+        onBattery: 0,
+        offline: 0,
+        unavailable: 0,
+        averageLoad: null,
+        isMocked: true,
+      });
+    });
+
+    it('should handle large UPS list', async () => {
+      const largeUpsList = Array.from({ length: 100 }, (_, i) => ({
+        id: `ups-${i + 1}`,
+        name: `UPS ${i + 1}`,
+        location: `Location ${i + 1}`,
+        model: 'Test Model',
+      }));
+
+      upsRepository.findAll.mockResolvedValue(largeUpsList as any);
+
+      const result = await useCase.execute();
+
+      expect(result.ups).toHaveLength(100);
+      expect(result.summary.total).toBe(100);
+      expect(result.summary.unavailable).toBe(100);
+    });
+
+    it('should maintain consistent structure for all UPS entries', async () => {
+      upsRepository.findAll.mockResolvedValue(mockUpsList as any);
+
+      const result = await useCase.execute();
+
+      result.ups.forEach((ups) => {
+        expect(ups).toHaveProperty('id');
+        expect(ups).toHaveProperty('name');
+        expect(ups).toHaveProperty('status');
+        expect(ups).toHaveProperty('batteryLevel');
+        expect(ups).toHaveProperty('load');
+        expect(ups).toHaveProperty('runtime');
+        expect(ups).toHaveProperty('temperature');
+        expect(ups).toHaveProperty('lastTest');
+        expect(ups).toHaveProperty('nextTest');
+        expect(ups).toHaveProperty('isMocked');
+        expect(ups.status).toBe('unavailable');
+        expect(ups.isMocked).toBe(true);
+      });
+    });
   });
 });
