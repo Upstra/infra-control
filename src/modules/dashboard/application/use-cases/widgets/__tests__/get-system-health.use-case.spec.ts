@@ -198,7 +198,7 @@ describe('GetSystemHealthUseCase', () => {
       };
 
       let dbCheckStarted = false;
-      let redisCheckStarted = false;
+      let _redisCheckStarted = false;
 
       databaseHealthService.checkHealth.mockImplementation(async () => {
         dbCheckStarted = true;
@@ -207,7 +207,7 @@ describe('GetSystemHealthUseCase', () => {
       });
 
       redisHealthService.checkHealth.mockImplementation(async () => {
-        redisCheckStarted = true;
+        _redisCheckStarted = true;
         expect(dbCheckStarted).toBe(true);
         return mockRedisHealth as any;
       });
