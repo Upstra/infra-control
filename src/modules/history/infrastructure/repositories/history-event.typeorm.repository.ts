@@ -142,15 +142,15 @@ export class HistoryEventTypeormRepository
       .groupBy('history.action')
       .getRawMany<{ action: string; count: string }>();
 
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
-    thirtyDaysAgo.setHours(0, 0, 0, 0);
+    const thirtyDayWindowStart = new Date();
+    thirtyDayWindowStart.setDate(thirtyDayWindowStart.getDate() - 29);
+    thirtyDayWindowStart.setHours(0, 0, 0, 0);
 
     const activityTrendsPromise = this.repository
       .createQueryBuilder('history')
       .select('TO_CHAR(history."createdAt"::date, \'YYYY-MM-DD\')', 'date')
       .addSelect('COUNT(*)', 'count')
-      .where('history."createdAt" >= :thirtyDaysAgo', { thirtyDaysAgo })
+      .where('history."createdAt" >= :thirtyDayWindowStart', { thirtyDayWindowStart })
       .groupBy('history."createdAt"::date')
       .orderBy('history."createdAt"::date', 'ASC')
       .getRawMany<{ date: string; count: string }>();
