@@ -58,7 +58,7 @@ export class CheckVmPermissionUseCase {
 
     let hasPermission = false;
 
-    if (user && user.roles && user.roles.length > 0) {
+    if (user?.roles?.length) {
       const roleIds = user.roles.map((r) => r.id);
       this.logger.debug(`User ${userId} has roleIds ${roleIds.join(',')}`);
 
