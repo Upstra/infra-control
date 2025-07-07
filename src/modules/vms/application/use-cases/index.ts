@@ -1,4 +1,5 @@
 import { GetAllVmsUseCase } from './get-all-vms.use-case';
+import { GetAllVmsAdminUseCase } from './get-all-vms-admin.use-case';
 import { GetVmByIdUseCase } from './get-vm-by-id.use-case';
 import { CreateVmUseCase } from './create-vm.use-case';
 import { UpdateVmUseCase } from './update-vm.use-case';
@@ -10,6 +11,7 @@ import { CheckVmPermissionUseCase } from './check-vm-permission.use-case';
 export const VmUseCase = [
   GetVmListUseCase,
   GetAllVmsUseCase,
+  GetAllVmsAdminUseCase,
   GetVmByIdUseCase,
   CreateVmUseCase,
   UpdateVmUseCase,
@@ -20,6 +22,7 @@ export const VmUseCase = [
 
 export {
   GetAllVmsUseCase,
+  GetAllVmsAdminUseCase,
   GetVmByIdUseCase,
   CreateVmUseCase,
   UpdateVmUseCase,

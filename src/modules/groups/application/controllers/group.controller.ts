@@ -26,7 +26,7 @@ import { DeleteGroupUseCase } from '../use-cases/delete-group.use-case';
 import { GetGroupUseCase } from '../use-cases/get-group.use-case';
 import { ListGroupsUseCase } from '../use-cases/list-groups.use-case';
 
-@ApiTags('groups')
+@ApiTags('Groups')
 @Controller('groups')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
