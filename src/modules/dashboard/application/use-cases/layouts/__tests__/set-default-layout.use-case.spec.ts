@@ -60,7 +60,10 @@ describe('SetDefaultLayoutUseCase', () => {
       await useCase.execute(layoutId, userId);
 
       expect(layoutRepository.findById).toHaveBeenCalledWith(layoutId);
-      expect(layoutRepository.setDefaultLayout).toHaveBeenCalledWith(layoutId, userId);
+      expect(layoutRepository.setDefaultLayout).toHaveBeenCalledWith(
+        layoutId,
+        userId,
+      );
     });
 
     it('should throw DashboardLayoutNotFoundException when layout does not exist', async () => {
@@ -116,13 +119,18 @@ describe('SetDefaultLayoutUseCase', () => {
       await useCase.execute(layoutId, userId);
 
       expect(layoutRepository.findById).toHaveBeenCalledWith(layoutId);
-      expect(layoutRepository.setDefaultLayout).toHaveBeenCalledWith(layoutId, userId);
+      expect(layoutRepository.setDefaultLayout).toHaveBeenCalledWith(
+        layoutId,
+        userId,
+      );
     });
 
     it('should handle repository findById failure', async () => {
       layoutRepository.findById.mockRejectedValue(new Error('Database error'));
 
-      await expect(useCase.execute(layoutId, userId)).rejects.toThrow('Database error');
+      await expect(useCase.execute(layoutId, userId)).rejects.toThrow(
+        'Database error',
+      );
 
       expect(layoutRepository.findById).toHaveBeenCalledWith(layoutId);
       expect(layoutRepository.setDefaultLayout).not.toHaveBeenCalled();
@@ -142,12 +150,19 @@ describe('SetDefaultLayoutUseCase', () => {
       };
 
       layoutRepository.findById.mockResolvedValue(mockLayout as any);
-      layoutRepository.setDefaultLayout.mockRejectedValue(new Error('Update failed'));
+      layoutRepository.setDefaultLayout.mockRejectedValue(
+        new Error('Update failed'),
+      );
 
-      await expect(useCase.execute(layoutId, userId)).rejects.toThrow('Update failed');
+      await expect(useCase.execute(layoutId, userId)).rejects.toThrow(
+        'Update failed',
+      );
 
       expect(layoutRepository.findById).toHaveBeenCalledWith(layoutId);
-      expect(layoutRepository.setDefaultLayout).toHaveBeenCalledWith(layoutId, userId);
+      expect(layoutRepository.setDefaultLayout).toHaveBeenCalledWith(
+        layoutId,
+        userId,
+      );
     });
 
     it('should handle layout with complex widget configuration', async () => {
@@ -182,7 +197,10 @@ describe('SetDefaultLayoutUseCase', () => {
       await useCase.execute(layoutId, userId);
 
       expect(layoutRepository.findById).toHaveBeenCalledWith(layoutId);
-      expect(layoutRepository.setDefaultLayout).toHaveBeenCalledWith(layoutId, userId);
+      expect(layoutRepository.setDefaultLayout).toHaveBeenCalledWith(
+        layoutId,
+        userId,
+      );
     });
 
     it('should handle layout with minimum configuration', async () => {
@@ -204,7 +222,10 @@ describe('SetDefaultLayoutUseCase', () => {
       await useCase.execute(layoutId, userId);
 
       expect(layoutRepository.findById).toHaveBeenCalledWith(layoutId);
-      expect(layoutRepository.setDefaultLayout).toHaveBeenCalledWith(layoutId, userId);
+      expect(layoutRepository.setDefaultLayout).toHaveBeenCalledWith(
+        layoutId,
+        userId,
+      );
     });
 
     it('should handle layout with maximum configuration', async () => {
@@ -226,7 +247,10 @@ describe('SetDefaultLayoutUseCase', () => {
       await useCase.execute(layoutId, userId);
 
       expect(layoutRepository.findById).toHaveBeenCalledWith(layoutId);
-      expect(layoutRepository.setDefaultLayout).toHaveBeenCalledWith(layoutId, userId);
+      expect(layoutRepository.setDefaultLayout).toHaveBeenCalledWith(
+        layoutId,
+        userId,
+      );
     });
 
     it('should handle special characters in layout name', async () => {
@@ -248,7 +272,10 @@ describe('SetDefaultLayoutUseCase', () => {
       await useCase.execute(layoutId, userId);
 
       expect(layoutRepository.findById).toHaveBeenCalledWith(layoutId);
-      expect(layoutRepository.setDefaultLayout).toHaveBeenCalledWith(layoutId, userId);
+      expect(layoutRepository.setDefaultLayout).toHaveBeenCalledWith(
+        layoutId,
+        userId,
+      );
     });
 
     it('should handle UUID format layout and user IDs', async () => {
@@ -273,7 +300,10 @@ describe('SetDefaultLayoutUseCase', () => {
       await useCase.execute(uuidLayoutId, uuidUserId);
 
       expect(layoutRepository.findById).toHaveBeenCalledWith(uuidLayoutId);
-      expect(layoutRepository.setDefaultLayout).toHaveBeenCalledWith(uuidLayoutId, uuidUserId);
+      expect(layoutRepository.setDefaultLayout).toHaveBeenCalledWith(
+        uuidLayoutId,
+        uuidUserId,
+      );
     });
 
     it('should handle concurrent access scenario', async () => {

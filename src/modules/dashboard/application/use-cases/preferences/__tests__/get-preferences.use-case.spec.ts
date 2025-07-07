@@ -1,6 +1,5 @@
 import { GetPreferencesUseCase } from '../get-preferences.use-case';
 import { DashboardPreferenceRepository } from '../../../../infrastructure/repositories/dashboard-preference.repository';
-import { DashboardPreferenceResponseDto } from '../../../dto/dashboard-preference.dto';
 
 describe('GetPreferencesUseCase', () => {
   let useCase: GetPreferencesUseCase;
@@ -150,7 +149,9 @@ describe('GetPreferencesUseCase', () => {
 
     it('should handle preference creation failure', async () => {
       preferenceRepository.findByUserId.mockResolvedValue(null);
-      preferenceRepository.create.mockRejectedValue(new Error('Database error'));
+      preferenceRepository.create.mockRejectedValue(
+        new Error('Database error'),
+      );
 
       await expect(useCase.execute(userId)).rejects.toThrow('Database error');
 
@@ -167,7 +168,9 @@ describe('GetPreferencesUseCase', () => {
     });
 
     it('should handle repository findByUserId failure', async () => {
-      preferenceRepository.findByUserId.mockRejectedValue(new Error('Repository error'));
+      preferenceRepository.findByUserId.mockRejectedValue(
+        new Error('Repository error'),
+      );
 
       await expect(useCase.execute(userId)).rejects.toThrow('Repository error');
 

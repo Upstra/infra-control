@@ -1,7 +1,10 @@
 import { ListLayoutsUseCase } from '../list-layouts.use-case';
 import { DashboardLayoutRepository } from '../../../../infrastructure/repositories/dashboard-layout.repository';
 import { DashboardLayout } from '../../../../domain/entities/dashboard-layout.entity';
-import { DashboardWidget, WidgetType } from '../../../../domain/entities/dashboard-widget.entity';
+import {
+  DashboardWidget,
+  WidgetType,
+} from '../../../../domain/entities/dashboard-widget.entity';
 
 describe('ListLayoutsUseCase', () => {
   let useCase: ListLayoutsUseCase;
@@ -225,7 +228,11 @@ describe('ListLayoutsUseCase', () => {
         updatedAt: mockDate,
       } as DashboardLayout;
 
-      layoutRepository.findByUserId.mockResolvedValue([mockLayout1, mockLayout2, mockLayout3]);
+      layoutRepository.findByUserId.mockResolvedValue([
+        mockLayout1,
+        mockLayout2,
+        mockLayout3,
+      ]);
 
       const result = await useCase.execute(userId);
 
@@ -397,7 +404,7 @@ describe('ListLayoutsUseCase', () => {
       const result = await useCase.execute(userId);
 
       expect(result.layouts[0].widgets).toHaveLength(6);
-      expect(result.layouts[0].widgets.map(w => w.type)).toEqual([
+      expect(result.layouts[0].widgets.map((w) => w.type)).toEqual([
         'system-health',
         'alerts',
         'resource-usage',
@@ -454,7 +461,9 @@ describe('ListLayoutsUseCase', () => {
     });
 
     it('should handle repository failure', async () => {
-      layoutRepository.findByUserId.mockRejectedValue(new Error('Database error'));
+      layoutRepository.findByUserId.mockRejectedValue(
+        new Error('Database error'),
+      );
 
       await expect(useCase.execute(userId)).rejects.toThrow('Database error');
 
@@ -467,14 +476,14 @@ describe('ListLayoutsUseCase', () => {
         type: WidgetType.RESOURCE_USAGE,
         title: 'Extreme Widget',
         position: { x: 0, y: 0, w: 24, h: 20 },
-        settings: { 
-          complex: { 
-            nested: { 
-              value: 'test', 
+        settings: {
+          complex: {
+            nested: {
+              value: 'test',
               array: [1, 2, 3],
-              object: { key: 'value' }
-            }
-          }
+              object: { key: 'value' },
+            },
+          },
         },
         refreshInterval: 1000,
         visible: false,
@@ -505,14 +514,14 @@ describe('ListLayoutsUseCase', () => {
         type: 'resource-usage',
         title: 'Extreme Widget',
         position: { x: 0, y: 0, w: 24, h: 20 },
-        settings: { 
-          complex: { 
-            nested: { 
-              value: 'test', 
+        settings: {
+          complex: {
+            nested: {
+              value: 'test',
               array: [1, 2, 3],
-              object: { key: 'value' }
-            }
-          }
+              object: { key: 'value' },
+            },
+          },
         },
         refreshInterval: 1000,
         visible: false,
@@ -588,17 +597,21 @@ describe('ListLayoutsUseCase', () => {
     });
 
     it('should handle large number of layouts', async () => {
-      const largeLayoutList = Array.from({ length: 50 }, (_, i) => ({
-        id: `layout-${i}`,
-        name: `Layout ${i}`,
-        userId,
-        columns: 12,
-        rowHeight: 80,
-        isDefault: i === 0,
-        widgets: [],
-        createdAt: mockDate,
-        updatedAt: mockDate,
-      } as DashboardLayout));
+      const largeLayoutList = Array.from(
+        { length: 50 },
+        (_, i) =>
+          ({
+            id: `layout-${i}`,
+            name: `Layout ${i}`,
+            userId,
+            columns: 12,
+            rowHeight: 80,
+            isDefault: i === 0,
+            widgets: [],
+            createdAt: mockDate,
+            updatedAt: mockDate,
+          }) as DashboardLayout,
+      );
 
       layoutRepository.findByUserId.mockResolvedValue(largeLayoutList);
 

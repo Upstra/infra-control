@@ -6,8 +6,7 @@ import {
   DashboardTemplateNotFoundException,
   DashboardLayoutNameAlreadyExistsException,
 } from '../../../../domain/exceptions/dashboard.exception';
-import { DashboardLayout } from '../../../../domain/entities/dashboard-layout.entity';
-import { DashboardWidget, WidgetType } from '../../../../domain/entities/dashboard-widget.entity';
+import { WidgetType } from '../../../../domain/entities/dashboard-widget.entity';
 
 describe('CreateLayoutFromTemplateUseCase', () => {
   let useCase: CreateLayoutFromTemplateUseCase;
@@ -102,7 +101,9 @@ describe('CreateLayoutFromTemplateUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<CreateLayoutFromTemplateUseCase>(CreateLayoutFromTemplateUseCase);
+    useCase = module.get<CreateLayoutFromTemplateUseCase>(
+      CreateLayoutFromTemplateUseCase,
+    );
     layoutRepository = module.get(DashboardLayoutRepository);
     templateRepository = module.get(DashboardTemplateRepository);
   });
@@ -158,7 +159,9 @@ describe('CreateLayoutFromTemplateUseCase', () => {
       const userId = 'user-1';
 
       templateRepository.findById.mockResolvedValue(mockTemplate as any);
-      layoutRepository.findByUserId.mockResolvedValue([mockExistingLayout] as any);
+      layoutRepository.findByUserId.mockResolvedValue([
+        mockExistingLayout,
+      ] as any);
       layoutRepository.save.mockResolvedValue({
         ...mockSavedLayout,
         isDefault: false,
@@ -200,7 +203,9 @@ describe('CreateLayoutFromTemplateUseCase', () => {
       const userId = 'user-1';
 
       templateRepository.findById.mockResolvedValue(mockTemplate as any);
-      layoutRepository.findByUserId.mockResolvedValue([mockExistingLayout] as any);
+      layoutRepository.findByUserId.mockResolvedValue([
+        mockExistingLayout,
+      ] as any);
 
       await expect(useCase.execute(userId, dto)).rejects.toThrow(
         DashboardLayoutNameAlreadyExistsException,
@@ -212,7 +217,9 @@ describe('CreateLayoutFromTemplateUseCase', () => {
       const userId = 'user-1';
 
       templateRepository.findById.mockResolvedValue(mockTemplate as any);
-      layoutRepository.findByUserId.mockResolvedValue([mockExistingLayout] as any);
+      layoutRepository.findByUserId.mockResolvedValue([
+        mockExistingLayout,
+      ] as any);
 
       await expect(useCase.execute(userId, dto)).rejects.toThrow(
         DashboardLayoutNameAlreadyExistsException,
@@ -236,7 +243,9 @@ describe('CreateLayoutFromTemplateUseCase', () => {
         ],
       };
 
-      templateRepository.findById.mockResolvedValue(templateWithoutSettings as any);
+      templateRepository.findById.mockResolvedValue(
+        templateWithoutSettings as any,
+      );
       layoutRepository.findByUserId.mockResolvedValue([]);
       layoutRepository.save.mockResolvedValue({
         ...mockSavedLayout,
@@ -275,7 +284,9 @@ describe('CreateLayoutFromTemplateUseCase', () => {
         ],
       };
 
-      templateRepository.findById.mockResolvedValue(templateWithUndefinedSettings as any);
+      templateRepository.findById.mockResolvedValue(
+        templateWithUndefinedSettings as any,
+      );
       layoutRepository.findByUserId.mockResolvedValue([]);
       layoutRepository.save.mockResolvedValue({
         ...mockSavedLayout,
@@ -306,7 +317,9 @@ describe('CreateLayoutFromTemplateUseCase', () => {
         widgets: [],
       };
 
-      templateRepository.findById.mockResolvedValue(templateWithEmptyWidgets as any);
+      templateRepository.findById.mockResolvedValue(
+        templateWithEmptyWidgets as any,
+      );
       layoutRepository.findByUserId.mockResolvedValue([]);
       layoutRepository.save.mockResolvedValue({
         ...mockSavedLayout,
@@ -339,13 +352,16 @@ describe('CreateLayoutFromTemplateUseCase', () => {
 
       templateRepository.findById.mockResolvedValue(templateWithObjects as any);
       layoutRepository.findByUserId.mockResolvedValue([]);
-      
+
       let capturedLayout: any;
       layoutRepository.save.mockImplementation((layout) => {
         capturedLayout = layout;
         return Promise.resolve({
           ...mockSavedLayout,
-          widgets: layout.widgets.map((w: any, index: number) => ({ ...w, id: `widget-${index + 1}` })),
+          widgets: layout.widgets.map((w: any, index: number) => ({
+            ...w,
+            id: `widget-${index + 1}`,
+          })),
         } as any);
       });
 

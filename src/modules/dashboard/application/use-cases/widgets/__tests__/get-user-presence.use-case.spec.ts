@@ -1,6 +1,5 @@
 import { GetUserPresenceUseCase } from '../get-user-presence.use-case';
 import { PresenceService } from '../../../../../presence/application/services/presence.service';
-import { UserPresenceResponseDto } from '../../../dto/widget-data.dto';
 
 describe('GetUserPresenceUseCase', () => {
   let useCase: GetUserPresenceUseCase;
@@ -187,7 +186,9 @@ describe('GetUserPresenceUseCase', () => {
     });
 
     it('should handle presence service failure', async () => {
-      presenceService.getConnectedUserCount.mockRejectedValue(new Error('Service unavailable'));
+      presenceService.getConnectedUserCount.mockRejectedValue(
+        new Error('Service unavailable'),
+      );
 
       await expect(useCase.execute()).rejects.toThrow('Service unavailable');
 

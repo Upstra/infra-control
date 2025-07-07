@@ -116,7 +116,9 @@ describe('ListTemplatesUseCase', () => {
 
       expect(result.templates[1].widgets).toHaveLength(2);
       expect(result.templates[1].widgets[0].type).toBe(WidgetType.ALERTS);
-      expect(result.templates[1].widgets[1].type).toBe(WidgetType.RESOURCE_USAGE);
+      expect(result.templates[1].widgets[1].type).toBe(
+        WidgetType.RESOURCE_USAGE,
+      );
     });
 
     it('should handle templates with null widget settings', async () => {
@@ -136,7 +138,10 @@ describe('ListTemplatesUseCase', () => {
     });
 
     it('should handle all inactive templates', async () => {
-      const inactiveTemplates = mockTemplates.map(t => ({ ...t, isActive: false }));
+      const inactiveTemplates = mockTemplates.map((t) => ({
+        ...t,
+        isActive: false,
+      }));
       templateRepository.findAll.mockResolvedValue(inactiveTemplates as any);
 
       const result = await useCase.execute();
@@ -181,7 +186,9 @@ describe('ListTemplatesUseCase', () => {
         },
       ];
 
-      templateRepository.findAll.mockResolvedValue(templatesWithEmptyWidgets as any);
+      templateRepository.findAll.mockResolvedValue(
+        templatesWithEmptyWidgets as any,
+      );
 
       const result = await useCase.execute();
 
@@ -209,7 +216,9 @@ describe('ListTemplatesUseCase', () => {
         },
       ];
 
-      templateRepository.findAll.mockResolvedValue(templatesWithUndefinedSettings as any);
+      templateRepository.findAll.mockResolvedValue(
+        templatesWithUndefinedSettings as any,
+      );
 
       const result = await useCase.execute();
 

@@ -162,7 +162,9 @@ describe('GetLayoutUseCase', () => {
         ],
       };
 
-      layoutRepository.findById.mockResolvedValue(layoutWithUndefinedSettings as any);
+      layoutRepository.findById.mockResolvedValue(
+        layoutWithUndefinedSettings as any,
+      );
 
       const result = await useCase.execute(layoutId, userId);
 
@@ -227,7 +229,9 @@ describe('GetLayoutUseCase', () => {
 
       layoutRepository.findById.mockRejectedValue(new Error('Database error'));
 
-      await expect(useCase.execute(layoutId, userId)).rejects.toThrow('Database error');
+      await expect(useCase.execute(layoutId, userId)).rejects.toThrow(
+        'Database error',
+      );
 
       expect(layoutRepository.findById).toHaveBeenCalledWith(layoutId);
     });

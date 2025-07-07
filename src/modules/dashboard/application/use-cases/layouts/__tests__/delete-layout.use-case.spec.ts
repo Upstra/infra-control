@@ -128,7 +128,9 @@ describe('DeleteLayoutUseCase', () => {
       const userId = 'user-1';
 
       layoutRepository.findById.mockResolvedValue(mockDefaultLayout as any);
-      layoutRepository.findByUserId.mockResolvedValue([mockDefaultLayout] as any);
+      layoutRepository.findByUserId.mockResolvedValue([
+        mockDefaultLayout,
+      ] as any);
 
       await useCase.execute(layoutId, userId);
 
@@ -143,7 +145,9 @@ describe('DeleteLayoutUseCase', () => {
       const userId = 'user-1';
 
       layoutRepository.findById.mockResolvedValue(mockDefaultLayout as any);
-      layoutRepository.findByUserId.mockResolvedValue([mockDefaultLayout] as any);
+      layoutRepository.findByUserId.mockResolvedValue([
+        mockDefaultLayout,
+      ] as any);
 
       await useCase.execute(layoutId, userId);
 
@@ -211,7 +215,9 @@ describe('DeleteLayoutUseCase', () => {
       layoutRepository.findById.mockResolvedValue(mockLayout as any);
       layoutRepository.delete.mockRejectedValue(new Error('Database error'));
 
-      await expect(useCase.execute(layoutId, userId)).rejects.toThrow('Database error');
+      await expect(useCase.execute(layoutId, userId)).rejects.toThrow(
+        'Database error',
+      );
 
       expect(layoutRepository.findById).toHaveBeenCalledWith(layoutId);
       expect(layoutRepository.delete).toHaveBeenCalledWith(layoutId);

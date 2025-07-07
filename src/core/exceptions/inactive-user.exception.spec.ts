@@ -41,7 +41,8 @@ describe('InactiveUserException', () => {
     const response = exception.getResponse() as any;
     expect(response).toEqual({
       statusCode: HttpStatus.FORBIDDEN,
-      message: 'Account is inactive. Please contact an administrator to activate your account.',
+      message:
+        'Account is inactive. Please contact an administrator to activate your account.',
       error: 'Forbidden',
     });
   });
@@ -55,7 +56,9 @@ describe('InactiveUserException', () => {
       throw exception;
     } catch (error) {
       expect(error).toBeInstanceOf(InactiveUserException);
-      expect((error as InactiveUserException).getStatus()).toBe(HttpStatus.FORBIDDEN);
+      expect((error as InactiveUserException).getStatus()).toBe(
+        HttpStatus.FORBIDDEN,
+      );
     }
   });
 });
