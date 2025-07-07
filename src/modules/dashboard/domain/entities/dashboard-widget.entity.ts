@@ -7,7 +7,6 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { DashboardLayout } from './dashboard-layout.entity';
 
 export enum WidgetType {
   STATS = 'stats',
@@ -56,11 +55,11 @@ export class DashboardWidget {
   @Column({ name: 'layout_id', type: 'uuid' })
   layoutId: string;
 
-  @ManyToOne(() => DashboardLayout, (layout) => layout.widgets, {
+  @ManyToOne('DashboardLayout', 'widgets', {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'layout_id' })
-  layout: DashboardLayout;
+  layout: any;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
