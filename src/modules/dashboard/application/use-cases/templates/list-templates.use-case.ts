@@ -20,7 +20,7 @@ export class ListTemplatesUseCase {
           description: template.description,
           preview: template.preview,
           widgets: template.widgets.map((widget) => ({
-            type: widget.type as any,
+            type: widget.type,
             title: widget.title,
             position: widget.position,
             settings: widget.settings,
