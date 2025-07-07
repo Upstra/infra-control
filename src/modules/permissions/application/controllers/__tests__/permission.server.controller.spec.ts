@@ -76,8 +76,6 @@ describe('PermissionServerController', () => {
     mockUser = {
       userId: 'test-user-id',
       email: 'test@example.com',
-      isAdmin: false,
-      roles: [],
     } as JwtPayload;
   });
   it('should be defined', () => {
