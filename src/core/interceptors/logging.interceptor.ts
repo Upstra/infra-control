@@ -60,7 +60,7 @@ export class LoggingInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap({
-        next: async (data) => {
+        next: (data) => {
           const responseTime = Date.now() - now;
           this.logger.log({
             message: `${method} ${url} completed`,
@@ -78,33 +78,13 @@ export class LoggingInterceptor implements NestInterceptor {
             result: data?.id ?? data,
           });
 
-          // Log to history if enabled
-          if (
-            loggingContext.logToHistory &&
-            this.logHistory &&
-            loggingContext.entityType &&
-            loggingContext.action
-          ) {
-            try {
-              const entityId =
-                loggingContext.extractEntityId?.(data) ?? data?.id;
-              if (entityId) {
-                await this.logHistory.executeStructured({
-                  entity: loggingContext.entityType,
-                  entityId,
-                  action: loggingContext.action,
-                  userId: user?.userId,
-                  newValue: data,
-                  metadata:
-                    loggingContext.extractMetadata?.(data, request) ?? {},
-                  ipAddress: requestContext.ipAddress,
-                  userAgent: requestContext.userAgent,
-                });
-              }
-            } catch (error) {
-              this.logger.error('Failed to log to history', error);
-            }
-          }
+          this.logToHistoryAsync(
+            loggingContext,
+            data,
+            user,
+            request,
+            requestContext,
+          );
         },
         error: (error) => {
           const responseTime = Date.now() - now;
@@ -126,5 +106,38 @@ export class LoggingInterceptor implements NestInterceptor {
         },
       }),
     );
+  }
+
+  private async logToHistoryAsync(
+    loggingContext: LoggingContext,
+    data: any,
+    user: any,
+    request: any,
+    requestContext: RequestContextDto,
+  ): Promise<void> {
+    if (
+      loggingContext.logToHistory &&
+      this.logHistory &&
+      loggingContext.entityType &&
+      loggingContext.action
+    ) {
+      try {
+        const entityId = loggingContext.extractEntityId?.(data) ?? data?.id;
+        if (entityId) {
+          await this.logHistory.executeStructured({
+            entity: loggingContext.entityType,
+            entityId,
+            action: loggingContext.action,
+            userId: user?.userId,
+            newValue: data,
+            metadata: loggingContext.extractMetadata?.(data, request) ?? {},
+            ipAddress: requestContext.ipAddress,
+            userAgent: requestContext.userAgent,
+          });
+        }
+      } catch (error) {
+        this.logger.error('Failed to log to history', error);
+      }
+    }
   }
 }
