@@ -4,6 +4,7 @@ import {
   CreateVmUseCase,
   DeleteVmUseCase,
   GetAllVmsUseCase,
+  GetAllVmsAdminUseCase,
   GetVmListUseCase,
   GetVmByIdUseCase,
   UpdateVmUseCase,
@@ -18,11 +19,13 @@ import { VmCreationDto } from '../../dto/vm.creation.dto';
 import { VmUpdateDto } from '../../dto/vm.update.dto';
 import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { RoleGuard } from '@/core/guards/role.guard';
 import { Reflector } from '@nestjs/core';
 
 describe('VmController', () => {
   let controller: VmController;
   let getAllVmsUseCase: jest.Mocked<GetAllVmsUseCase>;
+  let getAllVmsAdminUseCase: jest.Mocked<GetAllVmsAdminUseCase>;
   let getVmListUseCase: jest.Mocked<GetVmListUseCase>;
   let getVmByIdUseCase: jest.Mocked<GetVmByIdUseCase>;
   let createVmUseCase: jest.Mocked<CreateVmUseCase>;
@@ -40,6 +43,10 @@ describe('VmController', () => {
       canActivate: jest.fn().mockReturnValue(true),
     };
 
+    const mockRoleGuard = {
+      canActivate: jest.fn().mockReturnValue(true),
+    };
+
     const mockPermissionStrategyFactory = {
       getStrategy: jest.fn().mockReturnValue({
         checkPermission: jest.fn().mockResolvedValue(true),
@@ -54,6 +61,7 @@ describe('VmController', () => {
     };
 
     getAllVmsUseCase = { execute: jest.fn() } as any;
+    getAllVmsAdminUseCase = { execute: jest.fn() } as any;
     getVmListUseCase = { execute: jest.fn() } as any;
     getVmByIdUseCase = { execute: jest.fn() } as any;
     createVmUseCase = { execute: jest.fn() } as any;
@@ -66,6 +74,7 @@ describe('VmController', () => {
       controllers: [VmController],
       providers: [
         { provide: GetAllVmsUseCase, useValue: getAllVmsUseCase },
+        { provide: GetAllVmsAdminUseCase, useValue: getAllVmsAdminUseCase },
         { provide: GetVmListUseCase, useValue: getVmListUseCase },
         { provide: GetVmByIdUseCase, useValue: getVmByIdUseCase },
         { provide: CreateVmUseCase, useValue: createVmUseCase },
@@ -85,6 +94,8 @@ describe('VmController', () => {
       .useValue(mockJwtAuthGuard)
       .overrideGuard(ResourcePermissionGuard)
       .useValue(mockResourcePermissionGuard)
+      .overrideGuard(RoleGuard)
+      .useValue(mockRoleGuard)
       .compile();
 
     controller = module.get<VmController>(VmController);
@@ -308,6 +319,52 @@ describe('VmController', () => {
       await expect(
         controller.checkPermission(dto, mockPayload),
       ).rejects.toThrow('VM not found');
+    });
+  });
+
+  describe('getAllVmsAdmin', () => {
+    it('should return all VMs for admin users', async () => {
+      const vms = [
+        createMockVmResponseDto({ id: 'vm-1', name: 'Admin VM 1' }),
+        createMockVmResponseDto({ id: 'vm-2', name: 'Admin VM 2' }),
+        createMockVmResponseDto({ id: 'vm-3', name: 'Admin VM 3' }),
+      ];
+      getAllVmsAdminUseCase.execute.mockResolvedValue(vms);
+
+      const result = await controller.getAllVmsAdmin();
+
+      expect(result).toEqual(vms);
+      expect(getAllVmsAdminUseCase.execute).toHaveBeenCalledWith();
+      expect(getAllVmsAdminUseCase.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return empty array when no VMs exist', async () => {
+      getAllVmsAdminUseCase.execute.mockResolvedValue([]);
+
+      const result = await controller.getAllVmsAdmin();
+
+      expect(result).toEqual([]);
+      expect(getAllVmsAdminUseCase.execute).toHaveBeenCalledWith();
+    });
+
+    it('should handle large number of VMs', async () => {
+      const vms = Array.from({ length: 100 }, (_, i) =>
+        createMockVmResponseDto({ id: `vm-${i}`, name: `VM ${i}` })
+      );
+      getAllVmsAdminUseCase.execute.mockResolvedValue(vms);
+
+      const result = await controller.getAllVmsAdmin();
+
+      expect(result).toHaveLength(100);
+      expect(result[0].id).toBe('vm-0');
+      expect(result[99].id).toBe('vm-99');
+    });
+
+    it('should propagate errors from use case', async () => {
+      const error = new Error('Database error');
+      getAllVmsAdminUseCase.execute.mockRejectedValue(error);
+
+      await expect(controller.getAllVmsAdmin()).rejects.toThrow(error);
     });
   });
 });

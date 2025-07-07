@@ -33,6 +33,7 @@ import {
   DeleteVmUseCase,
   GetVmListUseCase,
   GetAllVmsUseCase,
+  GetAllVmsAdminUseCase,
   GetVmByIdUseCase,
   UpdateVmUseCase,
   UpdateVmPriorityUseCase,
@@ -47,12 +48,15 @@ import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.except
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { LogToHistory } from '@/core/decorators/logging-context.decorator';
+import { RoleGuard } from '@/core/guards/role.guard';
+import { RequireRole } from '@/core/decorators/role.decorator';
 
 @ApiTags('VM')
 @Controller('vm')
 export class VmController implements VmEndpointInterface {
   constructor(
     private readonly getAllVmsUseCase: GetAllVmsUseCase,
+    private readonly getAllVmsAdminUseCase: GetAllVmsAdminUseCase,
     private readonly getVmListUseCase: GetVmListUseCase,
     private readonly getVmByIdUseCase: GetVmByIdUseCase,
     private readonly createVmUseCase: CreateVmUseCase,
@@ -61,6 +65,25 @@ export class VmController implements VmEndpointInterface {
     private readonly updateVmPriorityUseCase: UpdateVmPriorityUseCase,
     private readonly checkVmPermissionUseCase: CheckVmPermissionUseCase,
   ) {}
+
+  @Get('admin/all')
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
+  @ApiOperation({
+    summary: 'Lister toutes les VMs',
+    description:
+      'Renvoie la liste de toutes les machines virtuelles enregistrées dans le système. Nécessite le rôle admin.',
+  })
+  @ApiResponse({ status: 200, type: [VmResponseDto] })
+  @ApiResponse({
+    status: 403,
+    description: 'Accès refusé - Rôle admin requis',
+  })
+  async getAllVmsAdmin(): Promise<VmResponseDto[]> {
+    return this.getAllVmsAdminUseCase.execute();
+  }
 
   @Get()
   @UseGuards(JwtAuthGuard)
