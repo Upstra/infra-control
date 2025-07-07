@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DashboardPreference } from '../../domain/entities/dashboard-preference.entity';
@@ -42,7 +42,7 @@ export class DashboardPreferenceRepository
     preference: Partial<DashboardPreference>,
   ): Promise<DashboardPreference> {
     if (!preference.userId) {
-      throw new Error('UserId is required for upsert operation');
+      throw new BadRequestException('UserId is required for upsert operation');
     }
 
     const existing = await this.findByUserId(preference.userId);
