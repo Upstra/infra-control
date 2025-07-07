@@ -74,7 +74,10 @@ describe('GetActivityFeedUseCase', () => {
   describe('execute', () => {
     it('should return activity feed with default pagination', async () => {
       const query: WidgetDataQueryDto = {};
-      historyRepository.paginate.mockResolvedValue([mockHistoryEvents as any, 3]);
+      historyRepository.paginate.mockResolvedValue([
+        mockHistoryEvents as any,
+        3,
+      ]);
 
       const result = await useCase.execute(query);
 
@@ -97,7 +100,10 @@ describe('GetActivityFeedUseCase', () => {
         page: 2,
         limit: 50,
       };
-      historyRepository.paginate.mockResolvedValue([mockHistoryEvents as any, 100]);
+      historyRepository.paginate.mockResolvedValue([
+        mockHistoryEvents as any,
+        100,
+      ]);
 
       const result = await useCase.execute(query);
 
@@ -119,60 +125,57 @@ describe('GetActivityFeedUseCase', () => {
         dateFrom: '2024-01-01',
         dateTo: '2024-01-31',
       };
-      historyRepository.paginate.mockResolvedValue([mockHistoryEvents as any, 3]);
+      historyRepository.paginate.mockResolvedValue([
+        mockHistoryEvents as any,
+        3,
+      ]);
 
-      const result = await useCase.execute(query);
+      await useCase.execute(query);
 
-      expect(historyRepository.paginate).toHaveBeenCalledWith(
-        1,
-        20,
-        ['user'],
-        {
-          dateFrom: new Date('2024-01-01'),
-          dateTo: new Date('2024-01-31'),
-        },
-      );
+      expect(historyRepository.paginate).toHaveBeenCalledWith(1, 20, ['user'], {
+        dateFrom: new Date('2024-01-01'),
+        dateTo: new Date('2024-01-31'),
+      });
     });
 
     it('should handle dateFrom filter only', async () => {
       const query: WidgetDataQueryDto = {
         dateFrom: '2024-01-15',
       };
-      historyRepository.paginate.mockResolvedValue([mockHistoryEvents.slice(0, 2) as any, 2]);
+      historyRepository.paginate.mockResolvedValue([
+        mockHistoryEvents.slice(0, 2) as any,
+        2,
+      ]);
 
-      const result = await useCase.execute(query);
+      await useCase.execute(query);
 
-      expect(historyRepository.paginate).toHaveBeenCalledWith(
-        1,
-        20,
-        ['user'],
-        {
-          dateFrom: new Date('2024-01-15'),
-        },
-      );
+      expect(historyRepository.paginate).toHaveBeenCalledWith(1, 20, ['user'], {
+        dateFrom: new Date('2024-01-15'),
+      });
     });
 
     it('should handle dateTo filter only', async () => {
       const query: WidgetDataQueryDto = {
         dateTo: '2024-01-15',
       };
-      historyRepository.paginate.mockResolvedValue([mockHistoryEvents as any, 3]);
+      historyRepository.paginate.mockResolvedValue([
+        mockHistoryEvents as any,
+        3,
+      ]);
 
-      const result = await useCase.execute(query);
+      await useCase.execute(query);
 
-      expect(historyRepository.paginate).toHaveBeenCalledWith(
-        1,
-        20,
-        ['user'],
-        {
-          dateTo: new Date('2024-01-15'),
-        },
-      );
+      expect(historyRepository.paginate).toHaveBeenCalledWith(1, 20, ['user'], {
+        dateTo: new Date('2024-01-15'),
+      });
     });
 
     it('should map history events to activity feed format', async () => {
       const query: WidgetDataQueryDto = {};
-      historyRepository.paginate.mockResolvedValue([[mockHistoryEvents[0]] as any, 1]);
+      historyRepository.paginate.mockResolvedValue([
+        [mockHistoryEvents[0]] as any,
+        1,
+      ]);
 
       const result = await useCase.execute(query);
 
@@ -196,7 +199,10 @@ describe('GetActivityFeedUseCase', () => {
 
     it('should handle system events without user', async () => {
       const query: WidgetDataQueryDto = {};
-      historyRepository.paginate.mockResolvedValue([[mockHistoryEvents[2]] as any, 1]);
+      historyRepository.paginate.mockResolvedValue([
+        [mockHistoryEvents[2]] as any,
+        1,
+      ]);
 
       const result = await useCase.execute(query);
 
@@ -209,7 +215,10 @@ describe('GetActivityFeedUseCase', () => {
 
     it('should generate proper descriptions for different actions', async () => {
       const query: WidgetDataQueryDto = {};
-      historyRepository.paginate.mockResolvedValue([mockHistoryEvents as any, 3]);
+      historyRepository.paginate.mockResolvedValue([
+        mockHistoryEvents as any,
+        3,
+      ]);
 
       const result = await useCase.execute(query);
 
@@ -232,7 +241,10 @@ describe('GetActivityFeedUseCase', () => {
         metadata: {},
       };
 
-      historyRepository.paginate.mockResolvedValue([[eventWithoutName as any], 1]);
+      historyRepository.paginate.mockResolvedValue([
+        [eventWithoutName as any],
+        1,
+      ]);
 
       const result = await useCase.execute({});
 
@@ -258,7 +270,9 @@ describe('GetActivityFeedUseCase', () => {
       const result = await useCase.execute({});
 
       expect(result.activities[0].type).toBe('unknown_entity_unknown_action');
-      expect(result.activities[0].description).toBe('unknown_entity unknown_action');
+      expect(result.activities[0].description).toBe(
+        'unknown_entity unknown_action',
+      );
     });
 
     it('should handle empty result set', async () => {
@@ -281,20 +295,26 @@ describe('GetActivityFeedUseCase', () => {
 
     it('should handle all entity types correctly', async () => {
       const entities = ['server', 'vm', 'user', 'group', 'room'];
-      const events = entities.map((entity, index) => ({
-        id: `event-${index}`,
-        entity,
-        entityId: `${entity}-123`,
-        action: 'created',
-        userId: 'user-123',
-        user: mockUser as User,
-        newValue: { name: `Test ${entity}` },
-        oldValue: null,
-        createdAt: new Date(),
-        metadata: {},
-      } as any));
+      const events = entities.map(
+        (entity, index) =>
+          ({
+            id: `event-${index}`,
+            entity,
+            entityId: `${entity}-123`,
+            action: 'created',
+            userId: 'user-123',
+            user: mockUser as User,
+            newValue: { name: `Test ${entity}` },
+            oldValue: null,
+            createdAt: new Date(),
+            metadata: {},
+          }) as any,
+      );
 
-      historyRepository.paginate.mockResolvedValue([events as any, events.length]);
+      historyRepository.paginate.mockResolvedValue([
+        events as any,
+        events.length,
+      ]);
 
       const result = await useCase.execute({});
 
