@@ -205,5 +205,31 @@ describe('GetLayoutUseCase', () => {
       expect(result).toHaveProperty('createdAt');
       expect(result).toHaveProperty('updatedAt');
     });
+
+    it('should handle layout with null widgets array', async () => {
+      const layoutId = 'layout-1';
+      const userId = 'user-1';
+      const layoutWithNullWidgets = {
+        ...mockLayout,
+        widgets: null,
+      };
+
+      layoutRepository.findById.mockResolvedValue(layoutWithNullWidgets as any);
+
+      const result = await useCase.execute(layoutId, userId);
+
+      expect(result.widgets).toEqual([]);
+    });
+
+    it('should handle repository errors gracefully', async () => {
+      const layoutId = 'layout-1';
+      const userId = 'user-1';
+
+      layoutRepository.findById.mockRejectedValue(new Error('Database error'));
+
+      await expect(useCase.execute(layoutId, userId)).rejects.toThrow('Database error');
+
+      expect(layoutRepository.findById).toHaveBeenCalledWith(layoutId);
+    });
   });
 });
