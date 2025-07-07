@@ -18,8 +18,10 @@ export class UserTypeormRepository
   constructor(private readonly dataSource: DataSource) {
     super(User, dataSource.createEntityManager());
   }
-  findAll(relations?: string[]): Promise<User[]> {
+  findAll(relations?: string[], includeDeleted = false): Promise<User[]> {
+    const where = includeDeleted ? {} : { deleted: false };
     return this.find({
+      where,
       relations: relations || ['role'],
     });
   }
@@ -41,8 +43,8 @@ export class UserTypeormRepository
 
     try {
       const whereClause = Array.isArray(value)
-        ? { [field]: In(value as any) }
-        : { [field]: value };
+        ? { [field]: In(value as any), deleted: false }
+        : { [field]: value, deleted: false };
       return await this.find({ where: whereClause, relations });
     } catch (error) {
       if (disableThrow) return [];
@@ -62,8 +64,11 @@ export class UserTypeormRepository
     page: number,
     limit: number,
     relations: string[] = ['roles'],
+    includeDeleted = false,
   ): Promise<[User[], number]> {
+    const where = includeDeleted ? {} : { deleted: false };
     return this.findAndCount({
+      where,
       relations,
       skip: (page - 1) * limit,
       take: limit,
@@ -82,7 +87,7 @@ export class UserTypeormRepository
     }
     try {
       return await this.findOneOrFail({
-        where: { [field]: value },
+        where: { [field]: value, deleted: false },
         relations,
       });
     } catch (error) {
@@ -97,15 +102,30 @@ export class UserTypeormRepository
     }
   }
 
-  async count(): Promise<number> {
-    return await super.count();
+  async countUsers(includeDeleted = false): Promise<number> {
+    const query = this.createQueryBuilder('user');
+    
+    if (!includeDeleted) {
+      query.where('user.deleted = :deleted', { deleted: false });
+    }
+    
+    return await query.getCount();
   }
 
-  async countAdmins(): Promise<number> {
-    return await this.createQueryBuilder('user')
+  async count(): Promise<number> {
+    return await this.countUsers(false);
+  }
+
+  async countAdmins(includeDeleted = false): Promise<number> {
+    const query = this.createQueryBuilder('user')
       .innerJoin('user.roles', 'role')
-      .where('role.isAdmin = :admin', { admin: true })
-      .getCount();
+      .where('role.isAdmin = :admin', { admin: true });
+    
+    if (!includeDeleted) {
+      query.andWhere('user.deleted = :deleted', { deleted: false });
+    }
+    
+    return await query.getCount();
   }
 
   async updateUser(
@@ -140,17 +160,23 @@ export class UserTypeormRepository
     }
   }
 
-  async findUsersByRole(roleId: string): Promise<User[]> {
-    return await this.createQueryBuilder('user')
+  async findUsersByRole(roleId: string, includeDeleted = false): Promise<User[]> {
+    const query = this.createQueryBuilder('user')
       .innerJoin('user.roles', 'role')
       .where('role.id = :roleId', { roleId })
-      .leftJoinAndSelect('user.roles', 'allRoles')
-      .getMany();
+      .leftJoinAndSelect('user.roles', 'allRoles');
+    
+    if (!includeDeleted) {
+      query.andWhere('user.deleted = :deleted', { deleted: false });
+    }
+    
+    return await query.getMany();
   }
 
-  async findWithRoles(userId: string): Promise<User | null> {
+  async findWithRoles(userId: string, includeDeleted = false): Promise<User | null> {
+    const where = includeDeleted ? { id: userId } : { id: userId, deleted: false };
     return await this.findOne({
-      where: { id: userId },
+      where,
       relations: ['roles'],
     });
   }
