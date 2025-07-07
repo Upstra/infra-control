@@ -69,18 +69,15 @@ class SchemaBackupGenerator {
   private async ensureBackupDirectory(): Promise<void> {
     try {
       await mkdir(this.backupDir, { recursive: true });
-    } catch (error) {
-      // Directory might already exist
-    }
+    } catch (error) {}
   }
 
   private formatDataType(column: ColumnInfo): string {
     let dataType = column.data_type;
-    
-    // Handle special PostgreSQL types
+
     switch (dataType) {
       case 'character varying':
-        dataType = column.character_maximum_length 
+        dataType = column.character_maximum_length
           ? `varchar(${column.character_maximum_length})`
           : 'varchar';
         break;
@@ -88,14 +85,13 @@ class SchemaBackupGenerator {
         dataType = 'timestamp';
         break;
       case 'USER-DEFINED':
-        // This is likely an enum or custom type
         dataType = 'varchar';
         break;
       case 'ARRAY':
         dataType = 'text[]';
         break;
     }
-    
+
     return dataType;
   }
 
@@ -106,8 +102,8 @@ class SchemaBackupGenerator {
       WHERE extname != 'plpgsql'
       ORDER BY extname
     `);
-    
-    return result.rows.map(row => row.extname);
+
+    return result.rows.map((row) => row.extname);
   }
 
   private async getSequences(): Promise<SequenceInfo[]> {
@@ -117,7 +113,7 @@ class SchemaBackupGenerator {
       WHERE sequence_schema = 'public'
       ORDER BY sequence_name
     `);
-    
+
     return result.rows;
   }
 
@@ -130,12 +126,13 @@ class SchemaBackupGenerator {
       AND table_name != 'migrations'
       ORDER BY table_name
     `);
-    
+
     return result.rows;
   }
 
   private async getTableColumns(tableName: string): Promise<ColumnInfo[]> {
-    const result = await this.client.query(`
+    const result = await this.client.query(
+      `
       SELECT 
         column_name,
         data_type,
@@ -147,13 +144,18 @@ class SchemaBackupGenerator {
       WHERE table_schema = 'public' 
       AND table_name = $1
       ORDER BY ordinal_position
-    `, [tableName]);
-    
+    `,
+      [tableName],
+    );
+
     return result.rows;
   }
 
-  private async getTableConstraints(tableName: string): Promise<ConstraintInfo[]> {
-    const result = await this.client.query(`
+  private async getTableConstraints(
+    tableName: string,
+  ): Promise<ConstraintInfo[]> {
+    const result = await this.client.query(
+      `
       SELECT 
         tc.constraint_name,
         tc.constraint_type,
@@ -170,8 +172,10 @@ class SchemaBackupGenerator {
       WHERE tc.table_schema = 'public'
       AND tc.table_name = $1
       ORDER BY tc.constraint_type, tc.constraint_name
-    `, [tableName]);
-    
+    `,
+      [tableName],
+    );
+
     return result.rows;
   }
 
@@ -186,75 +190,85 @@ class SchemaBackupGenerator {
       AND tablename != 'migrations'
       ORDER BY tablename, indexname
     `);
-    
+
     return result.rows;
   }
 
   private generateCreateTable(
-    tableName: string, 
-    columns: ColumnInfo[], 
-    constraints: ConstraintInfo[]
+    tableName: string,
+    columns: ColumnInfo[],
+    constraints: ConstraintInfo[],
   ): string {
     let sql = `CREATE TABLE public."${tableName}" (\n`;
-    
-    // Add columns
-    const columnDefs = columns.map(col => {
+
+    const columnDefs = columns.map((col) => {
       let def = `    "${col.column_name}" ${this.formatDataType(col)}`;
-      
+
       if (col.column_default) {
         def += ` DEFAULT ${col.column_default}`;
       }
-      
+
       if (col.is_nullable === 'NO') {
         def += ' NOT NULL';
       }
-      
+
       return def;
     });
-    
-    // Add primary key constraint inline
-    const primaryKeys = constraints.filter(c => c.constraint_type === 'PRIMARY KEY');
+
+    const primaryKeys = constraints.filter(
+      (c) => c.constraint_type === 'PRIMARY KEY',
+    );
     if (primaryKeys.length > 0) {
-      const pkColumns = primaryKeys.map(pk => `"${pk.column_name}"`).join(', ');
+      const pkColumns = primaryKeys
+        .map((pk) => `"${pk.column_name}"`)
+        .join(', ');
       const pkName = primaryKeys[0].constraint_name;
       columnDefs.push(`    CONSTRAINT "${pkName}" PRIMARY KEY (${pkColumns})`);
     }
-    
-    // Add unique constraints inline
-    const uniqueConstraints = constraints.filter(c => c.constraint_type === 'UNIQUE');
-    uniqueConstraints.forEach(uc => {
-      columnDefs.push(`    CONSTRAINT "${uc.constraint_name}" UNIQUE ("${uc.column_name}")`);
+
+    const uniqueConstraints = constraints.filter(
+      (c) => c.constraint_type === 'UNIQUE',
+    );
+    uniqueConstraints.forEach((uc) => {
+      columnDefs.push(
+        `    CONSTRAINT "${uc.constraint_name}" UNIQUE ("${uc.column_name}")`,
+      );
     });
-    
+
     sql += columnDefs.join(',\n');
     sql += '\n);\n';
-    
+
     return sql;
   }
 
-  private generateForeignKeys(tableName: string, constraints: ConstraintInfo[]): string[] {
-    const foreignKeys = constraints.filter(c => c.constraint_type === 'FOREIGN KEY');
-    
-    return foreignKeys.map(fk => 
-      `ALTER TABLE ONLY public."${tableName}"\n` +
-      `    ADD CONSTRAINT "${fk.constraint_name}" ` +
-      `FOREIGN KEY ("${fk.column_name}") ` +
-      `REFERENCES public."${fk.foreign_table_name}"("${fk.foreign_column_name}");`
+  private generateForeignKeys(
+    tableName: string,
+    constraints: ConstraintInfo[],
+  ): string[] {
+    const foreignKeys = constraints.filter(
+      (c) => c.constraint_type === 'FOREIGN KEY',
+    );
+
+    return foreignKeys.map(
+      (fk) =>
+        `ALTER TABLE ONLY public."${tableName}"\n` +
+        `    ADD CONSTRAINT "${fk.constraint_name}" ` +
+        `FOREIGN KEY ("${fk.column_name}") ` +
+        `REFERENCES public."${fk.foreign_table_name}"("${fk.foreign_column_name}");`,
     );
   }
 
   async generateBackup(): Promise<string> {
     console.log('Generating schema backup...');
-    
+
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = `schema_backup_${timestamp}.sql`;
     const filepath = path.join(this.backupDir, filename);
-    
+
     await this.ensureBackupDirectory();
-    
+
     let sql = '';
-    
-    // Header
+
     sql += `--
 -- PostgreSQL Database Schema Backup
 -- Generated: ${new Date().toISOString()}
@@ -276,7 +290,6 @@ SET row_security = off;
 
 `;
 
-    // Extensions
     const extensions = await this.getExtensions();
     for (const ext of extensions) {
       sql += `--
@@ -288,7 +301,6 @@ CREATE EXTENSION IF NOT EXISTS "${ext}" WITH SCHEMA public;
 `;
     }
 
-    // Sequences
     const sequences = await this.getSequences();
     for (const seq of sequences) {
       sql += `--
@@ -305,16 +317,15 @@ CREATE SEQUENCE IF NOT EXISTS public.${seq.sequence_name}
 `;
     }
 
-    // Tables
     const tables = await this.getTables();
     const foreignKeyStatements: string[] = [];
-    
+
     console.log(`Found ${tables.length} tables to backup`);
-    
+
     for (const table of tables) {
       const columns = await this.getTableColumns(table.table_name);
       const constraints = await this.getTableConstraints(table.table_name);
-      
+
       sql += `--
 -- Name: ${table.table_name}; Type: TABLE; Schema: public; Owner: -
 --
@@ -322,12 +333,12 @@ CREATE SEQUENCE IF NOT EXISTS public.${seq.sequence_name}
 `;
       sql += this.generateCreateTable(table.table_name, columns, constraints);
       sql += '\n';
-      
-      // Collect foreign keys for later
-      foreignKeyStatements.push(...this.generateForeignKeys(table.table_name, constraints));
+
+      foreignKeyStatements.push(
+        ...this.generateForeignKeys(table.table_name, constraints),
+      );
     }
-    
-    // Add all foreign keys
+
     if (foreignKeyStatements.length > 0) {
       sql += `--
 -- Foreign Key Constraints
@@ -337,8 +348,7 @@ CREATE SEQUENCE IF NOT EXISTS public.${seq.sequence_name}
       sql += foreignKeyStatements.join('\n\n');
       sql += '\n\n';
     }
-    
-    // Indexes
+
     const indexes = await this.getIndexes();
     if (indexes.length > 0) {
       sql += `--
@@ -350,38 +360,37 @@ CREATE SEQUENCE IF NOT EXISTS public.${seq.sequence_name}
         sql += `${idx.indexdef};\n`;
       }
     }
-    
-    // Footer
+
     sql += `
 --
 -- PostgreSQL database schema dump complete
 --
 `;
 
-    // Write to file
     await writeFile(filepath, sql, 'utf8');
-    
+
     const stats = fs.statSync(filepath);
     const size = (stats.size / 1024).toFixed(2);
-    
+
     console.log(`✓ Schema backup generated successfully!`);
     console.log(`  File: ${filepath}`);
     console.log(`  Size: ${size} KB`);
     console.log(`  Tables: ${tables.length}`);
-    
+
     return filepath;
   }
 
   async cleanOldBackups(keepCount: number = 10): Promise<void> {
-    const files = fs.readdirSync(this.backupDir)
-      .filter(f => f.startsWith('schema_backup_') && f.endsWith('.sql'))
-      .map(f => ({
+    const files = fs
+      .readdirSync(this.backupDir)
+      .filter((f) => f.startsWith('schema_backup_') && f.endsWith('.sql'))
+      .map((f) => ({
         name: f,
         path: path.join(this.backupDir, f),
-        time: fs.statSync(path.join(this.backupDir, f)).mtime.getTime()
+        time: fs.statSync(path.join(this.backupDir, f)).mtime.getTime(),
       }))
       .sort((a, b) => b.time - a.time);
-    
+
     if (files.length > keepCount) {
       const toDelete = files.slice(keepCount);
       for (const file of toDelete) {
@@ -392,19 +401,17 @@ CREATE SEQUENCE IF NOT EXISTS public.${seq.sequence_name}
   }
 }
 
-// Main execution
 async function main() {
   const generator = new SchemaBackupGenerator();
-  
+
   try {
     await generator.connect();
     const backupFile = await generator.generateBackup();
     await generator.cleanOldBackups();
-    
+
     console.log('\nBackup completed successfully!');
     console.log('\nTo restore this schema to a new database:');
     console.log(`  psql -h [host] -U [user] -d [database] < ${backupFile}`);
-    
   } catch (error) {
     console.error('Error:', error.message);
     process.exit(1);
@@ -413,7 +420,6 @@ async function main() {
   }
 }
 
-// Run if called directly
 if (require.main === module) {
   main();
 }

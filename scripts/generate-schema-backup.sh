@@ -39,14 +39,11 @@ echo "Database: $DB_NAME@$DB_HOST:$DB_PORT"
 echo "Output: $OUTPUT_FILE"
 echo ""
 
-# Function to generate schema backup
 generate_backup() {
     echo -e "${YELLOW}Generating schema backup...${NC}"
     
-    # Set PostgreSQL password
     export PGPASSWORD=$DB_PASSWORD
     
-    # Generate schema-only dump
     pg_dump \
         -h "$DB_HOST" \
         -p "$DB_PORT" \
@@ -62,7 +59,6 @@ generate_backup() {
     
     local exit_code=$?
     
-    # Unset password for security
     unset PGPASSWORD
     
     if [ $exit_code -eq 0 ]; then
@@ -70,7 +66,6 @@ generate_backup() {
         echo "  File: $OUTPUT_FILE"
         echo "  Size: $(du -h "$OUTPUT_FILE" | cut -f1)"
         
-        # Add header comment to the file
         local temp_file="${OUTPUT_FILE}.tmp"
         {
             echo "--"
@@ -93,7 +88,6 @@ generate_backup() {
     fi
 }
 
-# Function to create a TypeORM migration from the backup
 create_migration() {
     echo ""
     echo -e "${YELLOW}Creating TypeORM migration (optional)...${NC}"
@@ -108,7 +102,6 @@ create_migration() {
             migration_name="SchemaBackup"
         fi
         
-        # Create empty migration
         pnpm typeorm migration:create "src/migrations/${migration_name}"
         
         echo -e "${GREEN}✓ Empty migration created${NC}"
@@ -116,12 +109,10 @@ create_migration() {
     fi
 }
 
-# Function to clean old backups
 clean_old_backups() {
     echo ""
     echo -e "${YELLOW}Cleaning old backups...${NC}"
     
-    # Keep only the last 10 backups
     local backup_count=$(ls -1 "${BACKUP_DIR}"/schema_backup_*.sql 2>/dev/null | wc -l)
     
     if [ "$backup_count" -gt 10 ]; then
@@ -133,9 +124,7 @@ clean_old_backups() {
     fi
 }
 
-# Main execution
 main() {
-    # Check database connection first
     echo -e "${YELLOW}Testing database connection...${NC}"
     export PGPASSWORD=$DB_PASSWORD
     psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" -d "$DB_NAME" -c "SELECT 1;" >/dev/null 2>&1
@@ -150,12 +139,9 @@ main() {
     echo -e "${GREEN}✓ Database connection successful${NC}"
     echo ""
     
-    # Generate backup
     if generate_backup; then
-        # Optional: create migration
         create_migration
         
-        # Clean old backups
         clean_old_backups
         
         echo ""
