@@ -115,6 +115,7 @@ export class LoginUseCase {
         step: '2fa',
         email: user.email,
         isTwoFactorEnabled: user.isTwoFactorEnabled,
+        active: user.active,
       });
 
       return {
@@ -127,6 +128,7 @@ export class LoginUseCase {
       userId: user.id,
       email: user.email,
       isTwoFactorEnabled: user.isTwoFactorEnabled,
+      active: user.active,
     });
   }
 }

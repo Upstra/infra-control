@@ -81,6 +81,7 @@ export class Verify2FARecoveryUseCase {
       userId: user.id,
       email: user.email,
       isTwoFactorAuthenticated: true,
+      active: user.active,
     });
 
     return new TwoFAResponseDto(
