@@ -40,7 +40,7 @@ describe('UpdatePermissionVmUseCase', () => {
 
     repository.updatePermission.mockResolvedValue(updated);
 
-    const result = await useCase.execute(dto);
+    const result = await useCase.execute(dto.vmId, dto.roleId, dto);
 
     expect(repository.updatePermission).toHaveBeenCalledWith(
       dto.vmId,
@@ -62,7 +62,7 @@ describe('UpdatePermissionVmUseCase', () => {
       new PermissionNotFoundException(),
     );
 
-    await expect(useCase.execute(dto)).rejects.toThrow(
+    await expect(useCase.execute(dto.vmId, dto.roleId, dto)).rejects.toThrow(
       PermissionNotFoundException,
     );
   });
@@ -76,7 +76,7 @@ describe('UpdatePermissionVmUseCase', () => {
 
     repository.updatePermission.mockResolvedValue(updated);
 
-    const result = await useCase.execute(new PermissionVmDto(updated));
+    const result = await useCase.execute(updated.vmId, updated.roleId, new PermissionVmDto(updated));
 
     expect(result).toEqual({
       roleId: 'admin',

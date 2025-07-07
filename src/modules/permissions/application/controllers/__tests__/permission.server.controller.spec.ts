@@ -4,16 +4,19 @@ import { PermissionServerController } from '../permission.server.controller';
 import { createMockPermissionServerDto } from '@/modules/permissions/__mocks__/permissions.mock';
 import {
   CreatePermissionServerUseCase,
+  CreateBatchPermissionServerUseCase,
   DeletePermissionServerUseCase,
   GetPermissionServerByIdsUseCase,
   GetPermissionsServerByRoleUseCase,
   UpdatePermissionServerUseCase,
   GetUserServerPermissionsUseCase,
 } from '../../use-cases/permission-server';
+import { BatchPermissionServerDto, BatchPermissionServerResponseDto } from '../../dto/batch-permission.server.dto';
 
 describe('PermissionServerController', () => {
   let controller: PermissionServerController;
   let createPermissionUsecase: any;
+  let createBatchPermissionUsecase: any;
   let getAllByRoleUsecase: any;
   let getByIdsUsecase: any;
   let updatePermissionUsecase: any;
@@ -22,6 +25,7 @@ describe('PermissionServerController', () => {
 
   beforeEach(async () => {
     createPermissionUsecase = { execute: jest.fn() };
+    createBatchPermissionUsecase = { execute: jest.fn() };
     getAllByRoleUsecase = { execute: jest.fn() };
     getByIdsUsecase = { execute: jest.fn() };
     updatePermissionUsecase = { execute: jest.fn() };
@@ -34,6 +38,10 @@ describe('PermissionServerController', () => {
         {
           provide: CreatePermissionServerUseCase,
           useValue: createPermissionUsecase,
+        },
+        {
+          provide: CreateBatchPermissionServerUseCase,
+          useValue: createBatchPermissionUsecase,
         },
         {
           provide: GetPermissionsServerByRoleUseCase,
@@ -136,5 +144,51 @@ describe('PermissionServerController', () => {
     expect(getUserServerPermissionsUseCase.execute).toHaveBeenCalledWith(
       'user-456',
     );
+  });
+
+  it('should call createBatchPermissions', async () => {
+    const batchDto = new BatchPermissionServerDto();
+    batchDto.permissions = [
+      createMockPermissionServerDto(),
+      createMockPermissionServerDto(),
+    ];
+
+    const response: BatchPermissionServerResponseDto = {
+      created: batchDto.permissions,
+      failed: [],
+      total: 2,
+      successCount: 2,
+      failureCount: 0,
+    };
+
+    createBatchPermissionUsecase.execute.mockResolvedValue(response);
+    const res = await controller.createBatchPermissions(batchDto);
+    expect(res).toEqual(response);
+    expect(createBatchPermissionUsecase.execute).toHaveBeenCalledWith(batchDto);
+  });
+
+  it('should handle partial failures in createBatchPermissions', async () => {
+    const batchDto = new BatchPermissionServerDto();
+    batchDto.permissions = [
+      createMockPermissionServerDto(),
+      createMockPermissionServerDto(),
+    ];
+
+    const response: BatchPermissionServerResponseDto = {
+      created: [batchDto.permissions[0]],
+      failed: [{
+        permission: batchDto.permissions[1],
+        error: 'Duplicate permission',
+      }],
+      total: 2,
+      successCount: 1,
+      failureCount: 1,
+    };
+
+    createBatchPermissionUsecase.execute.mockResolvedValue(response);
+    const res = await controller.createBatchPermissions(batchDto);
+    expect(res).toEqual(response);
+    expect(res.failureCount).toBe(1);
+    expect(res.failed[0].error).toBe('Duplicate permission');
   });
 });
