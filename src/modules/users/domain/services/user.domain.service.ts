@@ -3,6 +3,7 @@ import * as bcrypt from 'bcryptjs';
 import { User } from '../entities/user.entity';
 import { Role } from '../../../roles/domain/entities/role.entity';
 import { UserUpdateDto } from '../../application/dto/user.update.dto';
+import { UpdateAccountDto } from '../../application/dto/update-account.dto';
 import { UserRepositoryInterface } from '../interfaces/user.repository.interface';
 import { UserExceptions } from '../exceptions/user.exception';
 
@@ -99,5 +100,32 @@ export class UserDomainService {
     if (existing && existing.id !== userId) {
       throw UserExceptions.conflict(field as 'username' | 'email');
     }
+  }
+
+  async updateAccount(user: User, dto: UpdateAccountDto): Promise<User> {
+    if (dto.firstName !== undefined) {
+      user.firstName = dto.firstName;
+    }
+    if (dto.lastName !== undefined) {
+      user.lastName = dto.lastName;
+    }
+    if (dto.email !== undefined) {
+      await this.ensureUniqueEmail(dto.email, user.id);
+      user.email = dto.email.toLowerCase();
+    }
+    if (dto.isActive !== undefined) {
+      user.isActive = dto.isActive;
+    }
+    if (dto.isVerified !== undefined) {
+      user.isVerified = dto.isVerified;
+    }
+    user.updatedAt = new Date();
+    return user;
+  }
+
+  async activateUser(user: User): Promise<User> {
+    user.isActive = true;
+    user.updatedAt = new Date();
+    return user;
   }
 }

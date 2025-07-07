@@ -11,6 +11,8 @@ export class UserResponseDto {
   @ApiProperty() @IsEmail() readonly email: string;
 
   @ApiProperty() @IsBoolean() readonly active: boolean;
+  @ApiProperty() @IsBoolean() readonly isActive: boolean;
+  @ApiProperty() @IsBoolean() readonly isVerified: boolean;
   @ApiProperty() @IsBoolean() readonly isTwoFactorEnabled: boolean;
 
   @ApiProperty() @IsDate() readonly createdAt: Date;
@@ -25,6 +27,8 @@ export class UserResponseDto {
     this.lastName = u.lastName;
     this.email = u.email;
     this.active = u.active;
+    this.isActive = u.isActive;
+    this.isVerified = u.isVerified;
     this.isTwoFactorEnabled = u.isTwoFactorEnabled;
     this.createdAt = u.createdAt;
     this.updatedAt = u.updatedAt;
@@ -39,9 +43,15 @@ export class UserResponseDto {
     user.lastName = this.lastName;
     user.email = this.email;
     user.active = this.active;
+    user.isActive = this.isActive;
+    user.isVerified = this.isVerified;
     user.isTwoFactorEnabled = this.isTwoFactorEnabled;
     user.createdAt = this.createdAt;
     user.updatedAt = this.updatedAt;
     return user;
+  }
+
+  static fromEntity(user: User): UserResponseDto {
+    return new UserResponseDto(user);
   }
 }
