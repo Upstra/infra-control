@@ -16,6 +16,30 @@ describe('SoftDeleteUserUseCase', () => {
   let userRepository: jest.Mocked<UserRepositoryInterface>;
   let logHistoryUseCase: jest.Mocked<LogHistoryUseCase>;
 
+  const createMockUser = (overrides: Partial<User> = {}): User => {
+    const user = new User();
+    Object.assign(user, {
+      id: 'default-id',
+      username: 'defaultuser',
+      firstName: 'Default',
+      lastName: 'User',
+      password: 'hashed-password',
+      email: 'default@test.com',
+      isTwoFactorEnabled: false,
+      twoFactorSecret: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastLoggedIn: null,
+      roles: [],
+      recoveryCodes: null,
+      active: true,
+      deleted: false,
+      deletedAt: null,
+      ...overrides,
+    });
+    return user;
+  };
+
   const mockAdminRole: Role = {
     id: 'role-admin',
     name: 'Admin',
@@ -28,25 +52,19 @@ describe('SoftDeleteUserUseCase', () => {
     isAdmin: false,
   } as Role;
 
-  const mockAdminUser: User = {
+  const mockAdminUser = createMockUser({
     id: 'admin-user-id',
     username: 'admin',
     email: 'admin@test.com',
-    active: true,
-    deleted: false,
-    deletedAt: null,
     roles: [mockAdminRole],
-  } as User;
+  });
 
-  const mockTargetUser: User = {
+  const mockTargetUser = createMockUser({
     id: 'target-user-id',
     username: 'targetuser',
     email: 'target@test.com',
-    active: true,
-    deleted: false,
-    deletedAt: null,
     roles: [mockUserRole],
-  } as User;
+  });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -81,7 +99,13 @@ describe('SoftDeleteUserUseCase', () => {
 
   describe('execute', () => {
     it('should successfully soft delete a user', async () => {
-      const deletedUser = { ...mockTargetUser, deleted: true, deletedAt: new Date(), active: false };
+      const deletedAt = new Date();
+      const deletedUser = createMockUser({
+        ...mockTargetUser,
+        deleted: true,
+        deletedAt,
+        active: false,
+      });
       
       userRepository.findById.mockResolvedValue(mockTargetUser);
       userRepository.findWithRoles.mockResolvedValue(mockTargetUser);
@@ -144,7 +168,11 @@ describe('SoftDeleteUserUseCase', () => {
     });
 
     it('should throw UserNotFoundException if user is already deleted', async () => {
-      const deletedUser = { ...mockTargetUser, deleted: true, deletedAt: new Date() };
+      const deletedUser = createMockUser({
+        ...mockTargetUser,
+        deleted: true,
+        deletedAt: new Date(),
+      });
       userRepository.findById.mockResolvedValue(deletedUser);
 
       await expect(
@@ -167,7 +195,10 @@ describe('SoftDeleteUserUseCase', () => {
     });
 
     it('should throw CannotDeleteLastAdminException when trying to delete the last admin', async () => {
-      const adminUser = { ...mockTargetUser, roles: [mockAdminRole] };
+      const adminUser = createMockUser({
+        ...mockTargetUser,
+        roles: [mockAdminRole],
+      });
       
       userRepository.findById.mockResolvedValue(adminUser);
       userRepository.findWithRoles.mockResolvedValue(adminUser);
@@ -182,8 +213,16 @@ describe('SoftDeleteUserUseCase', () => {
     });
 
     it('should handle users with no email', async () => {
-      const userWithoutEmail = { ...mockTargetUser, email: undefined };
-      const deletedUser = { ...userWithoutEmail, deleted: true, deletedAt: new Date(), active: false };
+      const userWithoutEmail = createMockUser({
+        ...mockTargetUser,
+        email: undefined,
+      });
+      const deletedUser = createMockUser({
+        ...userWithoutEmail,
+        deleted: true,
+        deletedAt: new Date(),
+        active: false,
+      });
       
       userRepository.findById.mockResolvedValue(userWithoutEmail);
       userRepository.findWithRoles.mockResolvedValue(userWithoutEmail);
@@ -203,7 +242,12 @@ describe('SoftDeleteUserUseCase', () => {
     });
 
     it('should use default reason when not provided', async () => {
-      const deletedUser = { ...mockTargetUser, deleted: true, deletedAt: new Date(), active: false };
+      const deletedUser = createMockUser({
+        ...mockTargetUser,
+        deleted: true,
+        deletedAt: new Date(),
+        active: false,
+      });
       
       userRepository.findById.mockResolvedValue(mockTargetUser);
       userRepository.findWithRoles.mockResolvedValue(mockTargetUser);
@@ -222,10 +266,10 @@ describe('SoftDeleteUserUseCase', () => {
     });
 
     it('should correctly identify admin users with capital Admin role', async () => {
-      const adminUser = { 
+      const adminUser = createMockUser({
         ...mockTargetUser, 
-        roles: [{ ...mockAdminRole, name: 'Admin' }] 
-      };
+        roles: [{ ...mockAdminRole, name: 'Admin' }],
+      });
       
       userRepository.findById.mockResolvedValue(adminUser);
       userRepository.findWithRoles.mockResolvedValue(adminUser);
@@ -237,10 +281,10 @@ describe('SoftDeleteUserUseCase', () => {
     });
 
     it('should correctly identify admin users with lowercase admin role', async () => {
-      const adminUser = { 
+      const adminUser = createMockUser({
         ...mockTargetUser, 
-        roles: [{ ...mockAdminRole, name: 'admin' }] 
-      };
+        roles: [{ ...mockAdminRole, name: 'admin' }],
+      });
       
       userRepository.findById.mockResolvedValue(adminUser);
       userRepository.findWithRoles.mockResolvedValue(adminUser);
@@ -252,7 +296,12 @@ describe('SoftDeleteUserUseCase', () => {
     });
 
     it('should handle missing IP address and user agent', async () => {
-      const deletedUser = { ...mockTargetUser, deleted: true, deletedAt: new Date(), active: false };
+      const deletedUser = createMockUser({
+        ...mockTargetUser,
+        deleted: true,
+        deletedAt: new Date(),
+        active: false,
+      });
       
       userRepository.findById.mockResolvedValue(mockTargetUser);
       userRepository.findWithRoles.mockResolvedValue(mockTargetUser);
@@ -277,7 +326,12 @@ describe('SoftDeleteUserUseCase', () => {
     });
 
     it('should allow deleting non-admin users when multiple admins exist', async () => {
-      const deletedUser = { ...mockTargetUser, deleted: true, deletedAt: new Date(), active: false };
+      const deletedUser = createMockUser({
+        ...mockTargetUser,
+        deleted: true,
+        deletedAt: new Date(),
+        active: false,
+      });
       
       userRepository.findById.mockResolvedValue(mockTargetUser);
       userRepository.findWithRoles.mockResolvedValue(mockTargetUser);
@@ -291,8 +345,16 @@ describe('SoftDeleteUserUseCase', () => {
     });
 
     it('should handle user with no roles gracefully', async () => {
-      const userWithoutRoles = { ...mockTargetUser, roles: [] };
-      const deletedUser = { ...userWithoutRoles, deleted: true, deletedAt: new Date(), active: false };
+      const userWithoutRoles = createMockUser({
+        ...mockTargetUser,
+        roles: [],
+      });
+      const deletedUser = createMockUser({
+        ...userWithoutRoles,
+        deleted: true,
+        deletedAt: new Date(),
+        active: false,
+      });
       
       userRepository.findById.mockResolvedValue(userWithoutRoles);
       userRepository.findWithRoles.mockResolvedValue(userWithoutRoles);
@@ -306,7 +368,12 @@ describe('SoftDeleteUserUseCase', () => {
     });
 
     it('should handle null response from findWithRoles', async () => {
-      const deletedUser = { ...mockTargetUser, deleted: true, deletedAt: new Date(), active: false };
+      const deletedUser = createMockUser({
+        ...mockTargetUser,
+        deleted: true,
+        deletedAt: new Date(),
+        active: false,
+      });
       
       userRepository.findById.mockResolvedValue(mockTargetUser);
       userRepository.findWithRoles.mockResolvedValue(null);
