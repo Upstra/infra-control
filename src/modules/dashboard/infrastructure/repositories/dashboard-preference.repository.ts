@@ -41,7 +41,11 @@ export class DashboardPreferenceRepository
   async upsert(
     preference: Partial<DashboardPreference>,
   ): Promise<DashboardPreference> {
-    const existing = await this.findByUserId(preference.userId!);
+    if (!preference.userId) {
+      throw new Error('UserId is required for upsert operation');
+    }
+
+    const existing = await this.findByUserId(preference.userId);
 
     if (existing) {
       Object.assign(existing, preference);
