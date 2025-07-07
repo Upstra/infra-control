@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { PermissionServerDto } from '../../dto/permission.server.dto';
+import { PermissionServerDto, UpdatePermissionServerDto } from '../../dto/permission.server.dto';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
 
 /**
@@ -30,7 +30,7 @@ export class UpdatePermissionServerUseCase {
   async execute(
     serverId: string,
     roleId: string,
-    dto: PermissionServerDto,
+    dto: UpdatePermissionServerDto,
   ): Promise<PermissionServerDto> {
     const permission = await this.repository.updatePermission(
       serverId,

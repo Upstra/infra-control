@@ -9,7 +9,7 @@ import {
   DeletePermissionVmUseCase,
   GetUserVmPermissionsUseCase,
 } from '../../use-cases/permission-vm';
-import { PermissionVmDto } from '../../dto/permission.vm.dto';
+import { PermissionVmDto, UpdatePermissionVmDto } from '../../dto/permission.vm.dto';
 import { BatchPermissionVmDto, BatchPermissionVmResponseDto } from '../../dto/batch-permission.vm.dto';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
@@ -108,12 +108,14 @@ describe('PermissionVmController', () => {
     it('should update an existing permission', async () => {
       const vmId = 'vm-id';
       const roleId = 'role-id';
-      const dto: PermissionVmDto = {
+      const dto: UpdatePermissionVmDto = {
+        bitmask: 7,
+      };
+      const expectedResult = new PermissionVmDto({
         vmId,
         roleId,
         bitmask: 7,
-      };
-      const expectedResult = new PermissionVmDto(dto);
+      });
 
       updateUseCaseMock.execute.mockResolvedValue(expectedResult);
 
@@ -121,6 +123,35 @@ describe('PermissionVmController', () => {
 
       expect(result).toEqual(expectedResult);
       expect(updateUseCaseMock.execute).toHaveBeenCalledWith(vmId, roleId, dto);
+    });
+
+    it('should update permission with different bitmask values', async () => {
+      const vmId = 'vm-id';
+      const roleId = 'role-id';
+      const testCases = [
+        { bitmask: 0 },
+        { bitmask: 1 },
+        { bitmask: 15 },
+        { bitmask: 255 },
+      ];
+
+      for (const testCase of testCases) {
+        const dto: UpdatePermissionVmDto = {
+          bitmask: testCase.bitmask,
+        };
+        const expectedResult = new PermissionVmDto({
+          vmId,
+          roleId,
+          bitmask: testCase.bitmask,
+        });
+
+        updateUseCaseMock.execute.mockResolvedValue(expectedResult);
+
+        const result = await controller.updatePermission(vmId, roleId, dto);
+
+        expect(result).toEqual(expectedResult);
+        expect(updateUseCaseMock.execute).toHaveBeenCalledWith(vmId, roleId, dto);
+      }
     });
   });
 
