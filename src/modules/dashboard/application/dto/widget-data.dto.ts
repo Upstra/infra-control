@@ -256,26 +256,29 @@ export class UpsStatusDto {
   @ApiProperty()
   name: string;
 
-  @ApiProperty({ enum: ['online', 'onBattery', 'offline'] })
-  status: 'online' | 'onBattery' | 'offline';
+  @ApiProperty({ enum: ['online', 'onBattery', 'offline', 'unavailable'] })
+  status: 'online' | 'onBattery' | 'offline' | 'unavailable';
 
-  @ApiProperty()
-  batteryLevel: number;
+  @ApiProperty({ nullable: true })
+  batteryLevel: number | null;
 
-  @ApiProperty()
-  load: number;
+  @ApiProperty({ nullable: true })
+  load: number | null;
 
-  @ApiProperty()
-  runtime: number;
+  @ApiProperty({ nullable: true })
+  runtime: number | null;
 
-  @ApiProperty()
-  temperature: number;
+  @ApiProperty({ nullable: true })
+  temperature: number | null;
 
-  @ApiProperty()
-  lastTest: Date;
+  @ApiProperty({ nullable: true })
+  lastTest: Date | null;
 
-  @ApiProperty()
-  nextTest: Date;
+  @ApiProperty({ nullable: true })
+  nextTest: Date | null;
+
+  @ApiProperty({ default: true })
+  isMocked: boolean;
 }
 
 export class UpsStatusSummaryDto {
@@ -292,7 +295,13 @@ export class UpsStatusSummaryDto {
   offline: number;
 
   @ApiProperty()
-  averageLoad: number;
+  unavailable: number;
+
+  @ApiProperty({ nullable: true })
+  averageLoad: number | null;
+
+  @ApiProperty({ default: true })
+  isMocked: boolean;
 }
 
 export class UpsStatusResponseDto {

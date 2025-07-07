@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DashboardTemplateRepository } from '../../../infrastructure/repositories/dashboard-template.repository';
 import { DashboardTemplateListResponseDto } from '../../dto/dashboard-template.dto';
+import { WidgetType } from '../../../domain/entities/dashboard-widget.entity';
 
 @Injectable()
 export class ListTemplatesUseCase {
@@ -20,7 +21,7 @@ export class ListTemplatesUseCase {
           description: template.description,
           preview: template.preview,
           widgets: template.widgets.map((widget) => ({
-            type: widget.type,
+            type: widget.type as WidgetType,
             title: widget.title,
             position: widget.position,
             settings: widget.settings,
