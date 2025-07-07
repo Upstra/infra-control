@@ -257,5 +257,104 @@ describe('CreateLayoutFromTemplateUseCase', () => {
 
       expect(result.widgets[0].settings).toBeUndefined();
     });
+
+    it('should handle widgets with undefined settings', async () => {
+      const dto = { templateId: 'template-1', name: 'New Layout' };
+      const userId = 'user-1';
+
+      const templateWithUndefinedSettings = {
+        ...mockTemplate,
+        widgets: [
+          {
+            type: WidgetType.STATS,
+            title: 'Simple Widget',
+            position: { x: 0, y: 0, w: 6, h: 4 },
+            settings: undefined,
+            refreshInterval: 30000,
+          },
+        ],
+      };
+
+      templateRepository.findById.mockResolvedValue(templateWithUndefinedSettings as any);
+      layoutRepository.findByUserId.mockResolvedValue([]);
+      layoutRepository.save.mockResolvedValue({
+        ...mockSavedLayout,
+        widgets: [
+          {
+            id: 'widget-1',
+            type: WidgetType.STATS,
+            title: 'Simple Widget',
+            position: { x: 0, y: 0, w: 6, h: 4 },
+            settings: undefined,
+            refreshInterval: 30000,
+            visible: true,
+          },
+        ],
+      } as any);
+
+      const result = await useCase.execute(userId, dto);
+
+      expect(result.widgets[0].settings).toBeUndefined();
+    });
+
+    it('should handle templates with empty widgets array', async () => {
+      const dto = { templateId: 'template-1', name: 'New Layout' };
+      const userId = 'user-1';
+
+      const templateWithEmptyWidgets = {
+        ...mockTemplate,
+        widgets: [],
+      };
+
+      templateRepository.findById.mockResolvedValue(templateWithEmptyWidgets as any);
+      layoutRepository.findByUserId.mockResolvedValue([]);
+      layoutRepository.save.mockResolvedValue({
+        ...mockSavedLayout,
+        widgets: [],
+      } as any);
+
+      const result = await useCase.execute(userId, dto);
+
+      expect(result.widgets).toEqual([]);
+    });
+
+    it('should properly clone widget position and settings objects', async () => {
+      const dto = { templateId: 'template-1', name: 'New Layout' };
+      const userId = 'user-1';
+      const originalPosition = { x: 0, y: 0, w: 6, h: 4 };
+      const originalSettings = { theme: 'dark', option: 'value' };
+
+      const templateWithObjects = {
+        ...mockTemplate,
+        widgets: [
+          {
+            type: WidgetType.STATS,
+            title: 'Test Widget',
+            position: originalPosition,
+            settings: originalSettings,
+            refreshInterval: 30000,
+          },
+        ],
+      };
+
+      templateRepository.findById.mockResolvedValue(templateWithObjects as any);
+      layoutRepository.findByUserId.mockResolvedValue([]);
+      
+      let capturedLayout: any;
+      layoutRepository.save.mockImplementation((layout) => {
+        capturedLayout = layout;
+        return Promise.resolve({
+          ...mockSavedLayout,
+          widgets: layout.widgets.map((w: any, index: number) => ({ ...w, id: `widget-${index + 1}` })),
+        } as any);
+      });
+
+      await useCase.execute(userId, dto);
+
+      expect(capturedLayout.widgets[0].position).not.toBe(originalPosition);
+      expect(capturedLayout.widgets[0].settings).not.toBe(originalSettings);
+      expect(capturedLayout.widgets[0].position).toEqual(originalPosition);
+      expect(capturedLayout.widgets[0].settings).toEqual(originalSettings);
+    });
   });
 });
