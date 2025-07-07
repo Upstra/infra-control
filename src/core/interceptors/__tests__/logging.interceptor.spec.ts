@@ -162,11 +162,8 @@ describe('LoggingInterceptor', () => {
               result: 'result-id',
             }),
           );
-          expect(logSpy).toHaveBeenCalledWith(
-            expect.not.objectContaining({
-              requestContext: expect.any(Object),
-            }),
-          );
+          const logCall = logSpy.mock.calls[0][0];
+          expect(logCall).not.toHaveProperty('requestContext');
           done();
         },
       });
