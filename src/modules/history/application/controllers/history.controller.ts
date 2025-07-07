@@ -58,16 +58,16 @@ export class HistoryController {
     @Query('order') order?: 'asc' | 'desc',
   ): Promise<HistoryListResponseDto> {
     const filters: HistoryListFilters = {};
-    
+
     if (action) {
       // Handle comma-separated string or array
       if (typeof action === 'string' && action.includes(',')) {
-        filters.action = action.split(',').map(a => a.trim());
+        filters.action = action.split(',').map((a) => a.trim());
       } else {
         filters.action = action;
       }
     }
-    
+
     if (entity) filters.entity = entity;
     if (userId) filters.userId = userId;
     if (from) filters.from = new Date(from);

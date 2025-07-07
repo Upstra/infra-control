@@ -29,7 +29,9 @@ describe('GetHistoryActionTypesUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<GetHistoryActionTypesUseCase>(GetHistoryActionTypesUseCase);
+    useCase = module.get<GetHistoryActionTypesUseCase>(
+      GetHistoryActionTypesUseCase,
+    );
     historyRepository = module.get('HistoryRepositoryInterface');
   });
 
@@ -59,7 +61,9 @@ describe('GetHistoryActionTypesUseCase', () => {
         'SHUTDOWN',
       ];
 
-      historyRepository.findDistinctActionTypes.mockResolvedValue(mockActionTypes);
+      historyRepository.findDistinctActionTypes.mockResolvedValue(
+        mockActionTypes,
+      );
 
       const result = await useCase.execute();
 
@@ -98,7 +102,9 @@ describe('GetHistoryActionTypesUseCase', () => {
     it('should put uncategorized actions in update category', async () => {
       const mockActionTypes = ['UNKNOWN_ACTION', 'CUSTOM_EVENT'];
 
-      historyRepository.findDistinctActionTypes.mockResolvedValue(mockActionTypes);
+      historyRepository.findDistinctActionTypes.mockResolvedValue(
+        mockActionTypes,
+      );
 
       const result = await useCase.execute();
 

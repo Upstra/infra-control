@@ -1,8 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PermissionDomainVmService } from '../../../domain/services/permission.domain.vm.service';
 import { PermissionVmDto } from '../../dto/permission.vm.dto';
-import { BatchPermissionVmDto, BatchPermissionVmResponseDto } from '../../dto/batch-permission.vm.dto';
+import {
+  BatchPermissionVmDto,
+  BatchPermissionVmResponseDto,
+} from '../../dto/batch-permission.vm.dto';
 import { PermissionVmRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.vm.repository.interface';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
 
 /**
  * Creates multiple VM permissions in a single operation.
@@ -21,9 +25,13 @@ export class CreateBatchPermissionVmUseCase {
     @Inject('PermissionVmRepositoryInterface')
     private readonly repository: PermissionVmRepositoryInterface,
     private readonly domainService: PermissionDomainVmService,
+    private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(dto: BatchPermissionVmDto): Promise<BatchPermissionVmResponseDto> {
+  async execute(
+    dto: BatchPermissionVmDto,
+    userId?: string,
+  ): Promise<BatchPermissionVmResponseDto> {
     const response: BatchPermissionVmResponseDto = {
       created: [],
       failed: [],
@@ -34,7 +42,8 @@ export class CreateBatchPermissionVmUseCase {
 
     for (const permissionDto of dto.permissions) {
       try {
-        const entity = this.domainService.createPermissionEntityFromDto(permissionDto);
+        const entity =
+          this.domainService.createPermissionEntityFromDto(permissionDto);
         const saved = await this.repository.save(entity);
         response.created.push(new PermissionVmDto(saved));
         response.successCount++;
@@ -46,6 +55,31 @@ export class CreateBatchPermissionVmUseCase {
         response.failureCount++;
       }
     }
+
+    await this.logHistory?.executeStructured({
+      entity: 'permission_vm',
+      entityId: 'batch',
+      action: 'BATCH_CREATE',
+      userId: userId || 'system',
+      newValue: {
+        successCount: response.successCount,
+        failureCount: response.failureCount,
+        total: response.total,
+      },
+      metadata: {
+        permissionType: 'vm',
+        batchOperation: true,
+        createdPermissions: response.created.map((p) => ({
+          vmId: p.vmId,
+          roleId: p.roleId,
+          bitmask: p.bitmask,
+        })),
+        failedPermissions: response.failed.map((f) => ({
+          permission: f.permission,
+          error: f.error,
+        })),
+      },
+    });
 
     return response;
   }

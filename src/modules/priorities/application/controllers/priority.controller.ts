@@ -8,7 +8,10 @@ import {
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
-import { UseLoggingContext, LogToHistory } from '@/core/decorators/logging-context.decorator';
+import {
+  UseLoggingContext,
+  LogToHistory,
+} from '@/core/decorators/logging-context.decorator';
 import {
   GetServerPrioritiesUseCase,
   GetVmPrioritiesUseCase,
@@ -97,8 +100,16 @@ export class PriorityController {
   @LogToHistory('server-priority', 'SWAP', {
     extractEntityId: (data) => `${data.server1.id}-${data.server2.id}`,
     extractMetadata: (data) => ({
-      server1: { id: data.server1.id, name: data.server1.name, oldPriority: data.server1.priority },
-      server2: { id: data.server2.id, name: data.server2.name, oldPriority: data.server2.priority },
+      server1: {
+        id: data.server1.id,
+        name: data.server1.name,
+        oldPriority: data.server1.priority,
+      },
+      server2: {
+        id: data.server2.id,
+        name: data.server2.name,
+        oldPriority: data.server2.priority,
+      },
       swapType: 'server_priority_swap',
     }),
   })
@@ -134,8 +145,16 @@ export class PriorityController {
   @LogToHistory('vm-priority', 'SWAP', {
     extractEntityId: (data) => `${data.vm1.id}-${data.vm2.id}`,
     extractMetadata: (data) => ({
-      vm1: { id: data.vm1.id, name: data.vm1.name, oldPriority: data.vm1.priority },
-      vm2: { id: data.vm2.id, name: data.vm2.name, oldPriority: data.vm2.priority },
+      vm1: {
+        id: data.vm1.id,
+        name: data.vm1.name,
+        oldPriority: data.vm1.priority,
+      },
+      vm2: {
+        id: data.vm2.id,
+        name: data.vm2.name,
+        oldPriority: data.vm2.priority,
+      },
       swapType: 'vm_priority_swap',
     }),
   })
@@ -143,10 +162,6 @@ export class PriorityController {
     @Body() dto: SwapVmPriorityDto,
     @CurrentUser() user: JwtPayload,
   ): Promise<SwapVmResponseDto> {
-    return this.swapVmPriorities.execute(
-      dto.vm1Id,
-      dto.vm2Id,
-      user.userId,
-    );
+    return this.swapVmPriorities.execute(dto.vm1Id, dto.vm2Id, user.userId);
   }
 }

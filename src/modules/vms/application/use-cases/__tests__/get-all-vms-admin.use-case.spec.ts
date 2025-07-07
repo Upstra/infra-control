@@ -60,12 +60,14 @@ describe('GetAllVmsAdminUseCase', () => {
       expect(repository.findAll).toHaveBeenCalledWith();
       expect(result).toHaveLength(3);
       expect(result).toEqual(
-        vms.map((vm) => expect.objectContaining({
-          id: vm.id,
-          name: vm.name,
-          os: vm.os,
-          serverId: vm.serverId,
-        }))
+        vms.map((vm) =>
+          expect.objectContaining({
+            id: vm.id,
+            name: vm.name,
+            os: vm.os,
+            serverId: vm.serverId,
+          }),
+        ),
       );
       expect(result[0]).toBeInstanceOf(VmResponseDto);
     });
@@ -81,7 +83,7 @@ describe('GetAllVmsAdminUseCase', () => {
 
     it('should handle large number of VMs', async () => {
       const vms = Array.from({ length: 100 }, (_, i) =>
-        mockVm({ id: `vm-${i}`, name: `VM ${i}` })
+        mockVm({ id: `vm-${i}`, name: `VM ${i}` }),
       );
 
       repository.findAll.mockResolvedValue(vms);
@@ -109,16 +111,18 @@ describe('GetAllVmsAdminUseCase', () => {
 
       const result = await useCase.execute();
 
-      expect(result[0]).toEqual(expect.objectContaining({
-        id: 'vm-test',
-        name: 'Test VM',
-        os: 'Windows Server 2022',
-        serverId: 'server-test',
-        groupId: 'group-test',
-        priority: 10,
-        ip: '10.0.0.100',
-        state: 'stopped',
-      }));
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          id: 'vm-test',
+          name: 'Test VM',
+          os: 'Windows Server 2022',
+          serverId: 'server-test',
+          groupId: 'group-test',
+          priority: 10,
+          ip: '10.0.0.100',
+          state: 'stopped',
+        }),
+      );
     });
 
     it('should handle repository errors', async () => {

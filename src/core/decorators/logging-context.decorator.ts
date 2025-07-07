@@ -1,5 +1,8 @@
 import { SetMetadata } from '@nestjs/common';
-import { LOGGING_CONTEXT_KEY, LoggingContext } from '../interceptors/logging.interceptor';
+import {
+  LOGGING_CONTEXT_KEY,
+  LoggingContext,
+} from '../interceptors/logging.interceptor';
 
 /**
  * Decorator to configure logging context for methods or controllers

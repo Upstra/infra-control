@@ -9,8 +9,14 @@ import {
   DeletePermissionVmUseCase,
   GetUserVmPermissionsUseCase,
 } from '../../use-cases/permission-vm';
-import { PermissionVmDto, UpdatePermissionVmDto } from '../../dto/permission.vm.dto';
-import { BatchPermissionVmDto, BatchPermissionVmResponseDto } from '../../dto/batch-permission.vm.dto';
+import {
+  PermissionVmDto,
+  UpdatePermissionVmDto,
+} from '../../dto/permission.vm.dto';
+import {
+  BatchPermissionVmDto,
+  BatchPermissionVmResponseDto,
+} from '../../dto/batch-permission.vm.dto';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 describe('PermissionVmController', () => {
@@ -22,6 +28,7 @@ describe('PermissionVmController', () => {
   let getByRoleUseCaseMock: jest.Mocked<GetPermissionsVmByRoleUseCase>;
   let deleteUseCaseMock: jest.Mocked<DeletePermissionVmUseCase>;
   let getUserPermissionsUseCaseMock: jest.Mocked<GetUserVmPermissionsUseCase>;
+  let mockUser: JwtPayload;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -80,6 +87,13 @@ describe('PermissionVmController', () => {
     getByRoleUseCaseMock = module.get(GetPermissionsVmByRoleUseCase);
     deleteUseCaseMock = module.get(DeletePermissionVmUseCase);
     getUserPermissionsUseCaseMock = module.get(GetUserVmPermissionsUseCase);
+
+    mockUser = {
+      userId: 'test-user-id',
+      email: 'test@example.com',
+      isAdmin: false,
+      roles: [],
+    } as JwtPayload;
   });
 
   it('should be defined', () => {
@@ -97,10 +111,13 @@ describe('PermissionVmController', () => {
 
       createUseCaseMock.execute.mockResolvedValue(expectedResult);
 
-      const result = await controller.createPermission(dto);
+      const result = await controller.createPermission(dto, mockUser);
 
       expect(result).toEqual(expectedResult);
-      expect(createUseCaseMock.execute).toHaveBeenCalledWith(dto);
+      expect(createUseCaseMock.execute).toHaveBeenCalledWith(
+        dto,
+        mockUser.userId,
+      );
     });
   });
 
@@ -119,10 +136,20 @@ describe('PermissionVmController', () => {
 
       updateUseCaseMock.execute.mockResolvedValue(expectedResult);
 
-      const result = await controller.updatePermission(vmId, roleId, dto);
+      const result = await controller.updatePermission(
+        vmId,
+        roleId,
+        dto,
+        mockUser,
+      );
 
       expect(result).toEqual(expectedResult);
-      expect(updateUseCaseMock.execute).toHaveBeenCalledWith(vmId, roleId, dto);
+      expect(updateUseCaseMock.execute).toHaveBeenCalledWith(
+        vmId,
+        roleId,
+        dto,
+        mockUser.userId,
+      );
     });
 
     it('should update permission with different bitmask values', async () => {
@@ -147,10 +174,20 @@ describe('PermissionVmController', () => {
 
         updateUseCaseMock.execute.mockResolvedValue(expectedResult);
 
-        const result = await controller.updatePermission(vmId, roleId, dto);
+        const result = await controller.updatePermission(
+          vmId,
+          roleId,
+          dto,
+          mockUser,
+        );
 
         expect(result).toEqual(expectedResult);
-        expect(updateUseCaseMock.execute).toHaveBeenCalledWith(vmId, roleId, dto);
+        expect(updateUseCaseMock.execute).toHaveBeenCalledWith(
+          vmId,
+          roleId,
+          dto,
+          mockUser.userId,
+        );
       }
     });
   });
@@ -206,9 +243,13 @@ describe('PermissionVmController', () => {
 
       deleteUseCaseMock.execute.mockResolvedValue(undefined);
 
-      await controller.deletePermission(vmId, roleId);
+      await controller.deletePermission(vmId, roleId, mockUser);
 
-      expect(deleteUseCaseMock.execute).toHaveBeenCalledWith(vmId, roleId);
+      expect(deleteUseCaseMock.execute).toHaveBeenCalledWith(
+        vmId,
+        roleId,
+        mockUser.userId,
+      );
     });
   });
 
@@ -231,7 +272,9 @@ describe('PermissionVmController', () => {
       const result = await controller.getUserPermissionsMe(user);
 
       expect(result).toEqual(expectedResult);
-      expect(getUserPermissionsUseCaseMock.execute).toHaveBeenCalledWith(user.userId);
+      expect(getUserPermissionsUseCaseMock.execute).toHaveBeenCalledWith(
+        user.userId,
+      );
     });
   });
 
@@ -251,7 +294,9 @@ describe('PermissionVmController', () => {
       const result = await controller.getUserPermissions(userId);
 
       expect(result).toEqual(expectedResult);
-      expect(getUserPermissionsUseCaseMock.execute).toHaveBeenCalledWith(userId);
+      expect(getUserPermissionsUseCaseMock.execute).toHaveBeenCalledWith(
+        userId,
+      );
     });
   });
 
@@ -272,7 +317,7 @@ describe('PermissionVmController', () => {
       ];
 
       const expectedResult: BatchPermissionVmResponseDto = {
-        created: batchDto.permissions.map(p => new PermissionVmDto(p)),
+        created: batchDto.permissions.map((p) => new PermissionVmDto(p)),
         failed: [],
         total: 2,
         successCount: 2,
@@ -281,10 +326,16 @@ describe('PermissionVmController', () => {
 
       createBatchUseCaseMock.execute.mockResolvedValue(expectedResult);
 
-      const result = await controller.createBatchPermissions(batchDto);
+      const result = await controller.createBatchPermissions(
+        batchDto,
+        mockUser,
+      );
 
       expect(result).toEqual(expectedResult);
-      expect(createBatchUseCaseMock.execute).toHaveBeenCalledWith(batchDto);
+      expect(createBatchUseCaseMock.execute).toHaveBeenCalledWith(
+        batchDto,
+        mockUser.userId,
+      );
     });
 
     it('should handle partial failures in batch creation', async () => {
@@ -304,10 +355,12 @@ describe('PermissionVmController', () => {
 
       const expectedResult: BatchPermissionVmResponseDto = {
         created: [new PermissionVmDto(batchDto.permissions[0])],
-        failed: [{
-          permission: batchDto.permissions[1],
-          error: 'VM not found',
-        }],
+        failed: [
+          {
+            permission: batchDto.permissions[1],
+            error: 'VM not found',
+          },
+        ],
         total: 2,
         successCount: 1,
         failureCount: 1,
@@ -315,7 +368,10 @@ describe('PermissionVmController', () => {
 
       createBatchUseCaseMock.execute.mockResolvedValue(expectedResult);
 
-      const result = await controller.createBatchPermissions(batchDto);
+      const result = await controller.createBatchPermissions(
+        batchDto,
+        mockUser,
+      );
 
       expect(result).toEqual(expectedResult);
       expect(result.failureCount).toBe(1);

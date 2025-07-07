@@ -3,8 +3,8 @@ import { CreateBatchPermissionServerUseCase } from '../create-batch-permission-s
 import { PermissionDomainServerService } from '../../../../domain/services/permission.domain.server.service';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
 import { BatchPermissionServerDto } from '../../../dto/batch-permission.server.dto';
-import { PermissionServerDto } from '../../../dto/permission.server.dto';
 import { PermissionServer } from '../../../../domain/entities/permission.server.entity';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
 
 describe('CreateBatchPermissionServerUseCase', () => {
   let useCase: CreateBatchPermissionServerUseCase;
@@ -27,10 +27,18 @@ describe('CreateBatchPermissionServerUseCase', () => {
             createPermissionEntityFromDto: jest.fn(),
           },
         },
+        {
+          provide: LogHistoryUseCase,
+          useValue: {
+            executeStructured: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
-    useCase = module.get<CreateBatchPermissionServerUseCase>(CreateBatchPermissionServerUseCase);
+    useCase = module.get<CreateBatchPermissionServerUseCase>(
+      CreateBatchPermissionServerUseCase,
+    );
     repository = module.get('PermissionServerRepositoryInterface');
     domainService = module.get(PermissionDomainServerService);
   });
@@ -55,10 +63,7 @@ describe('CreateBatchPermissionServerUseCase', () => {
         },
       ];
 
-      const entities = [
-        new PermissionServer(),
-        new PermissionServer(),
-      ];
+      const entities = [new PermissionServer(), new PermissionServer()];
       entities[0].roleId = dto.permissions[0].roleId;
       entities[0].serverId = dto.permissions[0].serverId;
       entities[0].bitmask = dto.permissions[0].bitmask;
@@ -81,7 +86,9 @@ describe('CreateBatchPermissionServerUseCase', () => {
       expect(result.failureCount).toBe(0);
       expect(result.created).toHaveLength(2);
       expect(result.failed).toHaveLength(0);
-      expect(domainService.createPermissionEntityFromDto).toHaveBeenCalledTimes(2);
+      expect(domainService.createPermissionEntityFromDto).toHaveBeenCalledTimes(
+        2,
+      );
       expect(repository.save).toHaveBeenCalledTimes(2);
     });
 

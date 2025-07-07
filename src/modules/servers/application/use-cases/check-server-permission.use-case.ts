@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  Inject,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, Inject, Logger, NotFoundException } from '@nestjs/common';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 import { PermissionCheckResponseDto } from '../dto/permission-check.response.dto';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
@@ -74,9 +69,10 @@ export class CheckServerPermissionUseCase {
 
       const permissionSet = new PermissionSet(permissions);
       const filteredPermissions = permissionSet.filterByBit(permission);
-      
-      hasPermission = filteredPermissions.hasGlobalAccess() || 
-                     filteredPermissions.getAccessibleResourceIds().includes(serverId);
+
+      hasPermission =
+        filteredPermissions.hasGlobalAccess() ||
+        filteredPermissions.getAccessibleResourceIds().includes(serverId);
     }
 
     this.logger.debug(

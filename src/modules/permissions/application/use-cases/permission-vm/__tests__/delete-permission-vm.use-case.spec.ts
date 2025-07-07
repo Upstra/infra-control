@@ -1,6 +1,8 @@
 import { Test } from '@nestjs/testing';
 import { DeletePermissionVmUseCase } from '../delete-permission-vm.use-case';
 import { PermissionVmRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.vm.repository.interface';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
+import { createMockPermissionVm } from '@/modules/permissions/__mocks__/permissions.mock';
 
 describe('DeletePermissionVmUseCase', () => {
   let useCase: DeletePermissionVmUseCase;
@@ -28,10 +30,18 @@ describe('DeletePermissionVmUseCase', () => {
           provide: 'PermissionVmRepositoryInterface',
           useValue: repositoryMock,
         },
+        {
+          provide: LogHistoryUseCase,
+          useValue: {
+            executeStructured: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
-    useCase = moduleRef.get<DeletePermissionVmUseCase>(DeletePermissionVmUseCase);
+    useCase = moduleRef.get<DeletePermissionVmUseCase>(
+      DeletePermissionVmUseCase,
+    );
     repository = moduleRef.get('PermissionVmRepositoryInterface');
   });
 
@@ -40,12 +50,18 @@ describe('DeletePermissionVmUseCase', () => {
   });
 
   describe('execute', () => {
-    it('should call repository delete with correct parameters', async () => {
+    it('should call repository delete with correct parameters and log history', async () => {
       const vmId = 'test-vm-id';
       const roleId = 'test-role-id';
+      const userId = 'test-user-id';
+      const mockPermission = createMockPermissionVm();
 
-      await useCase.execute(vmId, roleId);
+      repository.findPermissionByIds.mockResolvedValue(mockPermission);
+      repository.deletePermission.mockResolvedValue(undefined);
 
+      await useCase.execute(vmId, roleId, userId);
+
+      expect(repository.findPermissionByIds).toHaveBeenCalledWith(vmId, roleId);
       expect(repository.deletePermission).toHaveBeenCalledWith(vmId, roleId);
       expect(repository.deletePermission).toHaveBeenCalledTimes(1);
     });
@@ -53,8 +69,10 @@ describe('DeletePermissionVmUseCase', () => {
     it('should propagate repository errors', async () => {
       const vmId = 'test-vm-id';
       const roleId = 'test-role-id';
+      const mockPermission = createMockPermissionVm();
       const error = new Error('Repository error');
 
+      repository.findPermissionByIds.mockResolvedValue(mockPermission);
       repository.deletePermission.mockRejectedValueOnce(error);
 
       await expect(useCase.execute(vmId, roleId)).rejects.toThrow(error);

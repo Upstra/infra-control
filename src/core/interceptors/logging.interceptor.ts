@@ -79,9 +79,15 @@ export class LoggingInterceptor implements NestInterceptor {
           });
 
           // Log to history if enabled
-          if (loggingContext.logToHistory && this.logHistory && loggingContext.entityType && loggingContext.action) {
+          if (
+            loggingContext.logToHistory &&
+            this.logHistory &&
+            loggingContext.entityType &&
+            loggingContext.action
+          ) {
             try {
-              const entityId = loggingContext.extractEntityId?.(data) ?? data?.id;
+              const entityId =
+                loggingContext.extractEntityId?.(data) ?? data?.id;
               if (entityId) {
                 await this.logHistory.executeStructured({
                   entity: loggingContext.entityType,
@@ -89,7 +95,8 @@ export class LoggingInterceptor implements NestInterceptor {
                   action: loggingContext.action,
                   userId: user?.userId,
                   newValue: data,
-                  metadata: loggingContext.extractMetadata?.(data, request) ?? {},
+                  metadata:
+                    loggingContext.extractMetadata?.(data, request) ?? {},
                   ipAddress: requestContext.ipAddress,
                   userAgent: requestContext.userAgent,
                 });

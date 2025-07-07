@@ -5,7 +5,7 @@ import { HistoryEvent } from '../../domain/entities/history-event.entity';
 
 describe('HistoryEventTypeormRepository', () => {
   let repository: HistoryEventTypeormRepository;
-  let dataSource: DataSource;
+  let _dataSource: DataSource;
   let mockRepository: jest.Mocked<Repository<HistoryEvent>>;
 
   const mockQueryBuilder = {
@@ -52,7 +52,7 @@ describe('HistoryEventTypeormRepository', () => {
     repository = module.get<HistoryEventTypeormRepository>(
       HistoryEventTypeormRepository,
     );
-    dataSource = module.get<DataSource>(DataSource);
+    _dataSource = module.get<DataSource>(DataSource);
   });
 
   afterEach(() => {

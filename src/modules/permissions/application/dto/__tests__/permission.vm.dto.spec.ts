@@ -53,56 +53,80 @@ describe('PermissionVmDto', () => {
 
 describe('UpdatePermissionVmDto', () => {
   it('should be valid when bitmask is a valid integer', async () => {
-    const dto = plainToInstance(UpdatePermissionVmDto, { bitmask: 15 }, {
-      enableImplicitConversion: true,
-    });
+    const dto = plainToInstance(
+      UpdatePermissionVmDto,
+      { bitmask: 15 },
+      {
+        enableImplicitConversion: true,
+      },
+    );
     const errors = await validate(dto);
     expect(errors.length).toBe(0);
   });
 
   it('should be valid with different bitmask values', async () => {
     const testCases = [0, 1, 7, 15, 31, 63, 127, 255];
-    
+
     for (const bitmask of testCases) {
-      const dto = plainToInstance(UpdatePermissionVmDto, { bitmask }, {
-        enableImplicitConversion: true,
-      });
+      const dto = plainToInstance(
+        UpdatePermissionVmDto,
+        { bitmask },
+        {
+          enableImplicitConversion: true,
+        },
+      );
       const errors = await validate(dto);
       expect(errors.length).toBe(0);
     }
   });
 
   it('should be invalid when bitmask is missing', async () => {
-    const dto = plainToInstance(UpdatePermissionVmDto, {}, {
-      enableImplicitConversion: true,
-    });
+    const dto = plainToInstance(
+      UpdatePermissionVmDto,
+      {},
+      {
+        enableImplicitConversion: true,
+      },
+    );
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
     expect(errors.some((e) => e.property === 'bitmask')).toBe(true);
   });
 
   it('should be invalid when bitmask is not an integer', async () => {
-    const dto = plainToInstance(UpdatePermissionVmDto, { bitmask: 'not-a-number' }, {
-      enableImplicitConversion: false,
-    });
+    const dto = plainToInstance(
+      UpdatePermissionVmDto,
+      { bitmask: 'not-a-number' },
+      {
+        enableImplicitConversion: false,
+      },
+    );
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
     expect(errors.some((e) => e.property === 'bitmask')).toBe(true);
   });
 
   it('should be invalid when bitmask is a float', async () => {
-    const dto = plainToInstance(UpdatePermissionVmDto, { bitmask: 15.5 }, {
-      enableImplicitConversion: true,
-    });
+    const dto = plainToInstance(
+      UpdatePermissionVmDto,
+      { bitmask: 15.5 },
+      {
+        enableImplicitConversion: true,
+      },
+    );
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
     expect(errors.some((e) => e.property === 'bitmask')).toBe(true);
   });
 
   it('should be invalid when bitmask is negative', async () => {
-    const dto = plainToInstance(UpdatePermissionVmDto, { bitmask: -1 }, {
-      enableImplicitConversion: true,
-    });
+    const dto = plainToInstance(
+      UpdatePermissionVmDto,
+      { bitmask: -1 },
+      {
+        enableImplicitConversion: true,
+      },
+    );
     const errors = await validate(dto);
     expect(errors.length).toBe(0);
   });

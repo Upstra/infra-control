@@ -73,9 +73,9 @@ describe('CheckServerPermissionUseCase', () => {
 
       serverRepo.findOneByField.mockResolvedValue(mockServer);
       userRepo.findOneByField.mockResolvedValue(mockUser);
-      (PermissionResolver.resolveServerPermissions as jest.Mock).mockResolvedValue([
-        mockPermission,
-      ]);
+      (
+        PermissionResolver.resolveServerPermissions as jest.Mock
+      ).mockResolvedValue([mockPermission]);
 
       const result = await useCase.execute(serverId, userId, permission);
 
@@ -116,9 +116,9 @@ describe('CheckServerPermissionUseCase', () => {
 
       serverRepo.findOneByField.mockResolvedValue(mockServer);
       userRepo.findOneByField.mockResolvedValue(mockUser);
-      (PermissionResolver.resolveServerPermissions as jest.Mock).mockResolvedValue([
-        mockPermission,
-      ]);
+      (
+        PermissionResolver.resolveServerPermissions as jest.Mock
+      ).mockResolvedValue([mockPermission]);
 
       const result = await useCase.execute(serverId, userId, permission);
 
@@ -151,7 +151,9 @@ describe('CheckServerPermissionUseCase', () => {
         permission,
       });
 
-      expect(PermissionResolver.resolveServerPermissions).not.toHaveBeenCalled();
+      expect(
+        PermissionResolver.resolveServerPermissions,
+      ).not.toHaveBeenCalled();
     });
 
     it('should return hasPermission: false when user is not found', async () => {
@@ -199,9 +201,9 @@ describe('CheckServerPermissionUseCase', () => {
 
       serverRepo.findOneByField.mockResolvedValue(mockServer);
       userRepo.findOneByField.mockResolvedValue(mockUser);
-      (PermissionResolver.resolveServerPermissions as jest.Mock).mockResolvedValue([
-        mockGlobalPermission,
-      ]);
+      (
+        PermissionResolver.resolveServerPermissions as jest.Mock
+      ).mockResolvedValue([mockGlobalPermission]);
 
       const result = await useCase.execute(serverId, userId, permission);
 
@@ -228,9 +230,9 @@ describe('CheckServerPermissionUseCase', () => {
 
       serverRepo.findOneByField.mockResolvedValue(mockServer);
       userRepo.findOneByField.mockResolvedValue(mockUser);
-      (PermissionResolver.resolveServerPermissions as jest.Mock).mockResolvedValue([
-        mockPermission,
-      ]);
+      (
+        PermissionResolver.resolveServerPermissions as jest.Mock
+      ).mockResolvedValue([mockPermission]);
 
       const deleteResult = await useCase.execute(
         serverId,

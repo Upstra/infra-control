@@ -65,7 +65,7 @@ describe('LoggingInterceptor', () => {
     interceptor = module.get<LoggingInterceptor>(LoggingInterceptor);
     reflector = module.get<Reflector>(Reflector);
     logHistoryUseCase = module.get(LogHistoryUseCase);
-    
+
     logSpy = jest.spyOn(interceptor['logger'], 'log').mockImplementation();
     errorSpy = jest.spyOn(interceptor['logger'], 'error').mockImplementation();
   });
@@ -81,7 +81,9 @@ describe('LoggingInterceptor', () => {
   describe('when no logging context is provided', () => {
     it('should pass through without logging', (done) => {
       jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(undefined);
-      (mockCallHandler.handle as jest.Mock).mockReturnValue(of({ id: 'test-id' }));
+      (mockCallHandler.handle as jest.Mock).mockReturnValue(
+        of({ id: 'test-id' }),
+      );
 
       interceptor.intercept(mockExecutionContext, mockCallHandler).subscribe({
         next: (result) => {
@@ -102,7 +104,9 @@ describe('LoggingInterceptor', () => {
     };
 
     beforeEach(() => {
-      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(loggingContext);
+      jest
+        .spyOn(reflector, 'getAllAndOverride')
+        .mockReturnValue(loggingContext);
     });
 
     it('should log successful operations with request context', (done) => {
@@ -138,8 +142,10 @@ describe('LoggingInterceptor', () => {
         action: 'SWAP',
         includeRequestContext: false,
       };
-      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(contextWithoutRequest);
-      
+      jest
+        .spyOn(reflector, 'getAllAndOverride')
+        .mockReturnValue(contextWithoutRequest);
+
       const responseData = { id: 'result-id' };
       (mockCallHandler.handle as jest.Mock).mockReturnValue(of(responseData));
 
@@ -168,7 +174,9 @@ describe('LoggingInterceptor', () => {
 
     it('should log errors with request context', (done) => {
       const error = new Error('Test error');
-      (mockCallHandler.handle as jest.Mock).mockReturnValue(throwError(() => error));
+      (mockCallHandler.handle as jest.Mock).mockReturnValue(
+        throwError(() => error),
+      );
 
       interceptor.intercept(mockExecutionContext, mockCallHandler).subscribe({
         error: (err) => {
@@ -212,7 +220,7 @@ describe('LoggingInterceptor', () => {
 
     it('should create request context from request object', () => {
       const requestContext = RequestContextDto.fromRequest(mockRequest);
-      
+
       expect(requestContext).toEqual(
         expect.objectContaining({
           ipAddress: '192.168.1.1',
@@ -238,8 +246,12 @@ describe('LoggingInterceptor', () => {
         action: 'SWAP',
         includeRequestContext: true,
       };
-      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(loggingContext);
-      (mockCallHandler.handle as jest.Mock).mockReturnValue(of({ id: 'test-id' }));
+      jest
+        .spyOn(reflector, 'getAllAndOverride')
+        .mockReturnValue(loggingContext);
+      (mockCallHandler.handle as jest.Mock).mockReturnValue(
+        of({ id: 'test-id' }),
+      );
 
       interceptor.intercept(contextWithoutUser, mockCallHandler).subscribe({
         next: () => {
@@ -272,8 +284,12 @@ describe('LoggingInterceptor', () => {
         action: 'SWAP',
         includeRequestContext: true,
       };
-      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(loggingContext);
-      (mockCallHandler.handle as jest.Mock).mockReturnValue(of({ id: 'test-id' }));
+      jest
+        .spyOn(reflector, 'getAllAndOverride')
+        .mockReturnValue(loggingContext);
+      (mockCallHandler.handle as jest.Mock).mockReturnValue(
+        of({ id: 'test-id' }),
+      );
 
       interceptor.intercept(contextWithMissingData, mockCallHandler).subscribe({
         next: () => {
@@ -308,7 +324,9 @@ describe('LoggingInterceptor', () => {
         includeRequestContext: true,
       };
 
-      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(loggingContext);
+      jest
+        .spyOn(reflector, 'getAllAndOverride')
+        .mockReturnValue(loggingContext);
       (mockCallHandler.handle as jest.Mock).mockReturnValue(of(responseData));
 
       interceptor.intercept(mockExecutionContext, mockCallHandler).subscribe({
@@ -341,7 +359,9 @@ describe('LoggingInterceptor', () => {
         extractEntityId: (data) => `${data.server1.id}-${data.server2.id}`,
       };
 
-      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(loggingContext);
+      jest
+        .spyOn(reflector, 'getAllAndOverride')
+        .mockReturnValue(loggingContext);
       (mockCallHandler.handle as jest.Mock).mockReturnValue(of(responseData));
 
       interceptor.intercept(mockExecutionContext, mockCallHandler).subscribe({
@@ -373,7 +393,9 @@ describe('LoggingInterceptor', () => {
         }),
       };
 
-      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(loggingContext);
+      jest
+        .spyOn(reflector, 'getAllAndOverride')
+        .mockReturnValue(loggingContext);
       (mockCallHandler.handle as jest.Mock).mockReturnValue(of(responseData));
 
       interceptor.intercept(mockExecutionContext, mockCallHandler).subscribe({
@@ -398,8 +420,12 @@ describe('LoggingInterceptor', () => {
         logToHistory: false,
       };
 
-      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(loggingContext);
-      (mockCallHandler.handle as jest.Mock).mockReturnValue(of({ id: 'test-id' }));
+      jest
+        .spyOn(reflector, 'getAllAndOverride')
+        .mockReturnValue(loggingContext);
+      (mockCallHandler.handle as jest.Mock).mockReturnValue(
+        of({ id: 'test-id' }),
+      );
 
       interceptor.intercept(mockExecutionContext, mockCallHandler).subscribe({
         next: () => {
@@ -418,7 +444,9 @@ describe('LoggingInterceptor', () => {
         logToHistory: true,
       };
 
-      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(loggingContext);
+      jest
+        .spyOn(reflector, 'getAllAndOverride')
+        .mockReturnValue(loggingContext);
       (mockCallHandler.handle as jest.Mock).mockReturnValue(of(responseData));
 
       interceptor.intercept(mockExecutionContext, mockCallHandler).subscribe({
@@ -439,7 +467,9 @@ describe('LoggingInterceptor', () => {
         logToHistory: true,
       };
 
-      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(loggingContext);
+      jest
+        .spyOn(reflector, 'getAllAndOverride')
+        .mockReturnValue(loggingContext);
       (mockCallHandler.handle as jest.Mock).mockReturnValue(of(responseData));
       logHistoryUseCase.executeStructured.mockRejectedValue(historyError);
 
@@ -448,7 +478,10 @@ describe('LoggingInterceptor', () => {
           expect(result).toEqual(responseData);
           // Wait for async operation to complete
           setTimeout(() => {
-            expect(errorSpy).toHaveBeenCalledWith('Failed to log to history', historyError);
+            expect(errorSpy).toHaveBeenCalledWith(
+              'Failed to log to history',
+              historyError,
+            );
             done();
           }, 10);
         },

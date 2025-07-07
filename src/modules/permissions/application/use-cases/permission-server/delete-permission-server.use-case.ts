@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
 
 /**
  * Revokes and deletes a server permission entry by its identifier.
@@ -23,9 +24,36 @@ export class DeletePermissionServerUseCase {
   constructor(
     @Inject('PermissionServerRepositoryInterface')
     private readonly repository: PermissionServerRepositoryInterface,
+    private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(serverId: string, roleId: string): Promise<void> {
+  async execute(
+    serverId: string,
+    roleId: string,
+    userId?: string,
+  ): Promise<void> {
+    const permission = await this.repository.findPermissionByIds(
+      serverId,
+      roleId,
+    );
+
     await this.repository.deletePermission(serverId, roleId);
+
+    await this.logHistory?.executeStructured({
+      entity: 'permission_server',
+      entityId: `${serverId}_${roleId}`,
+      action: 'DELETE',
+      userId: userId || 'system',
+      oldValue: permission
+        ? {
+            serverId: permission.serverId,
+            roleId: permission.roleId,
+            bitmask: permission.bitmask,
+          }
+        : undefined,
+      metadata: {
+        permissionType: 'server',
+      },
+    });
   }
 }

@@ -131,7 +131,7 @@ describe('Logging Context Decorators', () => {
 
     it('should override properties when spread with options', () => {
       const options = {
-        extractMetadata: (data: any) => ({ test: true }),
+        extractMetadata: (_data: any) => ({ test: true }),
         includeRequestContext: false,
       };
 

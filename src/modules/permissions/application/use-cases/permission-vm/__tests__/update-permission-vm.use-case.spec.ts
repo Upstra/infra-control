@@ -1,13 +1,18 @@
 import { UpdatePermissionVmUseCase } from '../update-permission-vm.use-case';
 import { PermissionVmRepository } from '@/modules/permissions/infrastructure/repositories/permission.vm.repository';
-import { PermissionVmDto, UpdatePermissionVmDto } from '@/modules/permissions/application/dto/permission.vm.dto';
+import {
+  PermissionVmDto,
+  UpdatePermissionVmDto,
+} from '@/modules/permissions/application/dto/permission.vm.dto';
 import { PermissionVm } from '@/modules/permissions/domain/entities/permission.vm.entity';
 import { PermissionNotFoundException } from '@/modules/permissions/domain/exceptions/permission.exception';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
 
 describe('UpdatePermissionVmUseCase', () => {
   let useCase: UpdatePermissionVmUseCase;
   let repository: jest.Mocked<PermissionVmRepository>;
+  let logHistoryMock: jest.Mocked<LogHistoryUseCase>;
 
   const mockPermissionVm = (
     overrides?: Partial<PermissionVm>,
@@ -24,9 +29,14 @@ describe('UpdatePermissionVmUseCase', () => {
   beforeEach(() => {
     repository = {
       updatePermission: jest.fn(),
+      findPermissionByIds: jest.fn(),
     } as any;
 
-    useCase = new UpdatePermissionVmUseCase(repository);
+    logHistoryMock = {
+      executeStructured: jest.fn(),
+    } as any;
+
+    useCase = new UpdatePermissionVmUseCase(repository, logHistoryMock);
   });
 
   it('should update permission and return updated dto', async () => {
@@ -36,15 +46,21 @@ describe('UpdatePermissionVmUseCase', () => {
       bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
 
+    const oldPermission = mockPermissionVm({
+      vmId,
+      roleId,
+      bitmask: PermissionBit.READ,
+    });
     const updated = mockPermissionVm({
       vmId,
       roleId,
       bitmask: updateDto.bitmask,
     });
 
+    repository.findPermissionByIds.mockResolvedValue(oldPermission);
     repository.updatePermission.mockResolvedValue(updated);
 
-    const result = await useCase.execute(vmId, roleId, updateDto);
+    const result = await useCase.execute(vmId, roleId, updateDto, 'user-id');
 
     expect(repository.updatePermission).toHaveBeenCalledWith(
       vmId,
@@ -62,6 +78,8 @@ describe('UpdatePermissionVmUseCase', () => {
       bitmask: PermissionBit.READ,
     });
 
+    const oldPermission = mockPermissionVm({ vmId, roleId });
+    repository.findPermissionByIds.mockResolvedValue(oldPermission);
     repository.updatePermission.mockRejectedValue(
       new PermissionNotFoundException(),
     );
@@ -78,12 +96,14 @@ describe('UpdatePermissionVmUseCase', () => {
       bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
 
+    const oldPermission = mockPermissionVm({ vmId, roleId });
     const updated = mockPermissionVm({
       roleId,
       vmId,
       bitmask: updateDto.bitmask,
     });
 
+    repository.findPermissionByIds.mockResolvedValue(oldPermission);
     repository.updatePermission.mockResolvedValue(updated);
 
     const result = await useCase.execute(vmId, roleId, updateDto);
@@ -102,20 +122,35 @@ describe('UpdatePermissionVmUseCase', () => {
       { bitmask: 0 },
       { bitmask: PermissionBit.READ },
       { bitmask: PermissionBit.WRITE },
-      { bitmask: PermissionBit.READ | PermissionBit.WRITE | PermissionBit.DELETE },
+      {
+        bitmask:
+          PermissionBit.READ | PermissionBit.WRITE | PermissionBit.DELETE,
+      },
       { bitmask: 255 },
     ];
 
     for (const testCase of testCases) {
-      const updateDto = new UpdatePermissionVmDto({ bitmask: testCase.bitmask });
-      const updated = mockPermissionVm({ vmId, roleId, bitmask: testCase.bitmask });
-      
+      const updateDto = new UpdatePermissionVmDto({
+        bitmask: testCase.bitmask,
+      });
+      const oldPermission = mockPermissionVm({ vmId, roleId });
+      const updated = mockPermissionVm({
+        vmId,
+        roleId,
+        bitmask: testCase.bitmask,
+      });
+
+      repository.findPermissionByIds.mockResolvedValue(oldPermission);
       repository.updatePermission.mockResolvedValue(updated);
-      
+
       const result = await useCase.execute(vmId, roleId, updateDto);
-      
+
       expect(result.bitmask).toBe(testCase.bitmask);
-      expect(repository.updatePermission).toHaveBeenCalledWith(vmId, roleId, testCase.bitmask);
+      expect(repository.updatePermission).toHaveBeenCalledWith(
+        vmId,
+        roleId,
+        testCase.bitmask,
+      );
     }
   });
 });
