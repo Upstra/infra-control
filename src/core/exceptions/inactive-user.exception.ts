@@ -5,7 +5,8 @@ export class InactiveUserException extends HttpException {
     super(
       {
         statusCode: HttpStatus.FORBIDDEN,
-        message: 'Account is inactive. Please contact an administrator to activate your account.',
+        message:
+          'Account is inactive. Please contact an administrator to activate your account.',
         error: 'Forbidden',
       },
       HttpStatus.FORBIDDEN,

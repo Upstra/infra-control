@@ -29,7 +29,10 @@ describe('UpdatePreferencesUseCase', () => {
       unsetAllDefaultLayouts: jest.fn(),
     } as any;
 
-    useCase = new UpdatePreferencesUseCase(preferenceRepository, layoutRepository);
+    useCase = new UpdatePreferencesUseCase(
+      preferenceRepository,
+      layoutRepository,
+    );
   });
 
   afterEach(() => {
@@ -149,7 +152,10 @@ describe('UpdatePreferencesUseCase', () => {
         },
       });
 
-      expect(layoutRepository.findByIdAndUserId).toHaveBeenCalledWith('layout-456', userId);
+      expect(layoutRepository.findByIdAndUserId).toHaveBeenCalledWith(
+        'layout-456',
+        userId,
+      );
       expect(preferenceRepository.upsert).toHaveBeenCalledWith({
         userId,
         defaultLayoutId: 'layout-456',
@@ -170,7 +176,10 @@ describe('UpdatePreferencesUseCase', () => {
         DashboardLayoutNotFoundException,
       );
 
-      expect(layoutRepository.findByIdAndUserId).toHaveBeenCalledWith('non-existent-layout', userId);
+      expect(layoutRepository.findByIdAndUserId).toHaveBeenCalledWith(
+        'non-existent-layout',
+        userId,
+      );
       expect(preferenceRepository.upsert).not.toHaveBeenCalled();
     });
 
@@ -186,7 +195,10 @@ describe('UpdatePreferencesUseCase', () => {
         DashboardLayoutNotFoundException,
       );
 
-      expect(layoutRepository.findByIdAndUserId).toHaveBeenCalledWith('layout-456', userId);
+      expect(layoutRepository.findByIdAndUserId).toHaveBeenCalledWith(
+        'layout-456',
+        userId,
+      );
       expect(preferenceRepository.upsert).not.toHaveBeenCalled();
     });
 
@@ -355,7 +367,10 @@ describe('UpdatePreferencesUseCase', () => {
         },
       });
 
-      expect(layoutRepository.findByIdAndUserId).toHaveBeenCalledWith('layout-789', userId);
+      expect(layoutRepository.findByIdAndUserId).toHaveBeenCalledWith(
+        'layout-789',
+        userId,
+      );
       expect(preferenceRepository.upsert).toHaveBeenCalledWith({
         userId,
         defaultLayoutId: 'layout-789',
@@ -373,9 +388,13 @@ describe('UpdatePreferencesUseCase', () => {
         theme: 'dark',
       };
 
-      preferenceRepository.upsert.mockRejectedValue(new Error('Database error'));
+      preferenceRepository.upsert.mockRejectedValue(
+        new Error('Database error'),
+      );
 
-      await expect(useCase.execute(userId, dto)).rejects.toThrow('Database error');
+      await expect(useCase.execute(userId, dto)).rejects.toThrow(
+        'Database error',
+      );
 
       expect(preferenceRepository.upsert).toHaveBeenCalledWith({
         userId,
@@ -388,11 +407,18 @@ describe('UpdatePreferencesUseCase', () => {
         defaultLayoutId: 'layout-456',
       };
 
-      layoutRepository.findByIdAndUserId.mockRejectedValue(new Error('Layout repository error'));
+      layoutRepository.findByIdAndUserId.mockRejectedValue(
+        new Error('Layout repository error'),
+      );
 
-      await expect(useCase.execute(userId, dto)).rejects.toThrow('Layout repository error');
+      await expect(useCase.execute(userId, dto)).rejects.toThrow(
+        'Layout repository error',
+      );
 
-      expect(layoutRepository.findByIdAndUserId).toHaveBeenCalledWith('layout-456', userId);
+      expect(layoutRepository.findByIdAndUserId).toHaveBeenCalledWith(
+        'layout-456',
+        userId,
+      );
       expect(preferenceRepository.upsert).not.toHaveBeenCalled();
     });
 

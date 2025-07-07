@@ -96,7 +96,8 @@ describe('GetResourceUsageUseCase', () => {
       const history = result.cpu.history;
 
       for (let i = 1; i < history.length; i++) {
-        const timeDiff = history[i].timestamp.getTime() - history[i - 1].timestamp.getTime();
+        const timeDiff =
+          history[i].timestamp.getTime() - history[i - 1].timestamp.getTime();
         const expectedDiff = 5 * 60 * 1000; // 5 minutes in milliseconds
         expect(timeDiff).toBe(expectedDiff);
       }
@@ -108,7 +109,7 @@ describe('GetResourceUsageUseCase', () => {
       // Test multiple times to ensure variance works
       for (let i = 0; i < 10; i++) {
         const testResult = await useCase.execute();
-        
+
         testResult.cpu.history.forEach((point) => {
           expect(point.value).toBeGreaterThanOrEqual(60); // Should be around 65 with some variance
           expect(point.value).toBeLessThanOrEqual(70);
@@ -130,8 +131,12 @@ describe('GetResourceUsageUseCase', () => {
       // Test multiple executions to catch edge cases with random variance
       for (let i = 0; i < 50; i++) {
         const result = await useCase.execute();
-        
-        [...result.cpu.history, ...result.memory.history, ...result.storage.history].forEach((point) => {
+
+        [
+          ...result.cpu.history,
+          ...result.memory.history,
+          ...result.storage.history,
+        ].forEach((point) => {
           expect(point.value).toBeGreaterThanOrEqual(0);
           expect(point.value).toBeLessThanOrEqual(100);
         });
@@ -141,24 +146,32 @@ describe('GetResourceUsageUseCase', () => {
     it('should generate history with proper data structure', async () => {
       const result = await useCase.execute();
       const now = new Date();
-      
-      [result.cpu.history, result.memory.history, result.storage.history].forEach((history) => {
+
+      [
+        result.cpu.history,
+        result.memory.history,
+        result.storage.history,
+      ].forEach((history) => {
         expect(history).toHaveLength(6);
-        
+
         history.forEach((point, index) => {
           expect(point).toHaveProperty('timestamp');
           expect(point).toHaveProperty('value');
           expect(point.timestamp).toBeInstanceOf(Date);
           expect(typeof point.value).toBe('number');
-          
+
           // Check timestamps are in correct order (oldest to newest)
           if (index > 0) {
-            expect(point.timestamp.getTime()).toBeGreaterThan(history[index - 1].timestamp.getTime());
+            expect(point.timestamp.getTime()).toBeGreaterThan(
+              history[index - 1].timestamp.getTime(),
+            );
           }
-          
+
           // Check that last timestamp is close to current time
           if (index === history.length - 1) {
-            const timeDiff = Math.abs(now.getTime() - point.timestamp.getTime());
+            const timeDiff = Math.abs(
+              now.getTime() - point.timestamp.getTime(),
+            );
             expect(timeDiff).toBeLessThan(1000); // Within 1 second
           }
         });
@@ -168,12 +181,16 @@ describe('GetResourceUsageUseCase', () => {
     it('should return consistent structure across multiple calls', async () => {
       const result1 = await useCase.execute();
       const result2 = await useCase.execute();
-      
+
       expect(Object.keys(result1)).toEqual(Object.keys(result2));
       expect(Object.keys(result1.cpu)).toEqual(Object.keys(result2.cpu));
       expect(Object.keys(result1.memory)).toEqual(Object.keys(result2.memory));
-      expect(Object.keys(result1.storage)).toEqual(Object.keys(result2.storage));
-      expect(Object.keys(result1.network)).toEqual(Object.keys(result2.network));
+      expect(Object.keys(result1.storage)).toEqual(
+        Object.keys(result2.storage),
+      );
+      expect(Object.keys(result1.network)).toEqual(
+        Object.keys(result2.network),
+      );
     });
   });
 });
