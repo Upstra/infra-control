@@ -76,8 +76,40 @@ export class CannotDeactivateLastAdminException extends Error {
 }
 
 export class UserExceptions {
-  static notFound(): UserNotFoundException {
-    return new UserNotFoundException('User not found');
+  static notFound(id?: string): UserNotFoundException {
+    return new UserNotFoundException(id ?? 'User not found');
+  }
+
+  static updateFailed(message?: string): UserUpdateException {
+    return new UserUpdateException(message);
+  }
+
+  static deletionFailed(message?: string): UserDeletionException {
+    return new UserDeletionException(message);
+  }
+
+  static retrievalFailed(message?: string): UserRetrievalException {
+    return new UserRetrievalException(message);
+  }
+
+  static conflict(type: 'username' | 'email', message?: string): UserConflictException {
+    return new UserConflictException(type, message);
+  }
+
+  static registrationFailed(message?: string): UserRegistrationException {
+    return new UserRegistrationException(message);
+  }
+
+  static cannotDeleteLastAdmin(): CannotDeleteLastAdminException {
+    return new CannotDeleteLastAdminException();
+  }
+
+  static cannotRemoveLastAdminRole(): CannotRemoveLastAdminException {
+    return new CannotRemoveLastAdminException();
+  }
+
+  static cannotDeleteOwnAccount(): CannotDeleteOwnAccountException {
+    return new CannotDeleteOwnAccountException();
   }
 
   static cannotToggleOwnStatus(): CannotToggleOwnStatusException {
