@@ -27,8 +27,14 @@ import {
   ApiTags,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { PermissionVmDto } from '../dto/permission.vm.dto';
-import { BatchPermissionVmDto, BatchPermissionVmResponseDto } from '../dto/batch-permission.vm.dto';
+import {
+  PermissionVmDto,
+  UpdatePermissionVmDto,
+} from '../dto/permission.vm.dto';
+import {
+  BatchPermissionVmDto,
+  BatchPermissionVmResponseDto,
+} from '../dto/batch-permission.vm.dto';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
@@ -94,12 +100,12 @@ export class PermissionVmController {
   @ApiOperation({ summary: 'Modifier une permission VM existante' })
   @ApiParam({ name: 'vmId', type: 'string', format: 'uuid' })
   @ApiParam({ name: 'roleId', type: 'string', format: 'uuid' })
-  @ApiBody({ type: PermissionVmDto })
+  @ApiBody({ type: UpdatePermissionVmDto })
   @ApiResponse({ status: 200, type: PermissionVmDto })
   async updatePermission(
     @Param('vmId', ParseUUIDPipe) vmId: string,
     @Param('roleId', ParseUUIDPipe) roleId: string,
-    @Body() dto: PermissionVmDto,
+    @Body() dto: UpdatePermissionVmDto,
   ): Promise<PermissionVmDto> {
     return this.updatePermissionUseCase.execute(vmId, roleId, dto);
   }

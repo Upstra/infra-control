@@ -31,3 +31,13 @@ export class PermissionVmDto {
     return permissions.map((saved) => this.fromEntity(saved));
   }
 }
+
+export class UpdatePermissionVmDto {
+  @ApiProperty()
+  @IsInt()
+  bitmask: number;
+
+  constructor(partial?: Partial<UpdatePermissionVmDto>) {
+    Object.assign(this, partial);
+  }
+}
