@@ -198,6 +198,14 @@ describe('UpdateLayoutUseCase', () => {
 
       await useCase.execute(mockLayoutId, mockUserId, dto);
 
+      expect(layoutDomainService.validateWidgetPosition).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: WidgetType.STATS,
+          title: 'New Widget',
+          position: { x: 0, y: 0, w: 4, h: 3 },
+        }),
+        layout.columns,
+      );
       expect(layoutRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({
           widgets: expect.arrayContaining([
