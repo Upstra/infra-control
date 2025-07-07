@@ -151,4 +151,33 @@ export class UserTypeormRepository
       .leftJoinAndSelect('user.roles', 'allRoles')
       .getMany();
   }
+
+  async findWithRoles(userId: string): Promise<User | null> {
+    return await this.findOne({
+      where: { id: userId },
+      relations: ['roles'],
+    });
+  }
+
+  async countActiveAdmins(): Promise<number> {
+    return await this.createQueryBuilder('user')
+      .innerJoin('user.roles', 'role')
+      .where('role.name IN (:...names)', { names: ['Admin', 'admin'] })
+      .andWhere('user.active = :active', { active: true })
+      .andWhere('user.deleted = :deleted', { deleted: false })
+      .getCount();
+  }
+
+  async findById(id: string): Promise<User | null> {
+    return await this.findOne({
+      where: { id },
+    });
+  }
+
+  // Override findOneById to exclude soft-deleted users by default
+  async findOneById(id: string): Promise<User | null> {
+    return await this.findOne({
+      where: { id, deleted: false },
+    });
+  }
 }
