@@ -471,16 +471,15 @@ describe('LoggingInterceptor', () => {
       logHistoryUseCase.executeStructured.mockRejectedValue(historyError);
 
       interceptor.intercept(mockExecutionContext, mockCallHandler).subscribe({
-        next: (result) => {
+        next: async (result) => {
           expect(result).toEqual(responseData);
-          // Wait for async operation to complete
-          setTimeout(() => {
-            expect(errorSpy).toHaveBeenCalledWith(
-              'Failed to log to history',
-              historyError,
-            );
-            done();
-          }, 10);
+          // Wait for microtasks to complete
+          await new Promise(resolve => setImmediate(resolve));
+          expect(errorSpy).toHaveBeenCalledWith(
+            'Failed to log to history',
+            historyError,
+          );
+          done();
         },
       });
     });
