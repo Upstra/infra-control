@@ -12,7 +12,7 @@ export class GetUpsStatusUseCase {
   async execute(): Promise<UpsStatusResponseDto> {
     const upsList = await this.upsRepository.findAll();
 
-    const upsStatuses = upsList.map((ups) => ({
+    const upsStatuses = (upsList ?? []).map((ups) => ({
       id: ups.id,
       name: ups.name,
       status: 'unavailable' as const,
