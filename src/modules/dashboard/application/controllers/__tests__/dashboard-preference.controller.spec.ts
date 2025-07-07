@@ -16,24 +16,18 @@ describe('DashboardPreferenceController', () => {
   let updatePreferencesUseCase: jest.Mocked<UpdatePreferencesUseCase>;
 
   const mockUser: JwtPayload = {
-    userId: 'test-user-id',
+    userId: 'user-123',
     email: 'test@example.com',
   };
 
   const mockPreferences: DashboardPreferenceResponseDto = {
-    id: 'pref-1',
-    userId: 'test-user-id',
     theme: 'dark',
     refreshInterval: 30,
     defaultLayoutId: 'layout-1',
-    defaultDateRange: '7d',
-    timezone: 'UTC',
     notifications: {
       alerts: true,
-      updates: false,
+      activities: false,
     },
-    createdAt: new Date(),
-    updatedAt: new Date(),
   };
 
   beforeEach(async () => {
@@ -72,20 +66,14 @@ describe('DashboardPreferenceController', () => {
 
     it('should handle when preferences do not exist', async () => {
       const defaultPreferences: DashboardPreferenceResponseDto = {
-        id: 'new-pref',
-        userId: mockUser.userId,
         theme: 'light',
         refreshInterval: 60,
         defaultLayoutId: null,
-        defaultDateRange: '24h',
-        timezone: 'UTC',
-        notifications: {
+            notifications: {
           alerts: true,
-          updates: true,
+          activities: true,
         },
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+              };
       
       getPreferencesUseCase.execute.mockResolvedValue(defaultPreferences);
 
@@ -109,11 +97,9 @@ describe('DashboardPreferenceController', () => {
         theme: 'light',
         refreshInterval: 60,
         defaultLayoutId: 'layout-2',
-        defaultDateRange: '30d',
-        timezone: 'Europe/Paris',
         notifications: {
           alerts: false,
-          updates: true,
+          activities: true,
         },
       };
 
@@ -131,7 +117,7 @@ describe('DashboardPreferenceController', () => {
         theme: 'light',
       };
 
-      const updatedPreferences = { ...mockPreferences, theme: 'light' };
+      const updatedPreferences = { ...mockPreferences, theme: 'light' as const };
       updatePreferencesUseCase.execute.mockResolvedValue(updatedPreferences);
 
       const result = await controller.updatePreferences(mockUser, partialUpdateDto);

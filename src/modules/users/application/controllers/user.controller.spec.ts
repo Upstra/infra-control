@@ -5,10 +5,13 @@ import { GetMeUseCase } from '../use-cases/get-me.use-case';
 import { GetUserByIdUseCase } from '../use-cases/get-user-by-id.use-case';
 import { GetUserListUseCase } from '../use-cases/get-user-list.use-case';
 import { GetUserCountUseCase } from '../use-cases/get-user-count.use-case';
+import { GetUserWithRoleUseCase } from '../use-cases/get-user-with-role.use-case';
 
 import { UpdateUserUseCase } from '../use-cases/update-user.use-case';
 import { ResetPasswordUseCase } from '../use-cases/reset-password.use-case';
 import { DeleteUserUseCase } from '../use-cases/delete-user.use-case';
+import { SoftDeleteUserUseCase } from '../use-cases/soft-delete-user.use-case';
+import { ToggleUserStatusUseCase } from '../use-cases/toggle-user-status.use-case';
 
 import { UserUpdateDto } from '../dto/user.update.dto';
 import { ResetPasswordDto } from '../dto';
@@ -29,10 +32,13 @@ describe('UserController', () => {
   const getUserByIdUseCase = { execute: jest.fn() };
   const getUserListUseCase = { execute: jest.fn() };
   const getUserCountUseCase = { execute: jest.fn() };
+  const getUserWithRoleUseCase = { execute: jest.fn() };
 
   const updateUserUseCase = { execute: jest.fn() };
   const resetPasswordUseCase = { execute: jest.fn() };
   const deleteUserUseCase = { execute: jest.fn() };
+  const softDeleteUserUseCase = { execute: jest.fn() };
+  const toggleUserStatusUseCase = { execute: jest.fn() };
 
   const mockPayload: JwtPayload = {
     userId: 'user-123',
@@ -48,10 +54,13 @@ describe('UserController', () => {
         { provide: GetUserByIdUseCase, useValue: getUserByIdUseCase },
         { provide: GetUserListUseCase, useValue: getUserListUseCase },
         { provide: GetUserCountUseCase, useValue: getUserCountUseCase },
+        { provide: GetUserWithRoleUseCase, useValue: getUserWithRoleUseCase },
 
         { provide: UpdateUserUseCase, useValue: updateUserUseCase },
         { provide: ResetPasswordUseCase, useValue: resetPasswordUseCase },
         { provide: DeleteUserUseCase, useValue: deleteUserUseCase },
+        { provide: SoftDeleteUserUseCase, useValue: softDeleteUserUseCase },
+        { provide: ToggleUserStatusUseCase, useValue: toggleUserStatusUseCase },
       ],
     }).compile();
 
