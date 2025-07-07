@@ -11,10 +11,15 @@ export class DeletePermissionVmUseCase {
   ) {}
 
   async execute(vmId: string, roleId: string, userId?: string): Promise<void> {
-    const permission = await this.permissionVmRepository.findPermissionByIds(
-      vmId,
-      roleId,
-    );
+    let permission;
+    try {
+      permission = await this.permissionVmRepository.findPermissionByIds(
+        vmId,
+        roleId,
+      );
+    } catch (error) {
+      permission = null;
+    }
 
     await this.permissionVmRepository.deletePermission(vmId, roleId);
 
