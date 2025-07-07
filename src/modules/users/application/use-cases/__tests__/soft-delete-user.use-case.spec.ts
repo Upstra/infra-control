@@ -40,17 +40,32 @@ describe('SoftDeleteUserUseCase', () => {
     return user;
   };
 
-  const mockAdminRole: Role = {
+  const createMockRole = (overrides: Partial<Role> = {}): Role => {
+    const role = new Role();
+    Object.assign(role, {
+      id: 'default-role-id',
+      name: 'Default',
+      canCreateServer: false,
+      isAdmin: false,
+      users: [],
+      permissionServers: [],
+      permissionVms: [],
+      ...overrides,
+    });
+    return role;
+  };
+
+  const mockAdminRole = createMockRole({
     id: 'role-admin',
     name: 'Admin',
     isAdmin: true,
-  } as Role;
+  });
 
-  const mockUserRole: Role = {
+  const mockUserRole = createMockRole({
     id: 'role-user',
     name: 'User',
     isAdmin: false,
-  } as Role;
+  });
 
   const mockAdminUser = createMockUser({
     id: 'admin-user-id',
@@ -266,9 +281,13 @@ describe('SoftDeleteUserUseCase', () => {
     });
 
     it('should correctly identify admin users with capital Admin role', async () => {
+      const adminRoleCapital = createMockRole({
+        ...mockAdminRole,
+        name: 'Admin',
+      });
       const adminUser = createMockUser({
         ...mockTargetUser, 
-        roles: [{ ...mockAdminRole, name: 'Admin' }],
+        roles: [adminRoleCapital],
       });
       
       userRepository.findById.mockResolvedValue(adminUser);
@@ -281,9 +300,13 @@ describe('SoftDeleteUserUseCase', () => {
     });
 
     it('should correctly identify admin users with lowercase admin role', async () => {
+      const adminRoleLowercase = createMockRole({
+        ...mockAdminRole,
+        name: 'admin',
+      });
       const adminUser = createMockUser({
         ...mockTargetUser, 
-        roles: [{ ...mockAdminRole, name: 'admin' }],
+        roles: [adminRoleLowercase],
       });
       
       userRepository.findById.mockResolvedValue(adminUser);
