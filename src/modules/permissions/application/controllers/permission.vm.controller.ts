@@ -105,7 +105,7 @@ export class PermissionVmController {
   @ApiResponse({ status: 201, type: BatchPermissionVmResponseDto })
   @LogToHistory('permission_vm', 'BATCH_CREATE', {
     extractMetadata: (data) => ({
-      permissionsCount: data.permissions?.length || 0,
+      permissionsCount: data.permissions?.length ?? 0,
     }),
   })
   async createBatchPermissions(

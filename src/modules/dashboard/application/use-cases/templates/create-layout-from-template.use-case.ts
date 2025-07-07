@@ -25,7 +25,7 @@ export class CreateLayoutFromTemplateUseCase {
   ): Promise<DashboardLayoutResponseDto> {
     const template = await this.templateRepository.findById(dto.templateId);
 
-    if (!template || !template.isActive) {
+    if (!template?.isActive) {
       throw new DashboardTemplateNotFoundException(dto.templateId);
     }
 

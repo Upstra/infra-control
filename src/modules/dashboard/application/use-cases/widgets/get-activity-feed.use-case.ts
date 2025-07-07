@@ -38,14 +38,14 @@ export class GetActivityFeedUseCase {
       id: event.id,
       type: `${event.entity}_${event.action}`,
       actor: {
-        id: event.userId || 'system',
-        name: event.user?.email || 'System',
+        id: event.userId ?? 'system',
+        name: event.user?.email ?? 'System',
         avatar: undefined,
       },
       target: {
         type: event.entity,
         id: event.entityId,
-        name: event.newValue?.name || event.entityId,
+        name: event.newValue?.name ?? event.entityId,
       },
       timestamp: event.createdAt,
       description: this.generateDescription(event),
@@ -76,8 +76,8 @@ export class GetActivityFeedUseCase {
       room: 'salle',
     };
 
-    const action = actionMap[event.action] || event.action;
-    const entity = entityMap[event.entity] || event.entity;
+    const action = actionMap[event.action] ?? event.action;
+    const entity = entityMap[event.entity] ?? event.entity;
 
     return `${entity} ${action}`;
   }

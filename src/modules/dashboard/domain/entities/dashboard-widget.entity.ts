@@ -7,6 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
+import { IDashboardLayout } from '../interfaces/dashboard-layout.interface';
 
 export enum WidgetType {
   STATS = 'stats',
@@ -59,7 +60,7 @@ export class DashboardWidget {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'layout_id' })
-  layout: any;
+  layout: IDashboardLayout;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
