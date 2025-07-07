@@ -15,7 +15,7 @@ export class UserTypeormRepository
   extends Repository<User>
   implements UserRepositoryInterface
 {
-  constructor(private readonly dataSource: DataSource) {
+  constructor(dataSource: DataSource) {
     super(User, dataSource.createEntityManager());
   }
   findAll(relations?: string[], includeDeleted = false): Promise<User[]> {

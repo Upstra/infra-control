@@ -119,7 +119,10 @@
       "!src/**/*.entity.ts",
       "!**/index.ts",
       "!**/repositories/**/*.ts",
-      "!**/backups/**"
+      "!**/backups/**",
+      "!**/migrations/**",
+      "!src/migrations/**",
+      "!**/providers/*.provider.ts"
     ],
     "coverageDirectory": "../coverage",
     "coverageThreshold": {
