@@ -103,7 +103,7 @@ export class PermissionServerController {
   @ApiResponse({ status: 201, type: BatchPermissionServerResponseDto })
   @LogToHistory('permission_server', 'BATCH_CREATE', {
     extractMetadata: (data) => ({
-      permissionsCount: data.permissions?.length || 0,
+      permissionsCount: data.permissions?.length ?? 0,
     }),
   })
   async createBatchPermissions(
