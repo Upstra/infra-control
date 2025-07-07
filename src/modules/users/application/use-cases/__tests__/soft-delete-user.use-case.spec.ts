@@ -17,8 +17,8 @@ describe('SoftDeleteUserUseCase', () => {
   let logHistoryUseCase: jest.Mocked<LogHistoryUseCase>;
 
   const createMockUser = (overrides: Partial<User> = {}): User => {
-    const user = new User();
-    Object.assign(user, {
+    const user = Object.create(User.prototype);
+    return Object.assign(user, {
       id: 'default-id',
       username: 'defaultuser',
       firstName: 'Default',
@@ -37,12 +37,11 @@ describe('SoftDeleteUserUseCase', () => {
       deletedAt: null,
       ...overrides,
     });
-    return user;
   };
 
   const createMockRole = (overrides: Partial<Role> = {}): Role => {
-    const role = new Role();
-    Object.assign(role, {
+    const role = Object.create(Role.prototype);
+    return Object.assign(role, {
       id: 'default-role-id',
       name: 'Default',
       canCreateServer: false,
@@ -52,7 +51,6 @@ describe('SoftDeleteUserUseCase', () => {
       permissionVms: [],
       ...overrides,
     });
-    return role;
   };
 
   const mockAdminRole = createMockRole({
@@ -116,7 +114,10 @@ describe('SoftDeleteUserUseCase', () => {
     it('should successfully soft delete a user', async () => {
       const deletedAt = new Date();
       const deletedUser = createMockUser({
-        ...mockTargetUser,
+        id: mockTargetUser.id,
+        username: mockTargetUser.username,
+        email: mockTargetUser.email,
+        roles: mockTargetUser.roles,
         deleted: true,
         deletedAt,
         active: false,
@@ -184,7 +185,10 @@ describe('SoftDeleteUserUseCase', () => {
 
     it('should throw UserNotFoundException if user is already deleted', async () => {
       const deletedUser = createMockUser({
-        ...mockTargetUser,
+        id: 'target-user-id',
+        username: 'targetuser',
+        email: 'target@test.com',
+        roles: [mockUserRole],
         deleted: true,
         deletedAt: new Date(),
       });
@@ -211,7 +215,9 @@ describe('SoftDeleteUserUseCase', () => {
 
     it('should throw CannotDeleteLastAdminException when trying to delete the last admin', async () => {
       const adminUser = createMockUser({
-        ...mockTargetUser,
+        id: 'target-user-id',
+        username: 'targetuser',
+        email: 'target@test.com',
         roles: [mockAdminRole],
       });
       
@@ -229,11 +235,16 @@ describe('SoftDeleteUserUseCase', () => {
 
     it('should handle users with no email', async () => {
       const userWithoutEmail = createMockUser({
-        ...mockTargetUser,
+        id: 'target-user-id',
+        username: 'targetuser',
         email: undefined,
+        roles: [mockUserRole],
       });
       const deletedUser = createMockUser({
-        ...userWithoutEmail,
+        id: 'target-user-id',
+        username: 'targetuser',
+        email: undefined,
+        roles: [mockUserRole],
         deleted: true,
         deletedAt: new Date(),
         active: false,
@@ -258,7 +269,10 @@ describe('SoftDeleteUserUseCase', () => {
 
     it('should use default reason when not provided', async () => {
       const deletedUser = createMockUser({
-        ...mockTargetUser,
+        id: 'target-user-id',
+        username: 'targetuser',
+        email: 'target@test.com',
+        roles: [mockUserRole],
         deleted: true,
         deletedAt: new Date(),
         active: false,
@@ -282,11 +296,14 @@ describe('SoftDeleteUserUseCase', () => {
 
     it('should correctly identify admin users with capital Admin role', async () => {
       const adminRoleCapital = createMockRole({
-        ...mockAdminRole,
+        id: 'role-admin',
         name: 'Admin',
+        isAdmin: true,
       });
       const adminUser = createMockUser({
-        ...mockTargetUser, 
+        id: 'target-user-id',
+        username: 'targetuser',
+        email: 'target@test.com',
         roles: [adminRoleCapital],
       });
       
@@ -301,11 +318,14 @@ describe('SoftDeleteUserUseCase', () => {
 
     it('should correctly identify admin users with lowercase admin role', async () => {
       const adminRoleLowercase = createMockRole({
-        ...mockAdminRole,
+        id: 'role-admin',
         name: 'admin',
+        isAdmin: true,
       });
       const adminUser = createMockUser({
-        ...mockTargetUser, 
+        id: 'target-user-id',
+        username: 'targetuser',
+        email: 'target@test.com',
         roles: [adminRoleLowercase],
       });
       
@@ -320,7 +340,10 @@ describe('SoftDeleteUserUseCase', () => {
 
     it('should handle missing IP address and user agent', async () => {
       const deletedUser = createMockUser({
-        ...mockTargetUser,
+        id: 'target-user-id',
+        username: 'targetuser',
+        email: 'target@test.com',
+        roles: [mockUserRole],
         deleted: true,
         deletedAt: new Date(),
         active: false,
@@ -350,7 +373,10 @@ describe('SoftDeleteUserUseCase', () => {
 
     it('should allow deleting non-admin users when multiple admins exist', async () => {
       const deletedUser = createMockUser({
-        ...mockTargetUser,
+        id: 'target-user-id',
+        username: 'targetuser',
+        email: 'target@test.com',
+        roles: [mockUserRole],
         deleted: true,
         deletedAt: new Date(),
         active: false,
@@ -369,11 +395,16 @@ describe('SoftDeleteUserUseCase', () => {
 
     it('should handle user with no roles gracefully', async () => {
       const userWithoutRoles = createMockUser({
-        ...mockTargetUser,
+        id: 'target-user-id',
+        username: 'targetuser',
+        email: 'target@test.com',
         roles: [],
       });
       const deletedUser = createMockUser({
-        ...userWithoutRoles,
+        id: 'target-user-id',
+        username: 'targetuser',
+        email: 'target@test.com',
+        roles: [],
         deleted: true,
         deletedAt: new Date(),
         active: false,
@@ -392,7 +423,10 @@ describe('SoftDeleteUserUseCase', () => {
 
     it('should handle null response from findWithRoles', async () => {
       const deletedUser = createMockUser({
-        ...mockTargetUser,
+        id: 'target-user-id',
+        username: 'targetuser',
+        email: 'target@test.com',
+        roles: [mockUserRole],
         deleted: true,
         deletedAt: new Date(),
         active: false,
