@@ -6,7 +6,6 @@ import { User } from '../../../domain/entities/user.entity';
 import { Role } from '../../../../roles/domain/entities/role.entity';
 import { UserResponseDto } from '../../dto/user.response.dto';
 import {
-  UserExceptions,
   CannotToggleOwnStatusException,
   CannotDeactivateLastAdminException,
   UserNotFoundException,
@@ -182,7 +181,12 @@ describe('ToggleUserStatusUseCase', () => {
       user.active = false;
       user.deleted = true;
       user.deletedAt = new Date();
-      const savedUser = { ...user, active: true, deleted: false, deletedAt: null };
+      const savedUser = {
+        ...user,
+        active: true,
+        deleted: false,
+        deletedAt: null,
+      };
 
       userRepository.findById.mockResolvedValue(user);
       const userWithRole = { ...user, roles: [mockRole(false)] } as User;
@@ -362,7 +366,7 @@ describe('ToggleUserStatusUseCase', () => {
 
     it('should call findWithRoles even when user does not exist in findById', async () => {
       const user = mockUser();
-      
+
       userRepository.findById.mockResolvedValue(user);
       userRepository.findWithRoles.mockResolvedValue(null);
       userRepository.save.mockResolvedValue({ ...user, active: false } as User);

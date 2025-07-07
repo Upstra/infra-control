@@ -35,7 +35,8 @@ export class ToggleUserStatusUseCase {
     }
 
     const userWithRoles = await this.userRepository.findWithRoles(targetUserId);
-    const isTargetAdmin = userWithRoles?.roles?.some(role => role.isAdmin) ?? false;
+    const isTargetAdmin =
+      userWithRoles?.roles?.some((role) => role.isAdmin) ?? false;
 
     if (isTargetAdmin && targetUser.active) {
       const activeAdminCount = await this.userRepository.countActiveAdmins();

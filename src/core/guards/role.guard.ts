@@ -45,7 +45,9 @@ export class RoleGuard implements CanActivate {
         throw new ForbiddenException('This action requires admin privileges');
       }
       if (!requirement.isAdmin && isAdmin) {
-        throw new ForbiddenException('This action requires non-admin privileges');
+        throw new ForbiddenException(
+          'This action requires non-admin privileges',
+        );
       }
     }
 

@@ -1,9 +1,6 @@
 import { ArgumentsHost, HttpStatus } from '@nestjs/common';
 import { UserExceptionFilter } from '../user.exception.filter';
-import {
-  CannotDeleteLastAdminException,
-  UserNotFoundException,
-} from '@/modules/users/domain/exceptions/user.exception';
+import { UserExceptions } from '@/modules/users/domain/exceptions/user.exception';
 
 describe('UserExceptionFilter', () => {
   const createHost = () => {
@@ -18,7 +15,7 @@ describe('UserExceptionFilter', () => {
   it('returns 404 for UserNotFoundException', () => {
     const filter = new UserExceptionFilter();
     const { host, response, json } = createHost();
-    filter.catch(new UserNotFoundException('1'), host);
+    filter.catch(UserExceptions.notFound('1'), host);
     expect(response.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
     expect(json).toHaveBeenCalledWith({
       statusCode: 404,
@@ -29,8 +26,11 @@ describe('UserExceptionFilter', () => {
   it('returns 409 for CannotDeleteLastAdminException', () => {
     const filter = new UserExceptionFilter();
     const { host, response, json } = createHost();
-    filter.catch(new CannotDeleteLastAdminException('no'), host);
+    filter.catch(UserExceptions.cannotDeleteLastAdmin(), host);
     expect(response.status).toHaveBeenCalledWith(HttpStatus.CONFLICT);
-    expect(json).toHaveBeenCalledWith({ statusCode: 409, message: 'no' });
+    expect(json).toHaveBeenCalledWith({
+      statusCode: 409,
+      message: 'Impossible de supprimer le dernier administrateur',
+    });
   });
 });

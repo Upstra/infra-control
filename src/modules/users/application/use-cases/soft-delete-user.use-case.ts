@@ -22,33 +22,28 @@ export class SoftDeleteUserUseCase {
     ipAddress?: string,
     userAgent?: string,
   ): Promise<void> {
-    // Check if target user exists
     const targetUser = await this.userRepository.findById(targetUserId);
     if (!targetUser || targetUser.deleted) {
       throw UserExceptions.notFound(targetUserId);
     }
 
-    // Check if admin is trying to delete their own account
     if (targetUserId === adminUserId) {
       throw UserExceptions.cannotDeleteOwnAccount();
     }
 
-    // Check if this is the last admin
     const adminCount = await this.userRepository.countActiveAdmins();
     const isTargetAdmin = await this.isUserAdmin(targetUser);
-    
+
     if (isTargetAdmin && adminCount <= 1) {
       throw UserExceptions.cannotDeleteLastAdmin();
     }
 
-    // Perform soft delete
     targetUser.deleted = true;
     targetUser.deletedAt = new Date();
     targetUser.active = false;
-    
+
     const updatedUser = await this.userRepository.save(targetUser);
 
-    // Log to history
     await this.logHistory.executeStructured({
       entity: 'user',
       entityId: targetUserId,
@@ -79,9 +74,7 @@ export class SoftDeleteUserUseCase {
   private async isUserAdmin(user: User): Promise<boolean> {
     const userWithRoles = await this.userRepository.findWithRoles(user.id);
     if (!userWithRoles) return false;
-    
-    return userWithRoles.roles.some(role => 
-      role.name === 'Admin' || role.name === 'admin'
-    );
+
+    return userWithRoles.roles.some((role) => role.isAdmin === true);
   }
 }

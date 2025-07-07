@@ -17,7 +17,7 @@ export class DeletePermissionVmUseCase {
         vmId,
         roleId,
       );
-    } catch (error) {
+    } catch {
       permission = null;
     }
 

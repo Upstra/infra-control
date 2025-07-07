@@ -62,7 +62,7 @@ export interface UserRepositoryInterface
 
   /**
    * Count the number of active admin users in the system.
-   * 
+   *
    * @returns Number of active admins
    */
   countActiveAdmins(): Promise<number>;
