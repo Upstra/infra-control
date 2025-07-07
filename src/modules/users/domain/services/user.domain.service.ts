@@ -4,7 +4,7 @@ import { User } from '../entities/user.entity';
 import { Role } from '../../../roles/domain/entities/role.entity';
 import { UserUpdateDto } from '../../application/dto/user.update.dto';
 import { UserRepositoryInterface } from '../interfaces/user.repository.interface';
-import { UserConflictException } from '../exceptions/user.exception';
+import { UserExceptions } from '../exceptions/user.exception';
 
 /**
  * Manages user lifecycle and profile operations within the domain layer.
@@ -97,7 +97,7 @@ export class UserDomainService {
       disableThrow: true,
     });
     if (existing && existing.id !== userId) {
-      throw new UserConflictException(undefined, field as 'username' | 'email');
+      throw UserExceptions.conflict(field as 'username' | 'email');
     }
   }
 }
