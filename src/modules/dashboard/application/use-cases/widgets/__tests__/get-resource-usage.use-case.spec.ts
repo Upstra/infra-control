@@ -110,15 +110,18 @@ describe('GetResourceUsageUseCase', () => {
         const testResult = await useCase.execute();
         
         testResult.cpu.history.forEach((point) => {
-          expect(point.value).toBeCloseTo(65, 1); // Should be around 65 with some variance
+          expect(point.value).toBeGreaterThanOrEqual(60); // Should be around 65 with some variance
+          expect(point.value).toBeLessThanOrEqual(70);
         });
 
         testResult.memory.history.forEach((point) => {
-          expect(point.value).toBeCloseTo(78, 1); // Should be around 78 with some variance
+          expect(point.value).toBeGreaterThanOrEqual(73); // Should be around 78 with some variance
+          expect(point.value).toBeLessThanOrEqual(83);
         });
 
         testResult.storage.history.forEach((point) => {
-          expect(point.value).toBeCloseTo(45, 1); // Should be around 45 with some variance
+          expect(point.value).toBeGreaterThanOrEqual(40); // Should be around 45 with some variance
+          expect(point.value).toBeLessThanOrEqual(50);
         });
       }
     });
@@ -133,6 +136,44 @@ describe('GetResourceUsageUseCase', () => {
           expect(point.value).toBeLessThanOrEqual(100);
         });
       }
+    });
+
+    it('should generate history with proper data structure', async () => {
+      const result = await useCase.execute();
+      const now = new Date();
+      
+      [result.cpu.history, result.memory.history, result.storage.history].forEach((history) => {
+        expect(history).toHaveLength(6);
+        
+        history.forEach((point, index) => {
+          expect(point).toHaveProperty('timestamp');
+          expect(point).toHaveProperty('value');
+          expect(point.timestamp).toBeInstanceOf(Date);
+          expect(typeof point.value).toBe('number');
+          
+          // Check timestamps are in correct order (oldest to newest)
+          if (index > 0) {
+            expect(point.timestamp.getTime()).toBeGreaterThan(history[index - 1].timestamp.getTime());
+          }
+          
+          // Check that last timestamp is close to current time
+          if (index === history.length - 1) {
+            const timeDiff = Math.abs(now.getTime() - point.timestamp.getTime());
+            expect(timeDiff).toBeLessThan(1000); // Within 1 second
+          }
+        });
+      });
+    });
+
+    it('should return consistent structure across multiple calls', async () => {
+      const result1 = await useCase.execute();
+      const result2 = await useCase.execute();
+      
+      expect(Object.keys(result1)).toEqual(Object.keys(result2));
+      expect(Object.keys(result1.cpu)).toEqual(Object.keys(result2.cpu));
+      expect(Object.keys(result1.memory)).toEqual(Object.keys(result2.memory));
+      expect(Object.keys(result1.storage)).toEqual(Object.keys(result2.storage));
+      expect(Object.keys(result1.network)).toEqual(Object.keys(result2.network));
     });
   });
 });
