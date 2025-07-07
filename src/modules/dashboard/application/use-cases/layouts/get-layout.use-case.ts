@@ -35,7 +35,7 @@ export class GetLayoutUseCase {
       rowHeight: layout.rowHeight,
       isDefault: layout.isDefault,
       userId: layout.userId,
-      widgets: layout.widgets.map((widget: any) => ({
+      widgets: layout.widgets?.map((widget: any) => ({
         id: widget.id,
         type: widget.type,
         title: widget.title,
@@ -43,7 +43,7 @@ export class GetLayoutUseCase {
         settings: widget.settings,
         refreshInterval: widget.refreshInterval,
         visible: widget.visible,
-      })),
+      })) ?? [],
       createdAt: layout.createdAt,
       updatedAt: layout.updatedAt,
     };
