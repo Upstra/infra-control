@@ -47,7 +47,7 @@ describe('InactiveUserException', () => {
   });
 
   it('should have consistent name property', () => {
-    expect(exception.name).toBe('HttpException');
+    expect(exception.name).toBe('InactiveUserException');
   });
 
   it('should be catchable as HttpException', () => {
