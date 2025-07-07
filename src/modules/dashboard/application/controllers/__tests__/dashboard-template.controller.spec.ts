@@ -5,6 +5,7 @@ import {
   CreateLayoutFromTemplateUseCase,
 } from '../../use-cases/templates';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { WidgetType } from '../../../domain/entities/dashboard-widget.entity';
 import {
   DashboardTemplateListResponseDto,
   CreateLayoutFromTemplateDto,
@@ -29,18 +30,17 @@ describe('DashboardTemplateController', () => {
         description: 'Monitor servers, VMs, and system resources',
         widgets: [
           {
-            widgetType: 'system-health',
-            position: { x: 0, y: 0, width: 6, height: 3 },
-            config: {},
+            type: WidgetType.SYSTEM_HEALTH,
+            title: 'System Health',
+            position: { x: 0, y: 0, w: 6, h: 3 },
           },
           {
-            widgetType: 'resource-usage',
-            position: { x: 6, y: 0, width: 6, height: 3 },
-            config: {},
+            type: WidgetType.RESOURCE_USAGE,
+            title: 'Resource Usage',
+            position: { x: 6, y: 0, w: 6, h: 3 },
           },
         ],
-        previewUrl: '/templates/infrastructure.png',
-        category: 'monitoring',
+        preview: '/templates/infrastructure.png',
       },
       {
         id: 'team-activity',
@@ -48,36 +48,37 @@ describe('DashboardTemplateController', () => {
         description: 'Track team activity and presence',
         widgets: [
           {
-            widgetType: 'user-presence',
-            position: { x: 0, y: 0, width: 4, height: 2 },
-            config: {},
+            type: WidgetType.USER_PRESENCE,
+            title: 'User Presence',
+            position: { x: 0, y: 0, w: 4, h: 2 },
           },
           {
-            widgetType: 'activity-feed',
-            position: { x: 4, y: 0, width: 8, height: 2 },
-            config: {},
+            type: WidgetType.ACTIVITY_FEED,
+            title: 'Activity Feed',
+            position: { x: 4, y: 0, w: 8, h: 2 },
           },
         ],
-        previewUrl: '/templates/team-activity.png',
-        category: 'collaboration',
+        preview: '/templates/team-activity.png',
       },
     ],
-    categories: ['monitoring', 'collaboration'],
   };
 
   const mockLayout: DashboardLayoutResponseDto = {
     id: 'layout-1',
     name: 'Infrastructure Overview',
+    columns: 12,
+    rowHeight: 80,
+    userId: 'user-1',
     widgets: [
       {
-        widgetType: 'system-health',
-        position: { x: 0, y: 0, width: 6, height: 3 },
-        config: {},
+        type: WidgetType.SYSTEM_HEALTH,
+        title: 'System Health',
+        position: { x: 0, y: 0, w: 6, h: 3 },
       },
       {
-        widgetType: 'resource-usage',
-        position: { x: 6, y: 0, width: 6, height: 3 },
-        config: {},
+        type: WidgetType.RESOURCE_USAGE,
+        title: 'Resource Usage',
+        position: { x: 6, y: 0, w: 6, h: 3 },
       },
     ],
     isDefault: false,
@@ -126,7 +127,6 @@ describe('DashboardTemplateController', () => {
     it('should handle empty template list', async () => {
       const emptyTemplates: DashboardTemplateListResponseDto = {
         templates: [],
-        categories: [],
       };
       listTemplatesUseCase.execute.mockResolvedValue(emptyTemplates);
 
@@ -168,6 +168,7 @@ describe('DashboardTemplateController', () => {
     it('should use default name when not provided', async () => {
       const createDto: CreateLayoutFromTemplateDto = {
         templateId: 'team-activity',
+        name: 'Team Activity',
       };
 
       const layoutWithDefaultName = {

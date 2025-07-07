@@ -32,118 +32,124 @@ describe('DashboardWidgetController', () => {
   let exportWidgetDataUseCase: jest.Mocked<ExportWidgetDataUseCase>;
 
   const mockActivityFeed: ActivityFeedResponseDto = {
-    items: [
+    activities: [
       {
         id: '1',
         type: 'server_created',
+        actor: {
+          id: 'user-1',
+          name: 'John Doe',
+        },
+        target: {
+          type: 'server',
+          id: 'server-1',
+          name: 'Production Server',
+        },
         timestamp: new Date(),
-        userId: 'user-1',
-        userName: 'John Doe',
-        action: 'created',
-        resource: 'server',
-        resourceId: 'server-1',
-        resourceName: 'Production Server',
-        metadata: {},
+        description: 'Created server Production Server',
       },
     ],
-    total: 1,
-    hasMore: false,
+    pagination: {
+      page: 1,
+      limit: 10,
+      total: 1,
+    },
   };
 
   const mockAlerts: AlertsResponseDto = {
     alerts: [
       {
         id: '1',
-        level: 'warning',
-        title: 'High CPU Usage',
+        severity: 'warning',
+        type: 'resource_usage',
+        resource: {
+          type: 'server',
+          id: 'server-1',
+          name: 'Production Server',
+        },
         message: 'CPU usage exceeded 80% threshold',
         timestamp: new Date(),
-        resourceType: 'server',
-        resourceId: 'server-1',
-        isAcknowledged: false,
+        acknowledged: false,
       },
     ],
-    total: 1,
-    unacknowledged: 1,
+    summary: {
+      critical: 0,
+      warning: 1,
+      info: 0,
+    },
   };
 
   const mockResourceUsage: ResourceUsageResponseDto = {
-    servers: {
-      total: 10,
-      active: 8,
-      inactive: 2,
-      cpuUsage: 45.5,
-      memoryUsage: 62.3,
-      storageUsage: 78.9,
+    cpu: {
+      usage: 45.5,
+      trend: 'up',
     },
-    vms: {
-      total: 25,
-      active: 20,
-      inactive: 5,
-      cpuUsage: 38.2,
-      memoryUsage: 55.7,
-      storageUsage: 71.4,
+    memory: {
+      usage: 62.3,
+      trend: 'stable',
     },
-    overall: {
-      cpuUsage: 41.85,
-      memoryUsage: 59.0,
-      storageUsage: 75.15,
+    storage: {
+      usage: 78.9,
+      trend: 'up',
+    },
+    network: {
+      inbound: '125.4 MB/s',
+      outbound: '87.2 MB/s',
+      trend: 'stable',
     },
   };
 
   const mockUserPresence: UserPresenceResponseDto = {
-    online: [
+    onlineUsers: [
       {
-        userId: 'user-1',
-        username: 'john.doe',
-        email: 'john@example.com',
-        status: 'online',
-        lastActivity: new Date(),
+        id: 'user-1',
+        name: 'john.doe',
+        status: 'active',
+        location: 'Dashboard',
+        lastSeen: new Date(),
       },
     ],
-    offline: [],
-    away: [],
-    total: 1,
-    statistics: {
-      onlineCount: 1,
-      offlineCount: 0,
-      awayCount: 0,
+    recentlyOffline: [],
+    summary: {
+      online: 1,
+      idle: 0,
+      offline: 0,
     },
   };
 
   const mockSystemHealth: SystemHealthResponseDto = {
     status: 'healthy',
-    checks: [
+    score: 95,
+    components: [
       {
         name: 'database',
-        status: 'healthy',
-        message: 'Database connection is stable',
-        lastCheck: new Date(),
+        status: 'operational',
+        responseTime: 15,
+        uptime: 99.9,
       },
       {
         name: 'redis',
-        status: 'healthy',
-        message: 'Redis connection is stable',
-        lastCheck: new Date(),
+        status: 'operational',
+        responseTime: 8,
+        uptime: 99.95,
       },
     ],
-    uptime: 86400,
-    timestamp: new Date(),
+    lastCheck: new Date(),
   };
 
   const mockUpsStatus: UpsStatusResponseDto = {
-    devices: [
+    ups: [
       {
         id: 'ups-1',
         name: 'Main UPS',
         status: 'online',
         batteryLevel: 100,
-        estimatedRuntime: 120,
-        inputVoltage: 230,
-        outputVoltage: 230,
         load: 45,
+        runtime: 120,
         temperature: 25,
-        lastUpdate: new Date(),
+        lastTest: new Date(),
+        nextTest: new Date(),
+        isMocked: true,
       },
     ],
     summary: {
@@ -151,8 +157,9 @@ describe('DashboardWidgetController', () => {
       online: 1,
       onBattery: 0,
       offline: 0,
-      averageBatteryLevel: 100,
-      totalLoad: 45,
+      unavailable: 0,
+      averageLoad: 45,
+      isMocked: true,
     },
   };
 
@@ -203,7 +210,7 @@ describe('DashboardWidgetController', () => {
 
   describe('getActivityFeed', () => {
     it('should return activity feed data', async () => {
-      const query: WidgetDataQueryDto = { limit: 10, offset: 0 };
+      const query: WidgetDataQueryDto = { limit: 10 };
       getActivityFeedUseCase.execute.mockResolvedValue(mockActivityFeed);
 
       const result = await controller.getActivityFeed(query);
@@ -215,9 +222,8 @@ describe('DashboardWidgetController', () => {
     it('should handle query with date range', async () => {
       const query: WidgetDataQueryDto = {
         limit: 20,
-        offset: 0,
-        startDate: new Date('2024-01-01'),
-        endDate: new Date('2024-01-31'),
+        dateFrom: '2024-01-01',
+        dateTo: '2024-01-31',
       };
       getActivityFeedUseCase.execute.mockResolvedValue(mockActivityFeed);
 
@@ -230,7 +236,7 @@ describe('DashboardWidgetController', () => {
 
   describe('getAlerts', () => {
     it('should return alerts data', async () => {
-      const query: WidgetDataQueryDto = { limit: 10, offset: 0 };
+      const query: WidgetDataQueryDto = { limit: 10 };
       getAlertsUseCase.execute.mockResolvedValue(mockAlerts);
 
       const result = await controller.getAlerts(query);
@@ -240,11 +246,14 @@ describe('DashboardWidgetController', () => {
     });
 
     it('should handle empty alerts', async () => {
-      const query: WidgetDataQueryDto = { limit: 10, offset: 0 };
+      const query: WidgetDataQueryDto = { limit: 10 };
       const emptyAlerts: AlertsResponseDto = {
         alerts: [],
-        total: 0,
-        unacknowledged: 0,
+        summary: {
+          critical: 0,
+          warning: 0,
+          info: 0,
+        },
       };
       getAlertsUseCase.execute.mockResolvedValue(emptyAlerts);
 
@@ -284,14 +293,12 @@ describe('DashboardWidgetController', () => {
 
     it('should handle no users online', async () => {
       const noUsersOnline: UserPresenceResponseDto = {
-        online: [],
-        offline: [],
-        away: [],
-        total: 0,
-        statistics: {
-          onlineCount: 0,
-          offlineCount: 0,
-          awayCount: 0,
+        onlineUsers: [],
+        recentlyOffline: [],
+        summary: {
+          online: 0,
+          idle: 0,
+          offline: 0,
         },
       };
       getUserPresenceUseCase.execute.mockResolvedValue(noUsersOnline);
@@ -315,16 +322,17 @@ describe('DashboardWidgetController', () => {
     it('should handle unhealthy system status', async () => {
       const unhealthyStatus: SystemHealthResponseDto = {
         status: 'unhealthy',
-        checks: [
+        score: 25,
+        components: [
           {
             name: 'database',
-            status: 'unhealthy',
-            message: 'Database connection failed',
-            lastCheck: new Date(),
+            status: 'down',
+            responseTime: 0,
+            uptime: 85.5,
+            issues: ['Database connection failed'],
           },
         ],
-        uptime: 3600,
-        timestamp: new Date(),
+        lastCheck: new Date(),
       };
       getSystemHealthUseCase.execute.mockResolvedValue(unhealthyStatus);
 
@@ -346,14 +354,15 @@ describe('DashboardWidgetController', () => {
 
     it('should handle no UPS devices', async () => {
       const noDevices: UpsStatusResponseDto = {
-        devices: [],
+        ups: [],
         summary: {
           total: 0,
           online: 0,
           onBattery: 0,
           offline: 0,
-          averageBatteryLevel: 0,
-          totalLoad: 0,
+          unavailable: 0,
+          averageLoad: 0,
+          isMocked: true,
         },
       };
       getUpsStatusUseCase.execute.mockResolvedValue(noDevices);

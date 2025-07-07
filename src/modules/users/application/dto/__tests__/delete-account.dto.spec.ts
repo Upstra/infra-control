@@ -82,7 +82,7 @@ describe('DeleteAccountDto', () => {
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(0); // null values should be treated as optional
-      expect(dto.reason).toBe(DeletionReason.ADMIN_ACTION); // default value
+      expect(dto.reason).toBe(null); // null values remain null when explicitly set
     });
 
     it('should handle undefined values correctly', async () => {

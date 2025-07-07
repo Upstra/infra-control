@@ -144,10 +144,10 @@ describe('HistoryEventTypeormRepository', () => {
       await repository.getStats();
 
       const whereCall = mockQueryBuilder.where.mock.calls[0];
-      expect(whereCall[0]).toBe('history."createdAt" >= :thirtyDaysAgo');
-      expect(whereCall[1]).toHaveProperty('thirtyDaysAgo');
+      expect(whereCall[0]).toBe('history."createdAt" >= :thirtyDayWindowStart');
+      expect(whereCall[1]).toHaveProperty('thirtyDayWindowStart');
 
-      const thirtyDaysAgo = whereCall[1].thirtyDaysAgo as Date;
+      const thirtyDaysAgo = whereCall[1].thirtyDayWindowStart as Date;
       const now = new Date();
       const daysDiff = Math.round(
         (now.getTime() - thirtyDaysAgo.getTime()) / (1000 * 60 * 60 * 24),
