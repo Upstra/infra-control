@@ -13,7 +13,7 @@ export class ActiveUserInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    if (user && user.active === false) {
+    if (user && user.active !== true) {
       throw new InactiveUserException();
     }
 

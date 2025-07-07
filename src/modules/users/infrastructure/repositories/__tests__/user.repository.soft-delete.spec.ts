@@ -1,18 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
 import { UserTypeormRepository } from '../user.typeorm.repository';
-import { User } from '../../../domain/entities/user.entity';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 
 describe('UserTypeormRepository - Soft Delete Filtering', () => {
   let repository: UserTypeormRepository;
 
   const mockActiveUser = createMockUser({ deleted: false });
-  const mockDeletedUser = createMockUser({ 
+  const mockDeletedUser = createMockUser({
     id: 'deleted-user-id',
     email: 'deleted@example.com',
     deleted: true,
-    deletedAt: new Date()
+    deletedAt: new Date(),
   });
 
   beforeEach(async () => {
@@ -49,7 +48,9 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
     });
 
     it('should include deleted users when includeDeleted is true', async () => {
-      jest.spyOn(repository, 'find').mockResolvedValue([mockActiveUser, mockDeletedUser]);
+      jest
+        .spyOn(repository, 'find')
+        .mockResolvedValue([mockActiveUser, mockDeletedUser]);
 
       const result = await repository.findAll(['role'], true);
 
@@ -95,7 +96,9 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
 
   describe('paginate', () => {
     it('should exclude deleted users by default', async () => {
-      jest.spyOn(repository, 'findAndCount').mockResolvedValue([[mockActiveUser], 1]);
+      jest
+        .spyOn(repository, 'findAndCount')
+        .mockResolvedValue([[mockActiveUser], 1]);
 
       const result = await repository.paginate(1, 10);
 
@@ -111,7 +114,9 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
     });
 
     it('should include deleted users when includeDeleted is true', async () => {
-      jest.spyOn(repository, 'findAndCount').mockResolvedValue([[mockActiveUser, mockDeletedUser], 2]);
+      jest
+        .spyOn(repository, 'findAndCount')
+        .mockResolvedValue([[mockActiveUser, mockDeletedUser], 2]);
 
       const result = await repository.paginate(1, 10, ['roles'], true);
 
@@ -150,11 +155,16 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
         where: jest.fn().mockReturnThis(),
         getCount: jest.fn().mockResolvedValue(5),
       };
-      jest.spyOn(repository, 'createQueryBuilder').mockReturnValue(mockQueryBuilder as any);
+      jest
+        .spyOn(repository, 'createQueryBuilder')
+        .mockReturnValue(mockQueryBuilder as any);
 
       const result = await repository.countUsers();
 
-      expect(mockQueryBuilder.where).toHaveBeenCalledWith('user.deleted = :deleted', { deleted: false });
+      expect(mockQueryBuilder.where).toHaveBeenCalledWith(
+        'user.deleted = :deleted',
+        { deleted: false },
+      );
       expect(result).toBe(5);
     });
 
@@ -163,7 +173,9 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
         where: jest.fn().mockReturnThis(),
         getCount: jest.fn().mockResolvedValue(10),
       };
-      jest.spyOn(repository, 'createQueryBuilder').mockReturnValue(mockQueryBuilder as any);
+      jest
+        .spyOn(repository, 'createQueryBuilder')
+        .mockReturnValue(mockQueryBuilder as any);
 
       const result = await repository.countUsers(true);
 
@@ -191,11 +203,16 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
         andWhere: jest.fn().mockReturnThis(),
         getCount: jest.fn().mockResolvedValue(2),
       };
-      jest.spyOn(repository, 'createQueryBuilder').mockReturnValue(mockQueryBuilder as any);
+      jest
+        .spyOn(repository, 'createQueryBuilder')
+        .mockReturnValue(mockQueryBuilder as any);
 
       const result = await repository.countAdmins();
 
-      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('user.deleted = :deleted', { deleted: false });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'user.deleted = :deleted',
+        { deleted: false },
+      );
       expect(result).toBe(2);
     });
 
@@ -206,11 +223,16 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
         andWhere: jest.fn().mockReturnThis(),
         getCount: jest.fn().mockResolvedValue(3),
       };
-      jest.spyOn(repository, 'createQueryBuilder').mockReturnValue(mockQueryBuilder as any);
+      jest
+        .spyOn(repository, 'createQueryBuilder')
+        .mockReturnValue(mockQueryBuilder as any);
 
       const result = await repository.countAdmins(true);
 
-      expect(mockQueryBuilder.andWhere).not.toHaveBeenCalledWith('user.deleted = :deleted', { deleted: false });
+      expect(mockQueryBuilder.andWhere).not.toHaveBeenCalledWith(
+        'user.deleted = :deleted',
+        { deleted: false },
+      );
       expect(result).toBe(3);
     });
   });
@@ -224,11 +246,16 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
         andWhere: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue([mockActiveUser]),
       };
-      jest.spyOn(repository, 'createQueryBuilder').mockReturnValue(mockQueryBuilder as any);
+      jest
+        .spyOn(repository, 'createQueryBuilder')
+        .mockReturnValue(mockQueryBuilder as any);
 
       const result = await repository.findUsersByRole('role-id');
 
-      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('user.deleted = :deleted', { deleted: false });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'user.deleted = :deleted',
+        { deleted: false },
+      );
       expect(result).toEqual([mockActiveUser]);
     });
   });
