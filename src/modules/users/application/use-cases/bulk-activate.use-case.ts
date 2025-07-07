@@ -3,7 +3,7 @@ import { UserDomainService } from '@modules/users/domain/services/user.domain.se
 import { UserRepositoryInterface } from '@modules/users/domain/interfaces/user.repository.interface';
 import { BulkActivateDto } from '../dto/bulk-activate.dto';
 import { UserResponseDto } from '../dto/user.response.dto';
-import { UserNotFoundError } from '@modules/users/domain/exceptions/user-not-found.error';
+import { UserExceptions } from '@modules/users/domain/exceptions/user.exception';
 
 @Injectable()
 export class BulkActivateUseCase {
@@ -21,11 +21,14 @@ export class BulkActivateUseCase {
     for (const userId of userIds) {
       try {
         const user = await this.userRepository.findById(userId);
+        if (!user) {
+          throw UserExceptions.notFound();
+        }
         const activatedUser = await this.userDomainService.activateUser(user);
         const savedUser = await this.userRepository.save(activatedUser);
         activatedUsers.push(UserResponseDto.fromEntity(savedUser));
       } catch (error) {
-        if (error instanceof UserNotFoundError) {
+        if (error instanceof NotFoundException) {
           errors.push({ userId, error: error.message });
         } else {
           throw error;

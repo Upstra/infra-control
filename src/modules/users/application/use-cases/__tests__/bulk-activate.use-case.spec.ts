@@ -5,7 +5,6 @@ import { UserDomainService } from '@modules/users/domain/services/user.domain.se
 import { BulkActivateDto } from '../../dto/bulk-activate.dto';
 import { UserResponseDto } from '../../dto/user.response.dto';
 import { User } from '@modules/users/domain/entities/user.entity';
-import { UserNotFoundError } from '@modules/users/domain/exceptions/user-not-found.error';
 
 describe('BulkActivateUseCase', () => {
   let useCase: BulkActivateUseCase;
@@ -135,9 +134,7 @@ describe('BulkActivateUseCase', () => {
       );
       userRepository.save.mockResolvedValueOnce(activatedUser1 as User);
 
-      userRepository.findById.mockRejectedValueOnce(
-        new UserNotFoundError('User not found'),
-      );
+      userRepository.findById.mockResolvedValueOnce(null);
 
       userRepository.findById.mockResolvedValueOnce(mockUser3);
       userDomainService.activateUser.mockResolvedValueOnce(
@@ -158,9 +155,7 @@ describe('BulkActivateUseCase', () => {
         userIds: ['id1', 'id2'],
       };
 
-      userRepository.findById.mockRejectedValue(
-        new UserNotFoundError('User not found'),
-      );
+      userRepository.findById.mockResolvedValue(null);
 
       await expect(useCase.execute(bulkActivateDto)).rejects.toThrow(
         NotFoundException,
@@ -243,9 +238,7 @@ describe('BulkActivateUseCase', () => {
       userRepository.save.mockResolvedValueOnce(activatedUser1 as User);
 
       // User 2: Not found
-      userRepository.findById.mockRejectedValueOnce(
-        new UserNotFoundError('User not found'),
-      );
+      userRepository.findById.mockResolvedValueOnce(null);
 
       // User 3: Success
       userRepository.findById.mockResolvedValueOnce(mockUser3);
@@ -255,9 +248,7 @@ describe('BulkActivateUseCase', () => {
       userRepository.save.mockResolvedValueOnce(activatedUser3 as User);
 
       // User 4: Not found
-      userRepository.findById.mockRejectedValueOnce(
-        new UserNotFoundError('User not found'),
-      );
+      userRepository.findById.mockResolvedValueOnce(null);
 
       const result = await useCase.execute(bulkActivateDto);
 
