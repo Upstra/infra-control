@@ -48,9 +48,18 @@ export class CreateBatchPermissionServerUseCase {
         response.created.push(new PermissionServerDto(saved));
         response.successCount++;
       } catch (error) {
+        let errorMessage: string;
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        } else if (typeof error === 'string') {
+          errorMessage = error;
+        } else {
+          errorMessage = 'Unknown error occurred';
+        }
+
         response.failed.push({
           permission: permissionDto,
-          error: error.message ?? 'Unknown error occurred',
+          error: errorMessage,
         });
         response.failureCount++;
       }
