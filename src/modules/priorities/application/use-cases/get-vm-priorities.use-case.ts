@@ -15,7 +15,6 @@ export class GetVmPrioritiesUseCase {
 
   async execute(userId: string): Promise<VmPriorityResponseDto[]> {
     const permissions = await this.getUserPermissionVm.execute(userId);
-    console.log('Permissions:', permissions);
 
     const vmIds = permissions
       .filter(
