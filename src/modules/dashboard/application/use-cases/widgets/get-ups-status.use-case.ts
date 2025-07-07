@@ -15,24 +15,24 @@ export class GetUpsStatusUseCase {
     const upsStatuses = upsList.map((ups) => ({
       id: ups.id,
       name: ups.name,
-      status: 'online' as const,
-      batteryLevel: 95,
-      load: 45,
-      runtime: 120,
-      temperature: 25,
-      lastTest: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-      nextTest: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      status: 'unavailable' as const,
+      batteryLevel: null,
+      load: null,
+      runtime: null,
+      temperature: null,
+      lastTest: null,
+      nextTest: null,
+      isMocked: true,
     }));
 
     const summary = {
       total: upsStatuses.length,
-      online: upsStatuses.filter((u) => u.status === 'online').length,
-      onBattery: 0, // TODO: Implement actual UPS status tracking
+      online: 0,
+      onBattery: 0,
       offline: 0,
-      averageLoad:
-        upsStatuses.length > 0
-          ? upsStatuses.reduce((sum, u) => sum + u.load, 0) / upsStatuses.length
-          : 0,
+      unavailable: upsStatuses.length,
+      averageLoad: null,
+      isMocked: true,
     };
 
     return {
