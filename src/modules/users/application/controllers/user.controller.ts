@@ -29,6 +29,8 @@ import { UserResponseDto } from '../dto/user.response.dto';
 import { UserListResponseDto } from '../dto/user.list.response.dto';
 
 import { UserUpdateDto } from '../dto/user.update.dto';
+import { UpdateAccountDto } from '../dto/update-account.dto';
+import { BulkActivateDto } from '../dto/bulk-activate.dto';
 
 import {
   GetMeUseCase,
@@ -40,6 +42,8 @@ import {
   ResetPasswordUseCase,
   SoftDeleteUserUseCase,
   ToggleUserStatusUseCase,
+  UpdateAccountUseCase,
+  BulkActivateUseCase,
 } from '../use-cases';
 import { ResetPasswordDto } from '../dto';
 import {
@@ -62,6 +66,8 @@ export class UserController {
     private readonly deleteUserUseCase: DeleteUserUseCase,
     private readonly softDeleteUserUseCase: SoftDeleteUserUseCase,
     private readonly toggleUserStatusUseCase: ToggleUserStatusUseCase,
+    private readonly updateAccountUseCase: UpdateAccountUseCase,
+    private readonly bulkActivateUseCase: BulkActivateUseCase,
   ) {}
 
   @Get('me')
@@ -327,5 +333,62 @@ export class UserController {
         userAgent: requestContext.userAgent,
       },
     });
+  }
+
+  @Patch(':id/update-account')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: "UUID de l'utilisateur à mettre à jour",
+    required: true,
+  })
+  @ApiBody({
+    type: UpdateAccountDto,
+    description: 'Données pour mettre à jour le compte utilisateur',
+    required: true,
+  })
+  @ApiOperation({
+    summary: 'Mettre à jour un compte utilisateur (admin)',
+    description:
+      "Permet à un administrateur de mettre à jour les informations d'un compte utilisateur.",
+  })
+  @ApiResponse({
+    status: 200,
+    type: UserResponseDto,
+    description: 'Compte utilisateur mis à jour avec succès',
+  })
+  async updateAccount(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateAccountDto: UpdateAccountDto,
+  ): Promise<UserResponseDto> {
+    return this.updateAccountUseCase.execute(id, updateAccountDto);
+  }
+
+  @Patch('bulk-activate')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
+  @ApiBearerAuth()
+  @ApiBody({
+    type: BulkActivateDto,
+    description: 'Liste des IDs utilisateurs à activer',
+    required: true,
+  })
+  @ApiOperation({
+    summary: 'Activer plusieurs utilisateurs (admin)',
+    description:
+      "Permet à un administrateur d'activer plusieurs utilisateurs en une seule opération.",
+  })
+  @ApiResponse({
+    status: 200,
+    type: [UserResponseDto],
+    description: 'Utilisateurs activés avec succès',
+  })
+  async bulkActivateUsers(
+    @Body() bulkActivateDto: BulkActivateDto,
+  ): Promise<UserResponseDto[]> {
+    return this.bulkActivateUseCase.execute(bulkActivateDto);
   }
 }

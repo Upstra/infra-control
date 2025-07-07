@@ -24,6 +24,7 @@
       "@/modules/*": ["src/modules/*"],
       "@/common/*": ["src/common/*"],
       "@/core/*": ["src/core/*"],
+      "@modules/*": ["src/modules/*"]
     }
   }
 }
