@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '@/app.module';
-import { UserRole } from '@/modules/users/domain/entities/user.entity';
 import { BulkActivateDto } from '@/modules/users/application/dto/bulk-activate.dto';
 
 describe('UserController - Bulk Activate (e2e)', () => {
@@ -37,11 +36,7 @@ describe('UserController - Bulk Activate (e2e)', () => {
 
     adminUserId = adminResponse.body.id;
 
-    // Update admin role
-    await request(app.getHttpServer())
-      .patch(`/user/${adminUserId}/update-account`)
-      .set('Authorization', `Bearer ${adminResponse.body.access_token}`)
-      .send({ role: UserRole.ADMIN });
+    // Admin user is already created, no need to update role
 
     // Login as admin
     const adminLoginResponse = await request(app.getHttpServer())

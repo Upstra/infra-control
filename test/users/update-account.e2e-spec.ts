@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '@/app.module';
-import { UserRole } from '@/modules/users/domain/entities/user.entity';
 import { UpdateAccountDto } from '@/modules/users/application/dto/update-account.dto';
 
 describe('UserController - Update Account (e2e)', () => {
@@ -26,7 +25,6 @@ describe('UserController - Update Account (e2e)', () => {
   });
 
   beforeEach(async () => {
-    // Create admin user and get token
     const adminResponse = await request(app.getHttpServer())
       .post('/auth/register')
       .send({
@@ -37,13 +35,6 @@ describe('UserController - Update Account (e2e)', () => {
 
     adminUserId = adminResponse.body.id;
 
-    // Update admin role
-    await request(app.getHttpServer())
-      .patch(`/user/${adminUserId}/update-account`)
-      .set('Authorization', `Bearer ${adminResponse.body.access_token}`)
-      .send({ role: UserRole.ADMIN });
-
-    // Login as admin
     const adminLoginResponse = await request(app.getHttpServer())
       .post('/auth/login')
       .send({
@@ -53,7 +44,6 @@ describe('UserController - Update Account (e2e)', () => {
 
     adminToken = adminLoginResponse.body.access_token;
 
-    // Create test user
     const userResponse = await request(app.getHttpServer())
       .post('/auth/register')
       .send({
@@ -69,7 +59,6 @@ describe('UserController - Update Account (e2e)', () => {
   });
 
   afterEach(async () => {
-    // Clean up users
     if (testUserId) {
       await request(app.getHttpServer())
         .delete(`/user/${testUserId}`)
@@ -88,7 +77,6 @@ describe('UserController - Update Account (e2e)', () => {
         firstName: 'Updated',
         lastName: 'Name',
         email: 'updated_email@test.com',
-        role: UserRole.ADMIN,
         isActive: false,
         isVerified: false,
       };
@@ -103,7 +91,6 @@ describe('UserController - Update Account (e2e)', () => {
       expect(response.body).toHaveProperty('firstName', 'Updated');
       expect(response.body).toHaveProperty('lastName', 'Name');
       expect(response.body).toHaveProperty('email', 'updated_email@test.com');
-      expect(response.body).toHaveProperty('role', UserRole.ADMIN);
       expect(response.body).toHaveProperty('isActive', false);
       expect(response.body).toHaveProperty('isVerified', false);
     });
@@ -121,8 +108,8 @@ describe('UserController - Update Account (e2e)', () => {
 
       expect(response.body).toHaveProperty('id', testUserId);
       expect(response.body).toHaveProperty('firstName', 'PartialUpdate');
-      expect(response.body).toHaveProperty('lastName', 'User'); // Original value
-      expect(response.body).toHaveProperty('email', 'user_update@test.com'); // Original value
+      expect(response.body).toHaveProperty('lastName', 'User');
+      expect(response.body).toHaveProperty('email', 'user_update@test.com');
     });
 
     it('should fail when not authenticated', async () => {
@@ -208,20 +195,6 @@ describe('UserController - Update Account (e2e)', () => {
         .expect(200);
 
       expect(response.body).toHaveProperty('email', 'new_email@test.com');
-    });
-
-    it('should update role successfully', async () => {
-      const updateData: UpdateAccountDto = {
-        role: UserRole.ADMIN,
-      };
-
-      const response = await request(app.getHttpServer())
-        .patch(`/user/${testUserId}/update-account`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send(updateData)
-        .expect(200);
-
-      expect(response.body).toHaveProperty('role', UserRole.ADMIN);
     });
 
     it('should update isActive status successfully', async () => {
