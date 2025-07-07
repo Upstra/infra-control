@@ -1,6 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, ValidateNested, ArrayMinSize, ArrayMaxSize } from 'class-validator';
+import {
+  IsArray,
+  ValidateNested,
+  ArrayMinSize,
+  ArrayMaxSize,
+} from 'class-validator';
 import { PermissionServerDto } from './permission.server.dto';
 
 export class BatchPermissionServerDto {

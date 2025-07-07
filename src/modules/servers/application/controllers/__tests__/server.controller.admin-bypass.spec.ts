@@ -14,8 +14,10 @@ import {
   GetServerByIdWithPermissionCheckUseCase,
   GetUserServersUseCase,
   UpdateServerPriorityUseCase,
+  CheckServerPermissionUseCase,
 } from '../../use-cases';
 import { Reflector } from '@nestjs/core';
+import { GetUserWithRoleUseCase } from '@/modules/users/application/use-cases/get-user-with-role.use-case';
 
 describe('ServerController - Admin Bypass Tests', () => {
   let controller: ServerController;
@@ -28,7 +30,7 @@ describe('ServerController - Admin Bypass Tests', () => {
     email: 'admin@example.com',
   };
 
-  const mockNormalUser: JwtPayload = {
+  const _mockNormalUser: JwtPayload = {
     userId: 'user-123',
     email: 'user@example.com',
   };
@@ -113,6 +115,14 @@ describe('ServerController - Admin Bypass Tests', () => {
           provide: 'PermissionStrategyFactory',
           useValue: mockPermissionStrategyFactory,
         },
+        {
+          provide: CheckServerPermissionUseCase,
+          useValue: { execute: jest.fn() },
+        },
+        {
+          provide: GetUserWithRoleUseCase,
+          useValue: { execute: jest.fn() },
+        },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -157,7 +167,10 @@ describe('ServerController - Admin Bypass Tests', () => {
       it('should allow delete when guard permits', async () => {
         await controller.deleteServer('server-123', mockAdminUser);
 
-        expect(deleteServerUseCase.execute).toHaveBeenCalledWith('server-123', 'admin-123');
+        expect(deleteServerUseCase.execute).toHaveBeenCalledWith(
+          'server-123',
+          'admin-123',
+        );
       });
     });
 

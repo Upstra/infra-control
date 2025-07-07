@@ -32,7 +32,8 @@ describe('PermissionDomainVmService', () => {
       const dto = new PermissionVmDto({
         vmId: 'test-vm-id',
         roleId: 'test-role-id',
-        bitmask: PermissionBit.READ | PermissionBit.WRITE | PermissionBit.DELETE,
+        bitmask:
+          PermissionBit.READ | PermissionBit.WRITE | PermissionBit.DELETE,
       });
 
       const entity = service.createPermissionEntityFromDto(dto);
@@ -47,13 +48,20 @@ describe('PermissionDomainVmService', () => {
       const dto = new PermissionVmDto({
         vmId: 'vm-123',
         roleId: 'role-456',
-        bitmask: PermissionBit.READ | PermissionBit.WRITE | PermissionBit.DELETE | PermissionBit.RESTART,
+        bitmask:
+          PermissionBit.READ |
+          PermissionBit.WRITE |
+          PermissionBit.DELETE |
+          PermissionBit.RESTART,
       });
 
       const entity = service.createPermissionEntityFromDto(dto);
 
       expect(entity.bitmask).toBe(
-        PermissionBit.READ | PermissionBit.WRITE | PermissionBit.DELETE | PermissionBit.RESTART
+        PermissionBit.READ |
+          PermissionBit.WRITE |
+          PermissionBit.DELETE |
+          PermissionBit.RESTART,
       );
     });
 
@@ -121,7 +129,9 @@ describe('PermissionDomainVmService', () => {
     it('should create entities with consistent structure', () => {
       const fullEntity = service.createFullPermissionEntity();
       const readOnlyEntity = service.createReadOnlyPermissionEntity();
-      const dtoEntity = service.createPermissionEntityFromDto(new PermissionVmDto({ bitmask: 0 }));
+      const dtoEntity = service.createPermissionEntityFromDto(
+        new PermissionVmDto({ bitmask: 0 }),
+      );
 
       expect(fullEntity).toBeInstanceOf(PermissionVm);
       expect(readOnlyEntity).toBeInstanceOf(PermissionVm);
@@ -130,7 +140,7 @@ describe('PermissionDomainVmService', () => {
 
     it('should verify bitmask combinations for full permissions', () => {
       const entity = service.createFullPermissionEntity();
-      
+
       expect(entity.bitmask & PermissionBit.READ).toBeTruthy();
       expect(entity.bitmask & PermissionBit.WRITE).toBeTruthy();
       expect(entity.bitmask & PermissionBit.DELETE).toBeFalsy();
@@ -139,7 +149,7 @@ describe('PermissionDomainVmService', () => {
 
     it('should verify bitmask for read-only permissions', () => {
       const entity = service.createReadOnlyPermissionEntity();
-      
+
       expect(entity.bitmask & PermissionBit.READ).toBeTruthy();
       expect(entity.bitmask & PermissionBit.WRITE).toBeFalsy();
       expect(entity.bitmask & PermissionBit.DELETE).toBeFalsy();

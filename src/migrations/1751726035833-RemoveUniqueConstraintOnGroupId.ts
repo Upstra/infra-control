@@ -85,7 +85,7 @@ export class RemoveUniqueConstraintOnGroupId1751726035833
         `);
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
+  public async down(_queryRunner: QueryRunner): Promise<void> {
     // We don't want to recreate the unique constraints in rollback
     // as they shouldn't exist in the first place
   }

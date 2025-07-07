@@ -123,8 +123,7 @@ describe('PriorityController', () => {
 
       getServerPriorities.execute.mockResolvedValue([]);
 
-      const result =
-        await controller.getServerPrioritiesList(userWithoutId);
+      const result = await controller.getServerPrioritiesList(userWithoutId);
 
       expect(getServerPriorities.execute).toHaveBeenCalledWith(undefined);
       expect(result).toEqual([]);

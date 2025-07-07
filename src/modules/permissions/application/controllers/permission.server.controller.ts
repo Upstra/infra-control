@@ -36,6 +36,7 @@ import { GetUserServerPermissionsUseCase } from '../use-cases/permission-server/
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { LogToHistory } from '@/core/decorators/logging-context.decorator';
 
 @ApiTags('Permissions - Serveur')
 @Controller('permissions/server')
@@ -75,50 +76,87 @@ export class PermissionServerController {
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Créer une nouvelle permission serveur' })
   @ApiBody({ type: PermissionServerDto })
   @ApiResponse({ status: 201, type: PermissionServerDto })
+  @LogToHistory('permission_server', 'CREATE', {
+    extractMetadata: (data) => ({
+      serverId: data.serverId,
+      roleId: data.roleId,
+      bitmask: data.bitmask,
+    }),
+  })
   async createPermission(
     @Body() dto: PermissionServerDto,
+    @CurrentUser() user: JwtPayload,
   ): Promise<PermissionServerDto> {
-    return this.createPermissionUsecase.execute(dto);
+    return this.createPermissionUsecase.execute(dto, user.userId);
   }
 
   @Post('batch')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Créer plusieurs permissions serveur en une fois' })
   @ApiBody({ type: BatchPermissionServerDto })
   @ApiResponse({ status: 201, type: BatchPermissionServerResponseDto })
+  @LogToHistory('permission_server', 'BATCH_CREATE', {
+    extractMetadata: (data) => ({
+      permissionsCount: data.permissions?.length || 0,
+    }),
+  })
   async createBatchPermissions(
     @Body() dto: BatchPermissionServerDto,
+    @CurrentUser() user: JwtPayload,
   ): Promise<BatchPermissionServerResponseDto> {
-    return this.createBatchPermissionUsecase.execute(dto);
+    return this.createBatchPermissionUsecase.execute(dto, user.userId);
   }
 
   @Patch(':serverId/role/:roleId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Modifier une permission serveur existante' })
   @ApiParam({ name: 'serverId', type: 'string', format: 'uuid' })
   @ApiParam({ name: 'roleId', type: 'string', format: 'uuid' })
   @ApiBody({ type: UpdatePermissionServerDto })
   @ApiResponse({ status: 200, type: PermissionServerDto })
+  @LogToHistory('permission_server', 'UPDATE', {
+    extractMetadata: (data) => ({
+      serverId: data.serverId,
+      roleId: data.roleId,
+      newBitmask: data.bitmask,
+    }),
+  })
   async updatePermission(
     @Param('serverId', ParseUUIDPipe) serverId: string,
     @Param('roleId', ParseUUIDPipe) roleId: string,
     @Body() dto: UpdatePermissionServerDto,
+    @CurrentUser() user: JwtPayload,
   ): Promise<PermissionServerDto> {
-    return this.updatePermissionUsecase.execute(serverId, roleId, dto);
+    return this.updatePermissionUsecase.execute(
+      serverId,
+      roleId,
+      dto,
+      user.userId,
+    );
   }
 
   @Delete(':serverId/role/:roleId')
   @HttpCode(204)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Supprimer une permission serveur' })
   @ApiParam({ name: 'serverId', type: 'string', format: 'uuid' })
   @ApiParam({ name: 'roleId', type: 'string', format: 'uuid' })
   @ApiResponse({ status: 204, description: 'Permission supprimée avec succès' })
+  @LogToHistory('permission_server', 'DELETE')
   async deletePermission(
     @Param('serverId', ParseUUIDPipe) serverId: string,
     @Param('roleId', ParseUUIDPipe) roleId: string,
+    @CurrentUser() user: JwtPayload,
   ): Promise<void> {
-    return this.deletePermissionUsecase.execute(serverId, roleId);
+    return this.deletePermissionUsecase.execute(serverId, roleId, user.userId);
   }
 
   @Get('user/me')

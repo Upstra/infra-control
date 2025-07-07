@@ -81,7 +81,10 @@ describe('VmController', () => {
         { provide: UpdateVmUseCase, useValue: updateVmUseCase },
         { provide: DeleteVmUseCase, useValue: deleteVmUseCase },
         { provide: UpdateVmPriorityUseCase, useValue: updateVmPriorityUseCase },
-        { provide: CheckVmPermissionUseCase, useValue: checkVmPermissionUseCase },
+        {
+          provide: CheckVmPermissionUseCase,
+          useValue: checkVmPermissionUseCase,
+        },
         {
           provide: 'PermissionStrategyFactory',
           useValue: mockPermissionStrategyFactory,
@@ -170,7 +173,7 @@ describe('VmController', () => {
       };
       createVmUseCase.execute.mockResolvedValue(vm);
 
-      const mockUser = { userId: 'user-123', email: 'user@example.com' };
+      const _mockUser = { userId: 'user-123', email: 'user@example.com' };
       const result = await controller.createVm(dto);
 
       expect(result).toEqual(vm);
@@ -197,8 +200,8 @@ describe('VmController', () => {
         new Error('VM creation failed'),
       );
 
-      const mockUser = { userId: 'user-123', email: 'user@example.com' };
-      const mockReq = {
+      const _mockUser = { userId: 'user-123', email: 'user@example.com' };
+      const _mockReq = {
         ip: '127.0.0.1',
         get: jest.fn().mockReturnValue('Test-Agent'),
       } as any;
@@ -349,7 +352,7 @@ describe('VmController', () => {
 
     it('should handle large number of VMs', async () => {
       const vms = Array.from({ length: 100 }, (_, i) =>
-        createMockVmResponseDto({ id: `vm-${i}`, name: `VM ${i}` })
+        createMockVmResponseDto({ id: `vm-${i}`, name: `VM ${i}` }),
       );
       getAllVmsAdminUseCase.execute.mockResolvedValue(vms);
 

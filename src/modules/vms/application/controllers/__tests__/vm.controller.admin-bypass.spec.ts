@@ -3,6 +3,7 @@ import { VmController } from '../vm.controller';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { RoleGuard } from '@/core/guards/role.guard';
 import { VmUpdateDto } from '../../dto/vm.update.dto';
 import { VmCreationDto } from '../../dto/vm.creation.dto';
 import {
@@ -13,8 +14,11 @@ import {
   GetAllVmsUseCase,
   GetVmListUseCase,
   GetVmByIdUseCase,
+  GetAllVmsAdminUseCase,
+  CheckVmPermissionUseCase,
 } from '../../use-cases';
 import { Reflector } from '@nestjs/core';
+import { GetUserWithRoleUseCase } from '@/modules/users/application/use-cases/get-user-with-role.use-case';
 
 describe('VmController - Admin Bypass Tests', () => {
   let controller: VmController;
@@ -28,12 +32,12 @@ describe('VmController - Admin Bypass Tests', () => {
     email: 'admin@example.com',
   };
 
-  const mockNormalUser: JwtPayload = {
+  const _mockNormalUser: JwtPayload = {
     userId: 'user-123',
     email: 'user@example.com',
   };
 
-  const mockRequest: any = {
+  const _mockRequest: any = {
     ip: '127.0.0.1',
     headers: {
       'user-agent': 'test-agent',
@@ -114,6 +118,14 @@ describe('VmController - Admin Bypass Tests', () => {
           useValue: { execute: jest.fn() },
         },
         {
+          provide: GetAllVmsAdminUseCase,
+          useValue: { execute: jest.fn() },
+        },
+        {
+          provide: CheckVmPermissionUseCase,
+          useValue: { execute: jest.fn() },
+        },
+        {
           provide: Reflector,
           useValue: mockReflector,
         },
@@ -125,11 +137,17 @@ describe('VmController - Admin Bypass Tests', () => {
           provide: 'PermissionStrategyFactory',
           useValue: mockPermissionStrategyFactory,
         },
+        {
+          provide: GetUserWithRoleUseCase,
+          useValue: { execute: jest.fn() },
+        },
       ],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: jest.fn().mockReturnValue(true) })
       .overrideGuard(ResourcePermissionGuard)
+      .useValue({ canActivate: jest.fn().mockReturnValue(true) })
+      .overrideGuard(RoleGuard)
       .useValue({ canActivate: jest.fn().mockReturnValue(true) })
       .compile();
 

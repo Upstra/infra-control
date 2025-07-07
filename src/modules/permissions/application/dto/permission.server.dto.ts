@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsUUID, IsInt, IsOptional } from 'class-validator';
+import { IsUUID, IsInt } from 'class-validator';
 import { PermissionServer } from '../../domain/entities/permission.server.entity';
 
 export class PermissionServerDto {

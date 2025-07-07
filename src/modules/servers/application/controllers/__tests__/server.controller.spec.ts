@@ -242,7 +242,10 @@ describe('ServerController', () => {
       const result = await controller.deleteServer('server-uuid', mockPayload);
 
       expect(result).toBeUndefined();
-      expect(deleteServerUseCase.execute).toHaveBeenCalledWith('server-uuid', mockPayload.userId);
+      expect(deleteServerUseCase.execute).toHaveBeenCalledWith(
+        'server-uuid',
+        mockPayload.userId,
+      );
     });
   });
 

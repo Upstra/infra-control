@@ -238,7 +238,11 @@ describe('CheckVmPermissionUseCase', () => {
 
       expect(deleteResult.hasPermission).toBe(false);
 
-      const readResult = await useCase.execute(vmId, userId, PermissionBit.READ);
+      const readResult = await useCase.execute(
+        vmId,
+        userId,
+        PermissionBit.READ,
+      );
 
       expect(readResult.hasPermission).toBe(true);
     });

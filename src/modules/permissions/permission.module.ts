@@ -17,12 +17,14 @@ import { PermissionServerRepository } from './infrastructure/repositories/permis
 import { PermissionVmUseCases } from './application/use-cases/permission-vm';
 import { PermissionServerUseCases } from './application/use-cases/permission-server';
 import { UserModule } from '../users/user.module';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
   controllers: [PermissionVmController, PermissionServerController],
   imports: [
     TypeOrmModule.forFeature([Permission, PermissionServer, PermissionVm]),
     forwardRef(() => UserModule),
+    AuditModule,
   ],
   providers: [
     ...PermissionVmUseCases,
