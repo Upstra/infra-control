@@ -50,3 +50,11 @@ export class CannotRemoveLastAdminException extends Error {
     super(message);
   }
 }
+
+export class CannotDeleteOwnAccountException extends Error {
+  constructor(
+    message = 'Impossible de supprimer votre propre compte administrateur',
+  ) {
+    super(message);
+  }
+}

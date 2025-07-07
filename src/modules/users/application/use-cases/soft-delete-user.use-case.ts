@@ -1,0 +1,91 @@
+import { Injectable, Inject } from '@nestjs/common';
+import { UserRepositoryInterface } from '../../domain/interfaces/user.repository.interface';
+import {
+  UserNotFoundException,
+  CannotDeleteOwnAccountException,
+  CannotDeleteLastAdminException,
+} from '../../domain/exceptions/user.exception';
+import { LogHistoryUseCase } from '../../../history/application/use-cases/log-history.use-case';
+import { DeletionReason } from '../dto/delete-account.dto';
+import { User } from '../../domain/entities/user.entity';
+
+@Injectable()
+export class SoftDeleteUserUseCase {
+  constructor(
+    @Inject('UserRepositoryInterface')
+    private readonly userRepository: UserRepositoryInterface,
+    @Inject(LogHistoryUseCase)
+    private readonly logHistory: LogHistoryUseCase,
+  ) {}
+
+  async execute(
+    targetUserId: string,
+    adminUserId: string,
+    reason: DeletionReason = DeletionReason.ADMIN_ACTION,
+    details?: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<void> {
+    // Check if target user exists
+    const targetUser = await this.userRepository.findById(targetUserId);
+    if (!targetUser || targetUser.deleted) {
+      throw new UserNotFoundException(targetUserId);
+    }
+
+    // Check if admin is trying to delete their own account
+    if (targetUserId === adminUserId) {
+      throw new CannotDeleteOwnAccountException();
+    }
+
+    // Check if this is the last admin
+    const adminCount = await this.userRepository.countActiveAdmins();
+    const isTargetAdmin = await this.isUserAdmin(targetUser);
+    
+    if (isTargetAdmin && adminCount <= 1) {
+      throw new CannotDeleteLastAdminException();
+    }
+
+    // Perform soft delete
+    targetUser.deleted = true;
+    targetUser.deletedAt = new Date();
+    targetUser.active = false;
+    
+    const updatedUser = await this.userRepository.save(targetUser);
+
+    // Log to history
+    await this.logHistory.executeStructured({
+      entity: 'user',
+      entityId: targetUserId,
+      action: 'USER_DELETED',
+      userId: adminUserId,
+      oldValue: {
+        active: true,
+        deleted: false,
+      },
+      newValue: {
+        active: false,
+        deleted: true,
+        deletedAt: updatedUser.deletedAt,
+      },
+      metadata: {
+        deletedBy: adminUserId,
+        deletedAt: updatedUser.deletedAt?.toISOString(),
+        reason,
+        details,
+        userEmail: targetUser.email || '',
+        username: targetUser.username,
+      },
+      ipAddress,
+      userAgent,
+    });
+  }
+
+  private async isUserAdmin(user: User): Promise<boolean> {
+    const userWithRoles = await this.userRepository.findWithRoles(user.id);
+    if (!userWithRoles) return false;
+    
+    return userWithRoles.roles.some(role => 
+      role.name === 'Admin' || role.name === 'admin'
+    );
+  }
+}

@@ -51,5 +51,28 @@ export interface UserRepositoryInterface
    * @returns Array of users having the specified role
    */
   findUsersByRole(roleId: string): Promise<User[]>;
+
+  /**
+   * Find a user by ID with their roles loaded.
+   *
+   * @param userId - The ID of the user
+   * @returns User with roles or null
+   */
+  findWithRoles(userId: string): Promise<User | null>;
+
+  /**
+   * Count the number of active admin users in the system.
+   * 
+   * @returns Number of active admins
+   */
+  countActiveAdmins(): Promise<number>;
+
+  /**
+   * Find a user by ID including soft-deleted users.
+   *
+   * @param id - The ID of the user
+   * @returns User or null
+   */
+  findById(id: string): Promise<User | null>;
 }
 export { FindOneByFieldOptions, FindAllByFieldOptions };
