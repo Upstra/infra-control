@@ -1,6 +1,6 @@
 import { UpdatePermissionVmUseCase } from '../update-permission-vm.use-case';
 import { PermissionVmRepository } from '@/modules/permissions/infrastructure/repositories/permission.vm.repository';
-import { PermissionVmDto } from '@/modules/permissions/application/dto/permission.vm.dto';
+import { PermissionVmDto, UpdatePermissionVmDto } from '@/modules/permissions/application/dto/permission.vm.dto';
 import { PermissionVm } from '@/modules/permissions/domain/entities/permission.vm.entity';
 import { PermissionNotFoundException } from '@/modules/permissions/domain/exceptions/permission.exception';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
@@ -30,31 +30,35 @@ describe('UpdatePermissionVmUseCase', () => {
   });
 
   it('should update permission and return updated dto', async () => {
-    const dto = new PermissionVmDto({
-      roleId: 'role-1',
-      vmId: 'vm-1',
+    const vmId = 'vm-1';
+    const roleId = 'role-1';
+    const updateDto = new UpdatePermissionVmDto({
       bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
 
-    const updated = mockPermissionVm(dto);
+    const updated = mockPermissionVm({
+      vmId,
+      roleId,
+      bitmask: updateDto.bitmask,
+    });
 
     repository.updatePermission.mockResolvedValue(updated);
 
-    const result = await useCase.execute(dto.vmId, dto.roleId, dto);
+    const result = await useCase.execute(vmId, roleId, updateDto);
 
     expect(repository.updatePermission).toHaveBeenCalledWith(
-      dto.vmId,
-      dto.roleId,
-      dto.bitmask,
+      vmId,
+      roleId,
+      updateDto.bitmask,
     );
 
     expect(result).toEqual(new PermissionVmDto(updated));
   });
 
   it('should throw if repository throws', async () => {
-    const dto = new PermissionVmDto({
-      roleId: 'invalid-role',
-      vmId: 'invalid-vm',
+    const vmId = 'invalid-vm';
+    const roleId = 'invalid-role';
+    const updateDto = new UpdatePermissionVmDto({
       bitmask: PermissionBit.READ,
     });
 
@@ -62,26 +66,56 @@ describe('UpdatePermissionVmUseCase', () => {
       new PermissionNotFoundException(),
     );
 
-    await expect(useCase.execute(dto.vmId, dto.roleId, dto)).rejects.toThrow(
+    await expect(useCase.execute(vmId, roleId, updateDto)).rejects.toThrow(
       PermissionNotFoundException,
     );
   });
 
   it('should return dto with updated fields', async () => {
-    const updated = mockPermissionVm({
-      roleId: 'admin',
-      vmId: 'vm-admin',
+    const vmId = 'vm-admin';
+    const roleId = 'admin';
+    const updateDto = new UpdatePermissionVmDto({
       bitmask: PermissionBit.READ | PermissionBit.WRITE,
+    });
+
+    const updated = mockPermissionVm({
+      roleId,
+      vmId,
+      bitmask: updateDto.bitmask,
     });
 
     repository.updatePermission.mockResolvedValue(updated);
 
-    const result = await useCase.execute(updated.vmId, updated.roleId, new PermissionVmDto(updated));
+    const result = await useCase.execute(vmId, roleId, updateDto);
 
     expect(result).toEqual({
       roleId: 'admin',
       vmId: 'vm-admin',
       bitmask: PermissionBit.READ | PermissionBit.WRITE,
     });
+  });
+
+  it('should handle different bitmask values', async () => {
+    const vmId = 'vm-test';
+    const roleId = 'role-test';
+    const testCases = [
+      { bitmask: 0 },
+      { bitmask: PermissionBit.READ },
+      { bitmask: PermissionBit.WRITE },
+      { bitmask: PermissionBit.READ | PermissionBit.WRITE | PermissionBit.DELETE },
+      { bitmask: 255 },
+    ];
+
+    for (const testCase of testCases) {
+      const updateDto = new UpdatePermissionVmDto({ bitmask: testCase.bitmask });
+      const updated = mockPermissionVm({ vmId, roleId, bitmask: testCase.bitmask });
+      
+      repository.updatePermission.mockResolvedValue(updated);
+      
+      const result = await useCase.execute(vmId, roleId, updateDto);
+      
+      expect(result.bitmask).toBe(testCase.bitmask);
+      expect(repository.updatePermission).toHaveBeenCalledWith(vmId, roleId, testCase.bitmask);
+    }
   });
 });

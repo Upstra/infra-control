@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PermissionServerController } from '../permission.server.controller';
 
 import { createMockPermissionServerDto } from '@/modules/permissions/__mocks__/permissions.mock';
+import { UpdatePermissionServerDto } from '../../dto/permission.server.dto';
 import {
   CreatePermissionServerUseCase,
   CreateBatchPermissionServerUseCase,
@@ -99,19 +100,49 @@ describe('PermissionServerController', () => {
   });
 
   it('should call updatePermission', async () => {
-    const dto = createMockPermissionServerDto();
-    updatePermissionUsecase.execute.mockResolvedValue(dto);
+    const updateDto: UpdatePermissionServerDto = {
+      bitmask: 7,
+    };
+    const expectedResult = createMockPermissionServerDto();
+    expectedResult.bitmask = 7;
+    updatePermissionUsecase.execute.mockResolvedValue(expectedResult);
     const res = await controller.updatePermission(
       'server-uuid',
       'role-uuid',
-      dto,
+      updateDto,
     );
-    expect(res).toEqual(dto);
+    expect(res).toEqual(expectedResult);
     expect(updatePermissionUsecase.execute).toHaveBeenCalledWith(
       'server-uuid',
       'role-uuid',
-      dto,
+      updateDto,
     );
+  });
+
+  it('should update permission with different bitmask values', async () => {
+    const serverId = 'server-uuid';
+    const roleId = 'role-uuid';
+    const testCases = [
+      { bitmask: 0 },
+      { bitmask: 1 },
+      { bitmask: 15 },
+      { bitmask: 255 },
+    ];
+
+    for (const testCase of testCases) {
+      const updateDto: UpdatePermissionServerDto = {
+        bitmask: testCase.bitmask,
+      };
+      const expectedResult = createMockPermissionServerDto();
+      expectedResult.bitmask = testCase.bitmask;
+
+      updatePermissionUsecase.execute.mockResolvedValue(expectedResult);
+
+      const result = await controller.updatePermission(serverId, roleId, updateDto);
+
+      expect(result).toEqual(expectedResult);
+      expect(updatePermissionUsecase.execute).toHaveBeenCalledWith(serverId, roleId, updateDto);
+    }
   });
 
   it('should call deletePermission', async () => {

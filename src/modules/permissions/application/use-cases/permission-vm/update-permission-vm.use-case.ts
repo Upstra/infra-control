@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { PermissionVmDto } from '../../dto/permission.vm.dto';
+import { PermissionVmDto, UpdatePermissionVmDto } from '../../dto/permission.vm.dto';
 import { PermissionVmRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.vm.repository.interface';
 
 /**
@@ -28,7 +28,7 @@ export class UpdatePermissionVmUseCase {
     private readonly repository: PermissionVmRepositoryInterface,
   ) {}
 
-  async execute(vmId: string, roleId: string, dto: PermissionVmDto): Promise<PermissionVmDto> {
+  async execute(vmId: string, roleId: string, dto: UpdatePermissionVmDto): Promise<PermissionVmDto> {
     const updated = await this.repository.updatePermission(vmId, roleId, dto.bitmask);
     return PermissionVmDto.fromEntity(updated);
   }
