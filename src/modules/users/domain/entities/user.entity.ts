@@ -54,4 +54,10 @@ export class User extends BaseEntity {
 
   @Column({ default: false })
   active!: boolean;
+
+  @Column({ default: false })
+  deleted!: boolean;
+
+  @Column({ type: 'timestamp', nullable: true })
+  deletedAt?: Date;
 }
