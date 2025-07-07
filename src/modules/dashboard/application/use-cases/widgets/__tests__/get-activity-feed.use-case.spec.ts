@@ -15,7 +15,7 @@ describe('GetActivityFeedUseCase', () => {
     username: 'testuser',
   };
 
-  const mockHistoryEvents: HistoryEvent[] = [
+  const mockHistoryEvents: Partial<HistoryEvent>[] = [
     {
       id: 'event-1',
       entity: 'server',
@@ -27,7 +27,7 @@ describe('GetActivityFeedUseCase', () => {
       oldValue: null,
       createdAt: new Date('2024-01-15T10:00:00Z'),
       metadata: {},
-    } as HistoryEvent,
+    },
     {
       id: 'event-2',
       entity: 'vm',
@@ -39,7 +39,7 @@ describe('GetActivityFeedUseCase', () => {
       oldValue: { name: 'Test VM', status: 'stopped' },
       createdAt: new Date('2024-01-15T09:30:00Z'),
       metadata: {},
-    } as HistoryEvent,
+    },
     {
       id: 'event-3',
       entity: 'user',
@@ -51,7 +51,7 @@ describe('GetActivityFeedUseCase', () => {
       oldValue: { name: 'Deleted User' },
       createdAt: new Date('2024-01-15T09:00:00Z'),
       metadata: {},
-    } as HistoryEvent,
+    },
   ];
 
   beforeEach(async () => {
@@ -74,7 +74,7 @@ describe('GetActivityFeedUseCase', () => {
   describe('execute', () => {
     it('should return activity feed with default pagination', async () => {
       const query: WidgetDataQueryDto = {};
-      historyRepository.paginate.mockResolvedValue([mockHistoryEvents, 3]);
+      historyRepository.paginate.mockResolvedValue([mockHistoryEvents as any, 3]);
 
       const result = await useCase.execute(query);
 
@@ -97,7 +97,7 @@ describe('GetActivityFeedUseCase', () => {
         page: 2,
         limit: 50,
       };
-      historyRepository.paginate.mockResolvedValue([mockHistoryEvents, 100]);
+      historyRepository.paginate.mockResolvedValue([mockHistoryEvents as any, 100]);
 
       const result = await useCase.execute(query);
 
@@ -119,7 +119,7 @@ describe('GetActivityFeedUseCase', () => {
         dateFrom: '2024-01-01',
         dateTo: '2024-01-31',
       };
-      historyRepository.paginate.mockResolvedValue([mockHistoryEvents, 3]);
+      historyRepository.paginate.mockResolvedValue([mockHistoryEvents as any, 3]);
 
       const result = await useCase.execute(query);
 
@@ -138,7 +138,7 @@ describe('GetActivityFeedUseCase', () => {
       const query: WidgetDataQueryDto = {
         dateFrom: '2024-01-15',
       };
-      historyRepository.paginate.mockResolvedValue([mockHistoryEvents.slice(0, 2), 2]);
+      historyRepository.paginate.mockResolvedValue([mockHistoryEvents.slice(0, 2) as any, 2]);
 
       const result = await useCase.execute(query);
 
@@ -156,7 +156,7 @@ describe('GetActivityFeedUseCase', () => {
       const query: WidgetDataQueryDto = {
         dateTo: '2024-01-15',
       };
-      historyRepository.paginate.mockResolvedValue([mockHistoryEvents, 3]);
+      historyRepository.paginate.mockResolvedValue([mockHistoryEvents as any, 3]);
 
       const result = await useCase.execute(query);
 
@@ -172,7 +172,7 @@ describe('GetActivityFeedUseCase', () => {
 
     it('should map history events to activity feed format', async () => {
       const query: WidgetDataQueryDto = {};
-      historyRepository.paginate.mockResolvedValue([[mockHistoryEvents[0]], 1]);
+      historyRepository.paginate.mockResolvedValue([[mockHistoryEvents[0]] as any, 1]);
 
       const result = await useCase.execute(query);
 
@@ -196,7 +196,7 @@ describe('GetActivityFeedUseCase', () => {
 
     it('should handle system events without user', async () => {
       const query: WidgetDataQueryDto = {};
-      historyRepository.paginate.mockResolvedValue([[mockHistoryEvents[2]], 1]);
+      historyRepository.paginate.mockResolvedValue([[mockHistoryEvents[2]] as any, 1]);
 
       const result = await useCase.execute(query);
 
@@ -209,7 +209,7 @@ describe('GetActivityFeedUseCase', () => {
 
     it('should generate proper descriptions for different actions', async () => {
       const query: WidgetDataQueryDto = {};
-      historyRepository.paginate.mockResolvedValue([mockHistoryEvents, 3]);
+      historyRepository.paginate.mockResolvedValue([mockHistoryEvents as any, 3]);
 
       const result = await useCase.execute(query);
 
@@ -219,7 +219,7 @@ describe('GetActivityFeedUseCase', () => {
     });
 
     it('should handle events without name in newValue', async () => {
-      const eventWithoutName: HistoryEvent = {
+      const eventWithoutName = {
         id: 'event-4',
         entity: 'group',
         entityId: 'group-123',
@@ -230,9 +230,9 @@ describe('GetActivityFeedUseCase', () => {
         oldValue: null,
         createdAt: new Date(),
         metadata: {},
-      } as HistoryEvent;
+      };
 
-      historyRepository.paginate.mockResolvedValue([[eventWithoutName], 1]);
+      historyRepository.paginate.mockResolvedValue([[eventWithoutName as any], 1]);
 
       const result = await useCase.execute({});
 
@@ -240,7 +240,7 @@ describe('GetActivityFeedUseCase', () => {
     });
 
     it('should handle unknown entity and action types', async () => {
-      const unknownEvent: HistoryEvent = {
+      const unknownEvent = {
         id: 'event-5',
         entity: 'unknown_entity',
         entityId: 'unknown-123',
@@ -251,9 +251,9 @@ describe('GetActivityFeedUseCase', () => {
         oldValue: null,
         createdAt: new Date(),
         metadata: {},
-      } as HistoryEvent;
+      };
 
-      historyRepository.paginate.mockResolvedValue([[unknownEvent], 1]);
+      historyRepository.paginate.mockResolvedValue([[unknownEvent as any], 1]);
 
       const result = await useCase.execute({});
 
@@ -292,9 +292,9 @@ describe('GetActivityFeedUseCase', () => {
         oldValue: null,
         createdAt: new Date(),
         metadata: {},
-      } as HistoryEvent));
+      } as any));
 
-      historyRepository.paginate.mockResolvedValue([events, events.length]);
+      historyRepository.paginate.mockResolvedValue([events as any, events.length]);
 
       const result = await useCase.execute({});
 
