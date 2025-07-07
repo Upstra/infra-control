@@ -4,8 +4,9 @@ import { LoggingInterceptorProvider } from '../logging-interceptor.provider';
 
 describe('LoggingInterceptorProvider', () => {
   it('should provide APP_INTERCEPTOR with LoggingInterceptor', () => {
-    expect(LoggingInterceptorProvider.provide).toBe(APP_INTERCEPTOR);
-    expect(LoggingInterceptorProvider.useClass).toBe(LoggingInterceptor);
+    const provider = LoggingInterceptorProvider as any;
+    expect(provider.provide).toBe(APP_INTERCEPTOR);
+    expect(provider.useClass).toBe(LoggingInterceptor);
   });
 
   it('should be a valid provider configuration', () => {
