@@ -71,7 +71,7 @@ describe('DashboardPreferenceController', () => {
     it('should handle when preferences do not exist', async () => {
       const defaultPreferences: DashboardPreferenceResponseDto = {
         theme: 'light',
-        refreshInterval: 60,
+        refreshInterval: 60000,
         defaultLayoutId: null,
         notifications: {
           alerts: true,
@@ -101,7 +101,7 @@ describe('DashboardPreferenceController', () => {
     it('should update user preferences', async () => {
       const updateDto: UpdateDashboardPreferenceDto = {
         theme: 'light',
-        refreshInterval: 60,
+        refreshInterval: 60000,
         defaultLayoutId: 'layout-2',
         notifications: {
           alerts: false,

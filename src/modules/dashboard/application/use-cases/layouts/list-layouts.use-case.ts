@@ -10,14 +10,14 @@ export class ListLayoutsUseCase {
     const layouts = await this.layoutRepository.findByUserId(userId);
 
     return {
-      layouts: layouts.map((layout) => ({
+      layouts: (layouts ?? []).map((layout) => ({
         id: layout.id,
         name: layout.name,
         columns: layout.columns,
         rowHeight: layout.rowHeight,
         isDefault: layout.isDefault,
         userId: layout.userId,
-        widgets: layout.widgets.map((widget) => ({
+        widgets: (layout.widgets ?? []).map((widget) => ({
           id: widget.id,
           type: widget.type,
           title: widget.title,
