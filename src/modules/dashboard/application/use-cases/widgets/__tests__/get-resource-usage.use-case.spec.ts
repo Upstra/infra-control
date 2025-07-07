@@ -98,37 +98,33 @@ describe('GetResourceUsageUseCase', () => {
       for (let i = 1; i < history.length; i++) {
         const timeDiff =
           history[i].timestamp.getTime() - history[i - 1].timestamp.getTime();
-        const expectedDiff = 5 * 60 * 1000; // 5 minutes in milliseconds
+        const expectedDiff = 5 * 60 * 1000;
         expect(timeDiff).toBe(expectedDiff);
       }
     });
 
     it('should generate values with variance around base values', async () => {
-      const result = await useCase.execute();
-
-      // Test multiple times to ensure variance works
       for (let i = 0; i < 10; i++) {
         const testResult = await useCase.execute();
 
         testResult.cpu.history.forEach((point) => {
-          expect(point.value).toBeGreaterThanOrEqual(60); // Should be around 65 with some variance
+          expect(point.value).toBeGreaterThanOrEqual(60);
           expect(point.value).toBeLessThanOrEqual(70);
         });
 
         testResult.memory.history.forEach((point) => {
-          expect(point.value).toBeGreaterThanOrEqual(73); // Should be around 78 with some variance
+          expect(point.value).toBeGreaterThanOrEqual(73);
           expect(point.value).toBeLessThanOrEqual(83);
         });
 
         testResult.storage.history.forEach((point) => {
-          expect(point.value).toBeGreaterThanOrEqual(40); // Should be around 45 with some variance
+          expect(point.value).toBeGreaterThanOrEqual(40);
           expect(point.value).toBeLessThanOrEqual(50);
         });
       }
     });
 
     it('should ensure history values stay within 0-100 bounds', async () => {
-      // Test multiple executions to catch edge cases with random variance
       for (let i = 0; i < 50; i++) {
         const result = await useCase.execute();
 
@@ -160,19 +156,17 @@ describe('GetResourceUsageUseCase', () => {
           expect(point.timestamp).toBeInstanceOf(Date);
           expect(typeof point.value).toBe('number');
 
-          // Check timestamps are in correct order (oldest to newest)
           if (index > 0) {
             expect(point.timestamp.getTime()).toBeGreaterThan(
               history[index - 1].timestamp.getTime(),
             );
           }
 
-          // Check that last timestamp is close to current time
           if (index === history.length - 1) {
             const timeDiff = Math.abs(
               now.getTime() - point.timestamp.getTime(),
             );
-            expect(timeDiff).toBeLessThan(1000); // Within 1 second
+            expect(timeDiff).toBeLessThan(1000);
           }
         });
       });
