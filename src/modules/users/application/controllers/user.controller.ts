@@ -39,6 +39,7 @@ import {
   DeleteUserUseCase,
   ResetPasswordUseCase,
   SoftDeleteUserUseCase,
+  ToggleUserStatusUseCase,
 } from '../use-cases';
 import { ResetPasswordDto } from '../dto';
 import { DeleteAccountDto, DeleteAccountResponseDto } from '../dto/delete-account.dto';
@@ -57,6 +58,7 @@ export class UserController {
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
     private readonly deleteUserUseCase: DeleteUserUseCase,
     private readonly softDeleteUserUseCase: SoftDeleteUserUseCase,
+    private readonly toggleUserStatusUseCase: ToggleUserStatusUseCase,
   ) {}
 
   @Get('me')
@@ -279,5 +281,46 @@ export class UserController {
       success: true,
       message: 'User account has been deleted',
     };
+  }
+
+  @Patch(':id/toggle-status')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: "UUID de l'utilisateur à activer/désactiver",
+    required: true,
+  })
+  @ApiBody({
+    type: Object,
+    description: 'Body optionnel',
+    required: false,
+  })
+  @ApiOperation({
+    summary: 'Activer/Désactiver un utilisateur',
+    description: 'Change le statut actif/inactif d\'un utilisateur. Admin uniquement.',
+  })
+  @ApiResponse({ 
+    status: 200, 
+    type: UserResponseDto,
+    description: 'Statut utilisateur modifié avec succès' 
+  })
+  async toggleUserStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() admin: JwtPayload,
+    @Req() req: any,
+  ): Promise<UserResponseDto> {
+    const requestContext = RequestContextDto.fromRequest(req);
+    
+    return this.toggleUserStatusUseCase.execute({
+      targetUserId: id,
+      adminId: admin.userId,
+      requestContext: {
+        ip: requestContext.ipAddress,
+        userAgent: requestContext.userAgent,
+      },
+    });
   }
 }

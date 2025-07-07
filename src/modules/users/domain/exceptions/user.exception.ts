@@ -58,3 +58,33 @@ export class CannotDeleteOwnAccountException extends Error {
     super(message);
   }
 }
+
+export class CannotToggleOwnStatusException extends Error {
+  constructor(
+    message = 'Impossible de modifier votre propre statut',
+  ) {
+    super(message);
+  }
+}
+
+export class CannotDeactivateLastAdminException extends Error {
+  constructor(
+    message = 'Impossible de désactiver le dernier administrateur',
+  ) {
+    super(message);
+  }
+}
+
+export class UserExceptions {
+  static notFound(): UserNotFoundException {
+    return new UserNotFoundException('User not found');
+  }
+
+  static cannotToggleOwnStatus(): CannotToggleOwnStatusException {
+    return new CannotToggleOwnStatusException();
+  }
+
+  static cannotDeactivateLastAdmin(): CannotDeactivateLastAdminException {
+    return new CannotDeactivateLastAdminException();
+  }
+}
