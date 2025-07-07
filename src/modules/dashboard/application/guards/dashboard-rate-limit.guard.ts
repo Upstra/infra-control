@@ -91,7 +91,7 @@ export class DashboardRateLimitGuard implements CanActivate {
   }
 
   private getLimiterForPath(path: string) {
-    const normalizedPath = path.toLowerCase().replace(/\/+/g, '/');
+    const normalizedPath = (path || '').toLowerCase().replace(/\/+/g, '/');
 
     if (normalizedPath.includes('/widgets/')) {
       return this.widgetLimiter;

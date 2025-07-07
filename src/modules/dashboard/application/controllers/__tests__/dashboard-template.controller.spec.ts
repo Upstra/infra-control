@@ -10,7 +10,6 @@ import {
   CreateLayoutFromTemplateDto,
 } from '../../dto/dashboard-template.dto';
 import { DashboardLayoutResponseDto } from '../../dto/dashboard-layout.dto';
-import { WidgetPosition } from '@/modules/dashboard/domain/value-objects/widget-position.vo';
 
 describe('DashboardTemplateController', () => {
   let controller: DashboardTemplateController;
@@ -72,12 +71,12 @@ describe('DashboardTemplateController', () => {
     widgets: [
       {
         widgetType: 'system-health',
-        position: new WidgetPosition(0, 0, 6, 3),
+        position: { x: 0, y: 0, width: 6, height: 3 },
         config: {},
       },
       {
         widgetType: 'resource-usage',
-        position: new WidgetPosition(6, 0, 6, 3),
+        position: { x: 6, y: 0, width: 6, height: 3 },
         config: {},
       },
     ],
@@ -105,9 +104,13 @@ describe('DashboardTemplateController', () => {
       ],
     }).compile();
 
-    controller = module.get<DashboardTemplateController>(DashboardTemplateController);
+    controller = module.get<DashboardTemplateController>(
+      DashboardTemplateController,
+    );
     listTemplatesUseCase = module.get(ListTemplatesUseCase);
-    createLayoutFromTemplateUseCase = module.get(CreateLayoutFromTemplateUseCase);
+    createLayoutFromTemplateUseCase = module.get(
+      CreateLayoutFromTemplateUseCase,
+    );
   });
 
   describe('getTemplates', () => {
@@ -150,7 +153,10 @@ describe('DashboardTemplateController', () => {
 
       createLayoutFromTemplateUseCase.execute.mockResolvedValue(mockLayout);
 
-      const result = await controller.createLayoutFromTemplate(mockUser, createDto);
+      const result = await controller.createLayoutFromTemplate(
+        mockUser,
+        createDto,
+      );
 
       expect(result).toEqual(mockLayout);
       expect(createLayoutFromTemplateUseCase.execute).toHaveBeenCalledWith(
@@ -168,9 +174,14 @@ describe('DashboardTemplateController', () => {
         ...mockLayout,
         name: 'Team Activity',
       };
-      createLayoutFromTemplateUseCase.execute.mockResolvedValue(layoutWithDefaultName);
+      createLayoutFromTemplateUseCase.execute.mockResolvedValue(
+        layoutWithDefaultName,
+      );
 
-      const result = await controller.createLayoutFromTemplate(mockUser, createDto);
+      const result = await controller.createLayoutFromTemplate(
+        mockUser,
+        createDto,
+      );
 
       expect(result).toEqual(layoutWithDefaultName);
       expect(createLayoutFromTemplateUseCase.execute).toHaveBeenCalledWith(
