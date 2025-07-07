@@ -6,7 +6,6 @@ import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 
 describe('UserTypeormRepository - Soft Delete Filtering', () => {
   let repository: UserTypeormRepository;
-  let dataSource: jest.Mocked<DataSource>;
 
   const mockActiveUser = createMockUser({ deleted: false });
   const mockDeletedUser = createMockUser({ 
@@ -34,7 +33,6 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
     }).compile();
 
     repository = module.get<UserTypeormRepository>(UserTypeormRepository);
-    dataSource = module.get<DataSource>(DataSource) as jest.Mocked<DataSource>;
   });
 
   describe('findAll', () => {
