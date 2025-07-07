@@ -118,7 +118,8 @@
       "!src/**/*.interface.ts",
       "!src/**/*.entity.ts",
       "!**/index.ts",
-      "!**/repositories/**/*.ts"
+      "!**/repositories/**/*.ts",
+      "!**/backups/**"
     ],
     "coverageDirectory": "../coverage",
     "coverageThreshold": {
