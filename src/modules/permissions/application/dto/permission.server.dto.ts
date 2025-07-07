@@ -34,10 +34,6 @@ export class PermissionServerDto {
 
 export class UpdatePermissionServerDto {
   @ApiProperty()
-  @IsUUID()
-  roleId: string;
-
-  @ApiProperty()
   @IsInt()
   bitmask: number;
 
