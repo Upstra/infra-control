@@ -150,7 +150,9 @@ export class HistoryEventTypeormRepository
       .createQueryBuilder('history')
       .select('TO_CHAR(history."createdAt"::date, \'YYYY-MM-DD\')', 'date')
       .addSelect('COUNT(*)', 'count')
-      .where('history."createdAt" >= :thirtyDayWindowStart', { thirtyDayWindowStart })
+      .where('history."createdAt" >= :thirtyDayWindowStart', {
+        thirtyDayWindowStart,
+      })
       .groupBy('history."createdAt"::date')
       .orderBy('history."createdAt"::date', 'ASC')
       .getRawMany<{ date: string; count: string }>();

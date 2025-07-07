@@ -4,6 +4,7 @@ import { SoftDeleteUserUseCase } from '../../use-cases/soft-delete-user.use-case
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { DeletionReason } from '../../dto/delete-account.dto';
 import {
+  UserExceptions,
   UserNotFoundException,
   CannotDeleteOwnAccountException,
   CannotDeleteLastAdminException,
@@ -16,7 +17,12 @@ import {
   UpdateUserUseCase,
   DeleteUserUseCase,
   ResetPasswordUseCase,
+  GetUserWithRoleUseCase,
+  ToggleUserStatusUseCase,
 } from '../../use-cases';
+import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { RoleGuard } from '@/core/guards/role.guard';
+import { Reflector } from '@nestjs/core';
 
 describe('UserController - deleteAccount', () => {
   let controller: UserController;
@@ -31,6 +37,12 @@ describe('UserController - deleteAccount', () => {
     ip: '192.168.1.1',
     headers: {
       'user-agent': 'Mozilla/5.0',
+    },
+    get: (header: string) => {
+      if (header.toLowerCase() === 'user-agent') {
+        return 'Mozilla/5.0';
+      }
+      return undefined;
     },
   };
 
@@ -72,8 +84,22 @@ describe('UserController - deleteAccount', () => {
             execute: jest.fn(),
           },
         },
+        {
+          provide: GetUserWithRoleUseCase,
+          useValue: {},
+        },
+        {
+          provide: ToggleUserStatusUseCase,
+          useValue: {},
+        },
+        Reflector,
       ],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(RoleGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<UserController>(UserController);
     softDeleteUserUseCase = module.get(SoftDeleteUserUseCase);
@@ -127,7 +153,7 @@ describe('UserController - deleteAccount', () => {
       expect(softDeleteUserUseCase.execute).toHaveBeenCalledWith(
         'target-user-id',
         'admin-user-id',
-        DeletionReason.ADMIN_ACTION,
+        undefined,
         undefined,
         '192.168.1.1',
         'Mozilla/5.0',
@@ -139,7 +165,7 @@ describe('UserController - deleteAccount', () => {
 
       const result = await controller.deleteAccount(
         'target-user-id',
-        { 
+        {
           reason: DeletionReason.POLICY_VIOLATION,
           details: 'Multiple violations of terms of service',
         },
@@ -164,46 +190,31 @@ describe('UserController - deleteAccount', () => {
 
     it('should handle UserNotFoundException', async () => {
       softDeleteUserUseCase.execute.mockRejectedValue(
-        new UserNotFoundException('target-user-id'),
+        UserExceptions.notFound('target-user-id'),
       );
 
       await expect(
-        controller.deleteAccount(
-          'target-user-id',
-          {},
-          mockAdmin,
-          mockRequest,
-        ),
+        controller.deleteAccount('target-user-id', {}, mockAdmin, mockRequest),
       ).rejects.toThrow(UserNotFoundException);
     });
 
     it('should handle CannotDeleteOwnAccountException', async () => {
       softDeleteUserUseCase.execute.mockRejectedValue(
-        new CannotDeleteOwnAccountException(),
+        UserExceptions.cannotDeleteOwnAccount(),
       );
 
       await expect(
-        controller.deleteAccount(
-          'admin-user-id',
-          {},
-          mockAdmin,
-          mockRequest,
-        ),
+        controller.deleteAccount('admin-user-id', {}, mockAdmin, mockRequest),
       ).rejects.toThrow(CannotDeleteOwnAccountException);
     });
 
     it('should handle CannotDeleteLastAdminException', async () => {
       softDeleteUserUseCase.execute.mockRejectedValue(
-        new CannotDeleteLastAdminException(),
+        UserExceptions.cannotDeleteLastAdmin(),
       );
 
       await expect(
-        controller.deleteAccount(
-          'target-user-id',
-          {},
-          mockAdmin,
-          mockRequest,
-        ),
+        controller.deleteAccount('target-user-id', {}, mockAdmin, mockRequest),
       ).rejects.toThrow(CannotDeleteLastAdminException);
     });
 
@@ -213,6 +224,12 @@ describe('UserController - deleteAccount', () => {
       const requestWithoutIp = {
         headers: {
           'user-agent': 'Mozilla/5.0',
+        },
+        get: (header: string) => {
+          if (header.toLowerCase() === 'user-agent') {
+            return 'Mozilla/5.0';
+          }
+          return undefined;
         },
       };
 
@@ -226,9 +243,9 @@ describe('UserController - deleteAccount', () => {
       expect(softDeleteUserUseCase.execute).toHaveBeenCalledWith(
         'target-user-id',
         'admin-user-id',
-        DeletionReason.ADMIN_ACTION,
         undefined,
         undefined,
+        'unknown',
         'Mozilla/5.0',
       );
     });
@@ -239,6 +256,7 @@ describe('UserController - deleteAccount', () => {
       const requestWithoutUserAgent = {
         ip: '192.168.1.1',
         headers: {},
+        get: (_header: string) => undefined,
       };
 
       await controller.deleteAccount(
@@ -251,10 +269,10 @@ describe('UserController - deleteAccount', () => {
       expect(softDeleteUserUseCase.execute).toHaveBeenCalledWith(
         'target-user-id',
         'admin-user-id',
-        DeletionReason.ADMIN_ACTION,
+        undefined,
         undefined,
         '192.168.1.1',
-        undefined,
+        'unknown',
       );
     });
 

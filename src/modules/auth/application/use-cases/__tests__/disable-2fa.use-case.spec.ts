@@ -1,7 +1,10 @@
 import { Disable2FAUseCase } from '../disable-2fa.use-case';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
-import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
+import {
+  UserExceptions,
+  UserNotFoundException,
+} from '@/modules/users/domain/exceptions/user.exception';
 import {
   GetUserByEmailUseCase,
   UpdateUserFieldsUseCase,
@@ -54,7 +57,7 @@ describe('Disable2FAUseCase', () => {
 
   it('should throw UserNotFoundException if user is not found', async () => {
     getUserByEmailUseCase.execute.mockRejectedValue(
-      new UserNotFoundException('null'),
+      UserExceptions.notFound('null'),
     );
     await expect(useCase.execute(mockPayload)).rejects.toThrow(
       UserNotFoundException,

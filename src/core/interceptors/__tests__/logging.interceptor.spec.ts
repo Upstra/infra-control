@@ -474,7 +474,7 @@ describe('LoggingInterceptor', () => {
         next: async (result) => {
           expect(result).toEqual(responseData);
           // Wait for microtasks to complete
-          await new Promise(resolve => setImmediate(resolve));
+          await new Promise((resolve) => setImmediate(resolve));
           expect(errorSpy).toHaveBeenCalledWith(
             'Failed to log to history',
             historyError,
