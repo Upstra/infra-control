@@ -11,9 +11,9 @@ describe('DashboardRateLimitGuard', () => {
   beforeEach(() => {
     originalEnv = process.env;
     process.env = { ...originalEnv };
-    
+
     guard = new DashboardRateLimitGuard();
-    
+
     mockRequest = {
       ip: '192.168.1.100',
       socket: { remoteAddress: '192.168.1.100' },
@@ -46,36 +46,36 @@ describe('DashboardRateLimitGuard', () => {
   describe('canActivate', () => {
     it('should allow requests in test environment', async () => {
       process.env.NODE_ENV = 'test';
-      
+
       const result = await guard.canActivate(mockContext);
-      
+
       expect(result).toBe(true);
     });
 
     it('should allow requests from localhost IPs', async () => {
       process.env.NODE_ENV = 'production';
       mockRequest.ip = '127.0.0.1';
-      
+
       const result = await guard.canActivate(mockContext);
-      
+
       expect(result).toBe(true);
     });
 
     it('should allow requests from IPv6 localhost', async () => {
       process.env.NODE_ENV = 'production';
       mockRequest.ip = '::1';
-      
+
       const result = await guard.canActivate(mockContext);
-      
+
       expect(result).toBe(true);
     });
 
     it('should allow requests from IPv6 mapped localhost', async () => {
       process.env.NODE_ENV = 'production';
       mockRequest.ip = '::ffff:127.0.0.1';
-      
+
       const result = await guard.canActivate(mockContext);
-      
+
       expect(result).toBe(true);
     });
 
@@ -83,11 +83,11 @@ describe('DashboardRateLimitGuard', () => {
       process.env.NODE_ENV = 'production';
       process.env.RATE_LIMIT_DASHBOARD_WINDOW_MS = '60000';
       process.env.RATE_LIMIT_DASHBOARD_WIDGET_MAX = '200';
-      
+
       mockRequest.path = '/dashboard/widgets/stats';
-      
+
       const result = await guard.canActivate(mockContext);
-      
+
       expect(result).toBe(true);
     });
 
@@ -95,20 +95,20 @@ describe('DashboardRateLimitGuard', () => {
       process.env.NODE_ENV = 'production';
       process.env.RATE_LIMIT_DASHBOARD_WINDOW_MS = '60000';
       process.env.RATE_LIMIT_DASHBOARD_API_MAX = '100';
-      
+
       mockRequest.path = '/dashboard/layouts';
-      
+
       const result = await guard.canActivate(mockContext);
-      
+
       expect(result).toBe(true);
     });
 
     it('should handle missing user ID gracefully', async () => {
       process.env.NODE_ENV = 'production';
       mockRequest.user = null;
-      
+
       const result = await guard.canActivate(mockContext);
-      
+
       expect(result).toBe(true);
     });
 
@@ -116,9 +116,9 @@ describe('DashboardRateLimitGuard', () => {
       process.env.NODE_ENV = 'production';
       mockRequest.ip = undefined;
       mockRequest.socket.remoteAddress = undefined;
-      
+
       const result = await guard.canActivate(mockContext);
-      
+
       expect(result).toBe(true);
     });
 
@@ -127,27 +127,27 @@ describe('DashboardRateLimitGuard', () => {
       mockRequest.path = undefined;
       mockRequest.route = undefined;
       mockRequest.url = undefined;
-      
+
       const result = await guard.canActivate(mockContext);
-      
+
       expect(result).toBe(true);
     });
 
     it('should normalize paths with multiple slashes', async () => {
       process.env.NODE_ENV = 'production';
       mockRequest.path = '/dashboard//widgets///stats';
-      
+
       const result = await guard.canActivate(mockContext);
-      
+
       expect(result).toBe(true);
     });
 
     it('should handle case-insensitive widget path detection', async () => {
       process.env.NODE_ENV = 'production';
       mockRequest.path = '/dashboard/WIDGETS/stats';
-      
+
       const result = await guard.canActivate(mockContext);
-      
+
       expect(result).toBe(true);
     });
 
@@ -156,57 +156,63 @@ describe('DashboardRateLimitGuard', () => {
       delete process.env.RATE_LIMIT_DASHBOARD_WINDOW_MS;
       delete process.env.RATE_LIMIT_DASHBOARD_API_MAX;
       delete process.env.RATE_LIMIT_DASHBOARD_WIDGET_MAX;
-      
+
       const result = await guard.canActivate(mockContext);
-      
+
       expect(result).toBe(true);
     });
 
     it('should handle rate limiter errors gracefully', async () => {
       process.env.NODE_ENV = 'production';
-      
+
       // Mock the rate limiter to throw an error
       const mockError = new Error('Rate limiter error');
       const originalLimiter = (guard as any).apiLimiter;
-      (guard as any).apiLimiter = jest.fn().mockImplementation((req, res, cb) => {
-        cb(mockError);
-      });
-      
+      (guard as any).apiLimiter = jest
+        .fn()
+        .mockImplementation((req, res, cb) => {
+          cb(mockError);
+        });
+
       await expect(guard.canActivate(mockContext)).rejects.toThrow(mockError);
-      
+
       (guard as any).apiLimiter = originalLimiter;
     });
 
     it('should handle non-Error exceptions in rate limiter', async () => {
       process.env.NODE_ENV = 'production';
-      
+
       // Mock the rate limiter to throw a non-Error
       const originalLimiter = (guard as any).apiLimiter;
-      (guard as any).apiLimiter = jest.fn().mockImplementation((req, res, cb) => {
-        cb('String error');
-      });
-      
-      await expect(guard.canActivate(mockContext)).rejects.toThrow('String error');
-      
+      (guard as any).apiLimiter = jest
+        .fn()
+        .mockImplementation((req, res, cb) => {
+          cb('String error');
+        });
+
+      await expect(guard.canActivate(mockContext)).rejects.toThrow(
+        'String error',
+      );
+
       (guard as any).apiLimiter = originalLimiter;
     });
 
     it('should generate correct key for dashboard requests', async () => {
       process.env.NODE_ENV = 'production';
-      
+
       const generateKeyMethod = (guard as any).generateDashboardKey;
       const key = generateKeyMethod.call(guard, mockRequest);
-      
+
       expect(key).toBe('dashboard:192.168.1.100:user-123:/dashboard/widgets');
     });
 
     it('should generate key with anonymous user when user is not authenticated', async () => {
       process.env.NODE_ENV = 'production';
       mockRequest.user = null;
-      
+
       const generateKeyMethod = (guard as any).generateDashboardKey;
       const key = generateKeyMethod.call(guard, mockRequest);
-      
+
       expect(key).toBe('dashboard:192.168.1.100:anonymous:/dashboard/widgets');
     });
 
@@ -214,10 +220,10 @@ describe('DashboardRateLimitGuard', () => {
       process.env.NODE_ENV = 'production';
       mockRequest.ip = undefined;
       mockRequest.socket.remoteAddress = '10.0.0.1';
-      
+
       const generateKeyMethod = (guard as any).generateDashboardKey;
       const key = generateKeyMethod.call(guard, mockRequest);
-      
+
       expect(key).toBe('dashboard:10.0.0.1:user-123:/dashboard/widgets');
     });
 
@@ -225,10 +231,10 @@ describe('DashboardRateLimitGuard', () => {
       process.env.NODE_ENV = 'production';
       mockRequest.ip = undefined;
       mockRequest.socket = {};
-      
+
       const generateKeyMethod = (guard as any).generateDashboardKey;
       const key = generateKeyMethod.call(guard, mockRequest);
-      
+
       expect(key).toBe('dashboard:unknown:user-123:/dashboard/widgets');
     });
   });

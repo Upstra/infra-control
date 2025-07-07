@@ -45,9 +45,7 @@ describe('CreatePermissionVmUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<CreatePermissionVmUseCase>(
-      CreatePermissionVmUseCase,
-    );
+    useCase = module.get<CreatePermissionVmUseCase>(CreatePermissionVmUseCase);
     repository = module.get('PermissionVmRepositoryInterface');
     logHistory = module.get(LogHistoryUseCase);
   });
@@ -126,7 +124,10 @@ describe('CreatePermissionVmUseCase', () => {
         { bitmask: PermissionBit.WRITE },
         { bitmask: PermissionBit.DELETE },
         { bitmask: PermissionBit.READ | PermissionBit.WRITE },
-        { bitmask: PermissionBit.READ | PermissionBit.WRITE | PermissionBit.DELETE },
+        {
+          bitmask:
+            PermissionBit.READ | PermissionBit.WRITE | PermissionBit.DELETE,
+        },
         { bitmask: 127 },
         { bitmask: 255 },
       ];
@@ -205,23 +206,25 @@ describe('CreatePermissionVmUseCase', () => {
         createPermission: jest.fn(),
       };
 
-      const moduleWithoutLogging: TestingModule = await Test.createTestingModule({
-        providers: [
-          CreatePermissionVmUseCase,
-          {
-            provide: 'PermissionVmRepositoryInterface',
-            useValue: mockRepositoryWithoutLogging,
-          },
-          {
-            provide: LogHistoryUseCase,
-            useValue: undefined,
-          },
-        ],
-      }).compile();
+      const moduleWithoutLogging: TestingModule =
+        await Test.createTestingModule({
+          providers: [
+            CreatePermissionVmUseCase,
+            {
+              provide: 'PermissionVmRepositoryInterface',
+              useValue: mockRepositoryWithoutLogging,
+            },
+            {
+              provide: LogHistoryUseCase,
+              useValue: undefined,
+            },
+          ],
+        }).compile();
 
-      const useCaseWithoutLogging = moduleWithoutLogging.get<CreatePermissionVmUseCase>(
-        CreatePermissionVmUseCase,
-      );
+      const useCaseWithoutLogging =
+        moduleWithoutLogging.get<CreatePermissionVmUseCase>(
+          CreatePermissionVmUseCase,
+        );
 
       const dto = new PermissionVmDto({
         roleId: 'role-123',
@@ -231,7 +234,9 @@ describe('CreatePermissionVmUseCase', () => {
 
       const permission = mockPermissionVm(dto);
 
-      mockRepositoryWithoutLogging.createPermission.mockResolvedValue(permission);
+      mockRepositoryWithoutLogging.createPermission.mockResolvedValue(
+        permission,
+      );
 
       const result = await useCaseWithoutLogging.execute(dto);
 
