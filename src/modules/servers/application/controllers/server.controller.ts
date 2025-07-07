@@ -41,7 +41,7 @@ import { ServerUpdateDto } from '../dto/server.update.dto';
 import { ServerListResponseDto } from '../dto/server.list.response.dto';
 import { UpdatePriorityDto } from '../../../priorities/application/dto/update-priority.dto';
 import { CheckServerPermissionDto } from '../dto/check-server-permission.dto';
-import { PermissionCheckResponseDto } from '../dto/permission-check.response.dto';
+import { ServerPermissionCheckResponseDto } from '../dto/permission-check.response.dto';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
@@ -330,7 +330,7 @@ export class ServerController {
   })
   @ApiResponse({
     status: 200,
-    type: PermissionCheckResponseDto,
+    type: ServerPermissionCheckResponseDto,
     description: 'Permission check result',
   })
   @ApiResponse({
@@ -340,7 +340,7 @@ export class ServerController {
   async checkPermission(
     @Body() dto: CheckServerPermissionDto,
     @CurrentUser() user: JwtPayload,
-  ): Promise<PermissionCheckResponseDto> {
+  ): Promise<ServerPermissionCheckResponseDto> {
     return this.checkServerPermissionUseCase.execute(
       dto.serverId,
       user.userId,

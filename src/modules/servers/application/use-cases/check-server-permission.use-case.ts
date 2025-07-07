@@ -1,6 +1,6 @@
 import { Injectable, Inject, Logger, NotFoundException } from '@nestjs/common';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
-import { PermissionCheckResponseDto } from '../dto/permission-check.response.dto';
+import { ServerPermissionCheckResponseDto } from '../dto/permission-check.response.dto';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
 import { ServerRepositoryInterface } from '../../domain/interfaces/server.repository.interface';
@@ -18,7 +18,7 @@ import { PermissionResolver } from '@/modules/permissions/application/utils/perm
  * @param serverId   UUID of the server to check
  * @param userId     UUID of the user requesting the check
  * @param permission The permission bit to check
- * @returns          Promise<PermissionCheckResponseDto>
+ * @returns          Promise<ServerPermissionCheckResponseDto>
  *
  * @throws NotFoundException if server does not exist
  */
@@ -39,7 +39,7 @@ export class CheckServerPermissionUseCase {
     serverId: string,
     userId: string,
     permission: PermissionBit,
-  ): Promise<PermissionCheckResponseDto> {
+  ): Promise<ServerPermissionCheckResponseDto> {
     const server = await this.serverRepo.findOneByField({
       field: 'id',
       value: serverId,
