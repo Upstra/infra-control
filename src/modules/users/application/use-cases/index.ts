@@ -11,6 +11,7 @@ import { ResetPasswordUseCase } from './reset-password.use-case';
 import { GetUserWithRoleUseCase } from './get-user-with-role.use-case';
 import { GetUserListUseCase } from './get-user-list.use-case';
 import { SoftDeleteUserUseCase } from './soft-delete-user.use-case';
+import { ToggleUserStatusUseCase } from './toggle-user-status.use-case';
 
 export const UserUseCase = [
   GetUserByIdUseCase,
@@ -26,6 +27,7 @@ export const UserUseCase = [
   RegisterUserUseCase,
   ResetPasswordUseCase,
   SoftDeleteUserUseCase,
+  ToggleUserStatusUseCase,
 ];
 
 export {
@@ -42,4 +44,5 @@ export {
   RegisterUserUseCase,
   ResetPasswordUseCase,
   SoftDeleteUserUseCase,
+  ToggleUserStatusUseCase,
 };

@@ -1,0 +1,79 @@
+import { Injectable } from '@nestjs/common';
+import { UserTypeormRepository } from '../../infrastructure/repositories/user.typeorm.repository';
+import { UserResponseDto } from '../dto/user.response.dto';
+import { UserExceptions } from '../../domain/exceptions/user.exception';
+import { User } from '../../domain/entities/user.entity';
+import { LogHistoryUseCase } from '../../../history/application/use-cases/log-history.use-case';
+
+export interface ToggleUserStatusUseCaseInput {
+  targetUserId: string;
+  adminId: string;
+  reason?: string;
+  requestContext?: {
+    ip?: string;
+    userAgent?: string;
+  };
+}
+
+@Injectable()
+export class ToggleUserStatusUseCase {
+  constructor(
+    private readonly userRepository: UserTypeormRepository,
+    private readonly logHistoryUseCase: LogHistoryUseCase,
+  ) {}
+
+  async execute(input: ToggleUserStatusUseCaseInput): Promise<UserResponseDto> {
+    const { targetUserId, adminId, reason, requestContext } = input;
+
+    const targetUser = await this.userRepository.findById(targetUserId);
+    if (!targetUser) {
+      throw UserExceptions.notFound();
+    }
+
+    if (targetUserId === adminId) {
+      throw UserExceptions.cannotToggleOwnStatus();
+    }
+
+    const userWithRoles = await this.userRepository.findWithRoles(targetUserId);
+    const isTargetAdmin = userWithRoles?.roles?.some(role => role.isAdmin) ?? false;
+
+    if (isTargetAdmin && targetUser.active) {
+      const activeAdminCount = await this.userRepository.countActiveAdmins();
+      if (activeAdminCount <= 1) {
+        throw UserExceptions.cannotDeactivateLastAdmin();
+      }
+    }
+
+    const previousStatus = targetUser.active;
+    targetUser.active = !targetUser.active;
+
+    if (targetUser.active && targetUser.deleted) {
+      targetUser.deleted = false;
+      targetUser.deletedAt = null;
+    }
+
+    const updatedUser = await this.userRepository.save(targetUser);
+
+    const action = previousStatus ? 'deactivated' : 'activated';
+    await this.logHistoryUseCase.executeStructured({
+      entity: 'user',
+      entityId: targetUserId,
+      action: `user.${action}`,
+      userId: adminId,
+      oldValue: { active: previousStatus },
+      newValue: { active: targetUser.active },
+      metadata: {
+        username: targetUser.username,
+        reason,
+      },
+      ipAddress: requestContext?.ip,
+      userAgent: requestContext?.userAgent,
+    });
+
+    return this.mapToResponseDto(updatedUser);
+  }
+
+  private mapToResponseDto(user: User): UserResponseDto {
+    return new UserResponseDto(user);
+  }
+}
