@@ -60,17 +60,13 @@ export class CannotDeleteOwnAccountException extends Error {
 }
 
 export class CannotToggleOwnStatusException extends Error {
-  constructor(
-    message = 'Impossible de modifier votre propre statut',
-  ) {
+  constructor(message = 'Impossible de modifier votre propre statut') {
     super(message);
   }
 }
 
 export class CannotDeactivateLastAdminException extends Error {
-  constructor(
-    message = 'Impossible de désactiver le dernier administrateur',
-  ) {
+  constructor(message = 'Impossible de désactiver le dernier administrateur') {
     super(message);
   }
 }
@@ -92,7 +88,10 @@ export class UserExceptions {
     return new UserRetrievalException(message);
   }
 
-  static conflict(type: 'username' | 'email', message?: string): UserConflictException {
+  static conflict(
+    type: 'username' | 'email',
+    message?: string,
+  ): UserConflictException {
     return new UserConflictException(type, message);
   }
 

@@ -72,12 +72,13 @@ describe('SoftDeleteUserUseCase', () => {
     roles: [mockAdminRole],
   });
 
-  const mockTargetUser = createMockUser({
-    id: 'target-user-id',
-    username: 'targetuser',
-    email: 'target@test.com',
-    roles: [mockUserRole],
-  });
+  const getMockTargetUser = () =>
+    createMockUser({
+      id: 'target-user-id',
+      username: 'targetuser',
+      email: 'target@test.com',
+      roles: [mockUserRole],
+    });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -114,17 +115,17 @@ describe('SoftDeleteUserUseCase', () => {
     it('should successfully soft delete a user', async () => {
       const deletedAt = new Date();
       const deletedUser = createMockUser({
-        id: mockTargetUser.id,
-        username: mockTargetUser.username,
-        email: mockTargetUser.email,
-        roles: mockTargetUser.roles,
+        id: 'target-user-id',
+        username: 'targetuser',
+        email: 'target@test.com',
+        roles: [mockUserRole],
         deleted: true,
         deletedAt,
         active: false,
       });
-      
-      userRepository.findById.mockResolvedValue(mockTargetUser);
-      userRepository.findWithRoles.mockResolvedValue(mockTargetUser);
+
+      userRepository.findById.mockResolvedValue(getMockTargetUser());
+      userRepository.findWithRoles.mockResolvedValue(getMockTargetUser());
       userRepository.countActiveAdmins.mockResolvedValue(2);
       userRepository.save.mockResolvedValue(deletedUser);
 
@@ -138,11 +139,13 @@ describe('SoftDeleteUserUseCase', () => {
       );
 
       expect(userRepository.findById).toHaveBeenCalledWith('target-user-id');
-      expect(userRepository.save).toHaveBeenCalledWith(expect.objectContaining({
-        deleted: true,
-        active: false,
-        deletedAt: expect.any(Date),
-      }));
+      expect(userRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          deleted: true,
+          active: false,
+          deletedAt: expect.any(Date),
+        }),
+      );
 
       expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith({
         entity: 'user',
@@ -220,7 +223,7 @@ describe('SoftDeleteUserUseCase', () => {
         email: 'target@test.com',
         roles: [mockAdminRole],
       });
-      
+
       userRepository.findById.mockResolvedValue(adminUser);
       userRepository.findWithRoles.mockResolvedValue(adminUser);
       userRepository.countActiveAdmins.mockResolvedValue(1);
@@ -249,7 +252,7 @@ describe('SoftDeleteUserUseCase', () => {
         deletedAt: new Date(),
         active: false,
       });
-      
+
       userRepository.findById.mockResolvedValue(userWithoutEmail);
       userRepository.findWithRoles.mockResolvedValue(userWithoutEmail);
       userRepository.countActiveAdmins.mockResolvedValue(2);
@@ -277,9 +280,9 @@ describe('SoftDeleteUserUseCase', () => {
         deletedAt: new Date(),
         active: false,
       });
-      
-      userRepository.findById.mockResolvedValue(mockTargetUser);
-      userRepository.findWithRoles.mockResolvedValue(mockTargetUser);
+
+      userRepository.findById.mockResolvedValue(getMockTargetUser());
+      userRepository.findWithRoles.mockResolvedValue(getMockTargetUser());
       userRepository.countActiveAdmins.mockResolvedValue(2);
       userRepository.save.mockResolvedValue(deletedUser);
 
@@ -306,7 +309,7 @@ describe('SoftDeleteUserUseCase', () => {
         email: 'target@test.com',
         roles: [adminRoleCapital],
       });
-      
+
       userRepository.findById.mockResolvedValue(adminUser);
       userRepository.findWithRoles.mockResolvedValue(adminUser);
       userRepository.countActiveAdmins.mockResolvedValue(1);
@@ -328,7 +331,7 @@ describe('SoftDeleteUserUseCase', () => {
         email: 'target@test.com',
         roles: [adminRoleLowercase],
       });
-      
+
       userRepository.findById.mockResolvedValue(adminUser);
       userRepository.findWithRoles.mockResolvedValue(adminUser);
       userRepository.countActiveAdmins.mockResolvedValue(1);
@@ -348,9 +351,9 @@ describe('SoftDeleteUserUseCase', () => {
         deletedAt: new Date(),
         active: false,
       });
-      
-      userRepository.findById.mockResolvedValue(mockTargetUser);
-      userRepository.findWithRoles.mockResolvedValue(mockTargetUser);
+
+      userRepository.findById.mockResolvedValue(getMockTargetUser());
+      userRepository.findWithRoles.mockResolvedValue(getMockTargetUser());
       userRepository.countActiveAdmins.mockResolvedValue(2);
       userRepository.save.mockResolvedValue(deletedUser);
 
@@ -381,9 +384,9 @@ describe('SoftDeleteUserUseCase', () => {
         deletedAt: new Date(),
         active: false,
       });
-      
-      userRepository.findById.mockResolvedValue(mockTargetUser);
-      userRepository.findWithRoles.mockResolvedValue(mockTargetUser);
+
+      userRepository.findById.mockResolvedValue(getMockTargetUser());
+      userRepository.findWithRoles.mockResolvedValue(getMockTargetUser());
       userRepository.countActiveAdmins.mockResolvedValue(3);
       userRepository.save.mockResolvedValue(deletedUser);
 
@@ -409,7 +412,7 @@ describe('SoftDeleteUserUseCase', () => {
         deletedAt: new Date(),
         active: false,
       });
-      
+
       userRepository.findById.mockResolvedValue(userWithoutRoles);
       userRepository.findWithRoles.mockResolvedValue(userWithoutRoles);
       userRepository.countActiveAdmins.mockResolvedValue(2);
@@ -431,8 +434,8 @@ describe('SoftDeleteUserUseCase', () => {
         deletedAt: new Date(),
         active: false,
       });
-      
-      userRepository.findById.mockResolvedValue(mockTargetUser);
+
+      userRepository.findById.mockResolvedValue(getMockTargetUser());
       userRepository.findWithRoles.mockResolvedValue(null);
       userRepository.countActiveAdmins.mockResolvedValue(2);
       userRepository.save.mockResolvedValue(deletedUser);

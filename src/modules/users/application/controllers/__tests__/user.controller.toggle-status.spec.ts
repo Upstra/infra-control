@@ -196,11 +196,7 @@ describe('UserController - toggleUserStatus', () => {
         email: 'admin2@example.com',
       };
 
-      await controller.toggleUserStatus(
-        'user-id',
-        differentAdmin,
-        mockRequest,
-      );
+      await controller.toggleUserStatus('user-id', differentAdmin, mockRequest);
 
       expect(toggleUserStatusUseCase.execute).toHaveBeenCalledWith({
         targetUserId: 'user-id',

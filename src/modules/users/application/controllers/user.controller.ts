@@ -42,7 +42,10 @@ import {
   ToggleUserStatusUseCase,
 } from '../use-cases';
 import { ResetPasswordDto } from '../dto';
-import { DeleteAccountDto, DeleteAccountResponseDto } from '../dto/delete-account.dto';
+import {
+  DeleteAccountDto,
+  DeleteAccountResponseDto,
+} from '../dto/delete-account.dto';
 import { RequireRole } from '@/core/decorators/role.decorator';
 import { RoleGuard } from '@/core/guards/role.guard';
 
@@ -253,12 +256,13 @@ export class UserController {
   })
   @ApiOperation({
     summary: 'Supprimer un compte utilisateur (soft delete)',
-    description: 'Effectue une suppression logique du compte utilisateur. Admin uniquement.',
+    description:
+      'Effectue une suppression logique du compte utilisateur. Admin uniquement.',
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     type: DeleteAccountResponseDto,
-    description: 'Compte utilisateur supprimé avec succès' 
+    description: 'Compte utilisateur supprimé avec succès',
   })
   async deleteAccount(
     @Param('id', ParseUUIDPipe) id: string,
@@ -267,7 +271,7 @@ export class UserController {
     @Req() req: any,
   ): Promise<DeleteAccountResponseDto> {
     const requestContext = RequestContextDto.fromRequest(req);
-    
+
     await this.softDeleteUserUseCase.execute(
       id,
       admin.userId,
@@ -300,12 +304,13 @@ export class UserController {
   })
   @ApiOperation({
     summary: 'Activer/Désactiver un utilisateur',
-    description: 'Change le statut actif/inactif d\'un utilisateur. Admin uniquement.',
+    description:
+      "Change le statut actif/inactif d'un utilisateur. Admin uniquement.",
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     type: UserResponseDto,
-    description: 'Statut utilisateur modifié avec succès' 
+    description: 'Statut utilisateur modifié avec succès',
   })
   async toggleUserStatus(
     @Param('id', ParseUUIDPipe) id: string,
@@ -313,7 +318,7 @@ export class UserController {
     @Req() req: any,
   ): Promise<UserResponseDto> {
     const requestContext = RequestContextDto.fromRequest(req);
-    
+
     return this.toggleUserStatusUseCase.execute({
       targetUserId: id,
       adminId: admin.userId,

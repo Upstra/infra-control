@@ -1,6 +1,9 @@
 import { Generate2FAUseCase } from '../generate-2fa.use-case';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
-import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
+import {
+  UserExceptions,
+  UserNotFoundException,
+} from '@/modules/users/domain/exceptions/user.exception';
 import * as speakeasy from 'speakeasy';
 import * as qrcode from 'qrcode';
 import {
@@ -58,7 +61,7 @@ describe('Generate2FAUseCase', () => {
 
   it('should throw UserNotFoundException if user does not exist', async () => {
     getUserByEmailUseCase.execute.mockRejectedValue(
-      new UserNotFoundException('notfound@mail.com'),
+      UserExceptions.notFound('notfound@mail.com'),
     );
 
     await expect(useCase.execute('notfound@mail.com')).rejects.toThrow(
