@@ -42,7 +42,8 @@ import {
 } from '../use-cases';
 import { ResetPasswordDto } from '../dto';
 import { DeleteAccountDto, DeleteAccountResponseDto } from '../dto/delete-account.dto';
-import { AdminGuard } from '@/core/guards/admin.guard';
+import { RequireRole } from '@/core/decorators/role.decorator';
+import { RoleGuard } from '@/core/guards/role.guard';
 
 @ApiTags('User')
 @Controller('user')
@@ -234,7 +235,8 @@ export class UserController {
   }
 
   @Patch(':id/delete-account')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
   @ApiBearerAuth()
   @ApiParam({
     name: 'id',
