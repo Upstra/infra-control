@@ -13,7 +13,7 @@ export class ListTemplatesUseCase {
     const templates = await this.templateRepository.findAll();
 
     return {
-      templates: templates
+      templates: (templates ?? [])
         .filter((template) => template.isActive)
         .map((template) => ({
           id: template.id,
