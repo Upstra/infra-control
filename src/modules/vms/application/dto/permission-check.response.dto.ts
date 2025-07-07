@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class PermissionCheckResponseDto {
+export class VmPermissionCheckResponseDto {
   @ApiProperty({
     description: 'Whether the user has the requested permission',
     example: true,

@@ -18,7 +18,7 @@ import { VmListResponseDto } from '../dto/vm.list.response.dto';
 import { VmEndpointInterface } from '../interfaces/vm.endpoint.interface';
 import { VmUpdateDto } from '../dto/vm.update.dto';
 import { CheckVmPermissionDto } from '../dto/check-vm-permission.dto';
-import { PermissionCheckResponseDto } from '../dto/permission-check.response.dto';
+import { VmPermissionCheckResponseDto } from '../dto/permission-check.response.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -296,7 +296,7 @@ export class VmController implements VmEndpointInterface {
   })
   @ApiResponse({
     status: 200,
-    type: PermissionCheckResponseDto,
+    type: VmPermissionCheckResponseDto,
     description: 'Permission check result',
   })
   @ApiResponse({
@@ -306,7 +306,7 @@ export class VmController implements VmEndpointInterface {
   async checkPermission(
     @Body() dto: CheckVmPermissionDto,
     @CurrentUser() user: JwtPayload,
-  ): Promise<PermissionCheckResponseDto> {
+  ): Promise<VmPermissionCheckResponseDto> {
     return this.checkVmPermissionUseCase.execute(
       dto.vmId,
       user.userId,

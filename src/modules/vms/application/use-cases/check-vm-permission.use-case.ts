@@ -1,6 +1,6 @@
 import { Injectable, Inject, Logger, NotFoundException } from '@nestjs/common';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
-import { PermissionCheckResponseDto } from '../dto/permission-check.response.dto';
+import { VmPermissionCheckResponseDto } from '../dto/permission-check.response.dto';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { PermissionVmRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.vm.repository.interface';
 import { VmRepositoryInterface } from '../../domain/interfaces/vm.repository.interface';
@@ -18,7 +18,7 @@ import { PermissionResolver } from '@/modules/permissions/application/utils/perm
  * @param vmId       UUID of the VM to check
  * @param userId     UUID of the user requesting the check
  * @param permission The permission bit to check
- * @returns          Promise<PermissionCheckResponseDto>
+ * @returns          Promise<VmPermissionCheckResponseDto>
  *
  * @throws NotFoundException if VM does not exist
  */
@@ -39,7 +39,7 @@ export class CheckVmPermissionUseCase {
     vmId: string,
     userId: string,
     permission: PermissionBit,
-  ): Promise<PermissionCheckResponseDto> {
+  ): Promise<VmPermissionCheckResponseDto> {
     const vm = await this.vmRepo.findOneByField({
       field: 'id',
       value: vmId,
