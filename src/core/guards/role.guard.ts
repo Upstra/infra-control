@@ -26,6 +26,17 @@ export class RoleGuard implements CanActivate {
       return true;
     }
 
+    const user = this.extractUserFromContext(context);
+    const userWithRole = await this.getUserWithRoleUseCase.execute(user.userId);
+
+    this.validateUserRoles(userWithRole);
+    this.checkAdminRequirement(requirement, userWithRole);
+    this.checkServerCreationRequirement(requirement, userWithRole);
+
+    return true;
+  }
+
+  private extractUserFromContext(context: ExecutionContext): JwtPayload {
     const request = context.switchToHttp().getRequest();
     const user: JwtPayload = request.user;
 
@@ -33,12 +44,19 @@ export class RoleGuard implements CanActivate {
       throw new ForbiddenException('User not authenticated');
     }
 
-    const userWithRole = await this.getUserWithRoleUseCase.execute(user.userId);
+    return user;
+  }
 
+  private validateUserRoles(userWithRole: any): void {
     if (!userWithRole?.roles?.length) {
       throw new ForbiddenException('User has no role assigned');
     }
+  }
 
+  private checkAdminRequirement(
+    requirement: RoleRequirement,
+    userWithRole: any,
+  ): void {
     if (requirement.isAdmin !== undefined) {
       const isAdmin = userWithRole.roles.some((r) => r.isAdmin === true);
       if (requirement.isAdmin && !isAdmin) {
@@ -50,7 +68,12 @@ export class RoleGuard implements CanActivate {
         );
       }
     }
+  }
 
+  private checkServerCreationRequirement(
+    requirement: RoleRequirement,
+    userWithRole: any,
+  ): void {
     if (requirement.canCreateServer !== undefined) {
       const hasPerm = userWithRole.roles.some(
         (r) => r.canCreateServer === requirement.canCreateServer,
@@ -63,17 +86,5 @@ export class RoleGuard implements CanActivate {
         );
       }
     }
-    /*
-    if (requirement.canCreateVm !== undefined) {
-      if (userWithRole.role.canCreateVm !== requirement.canCreateVm) {
-        throw new ForbiddenException(
-          requirement.canCreateVm
-            ? 'You do not have permission to create VMs'
-            : 'This action requires NOT having VM creation permission',
-        );
-      }
-    }*/
-
-    return true;
   }
 }
