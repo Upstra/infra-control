@@ -1,22 +1,24 @@
-import { CreateReadOnlyPermissionServerUseCase } from '../create-readonly-permission-server.use-case';
-import { PermissionServerRepository } from '@/modules/permissions/infrastructure/repositories/permission.server.repository';
-import { PermissionDomainServerService } from '@/modules/permissions/domain/services/permission.domain.server.service';
-import { PermissionServerDto } from '@/modules/permissions/application/dto/permission.server.dto';
-import { PermissionServer } from '@/modules/permissions/domain/entities/permission.server.entity';
-import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
+import { Test, TestingModule } from '@nestjs/testing';
+import { CreatePermissionServerUseCase } from '../create-permission-server.use-case';
+import { PermissionDomainServerService } from '../../../../domain/services/permission.domain.server.service';
+import { PermissionServerDto } from '../../../dto/permission.server.dto';
+import { PermissionServer } from '../../../../domain/entities/permission.server.entity';
+import { PermissionBit } from '../../../../domain/value-objects/permission-bit.enum';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
 
-describe('CreateReadOnlyPermissionServerUseCase', () => {
-  let useCase: CreateReadOnlyPermissionServerUseCase;
+describe('CreatePermissionServerUseCase', () => {
+  let useCase: CreatePermissionServerUseCase;
+  let repository: any;
   let domainService: jest.Mocked<PermissionDomainServerService>;
-  let repository: jest.Mocked<PermissionServerRepository>;
+  let logHistory: jest.Mocked<LogHistoryUseCase>;
 
   const mockPermission = (
     overrides?: Partial<PermissionServer>,
   ): PermissionServer => {
     const base: Partial<PermissionServer> = {
-      roleId: 'role-1',
-      serverId: 'server-1',
-      bitmask: PermissionBit.READ,
+      roleId: 'role-123',
+      serverId: 'server-456',
+      bitmask: PermissionBit.READ | PermissionBit.WRITE,
       ...overrides,
     };
     return Object.setPrototypeOf(
@@ -25,53 +27,265 @@ describe('CreateReadOnlyPermissionServerUseCase', () => {
     ) as PermissionServer;
   };
 
-  beforeEach(() => {
-    domainService = {
-      createReadOnlyPermissionEntity: jest.fn(),
-      createFullPermissionEntity: jest.fn(),
-      createPermissionEntityFromDto: jest.fn(),
-    } as any;
-
-    repository = {
+  beforeEach(async () => {
+    const mockRepository = {
       save: jest.fn(),
-    } as any;
+    };
 
-    useCase = new CreateReadOnlyPermissionServerUseCase(
-      repository,
-      domainService,
+    const mockDomainService = {
+      createPermissionEntityFromDto: jest.fn(),
+    };
+
+    const mockLogHistory = {
+      executeStructured: jest.fn(),
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        CreatePermissionServerUseCase,
+        {
+          provide: 'PermissionServerRepositoryInterface',
+          useValue: mockRepository,
+        },
+        {
+          provide: PermissionDomainServerService,
+          useValue: mockDomainService,
+        },
+        {
+          provide: LogHistoryUseCase,
+          useValue: mockLogHistory,
+        },
+      ],
+    }).compile();
+
+    useCase = module.get<CreatePermissionServerUseCase>(
+      CreatePermissionServerUseCase,
     );
+    repository = module.get('PermissionServerRepositoryInterface');
+    domainService = module.get(PermissionDomainServerService);
+    logHistory = module.get(LogHistoryUseCase);
   });
 
-  it('should create and return a readonly permission dto', async () => {
-    const entity = mockPermission();
-    domainService.createReadOnlyPermissionEntity.mockReturnValue(entity);
-    repository.save.mockResolvedValue(entity);
+  describe('execute', () => {
+    it('should create permission successfully', async () => {
+      const dto = new PermissionServerDto({
+        roleId: 'role-123',
+        serverId: 'server-456',
+        bitmask: PermissionBit.READ | PermissionBit.WRITE,
+      });
 
-    const result = await useCase.execute();
+      const entity = mockPermission();
+      const savedEntity = mockPermission();
 
-    expect(domainService.createReadOnlyPermissionEntity).toHaveBeenCalled();
-    expect(repository.save).toHaveBeenCalledWith(entity);
-    expect(result).toEqual(PermissionServerDto.fromEntity(entity));
-  });
+      domainService.createPermissionEntityFromDto.mockReturnValue(entity);
+      repository.save.mockResolvedValue(savedEntity);
 
-  it('should throw if repository.save fails', async () => {
-    const entity = mockPermission();
-    domainService.createReadOnlyPermissionEntity.mockReturnValue(entity);
-    repository.save.mockRejectedValue(new Error('DB fail'));
+      const result = await useCase.execute(dto, 'user-789');
 
-    await expect(useCase.execute()).rejects.toThrow('DB fail');
-  });
-
-  it('should map saved entity with read only flag set', async () => {
-    const saved = mockPermission({
-      bitmask: PermissionBit.READ,
+      expect(domainService.createPermissionEntityFromDto).toHaveBeenCalledWith(
+        dto,
+      );
+      expect(repository.save).toHaveBeenCalledWith(entity);
+      expect(result).toEqual(new PermissionServerDto(savedEntity));
+      expect(logHistory.executeStructured).toHaveBeenCalledWith({
+        entity: 'permission_server',
+        entityId: 'server-456_role-123',
+        action: 'CREATE',
+        userId: 'user-789',
+        newValue: {
+          serverId: savedEntity.serverId,
+          roleId: savedEntity.roleId,
+          bitmask: savedEntity.bitmask,
+        },
+        metadata: {
+          permissionType: 'server',
+        },
+      });
     });
 
-    domainService.createReadOnlyPermissionEntity.mockReturnValue(saved);
-    repository.save.mockResolvedValue(saved);
+    it('should create permission without userId', async () => {
+      const dto = new PermissionServerDto({
+        roleId: 'role-123',
+        serverId: 'server-456',
+        bitmask: PermissionBit.READ,
+      });
 
-    const result = await useCase.execute();
+      const entity = mockPermission({ bitmask: PermissionBit.READ });
+      const savedEntity = mockPermission({ bitmask: PermissionBit.READ });
 
-    expect(result.bitmask).toBe(PermissionBit.READ);
+      domainService.createPermissionEntityFromDto.mockReturnValue(entity);
+      repository.save.mockResolvedValue(savedEntity);
+
+      const result = await useCase.execute(dto);
+
+      expect(result).toEqual(new PermissionServerDto(savedEntity));
+      expect(logHistory.executeStructured).toHaveBeenCalledWith({
+        entity: 'permission_server',
+        entityId: 'server-456_role-123',
+        action: 'CREATE',
+        userId: 'system',
+        newValue: {
+          serverId: savedEntity.serverId,
+          roleId: savedEntity.roleId,
+          bitmask: savedEntity.bitmask,
+        },
+        metadata: {
+          permissionType: 'server',
+        },
+      });
+    });
+
+    it('should handle different bitmask values', async () => {
+      const testCases = [
+        { bitmask: 0 },
+        { bitmask: PermissionBit.READ },
+        { bitmask: PermissionBit.WRITE },
+        { bitmask: PermissionBit.DELETE },
+        { bitmask: PermissionBit.READ | PermissionBit.WRITE | PermissionBit.DELETE },
+        { bitmask: 255 },
+      ];
+
+      for (const testCase of testCases) {
+        const dto = new PermissionServerDto({
+          roleId: 'role-123',
+          serverId: 'server-456',
+          bitmask: testCase.bitmask,
+        });
+
+        const entity = mockPermission({ bitmask: testCase.bitmask });
+        const savedEntity = mockPermission({ bitmask: testCase.bitmask });
+
+        domainService.createPermissionEntityFromDto.mockReturnValue(entity);
+        repository.save.mockResolvedValue(savedEntity);
+
+        const result = await useCase.execute(dto, 'user-789');
+
+        expect(result.bitmask).toBe(testCase.bitmask);
+      }
+    });
+
+    it('should throw error when domain service fails', async () => {
+      const dto = new PermissionServerDto({
+        roleId: 'role-123',
+        serverId: 'server-456',
+        bitmask: PermissionBit.READ,
+      });
+
+      domainService.createPermissionEntityFromDto.mockImplementation(() => {
+        throw new Error('Domain service error');
+      });
+
+      await expect(useCase.execute(dto)).rejects.toThrow('Domain service error');
+      expect(repository.save).not.toHaveBeenCalled();
+      expect(logHistory.executeStructured).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when repository save fails', async () => {
+      const dto = new PermissionServerDto({
+        roleId: 'role-123',
+        serverId: 'server-456',
+        bitmask: PermissionBit.READ,
+      });
+
+      const entity = mockPermission();
+
+      domainService.createPermissionEntityFromDto.mockReturnValue(entity);
+      repository.save.mockRejectedValue(new Error('Database error'));
+
+      await expect(useCase.execute(dto)).rejects.toThrow('Database error');
+      expect(logHistory.executeStructured).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when logging fails', async () => {
+      const dto = new PermissionServerDto({
+        roleId: 'role-123',
+        serverId: 'server-456',
+        bitmask: PermissionBit.READ,
+      });
+
+      const entity = mockPermission();
+      const savedEntity = mockPermission();
+
+      domainService.createPermissionEntityFromDto.mockReturnValue(entity);
+      repository.save.mockResolvedValue(savedEntity);
+      logHistory.executeStructured.mockRejectedValue(
+        new Error('Logging failed'),
+      );
+
+      // Logging failures propagate
+      await expect(useCase.execute(dto)).rejects.toThrow('Logging failed');
+    });
+
+    it('should work without LogHistoryUseCase', async () => {
+      const mockRepositoryWithoutLogging = {
+        save: jest.fn(),
+      };
+
+      const mockDomainServiceWithoutLogging = {
+        createPermissionEntityFromDto: jest.fn(),
+      };
+
+      const moduleWithoutLogging: TestingModule = await Test.createTestingModule({
+        providers: [
+          CreatePermissionServerUseCase,
+          {
+            provide: 'PermissionServerRepositoryInterface',
+            useValue: mockRepositoryWithoutLogging,
+          },
+          {
+            provide: PermissionDomainServerService,
+            useValue: mockDomainServiceWithoutLogging,
+          },
+          {
+            provide: LogHistoryUseCase,
+            useValue: undefined,
+          },
+        ],
+      }).compile();
+
+      const useCaseWithoutLogging = moduleWithoutLogging.get<CreatePermissionServerUseCase>(
+        CreatePermissionServerUseCase,
+      );
+
+      const dto = new PermissionServerDto({
+        roleId: 'role-123',
+        serverId: 'server-456',
+        bitmask: PermissionBit.READ,
+      });
+
+      const entity = mockPermission();
+      const savedEntity = mockPermission();
+
+      mockDomainServiceWithoutLogging.createPermissionEntityFromDto.mockReturnValue(entity);
+      mockRepositoryWithoutLogging.save.mockResolvedValue(savedEntity);
+
+      const result = await useCaseWithoutLogging.execute(dto);
+
+      expect(result).toEqual(new PermissionServerDto(savedEntity));
+    });
+
+    it('should handle undefined values in saved entity', async () => {
+      const dto = new PermissionServerDto({
+        roleId: 'role-123',
+        serverId: 'server-456',
+        bitmask: PermissionBit.READ,
+      });
+
+      const entity = mockPermission();
+      const savedEntity = mockPermission({
+        roleId: undefined,
+        serverId: undefined,
+        bitmask: 0,
+      });
+
+      domainService.createPermissionEntityFromDto.mockReturnValue(entity);
+      repository.save.mockResolvedValue(savedEntity);
+
+      const result = await useCase.execute(dto);
+
+      expect(result.roleId).toBeUndefined();
+      expect(result.serverId).toBeUndefined();
+      expect(result.bitmask).toBe(0);
+    });
   });
 });

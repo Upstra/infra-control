@@ -199,6 +199,60 @@ describe('CreateBatchPermissionServerUseCase', () => {
       expect(result.failed[0].error).toBe('Unknown error occurred');
     });
 
+    it('should handle string errors', async () => {
+      const dto = new BatchPermissionServerDto();
+      dto.permissions = [
+        {
+          roleId: '123e4567-e89b-12d3-a456-426614174000',
+          serverId: '123e4567-e89b-12d3-a456-426614174001',
+          bitmask: 15,
+        },
+      ];
+
+      domainService.createPermissionEntityFromDto.mockImplementation(() => {
+        throw 'String error message';
+      });
+
+      const result = await useCase.execute(dto);
+
+      expect(result.total).toBe(1);
+      expect(result.successCount).toBe(0);
+      expect(result.failureCount).toBe(1);
+      expect(result.failed[0].error).toBe('String error message');
+    });
+
+    it('should handle null and undefined errors', async () => {
+      const dto = new BatchPermissionServerDto();
+      dto.permissions = [
+        {
+          roleId: '123e4567-e89b-12d3-a456-426614174000',
+          serverId: '123e4567-e89b-12d3-a456-426614174001',
+          bitmask: 15,
+        },
+        {
+          roleId: '123e4567-e89b-12d3-a456-426614174002',
+          serverId: '123e4567-e89b-12d3-a456-426614174002',
+          bitmask: 7,
+        },
+      ];
+
+      domainService.createPermissionEntityFromDto
+        .mockImplementationOnce(() => {
+          throw null;
+        })
+        .mockImplementationOnce(() => {
+          throw undefined;
+        });
+
+      const result = await useCase.execute(dto);
+
+      expect(result.total).toBe(2);
+      expect(result.successCount).toBe(0);
+      expect(result.failureCount).toBe(2);
+      expect(result.failed[0].error).toBe('Unknown error occurred');
+      expect(result.failed[1].error).toBe('Unknown error occurred');
+    });
+
     it('should process permissions sequentially', async () => {
       const dto = new BatchPermissionServerDto();
       dto.permissions = [
