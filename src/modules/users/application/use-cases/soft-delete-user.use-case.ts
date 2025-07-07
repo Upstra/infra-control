@@ -1,10 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { UserRepositoryInterface } from '../../domain/interfaces/user.repository.interface';
-import {
-  UserNotFoundException,
-  CannotDeleteOwnAccountException,
-  CannotDeleteLastAdminException,
-} from '../../domain/exceptions/user.exception';
+import { UserExceptions } from '../../domain/exceptions/user.exception';
 import { LogHistoryUseCase } from '../../../history/application/use-cases/log-history.use-case';
 import { DeletionReason } from '../dto/delete-account.dto';
 import { User } from '../../domain/entities/user.entity';
@@ -29,12 +25,12 @@ export class SoftDeleteUserUseCase {
     // Check if target user exists
     const targetUser = await this.userRepository.findById(targetUserId);
     if (!targetUser || targetUser.deleted) {
-      throw new UserNotFoundException(targetUserId);
+      throw UserExceptions.notFound(targetUserId);
     }
 
     // Check if admin is trying to delete their own account
     if (targetUserId === adminUserId) {
-      throw new CannotDeleteOwnAccountException();
+      throw UserExceptions.cannotDeleteOwnAccount();
     }
 
     // Check if this is the last admin
@@ -42,7 +38,7 @@ export class SoftDeleteUserUseCase {
     const isTargetAdmin = await this.isUserAdmin(targetUser);
     
     if (isTargetAdmin && adminCount <= 1) {
-      throw new CannotDeleteLastAdminException();
+      throw UserExceptions.cannotDeleteLastAdmin();
     }
 
     // Perform soft delete
