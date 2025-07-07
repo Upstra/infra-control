@@ -38,8 +38,11 @@ import {
   UpdateUserUseCase,
   DeleteUserUseCase,
   ResetPasswordUseCase,
+  SoftDeleteUserUseCase,
 } from '../use-cases';
 import { ResetPasswordDto } from '../dto';
+import { DeleteAccountDto, DeleteAccountResponseDto } from '../dto/delete-account.dto';
+import { AdminGuard } from '@/core/guards/admin.guard';
 
 @ApiTags('User')
 @Controller('user')
@@ -52,6 +55,7 @@ export class UserController {
     private readonly updateUserUseCase: UpdateUserUseCase,
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
     private readonly deleteUserUseCase: DeleteUserUseCase,
+    private readonly softDeleteUserUseCase: SoftDeleteUserUseCase,
   ) {}
 
   @Get('me')
@@ -227,5 +231,51 @@ export class UserController {
   @ApiResponse({ status: 204, description: 'Utilisateur supprimé avec succès' })
   async deleteUser(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.deleteUserUseCase.execute(id);
+  }
+
+  @Patch(':id/delete-account')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: "UUID de l'utilisateur à supprimer (soft delete)",
+    required: true,
+  })
+  @ApiBody({
+    type: DeleteAccountDto,
+    description: 'Données optionnelles pour la suppression',
+    required: false,
+  })
+  @ApiOperation({
+    summary: 'Supprimer un compte utilisateur (soft delete)',
+    description: 'Effectue une suppression logique du compte utilisateur. Admin uniquement.',
+  })
+  @ApiResponse({ 
+    status: 200, 
+    type: DeleteAccountResponseDto,
+    description: 'Compte utilisateur supprimé avec succès' 
+  })
+  async deleteAccount(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: DeleteAccountDto,
+    @CurrentUser() admin: JwtPayload,
+    @Req() req: any,
+  ): Promise<DeleteAccountResponseDto> {
+    const requestContext = RequestContextDto.fromRequest(req);
+    
+    await this.softDeleteUserUseCase.execute(
+      id,
+      admin.userId,
+      dto.reason,
+      dto.details,
+      requestContext.ipAddress,
+      requestContext.userAgent,
+    );
+
+    return {
+      success: true,
+      message: 'User account has been deleted',
+    };
   }
 }
