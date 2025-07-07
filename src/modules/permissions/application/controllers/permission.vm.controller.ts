@@ -147,7 +147,12 @@ export class PermissionVmController {
   @ApiParam({ name: 'vmId', type: 'string', format: 'uuid' })
   @ApiParam({ name: 'roleId', type: 'string', format: 'uuid' })
   @ApiResponse({ status: 204, description: 'Permission supprimée avec succès' })
-  @LogToHistory('permission_vm', 'DELETE')
+  @LogToHistory('permission_vm', 'DELETE', {
+    extractMetadata: (data, params) => ({
+      vmId: params.vmId,
+      roleId: params.roleId,
+    }),
+  })
   async deletePermission(
     @Param('vmId', ParseUUIDPipe) vmId: string,
     @Param('roleId', ParseUUIDPipe) roleId: string,
