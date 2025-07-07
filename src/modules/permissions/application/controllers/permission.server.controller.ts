@@ -18,8 +18,16 @@ import {
   ApiBody,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { PermissionServerDto } from '../dto/permission.server.dto';
+import {
+  PermissionServerDto,
+  UpdatePermissionServerDto,
+} from '../dto/permission.server.dto';
+import {
+  BatchPermissionServerDto,
+  BatchPermissionServerResponseDto,
+} from '../dto/batch-permission.server.dto';
 import { CreatePermissionServerUseCase } from '../use-cases/permission-server/create-permission-server.use-case';
+import { CreateBatchPermissionServerUseCase } from '../use-cases/permission-server/create-batch-permission-server.use-case';
 import { GetPermissionsServerByRoleUseCase } from '../use-cases/permission-server/get-permission-server-by-role.use-case';
 import { GetPermissionServerByIdsUseCase } from '../use-cases/permission-server/get-permission-server-by-ids.use-case';
 import { UpdatePermissionServerUseCase } from '../use-cases/permission-server/update-permission-server.use-case';
@@ -34,6 +42,7 @@ import { JwtPayload } from '@/core/types/jwt-payload.interface';
 export class PermissionServerController {
   constructor(
     private readonly createPermissionUsecase: CreatePermissionServerUseCase,
+    private readonly createBatchPermissionUsecase: CreateBatchPermissionServerUseCase,
     private readonly getAllByRoleUsecase: GetPermissionsServerByRoleUseCase,
     private readonly getByIdsUsecase: GetPermissionServerByIdsUseCase,
     private readonly updatePermissionUsecase: UpdatePermissionServerUseCase,
@@ -75,16 +84,26 @@ export class PermissionServerController {
     return this.createPermissionUsecase.execute(dto);
   }
 
+  @Post('batch')
+  @ApiOperation({ summary: 'Créer plusieurs permissions serveur en une fois' })
+  @ApiBody({ type: BatchPermissionServerDto })
+  @ApiResponse({ status: 201, type: BatchPermissionServerResponseDto })
+  async createBatchPermissions(
+    @Body() dto: BatchPermissionServerDto,
+  ): Promise<BatchPermissionServerResponseDto> {
+    return this.createBatchPermissionUsecase.execute(dto);
+  }
+
   @Patch(':serverId/role/:roleId')
   @ApiOperation({ summary: 'Modifier une permission serveur existante' })
   @ApiParam({ name: 'serverId', type: 'string', format: 'uuid' })
   @ApiParam({ name: 'roleId', type: 'string', format: 'uuid' })
-  @ApiBody({ type: PermissionServerDto })
+  @ApiBody({ type: UpdatePermissionServerDto })
   @ApiResponse({ status: 200, type: PermissionServerDto })
   async updatePermission(
     @Param('serverId', ParseUUIDPipe) serverId: string,
     @Param('roleId', ParseUUIDPipe) roleId: string,
-    @Body() dto: PermissionServerDto,
+    @Body() dto: UpdatePermissionServerDto,
   ): Promise<PermissionServerDto> {
     return this.updatePermissionUsecase.execute(serverId, roleId, dto);
   }

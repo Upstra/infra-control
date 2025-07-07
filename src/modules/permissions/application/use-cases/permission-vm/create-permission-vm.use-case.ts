@@ -31,6 +31,6 @@ export class CreatePermissionVmUseCase {
       dto.roleId,
       dto.bitmask,
     );
-    return new PermissionVmDto(permission);
+    return PermissionVmDto.fromEntity(permission);
   }
 }

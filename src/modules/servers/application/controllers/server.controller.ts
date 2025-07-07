@@ -32,6 +32,7 @@ import {
   GetUserServersUseCase,
   GetServerByIdWithPermissionCheckUseCase,
   UpdateServerPriorityUseCase,
+  CheckServerPermissionUseCase,
 } from '@/modules/servers/application/use-cases';
 
 import { ServerResponseDto } from '../dto/server.response.dto';
@@ -39,6 +40,8 @@ import { ServerCreationDto } from '../dto/server.creation.dto';
 import { ServerUpdateDto } from '../dto/server.update.dto';
 import { ServerListResponseDto } from '../dto/server.list.response.dto';
 import { UpdatePriorityDto } from '../../../priorities/application/dto/update-priority.dto';
+import { CheckServerPermissionDto } from '../dto/check-server-permission.dto';
+import { PermissionCheckResponseDto } from '../dto/permission-check.response.dto';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
@@ -63,6 +66,7 @@ export class ServerController {
     private readonly getServerByIdWithPermissionCheckUseCase: GetServerByIdWithPermissionCheckUseCase,
     private readonly getUserServersUseCase: GetUserServersUseCase,
     private readonly updateServerPriorityUseCase: UpdateServerPriorityUseCase,
+    private readonly checkServerPermissionUseCase: CheckServerPermissionUseCase,
   ) {}
 
   @Get('admin/all')
@@ -308,5 +312,39 @@ export class ServerController {
     @CurrentUser() user: JwtPayload,
   ): Promise<void> {
     return this.deleteServerUseCase.execute(id, user.userId);
+  }
+
+  @Post('check')
+  @UseGuards(JwtAuthGuard)
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Check user permission on a server',
+    description:
+      'Checks if the current user has a specific permission on a given server.',
+  })
+  @ApiBody({
+    type: CheckServerPermissionDto,
+    description: 'Server ID and permission to check',
+    required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    type: PermissionCheckResponseDto,
+    description: 'Permission check result',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Server not found',
+  })
+  async checkPermission(
+    @Body() dto: CheckServerPermissionDto,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<PermissionCheckResponseDto> {
+    return this.checkServerPermissionUseCase.execute(
+      dto.serverId,
+      user.userId,
+      dto.permission,
+    );
   }
 }

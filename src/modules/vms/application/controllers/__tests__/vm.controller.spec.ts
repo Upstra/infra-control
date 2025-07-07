@@ -8,6 +8,7 @@ import {
   GetVmByIdUseCase,
   UpdateVmUseCase,
   UpdateVmPriorityUseCase,
+  CheckVmPermissionUseCase,
 } from '../../use-cases';
 import {
   createMockVm,
@@ -28,6 +29,7 @@ describe('VmController', () => {
   let updateVmUseCase: jest.Mocked<UpdateVmUseCase>;
   let deleteVmUseCase: jest.Mocked<DeleteVmUseCase>;
   let updateVmPriorityUseCase: jest.Mocked<UpdateVmPriorityUseCase>;
+  let checkVmPermissionUseCase: jest.Mocked<CheckVmPermissionUseCase>;
 
   beforeEach(async () => {
     const mockJwtAuthGuard = {
@@ -58,6 +60,7 @@ describe('VmController', () => {
     updateVmUseCase = { execute: jest.fn() } as any;
     deleteVmUseCase = { execute: jest.fn() } as any;
     updateVmPriorityUseCase = { execute: jest.fn() } as any;
+    checkVmPermissionUseCase = { execute: jest.fn() } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [VmController],
@@ -69,6 +72,7 @@ describe('VmController', () => {
         { provide: UpdateVmUseCase, useValue: updateVmUseCase },
         { provide: DeleteVmUseCase, useValue: deleteVmUseCase },
         { provide: UpdateVmPriorityUseCase, useValue: updateVmPriorityUseCase },
+        { provide: CheckVmPermissionUseCase, useValue: checkVmPermissionUseCase },
         {
           provide: 'PermissionStrategyFactory',
           useValue: mockPermissionStrategyFactory,
@@ -234,6 +238,76 @@ describe('VmController', () => {
       await expect(controller.deleteVm('invalid-vm')).rejects.toThrow(
         'VM not found',
       );
+    });
+  });
+
+  describe('checkPermission', () => {
+    const mockPayload = {
+      userId: 'user-123',
+      email: 'test@example.com',
+    };
+
+    it('should check if user has permission on a VM', async () => {
+      const dto = {
+        vmId: 'vm-123',
+        permission: 1, // PermissionBit.READ
+      };
+
+      const expectedResponse = {
+        hasPermission: true,
+        userId: mockPayload.userId,
+        resourceId: dto.vmId,
+        resourceType: 'vm' as const,
+        permission: dto.permission,
+      };
+
+      checkVmPermissionUseCase.execute.mockResolvedValue(expectedResponse);
+
+      const result = await controller.checkPermission(dto, mockPayload);
+
+      expect(result).toEqual(expectedResponse);
+      expect(checkVmPermissionUseCase.execute).toHaveBeenCalledWith(
+        dto.vmId,
+        mockPayload.userId,
+        dto.permission,
+      );
+    });
+
+    it('should return false when user does not have permission', async () => {
+      const dto = {
+        vmId: 'vm-123',
+        permission: 4, // PermissionBit.DELETE
+      };
+
+      const expectedResponse = {
+        hasPermission: false,
+        userId: mockPayload.userId,
+        resourceId: dto.vmId,
+        resourceType: 'vm' as const,
+        permission: dto.permission,
+      };
+
+      checkVmPermissionUseCase.execute.mockResolvedValue(expectedResponse);
+
+      const result = await controller.checkPermission(dto, mockPayload);
+
+      expect(result).toEqual(expectedResponse);
+      expect(result.hasPermission).toBe(false);
+    });
+
+    it('should throw NotFoundException when VM does not exist', async () => {
+      const dto = {
+        vmId: 'nonexistent-vm',
+        permission: 1,
+      };
+
+      checkVmPermissionUseCase.execute.mockRejectedValue(
+        new Error('VM not found'),
+      );
+
+      await expect(
+        controller.checkPermission(dto, mockPayload),
+      ).rejects.toThrow('VM not found');
     });
   });
 });

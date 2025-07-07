@@ -3,21 +3,22 @@ import { PermissionVmDto } from '../../dto/permission.vm.dto';
 import { PermissionVmRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.vm.repository.interface';
 
 /**
- * Updates an existing VM permission entry with new actions or scope.
+ * Updates an existing VM permission entry with new bitmask.
  *
  * Responsibilities:
- * - Fetch existing permission by its ID.
- * - Apply changes from UpdatePermissionVmDto (actions, expiry, etc.).
+ * - Fetch existing permission by VM and role IDs.
+ * - Apply changes from PermissionVmDto.
  * - Persist and return the updated permission DTO.
  *
- * @param id   The UUID of the permission record to update.
- * @param dto  UpdatePermissionVmDto containing updated fields.
- * @returns    Promise<PermissionVmDto> of the modified record.
+ * @param vmId    The UUID of the VM.
+ * @param roleId  The UUID of the role.
+ * @param dto     PermissionVmDto containing updated bitmask.
+ * @returns       Promise<PermissionVmDto> of the modified record.
  *
- * @throws {NotFoundException} if no permission entry matches the given ID.
+ * @throws {NotFoundException} if no permission entry matches the given IDs.
  *
  * @example
- * const updated = await updatePermissionVmUseCase.execute(permissionId, { actions: ['start','reboot'] });
+ * const updated = await updatePermissionVmUseCase.execute('vm1', 'role1', { bitmask: 15 });
  */
 
 @Injectable()
@@ -27,12 +28,8 @@ export class UpdatePermissionVmUseCase {
     private readonly repository: PermissionVmRepositoryInterface,
   ) {}
 
-  async execute(dto: PermissionVmDto): Promise<PermissionVmDto> {
-    const updated = await this.repository.updatePermission(
-      dto.vmId,
-      dto.roleId,
-      dto.bitmask,
-    );
-    return new PermissionVmDto(updated);
+  async execute(vmId: string, roleId: string, dto: PermissionVmDto): Promise<PermissionVmDto> {
+    const updated = await this.repository.updatePermission(vmId, roleId, dto.bitmask);
+    return PermissionVmDto.fromEntity(updated);
   }
 }

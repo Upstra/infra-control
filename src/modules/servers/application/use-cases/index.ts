@@ -6,6 +6,7 @@ import { GetServerByIdWithPermissionCheckUseCase } from './get-server-by-id-with
 import { GetServerByIdUseCase } from './get-server-by-id.use-case';
 import { UpdateServerUseCase } from './update-server.use-case';
 import { UpdateServerPriorityUseCase } from './update-server-priority.use-case';
+import { CheckServerPermissionUseCase } from './check-server-permission.use-case';
 
 export const ServerUseCases = [
   GetAllServersUseCase,
@@ -16,6 +17,7 @@ export const ServerUseCases = [
   GetUserServersUseCase,
   GetServerByIdWithPermissionCheckUseCase,
   UpdateServerPriorityUseCase,
+  CheckServerPermissionUseCase,
 ];
 
 export {
@@ -27,4 +29,5 @@ export {
   GetUserServersUseCase,
   GetServerByIdWithPermissionCheckUseCase,
   UpdateServerPriorityUseCase,
+  CheckServerPermissionUseCase,
 };

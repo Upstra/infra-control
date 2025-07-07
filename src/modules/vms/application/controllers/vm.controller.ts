@@ -17,6 +17,8 @@ import { VmResponseDto } from '../dto/vm.response.dto';
 import { VmListResponseDto } from '../dto/vm.list.response.dto';
 import { VmEndpointInterface } from '../interfaces/vm.endpoint.interface';
 import { VmUpdateDto } from '../dto/vm.update.dto';
+import { CheckVmPermissionDto } from '../dto/check-vm-permission.dto';
+import { PermissionCheckResponseDto } from '../dto/permission-check.response.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -34,6 +36,7 @@ import {
   GetVmByIdUseCase,
   UpdateVmUseCase,
   UpdateVmPriorityUseCase,
+  CheckVmPermissionUseCase,
 } from '@/modules/vms/application/use-cases';
 import { UpdatePriorityDto } from '../../../priorities/application/dto/update-priority.dto';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
@@ -56,6 +59,7 @@ export class VmController implements VmEndpointInterface {
     private readonly updateVmUseCase: UpdateVmUseCase,
     private readonly deleteVmUseCase: DeleteVmUseCase,
     private readonly updateVmPriorityUseCase: UpdateVmPriorityUseCase,
+    private readonly checkVmPermissionUseCase: CheckVmPermissionUseCase,
   ) {}
 
   @Get()
@@ -251,5 +255,39 @@ export class VmController implements VmEndpointInterface {
   })
   async deleteVm(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.deleteVmUseCase.execute(id);
+  }
+
+  @Post('check')
+  @UseGuards(JwtAuthGuard)
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Check user permission on a VM',
+    description:
+      'Checks if the current user has a specific permission on a given VM.',
+  })
+  @ApiBody({
+    type: CheckVmPermissionDto,
+    description: 'VM ID and permission to check',
+    required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    type: PermissionCheckResponseDto,
+    description: 'Permission check result',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'VM not found',
+  })
+  async checkPermission(
+    @Body() dto: CheckVmPermissionDto,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<PermissionCheckResponseDto> {
+    return this.checkVmPermissionUseCase.execute(
+      dto.vmId,
+      user.userId,
+      dto.permission,
+    );
   }
 }

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsUUID, IsInt } from 'class-validator';
+import { IsUUID, IsInt, IsOptional } from 'class-validator';
 import { PermissionServer } from '../../domain/entities/permission.server.entity';
 
 export class PermissionServerDto {
@@ -29,5 +29,19 @@ export class PermissionServerDto {
 
   static fromEntities(permissions: PermissionServer[]): PermissionServerDto[] {
     return permissions.map((saved) => this.fromEntity(saved));
+  }
+}
+
+export class UpdatePermissionServerDto {
+  @ApiProperty()
+  @IsUUID()
+  roleId: string;
+
+  @ApiProperty()
+  @IsInt()
+  bitmask: number;
+
+  constructor(partial?: Partial<UpdatePermissionServerDto>) {
+    Object.assign(this, partial);
   }
 }

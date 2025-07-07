@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PermissionVm } from '../entities/permission.vm.entity';
 import { PermissionBit } from '../value-objects/permission-bit.enum';
+import { PermissionVmDto } from '../../application/dto/permission.vm.dto';
 
 /**
  * Manages and validates domain-level permissions for virtual machine entities.
@@ -34,6 +35,14 @@ export class PermissionDomainVmService {
   createReadOnlyPermissionEntity(): PermissionVm {
     const entity = new PermissionVm();
     entity.bitmask = PermissionBit.READ;
+    return entity;
+  }
+
+  createPermissionEntityFromDto(dto: PermissionVmDto): PermissionVm {
+    const entity = new PermissionVm();
+    entity.vmId = dto.vmId;
+    entity.roleId = dto.roleId;
+    entity.bitmask = dto.bitmask;
     return entity;
   }
 }
