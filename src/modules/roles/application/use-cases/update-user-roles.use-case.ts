@@ -55,7 +55,7 @@ export class UpdateUserRolesUseCase {
         'ASSIGN_GUEST';
 
       if (roleIds !== undefined) {
-        await this.assignMultipleRoles(user, roleIds, roleRepo);
+        await this.assignMultipleRoles(user, roleIds, roleRepo, manager);
         operationType = 'ASSIGN_ROLES';
       } else if (roleId !== undefined && roleId !== null) {
         const hadRole = this.hasRole(user, roleId);
@@ -105,6 +105,7 @@ export class UpdateUserRolesUseCase {
     user: User,
     roleIds: string[],
     roleRepo: any,
+    manager: any,
   ): Promise<void> {
     if (roleIds.length === 0) {
       user.roles = [];
@@ -120,10 +121,11 @@ export class UpdateUserRolesUseCase {
     const newRolesHaveAdmin = roles.some((r) => r.isAdmin);
 
     if (currentUserIsAdmin && !newRolesHaveAdmin) {
-      const adminCount = await roleRepo
-        .createQueryBuilder('role')
-        .innerJoin('role.users', 'user')
-        .where('role.isAdmin = true')
+      const adminCount = await manager
+        .getRepository(User)
+        .createQueryBuilder('user')
+        .innerJoin('user.roles', 'role')
+        .where('role.isAdmin = :isAdmin', { isAdmin: true })
         .getCount();
 
       if (adminCount === 1) {
@@ -169,9 +171,12 @@ export class UpdateUserRolesUseCase {
     const adminRoles = user.roles.filter((r) => r.isAdmin);
     if (adminRoles.length !== 1) return false;
 
-    const adminCount = await userRepo.count({
-      where: { roles: { isAdmin: true } },
-    });
+    const adminCount = await userRepo
+      .createQueryBuilder('user')
+      .innerJoin('user.roles', 'role')
+      .where('role.isAdmin = :isAdmin', { isAdmin: true })
+      .getCount();
+      
     return adminCount === 1;
   }
 

@@ -19,6 +19,7 @@ describe('UpdateUserRolesUseCase', () => {
       findOneOrFail: jest.fn(),
       save: jest.fn(),
       count: jest.fn(),
+      createQueryBuilder: jest.fn(),
     };
 
     roleRepo = {
@@ -116,11 +117,48 @@ describe('UpdateUserRolesUseCase', () => {
 
       userRepo.findOneOrFail.mockResolvedValue(user);
       roleRepo.findOneOrFail.mockResolvedValue(adminRole);
-      userRepo.count.mockResolvedValue(1);
+      
+      const queryBuilder = {
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getCount: jest.fn().mockResolvedValue(1),
+      };
+      userRepo.createQueryBuilder.mockReturnValue(queryBuilder);
 
       await expect(useCase.execute(userId, roleId, undefined)).rejects.toThrow(
         UserExceptions.cannotRemoveLastAdminRole(),
       );
+    });
+
+    it('should allow removing admin role when there are other admins', async () => {
+      const userId = 'user-id';
+      const roleId = 'admin-role-id';
+
+      const adminRole = { id: roleId, name: 'ADMIN', isAdmin: true };
+      const guestRole = { id: 'guest-id', name: 'GUEST', isAdmin: false };
+      const user = {
+        id: userId,
+        roles: [adminRole, guestRole],
+      };
+
+      userRepo.findOneOrFail.mockResolvedValue(user);
+      roleRepo.findOneOrFail.mockResolvedValue(adminRole);
+      
+      const queryBuilder = {
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getCount: jest.fn().mockResolvedValue(3), // 3 admins total
+      };
+      userRepo.createQueryBuilder.mockReturnValue(queryBuilder);
+      userRepo.save.mockResolvedValue({
+        ...user,
+        roles: [guestRole],
+      });
+
+      const result = await useCase.execute(userId, roleId, undefined);
+
+      expect(user.roles).toEqual([guestRole]);
+      expect(userRepo.save).toHaveBeenCalledWith(user);
     });
 
     it('should assign guest role when user has no roles', async () => {
@@ -234,7 +272,17 @@ describe('UpdateUserRolesUseCase', () => {
         where: jest.fn().mockReturnThis(),
         getCount: jest.fn().mockResolvedValue(1),
       };
-      roleRepo.createQueryBuilder.mockReturnValue(queryBuilder);
+      
+      // Ensure manager.getRepository returns the right repository for each entity
+      manager.getRepository.mockImplementation((entity) => {
+        if (entity === User) {
+          return {
+            ...userRepo,
+            createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
+          };
+        }
+        if (entity === Role) return roleRepo;
+      });
 
       await expect(useCase.execute(userId, undefined, roleIds)).rejects.toThrow(
         UserExceptions.cannotRemoveLastAdminRole(),
