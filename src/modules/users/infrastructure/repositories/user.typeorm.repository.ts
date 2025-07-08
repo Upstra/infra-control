@@ -5,7 +5,7 @@ import {
   FindAllByFieldOptions,
   UserRepositoryInterface,
 } from '../../domain/interfaces/user.repository.interface';
-import { DataSource, Repository, In } from 'typeorm';
+import { DataSource, Repository, In, IsNull } from 'typeorm';
 import { InvalidQueryValueException } from '@/core/exceptions/repository.exception';
 import { UserExceptions } from '../../domain/exceptions/user.exception';
 import { PrimitiveFields } from '@/core/types/primitive-fields.interface';
@@ -19,7 +19,7 @@ export class UserTypeormRepository
     super(User, dataSource.createEntityManager());
   }
   findAll(relations?: string[], includeDeleted = false): Promise<User[]> {
-    const where = includeDeleted ? {} : { deletedAt: null };
+    const where = includeDeleted ? {} : { deletedAt: IsNull() };
     return this.find({
       where,
       relations: relations || ['role'],
@@ -43,8 +43,8 @@ export class UserTypeormRepository
 
     try {
       const whereClause = Array.isArray(value)
-        ? { [field]: In(value as any), deletedAt: null }
-        : { [field]: value, deletedAt: null };
+        ? { [field]: In(value as any), deletedAt: IsNull() }
+        : { [field]: value, deletedAt: IsNull() };
       return await this.find({ where: whereClause, relations });
     } catch (error) {
       if (disableThrow) return [];
@@ -66,7 +66,7 @@ export class UserTypeormRepository
     relations: string[] = ['roles'],
     includeDeleted = false,
   ): Promise<[User[], number]> {
-    const where = includeDeleted ? {} : { deletedAt: null };
+    const where = includeDeleted ? {} : { deletedAt: IsNull() };
     return this.findAndCount({
       where,
       relations,
@@ -87,7 +87,7 @@ export class UserTypeormRepository
     }
     try {
       return await this.findOneOrFail({
-        where: { [field]: value, deletedAt: null },
+        where: { [field]: value, deletedAt: IsNull() } as any,
         relations,
       });
     } catch (error) {
@@ -182,7 +182,7 @@ export class UserTypeormRepository
   ): Promise<User | null> {
     const where = includeDeleted
       ? { id: userId }
-      : { id: userId, deletedAt: null };
+      : { id: userId, deletedAt: IsNull() } as any;
     return await this.findOne({
       where,
       relations: ['roles'],
@@ -199,7 +199,7 @@ export class UserTypeormRepository
   }
 
   async findById(id: string, includeDeleted = false): Promise<User | null> {
-    const where = includeDeleted ? { id } : { id, deletedAt: null };
+    const where = includeDeleted ? { id } : { id, deletedAt: IsNull() } as any;
     return await this.findOne({
       where,
     });
@@ -208,7 +208,7 @@ export class UserTypeormRepository
   // Override findOneById to exclude soft-deleted users by default
   async findOneById(id: string): Promise<User | null> {
     return await this.findOne({
-      where: { id, deletedAt: null },
+      where: { id, deletedAt: IsNull() } as any,
     });
   }
 }
