@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { ExtendedJwtPayload } from '../../domain/interfaces/extended-jwt-payload.interface';
 import { TokenService } from '../services/token.service';
 
 /**
@@ -29,9 +29,7 @@ export class RenewTokenUseCase {
 
   execute(refreshToken: string) {
     try {
-      const payload = this.jwtService.verify<
-        JwtPayload & { isTwoFactorEnabled?: boolean; role?: any; roles?: any[]; isActive?: boolean }
-      >(refreshToken);
+      const payload = this.jwtService.verify<ExtendedJwtPayload>(refreshToken);
 
       const tokens = this.tokenService.generateTokens({
         userId: payload.userId,

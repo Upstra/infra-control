@@ -1,7 +1,7 @@
 import { RenewTokenUseCase } from '../renew-token.use-case';
 import { JwtService } from '@nestjs/jwt';
 import { TokenService } from '../../services/token.service';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { ExtendedJwtPayload } from '../../../domain/interfaces/extended-jwt-payload.interface';
 
 describe('RenewTokenUseCase', () => {
   let useCase: RenewTokenUseCase;
@@ -22,7 +22,7 @@ describe('RenewTokenUseCase', () => {
 
   it('should return a renewed token', () => {
     const refreshToken = 'refresh.token';
-    const payload: JwtPayload & { isTwoFactorEnabled?: boolean; role?: any; roles?: any[]; isActive?: boolean } = {
+    const payload: ExtendedJwtPayload = {
       userId: 'user-1',
       email: 'john@example.com',
       isTwoFactorEnabled: false,
