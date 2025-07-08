@@ -4,6 +4,12 @@ export class UserNotFoundException extends Error {
   }
 }
 
+export class UserBadRequestException extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}
+
 export class UserUpdateException extends Error {
   constructor(message = 'Erreur lors de la mise à jour de l’utilisateur') {
     super(message);
@@ -117,5 +123,9 @@ export class UserExceptions {
 
   static cannotDeactivateLastAdmin(): CannotDeactivateLastAdminException {
     return new CannotDeactivateLastAdminException();
+  }
+
+  static badRequest(message: string): UserBadRequestException {
+    return new UserBadRequestException(message);
   }
 }

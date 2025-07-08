@@ -21,4 +21,11 @@ export interface RoleRepositoryInterface {
    * Count the number of admin roles in the system.
    */
   countAdminRoles(): Promise<number>;
+
+  /**
+   * Find multiple roles by their IDs.
+   * @param ids Array of role IDs to find
+   * @returns Promise<Role[]> Array of found roles
+   */
+  findByIds(ids: string[]): Promise<Role[]>;
 }
