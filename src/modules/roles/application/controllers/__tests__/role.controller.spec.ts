@@ -9,6 +9,7 @@ import {
   UpdateRoleUseCase,
   GetUsersByRoleUseCase,
   UpdateUserRoleUseCase,
+  UpdateUserRolesUseCase,
 } from '../../use-cases';
 import { RoleCreationDto, RoleResponseDto } from '../../dto';
 import { AdminRoleCreationDto } from '../../dto/role.creation.dto';
@@ -28,6 +29,7 @@ describe('RoleController', () => {
   let deleteRoleUseCase: jest.Mocked<DeleteRoleUseCase>;
   let getUsersByRoleUseCase: jest.Mocked<GetUsersByRoleUseCase>;
   let updateUserRoleUseCase: jest.Mocked<UpdateUserRoleUseCase>;
+  let updateUserRolesUseCase: jest.Mocked<UpdateUserRolesUseCase>;
 
   beforeEach(async () => {
     createRoleUseCase = { execute: jest.fn() } as any;
@@ -38,6 +40,7 @@ describe('RoleController', () => {
     deleteRoleUseCase = { execute: jest.fn() } as any;
     getUsersByRoleUseCase = { execute: jest.fn() } as any;
     updateUserRoleUseCase = { execute: jest.fn() } as any;
+    updateUserRolesUseCase = { execute: jest.fn() } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [RoleController],
@@ -50,6 +53,7 @@ describe('RoleController', () => {
         { provide: DeleteRoleUseCase, useValue: deleteRoleUseCase },
         { provide: GetUsersByRoleUseCase, useValue: getUsersByRoleUseCase },
         { provide: UpdateUserRoleUseCase, useValue: updateUserRoleUseCase },
+        { provide: UpdateUserRolesUseCase, useValue: updateUserRolesUseCase },
       ],
     })
       .overrideGuard(RoleGuard)
@@ -229,7 +233,7 @@ describe('RoleController', () => {
       } as any;
       const result = await controller.updateUserRole(
         'u1',
-        'r2',
+        { roleId: 'r2' },
         mockCurrentUser,
         mockReq,
       );
@@ -253,8 +257,68 @@ describe('RoleController', () => {
         get: jest.fn().mockReturnValue('Test-Agent'),
       } as any;
       await expect(
-        controller.updateUserRole('u1', null, mockCurrentUser, mockReq),
+        controller.updateUserRole('u1', { roleId: null }, mockCurrentUser, mockReq),
       ).rejects.toThrow('fail');
+    });
+
+    it('should handle multiple roles assignment', async () => {
+      const user = new UserResponseDto(createMockUser({ id: 'u1' }));
+      updateUserRolesUseCase.execute.mockResolvedValue(user);
+      const mockCurrentUser = {
+        userId: 'admin-123',
+        email: 'admin@example.com',
+      };
+      const mockReq = {
+        ip: '127.0.0.1',
+        get: jest.fn().mockReturnValue('Test-Agent'),
+      } as any;
+      const result = await controller.updateUserRole(
+        'u1',
+        { roleIds: ['r1', 'r2', 'r3'] },
+        mockCurrentUser,
+        mockReq,
+      );
+      expect(result).toEqual(user);
+      expect(updateUserRolesUseCase.execute).toHaveBeenCalledWith(
+        'u1',
+        undefined,
+        ['r1', 'r2', 'r3'],
+        'admin-123',
+        expect.objectContaining({
+          ipAddress: '127.0.0.1',
+          userAgent: 'Test-Agent',
+        }),
+      );
+    });
+
+    it('should handle single role toggle', async () => {
+      const user = new UserResponseDto(createMockUser({ id: 'u1' }));
+      updateUserRoleUseCase.execute.mockResolvedValue(user);
+      const mockCurrentUser = {
+        userId: 'admin-123',
+        email: 'admin@example.com',
+      };
+      const mockReq = {
+        ip: '127.0.0.1',
+        get: jest.fn().mockReturnValue('Test-Agent'),
+      } as any;
+      const result = await controller.updateUserRole(
+        'u1',
+        { roleId: 'r2' },
+        mockCurrentUser,
+        mockReq,
+      );
+      expect(result).toEqual(user);
+      expect(updateUserRoleUseCase.execute).toHaveBeenCalledWith(
+        'u1',
+        'r2',
+        'admin-123',
+        expect.objectContaining({
+          ipAddress: '127.0.0.1',
+          userAgent: 'Test-Agent',
+        }),
+      );
+      expect(updateUserRolesUseCase.execute).not.toHaveBeenCalled();
     });
   });
 });
