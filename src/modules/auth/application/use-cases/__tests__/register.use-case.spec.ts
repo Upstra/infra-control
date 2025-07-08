@@ -56,6 +56,7 @@ describe('RegisterUseCase', () => {
       userId: fakeUser.id,
       email: fakeUser.email,
       isTwoFactorEnabled: fakeUser.isTwoFactorEnabled,
+      isActive: fakeUser.isActive,
     });
     expect(result).toEqual({
       accessToken: 'access.jwt.token',

@@ -22,11 +22,12 @@ describe('RenewTokenUseCase', () => {
 
   it('should return a renewed token', () => {
     const refreshToken = 'refresh.token';
-    const payload: JwtPayload & { isTwoFactorEnabled?: boolean; role?: any } = {
+    const payload: JwtPayload & { isTwoFactorEnabled?: boolean; role?: any; isActive?: boolean } = {
       userId: 'user-1',
       email: 'john@example.com',
       isTwoFactorEnabled: false,
       role: { id: '1', name: 'admin' },
+      isActive: true,
     };
 
     jwtService.verify.mockReturnValue(payload);
@@ -44,6 +45,7 @@ describe('RenewTokenUseCase', () => {
       email: payload.email,
       isTwoFactorEnabled: payload.isTwoFactorEnabled,
       role: payload.role,
+      isActive: payload.isActive,
     });
     expect(result).toEqual({
       accessToken: 'new.access.token',
