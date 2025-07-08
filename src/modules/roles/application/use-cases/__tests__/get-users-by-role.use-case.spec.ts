@@ -51,6 +51,32 @@ describe('GetUsersByRoleUseCase', () => {
     expect(presenceService.isOnline).toHaveBeenCalledWith('u1');
   });
 
+  it('should return empty array when role is not found', async () => {
+    roleRepo.findOneByField.mockResolvedValue(null);
+
+    const result = await useCase.execute('nonexistent-role');
+
+    expect(roleRepo.findOneByField).toHaveBeenCalledWith({
+      field: 'id',
+      value: 'nonexistent-role',
+      relations: ['users', 'users.roles'],
+    });
+    expect(result).toEqual([]);
+    expect(presenceService.isOnline).not.toHaveBeenCalled();
+  });
+
+  it('should return empty array when role has no users property', async () => {
+    const roleWithoutUsers = createMockRole();
+    delete roleWithoutUsers.users;
+    
+    roleRepo.findOneByField.mockResolvedValue(roleWithoutUsers);
+
+    const result = await useCase.execute('r1');
+
+    expect(result).toEqual([]);
+    expect(presenceService.isOnline).not.toHaveBeenCalled();
+  });
+
   it('should propagate errors', async () => {
     roleRepo.findOneByField.mockRejectedValue(new Error('fail'));
     presenceService.isOnline.mockImplementation(() => {
