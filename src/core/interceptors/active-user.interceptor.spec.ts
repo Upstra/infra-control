@@ -52,7 +52,7 @@ describe('ActiveUserInterceptor', () => {
       mockRequest.user = {
         userId: '123',
         email: 'test@example.com',
-        active: true,
+        isActive: true,
       };
 
       interceptor.intercept(mockExecutionContext, mockCallHandler);
@@ -64,7 +64,7 @@ describe('ActiveUserInterceptor', () => {
       mockRequest.user = {
         userId: '123',
         email: 'test@example.com',
-        active: false,
+        isActive: false,
       };
 
       expect(() => {
@@ -74,22 +74,24 @@ describe('ActiveUserInterceptor', () => {
       expect(mockCallHandler.handle).not.toHaveBeenCalled();
     });
 
-    it('should allow request when user.active is undefined', () => {
+    it('should throw InactiveUserException when user.isActive is undefined', () => {
       mockRequest.user = {
         userId: '123',
         email: 'test@example.com',
       };
 
-      interceptor.intercept(mockExecutionContext, mockCallHandler);
+      expect(() => {
+        interceptor.intercept(mockExecutionContext, mockCallHandler);
+      }).toThrow(InactiveUserException);
 
-      expect(mockCallHandler.handle).toHaveBeenCalled();
+      expect(mockCallHandler.handle).not.toHaveBeenCalled();
     });
 
     it('should handle nested user object correctly', () => {
       mockRequest.user = {
         userId: '123',
         email: 'test@example.com',
-        active: false,
+        isActive: false,
         role: {
           name: 'admin',
           permissions: [],

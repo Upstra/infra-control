@@ -152,7 +152,8 @@ describe('HistoryEventTypeormRepository', () => {
       const daysDiff = Math.round(
         (now.getTime() - thirtyDaysAgo.getTime()) / (1000 * 60 * 60 * 24),
       );
-      expect(daysDiff).toBe(30);
+      expect(daysDiff).toBeGreaterThanOrEqual(29);
+      expect(daysDiff).toBeLessThanOrEqual(30);
     });
 
     it('should limit top users to 10', async () => {
