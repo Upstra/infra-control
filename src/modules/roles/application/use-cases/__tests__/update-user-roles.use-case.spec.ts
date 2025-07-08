@@ -161,6 +161,75 @@ describe('UpdateUserRolesUseCase', () => {
       expect(userRepo.save).toHaveBeenCalledWith(user);
     });
 
+    it('should throw error when trying to remove last guest role', async () => {
+      const userId = 'user-id';
+      const roleId = 'guest-id';
+
+      const guestRole = { id: roleId, name: 'GUEST', isAdmin: false };
+      const user = {
+        id: userId,
+        roles: [guestRole],
+      };
+
+      userRepo.findOneOrFail.mockResolvedValue(user);
+      roleRepo.findOneOrFail.mockResolvedValue(guestRole);
+
+      await expect(useCase.execute(userId, roleId, undefined)).rejects.toThrow(
+        RoleExceptions.cannotRemoveGuestRole(),
+      );
+    });
+
+    it('should allow removing guest role when user has other roles', async () => {
+      const userId = 'user-id';
+      const roleId = 'guest-id';
+
+      const guestRole = { id: roleId, name: 'GUEST', isAdmin: false };
+      const userRole = { id: 'user-role', name: 'USER', isAdmin: false };
+      const user = {
+        id: userId,
+        roles: [guestRole, userRole],
+      };
+
+      userRepo.findOneOrFail.mockResolvedValue(user);
+      roleRepo.findOneOrFail.mockResolvedValue(guestRole);
+      userRepo.save.mockResolvedValue({
+        ...user,
+        roles: [userRole],
+      });
+
+      const result = await useCase.execute(userId, roleId, undefined);
+
+      expect(user.roles).toEqual([userRole]);
+      expect(userRepo.save).toHaveBeenCalledWith(user);
+    });
+
+    it('should handle user with multiple admin roles', async () => {
+      const userId = 'user-id';
+      const roleId = 'admin1-id';
+
+      const adminRole1 = { id: roleId, name: 'ADMIN', isAdmin: true };
+      const adminRole2 = { id: 'admin2-id', name: 'SUPER_ADMIN', isAdmin: true };
+      const userRole = { id: 'user-role', name: 'USER', isAdmin: false };
+      const user = {
+        id: userId,
+        roles: [adminRole1, adminRole2, userRole],
+      };
+
+      userRepo.findOneOrFail.mockResolvedValue(user);
+      roleRepo.findOneOrFail.mockResolvedValue(adminRole1);
+      userRepo.save.mockResolvedValue({
+        ...user,
+        roles: [adminRole2, userRole],
+      });
+
+      const result = await useCase.execute(userId, roleId, undefined);
+
+      expect(user.roles).toEqual([adminRole2, userRole]);
+      expect(userRepo.save).toHaveBeenCalledWith(user);
+      // Should not check admin count because user has multiple admin roles
+      expect(userRepo.createQueryBuilder).not.toHaveBeenCalled();
+    });
+
     it('should assign guest role when user has no roles', async () => {
       const userId = 'user-id';
       const guestRole = { id: 'guest-id', name: 'GUEST', isAdmin: false };
@@ -362,6 +431,32 @@ describe('UpdateUserRolesUseCase', () => {
         ipAddress: requestContext.ipAddress,
         userAgent: requestContext.userAgent,
       });
+    });
+  });
+
+  describe('Without logHistory', () => {
+    it('should work without logHistory service', async () => {
+      const useCaseWithoutHistory = new UpdateUserRolesUseCase(dataSource);
+      
+      const userId = 'user-id';
+      const roleId = 'role-id';
+      const newRole = { id: roleId, name: 'USER', isAdmin: false };
+      const user = {
+        id: userId,
+        roles: [],
+      };
+
+      userRepo.findOneOrFail.mockResolvedValue(user);
+      roleRepo.findOneOrFail.mockResolvedValue(newRole);
+      userRepo.save.mockResolvedValue({
+        ...user,
+        roles: [newRole],
+      });
+
+      const result = await useCaseWithoutHistory.execute(userId, roleId, undefined);
+      
+      expect(result).toBeDefined();
+      expect(userRepo.save).toHaveBeenCalled();
     });
   });
 });
