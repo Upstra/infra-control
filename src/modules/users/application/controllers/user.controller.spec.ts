@@ -14,8 +14,10 @@ import { SoftDeleteUserUseCase } from '../use-cases/soft-delete-user.use-case';
 import { ToggleUserStatusUseCase } from '../use-cases/toggle-user-status.use-case';
 import { UpdateAccountUseCase } from '../use-cases/update-account.use-case';
 import { BulkActivateUseCase } from '../use-cases/bulk-activate.use-case';
+import { CreateUserByAdminUseCase } from '../use-cases/create-user-by-admin.use-case';
 
 import { UserUpdateDto } from '../dto/user.update.dto';
+import { UserCreateDto } from '../dto/user.create.dto';
 import { ResetPasswordDto } from '../dto';
 import { UpdateAccountDto } from '../dto/update-account.dto';
 import { BulkActivateDto } from '../dto/bulk-activate.dto';
@@ -45,6 +47,7 @@ describe('UserController', () => {
   const toggleUserStatusUseCase = { execute: jest.fn() };
   const updateAccountUseCase = { execute: jest.fn() };
   const bulkActivateUseCase = { execute: jest.fn() };
+  const createUserByAdminUseCase = { execute: jest.fn() };
 
   const mockPayload: JwtPayload = {
     userId: 'user-123',
@@ -69,6 +72,7 @@ describe('UserController', () => {
         { provide: ToggleUserStatusUseCase, useValue: toggleUserStatusUseCase },
         { provide: UpdateAccountUseCase, useValue: updateAccountUseCase },
         { provide: BulkActivateUseCase, useValue: bulkActivateUseCase },
+        { provide: CreateUserByAdminUseCase, useValue: createUserByAdminUseCase },
       ],
     }).compile();
 
@@ -329,6 +333,96 @@ describe('UserController', () => {
 
       expect(bulkActivateUseCase.execute).toHaveBeenCalledWith(bulkActivateDto);
       expect(result).toBe(activatedUsers);
+    });
+  });
+
+  describe('createUser', () => {
+    it('should create a new user and return UserResponseDto', async () => {
+      const createUserDto: UserCreateDto = {
+        username: 'newuser',
+        firstName: 'New',
+        lastName: 'User',
+        email: 'new@example.com',
+        password: 'StrongPassword123!',
+        roleIds: ['role-123'],
+      };
+
+      const createdUser = {
+        id: 'new-user-123',
+        ...createUserDto,
+        roles: [{ id: 'role-123', name: 'User' }],
+        isActive: true,
+        isVerified: false,
+        isTwoFactorEnabled: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      createUserByAdminUseCase.execute.mockResolvedValue(createdUser);
+
+      const result = await controller.createUser(createUserDto, mockPayload);
+
+      expect(createUserByAdminUseCase.execute).toHaveBeenCalledWith(
+        createUserDto,
+        mockPayload.userId,
+      );
+      expect(result).toBeDefined();
+      expect(result.id).toBe(createdUser.id);
+      expect(result.username).toBe(createdUser.username);
+      expect(result.email).toBe(createdUser.email);
+    });
+
+    it('should handle conflict errors when username exists', async () => {
+      const createUserDto: UserCreateDto = {
+        username: 'existinguser',
+        firstName: 'New',
+        lastName: 'User',
+        email: 'new@example.com',
+        password: 'StrongPassword123!',
+      };
+
+      const conflictError = new Error('Username already exists');
+      createUserByAdminUseCase.execute.mockRejectedValue(conflictError);
+
+      await expect(
+        controller.createUser(createUserDto, mockPayload),
+      ).rejects.toThrow(conflictError);
+
+      expect(createUserByAdminUseCase.execute).toHaveBeenCalledWith(
+        createUserDto,
+        mockPayload.userId,
+      );
+    });
+
+    it('should create user without roleIds', async () => {
+      const createUserDto: UserCreateDto = {
+        username: 'newuser',
+        firstName: 'New',
+        lastName: 'User',
+        email: 'new@example.com',
+        password: 'StrongPassword123!',
+      };
+
+      const createdUser = {
+        id: 'new-user-123',
+        ...createUserDto,
+        roles: [],
+        isActive: true,
+        isVerified: false,
+        isTwoFactorEnabled: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      createUserByAdminUseCase.execute.mockResolvedValue(createdUser);
+
+      const result = await controller.createUser(createUserDto, mockPayload);
+
+      expect(createUserByAdminUseCase.execute).toHaveBeenCalledWith(
+        createUserDto,
+        mockPayload.userId,
+      );
+      expect(result.roles).toEqual([]);
     });
   });
 });
