@@ -41,7 +41,7 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
       const result = await repository.findAll();
 
       expect(repository.find).toHaveBeenCalledWith({
-        where: { deleted: false },
+        where: { deletedAt: null },
         relations: ['role'],
       });
       expect(result).toEqual([mockActiveUser]);
@@ -72,7 +72,7 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
       });
 
       expect(repository.find).toHaveBeenCalledWith({
-        where: { email: 'test@example.com', deleted: false },
+        where: { email: 'test@example.com', deletedAt: null },
         relations: [],
       });
       expect(result).toEqual([mockActiveUser]);
@@ -87,7 +87,7 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
       });
 
       expect(repository.find).toHaveBeenCalledWith({
-        where: { id: expect.any(Object), deleted: false },
+        where: { id: expect.any(Object), deletedAt: null },
         relations: [],
       });
       expect(result).toEqual([mockActiveUser]);
@@ -103,7 +103,7 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
       const result = await repository.paginate(1, 10);
 
       expect(repository.findAndCount).toHaveBeenCalledWith({
-        where: { deleted: false },
+        where: { deletedAt: null },
         relations: ['roles'],
         skip: 0,
         take: 10,
@@ -142,7 +142,7 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
       });
 
       expect(repository.findOneOrFail).toHaveBeenCalledWith({
-        where: { email: 'test@example.com', deleted: false },
+        where: { email: 'test@example.com', deletedAt: null },
         relations: [],
       });
       expect(result).toEqual(mockActiveUser);
@@ -162,8 +162,7 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
       const result = await repository.countUsers();
 
       expect(mockQueryBuilder.where).toHaveBeenCalledWith(
-        'user.deleted = :deleted',
-        { deleted: false },
+        'user.deletedAt IS NULL',
       );
       expect(result).toBe(5);
     });
@@ -210,8 +209,7 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
       const result = await repository.countAdmins();
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'user.deleted = :deleted',
-        { deleted: false },
+        'user.deletedAt IS NULL',
       );
       expect(result).toBe(2);
     });
@@ -230,8 +228,7 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
       const result = await repository.countAdmins(true);
 
       expect(mockQueryBuilder.andWhere).not.toHaveBeenCalledWith(
-        'user.deleted = :deleted',
-        { deleted: false },
+        'user.deletedAt IS NULL',
       );
       expect(result).toBe(3);
     });
@@ -253,8 +250,7 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
       const result = await repository.findUsersByRole('role-id');
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'user.deleted = :deleted',
-        { deleted: false },
+        'user.deletedAt IS NULL',
       );
       expect(result).toEqual([mockActiveUser]);
     });
@@ -267,7 +263,7 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
       const result = await repository.findWithRoles('user-id');
 
       expect(repository.findOne).toHaveBeenCalledWith({
-        where: { id: 'user-id', deleted: false },
+        where: { id: 'user-id', deletedAt: null },
         relations: ['roles'],
       });
       expect(result).toEqual(mockActiveUser);
@@ -293,15 +289,26 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
       const result = await repository.findOneById('user-id');
 
       expect(repository.findOne).toHaveBeenCalledWith({
-        where: { id: 'user-id', deleted: false },
+        where: { id: 'user-id', deletedAt: null },
       });
       expect(result).toEqual(mockActiveUser);
     });
 
-    it('findById should include deleted users', async () => {
-      jest.spyOn(repository, 'findOne').mockResolvedValue(mockDeletedUser);
+    it('findById should exclude deleted users by default', async () => {
+      jest.spyOn(repository, 'findOne').mockResolvedValue(null);
 
       const result = await repository.findById('deleted-user-id');
+
+      expect(repository.findOne).toHaveBeenCalledWith({
+        where: { id: 'deleted-user-id', deletedAt: null },
+      });
+      expect(result).toBeNull();
+    });
+
+    it('findById should include deleted users when includeDeleted is true', async () => {
+      jest.spyOn(repository, 'findOne').mockResolvedValue(mockDeletedUser);
+
+      const result = await repository.findById('deleted-user-id', true);
 
       expect(repository.findOne).toHaveBeenCalledWith({
         where: { id: 'deleted-user-id' },
