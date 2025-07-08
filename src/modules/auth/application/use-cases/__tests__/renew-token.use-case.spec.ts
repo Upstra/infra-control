@@ -22,11 +22,12 @@ describe('RenewTokenUseCase', () => {
 
   it('should return a renewed token', () => {
     const refreshToken = 'refresh.token';
-    const payload: JwtPayload & { isTwoFactorEnabled?: boolean; role?: any; isActive?: boolean } = {
+    const payload: JwtPayload & { isTwoFactorEnabled?: boolean; role?: any; roles?: any[]; isActive?: boolean } = {
       userId: 'user-1',
       email: 'john@example.com',
       isTwoFactorEnabled: false,
       role: { id: '1', name: 'admin' },
+      roles: [{ id: '1', name: 'admin' }],
       isActive: true,
     };
 
@@ -45,6 +46,7 @@ describe('RenewTokenUseCase', () => {
       email: payload.email,
       isTwoFactorEnabled: payload.isTwoFactorEnabled,
       role: payload.role,
+      roles: payload.roles,
       isActive: payload.isActive,
     });
     expect(result).toEqual({
