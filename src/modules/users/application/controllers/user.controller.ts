@@ -6,6 +6,7 @@ import {
   Param,
   ParseUUIDPipe,
   Patch,
+  Post,
   Query,
   UseGuards,
   Req,
@@ -27,7 +28,7 @@ import { RequestContextDto } from '@/core/dto';
 
 import { UserResponseDto } from '../dto/user.response.dto';
 import { UserListResponseDto } from '../dto/user.list.response.dto';
-
+import { UserCreateDto } from '../dto/user.create.dto';
 import { UserUpdateDto } from '../dto/user.update.dto';
 import { UpdateAccountDto } from '../dto/update-account.dto';
 import { BulkActivateDto } from '../dto/bulk-activate.dto';
@@ -44,6 +45,7 @@ import {
   ToggleUserStatusUseCase,
   UpdateAccountUseCase,
   BulkActivateUseCase,
+  CreateUserByAdminUseCase,
 } from '../use-cases';
 import { ResetPasswordDto } from '../dto';
 import {
@@ -68,6 +70,7 @@ export class UserController {
     private readonly toggleUserStatusUseCase: ToggleUserStatusUseCase,
     private readonly updateAccountUseCase: UpdateAccountUseCase,
     private readonly bulkActivateUseCase: BulkActivateUseCase,
+    private readonly createUserByAdminUseCase: CreateUserByAdminUseCase,
   ) {}
 
   @Get('me')
@@ -390,5 +393,43 @@ export class UserController {
     @Body() bulkActivateDto: BulkActivateDto,
   ): Promise<UserResponseDto[]> {
     return this.bulkActivateUseCase.execute(bulkActivateDto);
+  }
+
+  @Post('admin/create')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
+  @ApiBearerAuth()
+  @ApiBody({
+    type: UserCreateDto,
+    description: 'Données pour créer un nouvel utilisateur',
+    required: true,
+  })
+  @ApiOperation({
+    summary: 'Créer un nouvel utilisateur (admin)',
+    description:
+      "Permet à un administrateur de créer un nouvel utilisateur avec des rôles spécifiques.",
+  })
+  @ApiResponse({
+    status: 201,
+    type: UserResponseDto,
+    description: 'Utilisateur créé avec succès',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Username ou email déjà existant',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Données invalides',
+  })
+  async createUser(
+    @Body() createUserDto: UserCreateDto,
+    @CurrentUser() admin: JwtPayload,
+  ): Promise<UserResponseDto> {
+    const user = await this.createUserByAdminUseCase.execute(
+      createUserDto,
+      admin.userId,
+    );
+    return UserResponseDto.fromEntity(user);
   }
 }
