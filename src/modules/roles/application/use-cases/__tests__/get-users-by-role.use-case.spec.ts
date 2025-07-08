@@ -1,5 +1,4 @@
 import { GetUsersByRoleUseCase } from '../get-users-by-role.use-case';
-import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { RoleRepositoryInterface } from '@/modules/roles/domain/interfaces/role.repository.interface';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 import { createMockRole } from '@/modules/roles/__mocks__/role.mock';
@@ -8,15 +7,13 @@ import { PresenceService } from '@/modules/presence/application/services/presenc
 
 describe('GetUsersByRoleUseCase', () => {
   let useCase: GetUsersByRoleUseCase;
-  let repo: jest.Mocked<UserRepositoryInterface>;
   let roleRepo: jest.Mocked<RoleRepositoryInterface>;
   let presenceService: jest.Mocked<PresenceService>;
 
   beforeEach(() => {
-    repo = { findAllByField: jest.fn() } as any;
     roleRepo = { findOneByField: jest.fn() } as any;
     presenceService = { isOnline: jest.fn() } as any;
-    useCase = new GetUsersByRoleUseCase(repo, roleRepo, presenceService);
+    useCase = new GetUsersByRoleUseCase(roleRepo, presenceService);
   });
 
   it('should return users for role', async () => {
@@ -34,6 +31,24 @@ describe('GetUsersByRoleUseCase', () => {
     });
     expect(presenceService.isOnline).toHaveBeenCalledWith(user.id);
     expect(result).toEqual([new UserResponseDto(user)]);
+  });
+
+  it('should filter out soft-deleted users', async () => {
+    const activeUser = createMockUser({ id: 'u1', deletedAt: null });
+    const deletedUser = createMockUser({ id: 'u2', deletedAt: new Date() });
+    const role = Object.assign(createMockRole(), { 
+      users: [activeUser, deletedUser] 
+    });
+    
+    roleRepo.findOneByField.mockResolvedValue(role);
+    presenceService.isOnline.mockResolvedValue(true);
+
+    const result = await useCase.execute('r1');
+
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('u1');
+    expect(presenceService.isOnline).toHaveBeenCalledTimes(1);
+    expect(presenceService.isOnline).toHaveBeenCalledWith('u1');
   });
 
   it('should propagate errors', async () => {
