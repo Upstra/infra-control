@@ -35,7 +35,9 @@ import {
   UpdateRoleUseCase,
   GetUsersByRoleUseCase,
   UpdateUserRoleUseCase,
+  UpdateUserRolesUseCase,
 } from '@/modules/roles/application/use-cases';
+import { UpdateUserRolesDto } from '../dto/update-user-roles.dto';
 import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
 import { UserWithPresenceDto } from '../dto/user-with-presence.dto';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
@@ -61,6 +63,7 @@ export class RoleController {
     private readonly deleteRoleUseCase: DeleteRoleUseCase,
     private readonly getUsersByRoleUseCase: GetUsersByRoleUseCase,
     private readonly updateUserRoleUseCase: UpdateUserRoleUseCase,
+    private readonly updateUserRolesUseCase: UpdateUserRolesUseCase,
   ) {}
 
   @Get()
@@ -234,7 +237,7 @@ export class RoleController {
     return this.getUsersByRoleUseCase.execute(id);
   }
 
-  @Patch('users/:userId/role')
+  @Patch('user/update-account/:userId')
   @UseGuards(SensitiveOperationsGuard, JwtAuthGuard)
   @ApiBearerAuth()
   @ApiParam({
@@ -243,26 +246,37 @@ export class RoleController {
     description: 'UUID de l’utilisateur',
   })
   @ApiBody({
-    schema: {
-      properties: {
-        roleId: { type: 'string', format: 'uuid', nullable: true },
-      },
-    },
+    type: UpdateUserRolesDto,
+    description: 'Roles to update - supports both single roleId (toggle) and roleIds array (replace all)',
   })
-  @ApiOperation({ summary: "Mettre à jour le rôle d'un utilisateur" })
+  @ApiOperation({ 
+    summary: "Mettre à jour le(s) rôle(s) d'un utilisateur",
+    description: 'Supports both single role toggle (roleId) and multiple roles assignment (roleIds)'
+  })
   @ApiResponse({ status: 200, type: UserResponseDto })
   async updateUserRole(
     @Param('userId', ParseUUIDPipe) userId: string,
-    @Body('roleId') roleId: string | null,
+    @Body() dto: UpdateUserRolesDto,
     @CurrentUser() currentUser: JwtPayload,
     @Req() req: any,
   ): Promise<UserResponseDto> {
     const requestContext = RequestContextDto.fromRequest(req);
-    return this.updateUserRoleUseCase.execute(
-      userId,
-      roleId,
-      currentUser.userId,
-      requestContext,
-    );
+    
+    if (dto.roleId !== undefined) {
+      return this.updateUserRoleUseCase.execute(
+        userId,
+        dto.roleId,
+        currentUser.userId,
+        requestContext,
+      );
+    } else {
+      return this.updateUserRolesUseCase.execute(
+        userId,
+        dto.roleId,
+        dto.roleIds,
+        currentUser.userId,
+        requestContext,
+      );
+    }
   }
 }

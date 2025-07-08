@@ -52,3 +52,19 @@ export class CannotRemoveGuestRoleException extends Error {
     this.name = 'CannotRemoveGuestRoleException';
   }
 }
+
+export class RoleExceptions {
+  static roleNotFound(): RoleNotFoundException {
+    return new RoleNotFoundException('One or more roles not found');
+  }
+
+  static cannotSpecifyBothRoleIdAndRoleIds(): Error {
+    const error = new Error('Cannot specify both roleId and roleIds');
+    error.name = 'InvalidRoleUpdateException';
+    return error;
+  }
+
+  static cannotRemoveGuestRole(): CannotRemoveGuestRoleException {
+    return new CannotRemoveGuestRoleException();
+  }
+}
