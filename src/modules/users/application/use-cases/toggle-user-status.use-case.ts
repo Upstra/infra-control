@@ -38,18 +38,17 @@ export class ToggleUserStatusUseCase {
     const isTargetAdmin =
       userWithRoles?.roles?.some((role) => role.isAdmin) ?? false;
 
-    if (isTargetAdmin && targetUser.active) {
+    if (isTargetAdmin && targetUser.isActive) {
       const activeAdminCount = await this.userRepository.countActiveAdmins();
       if (activeAdminCount <= 1) {
         throw UserExceptions.cannotDeactivateLastAdmin();
       }
     }
 
-    const previousStatus = targetUser.active;
-    targetUser.active = !targetUser.active;
+    const previousStatus = targetUser.isActive;
+    targetUser.isActive = !targetUser.isActive;
 
-    if (targetUser.active && targetUser.deleted) {
-      targetUser.deleted = false;
+    if (targetUser.isActive && targetUser.deletedAt) {
       targetUser.deletedAt = null;
     }
 
@@ -61,8 +60,8 @@ export class ToggleUserStatusUseCase {
       entityId: targetUserId,
       action: `user.${action}`,
       userId: adminId,
-      oldValue: { active: previousStatus },
-      newValue: { active: targetUser.active },
+      oldValue: { isActive: previousStatus },
+      newValue: { isActive: targetUser.isActive },
       metadata: {
         username: targetUser.username,
         reason,

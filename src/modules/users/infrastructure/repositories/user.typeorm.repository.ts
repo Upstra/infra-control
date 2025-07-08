@@ -19,7 +19,7 @@ export class UserTypeormRepository
     super(User, dataSource.createEntityManager());
   }
   findAll(relations?: string[], includeDeleted = false): Promise<User[]> {
-    const where = includeDeleted ? {} : { deleted: false };
+    const where = includeDeleted ? {} : { deletedAt: null };
     return this.find({
       where,
       relations: relations || ['role'],
@@ -43,8 +43,8 @@ export class UserTypeormRepository
 
     try {
       const whereClause = Array.isArray(value)
-        ? { [field]: In(value as any), deleted: false }
-        : { [field]: value, deleted: false };
+        ? { [field]: In(value as any), deletedAt: null }
+        : { [field]: value, deletedAt: null };
       return await this.find({ where: whereClause, relations });
     } catch (error) {
       if (disableThrow) return [];
@@ -66,7 +66,7 @@ export class UserTypeormRepository
     relations: string[] = ['roles'],
     includeDeleted = false,
   ): Promise<[User[], number]> {
-    const where = includeDeleted ? {} : { deleted: false };
+    const where = includeDeleted ? {} : { deletedAt: null };
     return this.findAndCount({
       where,
       relations,
@@ -87,7 +87,7 @@ export class UserTypeormRepository
     }
     try {
       return await this.findOneOrFail({
-        where: { [field]: value, deleted: false },
+        where: { [field]: value, deletedAt: null },
         relations,
       });
     } catch (error) {
@@ -106,7 +106,7 @@ export class UserTypeormRepository
     const query = this.createQueryBuilder('user');
 
     if (!includeDeleted) {
-      query.where('user.deleted = :deleted', { deleted: false });
+      query.where('user.deletedAt IS NULL');
     }
 
     return await query.getCount();
@@ -122,7 +122,7 @@ export class UserTypeormRepository
       .where('role.isAdmin = :admin', { admin: true });
 
     if (!includeDeleted) {
-      query.andWhere('user.deleted = :deleted', { deleted: false });
+      query.andWhere('user.deletedAt IS NULL');
     }
 
     return await query.getCount();
@@ -170,7 +170,7 @@ export class UserTypeormRepository
       .leftJoinAndSelect('user.roles', 'allRoles');
 
     if (!includeDeleted) {
-      query.andWhere('user.deleted = :deleted', { deleted: false });
+      query.andWhere('user.deletedAt IS NULL');
     }
 
     return await query.getMany();
@@ -182,7 +182,7 @@ export class UserTypeormRepository
   ): Promise<User | null> {
     const where = includeDeleted
       ? { id: userId }
-      : { id: userId, deleted: false };
+      : { id: userId, deletedAt: null };
     return await this.findOne({
       where,
       relations: ['roles'],
@@ -193,8 +193,8 @@ export class UserTypeormRepository
     return await this.createQueryBuilder('user')
       .innerJoin('user.roles', 'role')
       .where('role.name IN (:...names)', { names: ['Admin', 'admin'] })
-      .andWhere('user.active = :active', { active: true })
-      .andWhere('user.deleted = :deleted', { deleted: false })
+      .andWhere('user.isActive = :isActive', { isActive: true })
+      .andWhere('user.deletedAt IS NULL')
       .getCount();
   }
 
@@ -207,7 +207,7 @@ export class UserTypeormRepository
   // Override findOneById to exclude soft-deleted users by default
   async findOneById(id: string): Promise<User | null> {
     return await this.findOne({
-      where: { id, deleted: false },
+      where: { id, deletedAt: null },
     });
   }
 }

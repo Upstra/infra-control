@@ -3,6 +3,7 @@ import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.
 import { RoleRepositoryInterface } from '../../domain/interfaces/role.repository.interface';
 import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
 import { PresenceService } from '@/modules/presence/application/services/presence.service';
+import { UserWithPresenceDto } from '../dto/user-with-presence.dto';
 
 @Injectable()
 export class GetUsersByRoleUseCase {
@@ -14,7 +15,7 @@ export class GetUsersByRoleUseCase {
     private readonly presenceService: PresenceService,
   ) {}
 
-  async execute(roleId: string): Promise<UserResponseDto[]> {
+  async execute(roleId: string): Promise<UserWithPresenceDto[]> {
     const role = await this.roleRepo.findOneByField({
       field: 'id',
       value: roleId,
@@ -31,8 +32,8 @@ export class GetUsersByRoleUseCase {
     );
 
     return usersWithPresence.map(({ user, active }) => {
-      const dto = new UserResponseDto(user);
-      (dto as any).active = active;
+      const dto = new UserWithPresenceDto(user);
+      dto.isOnline = active;
       return dto;
     });
   }

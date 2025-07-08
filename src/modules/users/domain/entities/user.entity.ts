@@ -52,17 +52,11 @@ export class User extends BaseEntity {
   @Column('text', { array: true, nullable: true })
   recoveryCodes?: string[];
 
-  @Column({ default: false })
-  active!: boolean;
-
   @Column({ default: true })
   isActive!: boolean;
 
   @Column({ default: false })
   isVerified!: boolean;
-
-  @Column({ default: false })
-  deleted!: boolean;
 
   @Column({ type: 'timestamp', nullable: true })
   deletedAt?: Date;

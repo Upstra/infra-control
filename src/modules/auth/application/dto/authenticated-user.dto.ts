@@ -23,5 +23,5 @@ export class AuthenticatedUserDto {
 
   @ApiProperty()
   @IsBoolean()
-  active: boolean;
+  isActive: boolean;
 }

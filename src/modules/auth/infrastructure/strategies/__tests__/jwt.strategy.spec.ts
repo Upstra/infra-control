@@ -111,7 +111,7 @@ describe('JwtStrategy', () => {
         email: 'john.doe@example.com',
         isTwoFactorEnabled: true,
         role: mockRole,
-        active: true,
+        isActive: true,
       };
 
       const result = await strategy.validate(payload);
@@ -121,7 +121,7 @@ describe('JwtStrategy', () => {
         email: 'john.doe@example.com',
         isTwoFactorEnabled: true,
         role: mockRole,
-        active: true,
+        isActive: true,
       });
     });
 
@@ -132,7 +132,7 @@ describe('JwtStrategy', () => {
         email: 'jane.smith@example.com',
         isTwoFactorEnabled: false,
         role: mockRole,
-        active: true,
+        isActive: true,
       };
 
       const result = await strategy.validate(payload);
@@ -142,7 +142,7 @@ describe('JwtStrategy', () => {
         email: 'jane.smith@example.com',
         isTwoFactorEnabled: false,
         role: mockRole,
-        active: true,
+        isActive: true,
       });
     });
 
@@ -153,7 +153,7 @@ describe('JwtStrategy', () => {
         email: 'inactive@example.com',
         isTwoFactorEnabled: false,
         role: mockRole,
-        active: false,
+        isActive: false,
       };
 
       const result = await strategy.validate(payload);
@@ -163,7 +163,7 @@ describe('JwtStrategy', () => {
         email: 'inactive@example.com',
         isTwoFactorEnabled: false,
         role: mockRole,
-        active: false,
+        isActive: false,
       });
     });
 
@@ -178,14 +178,14 @@ describe('JwtStrategy', () => {
         email: 'admin@example.com',
         isTwoFactorEnabled: true,
         role: customRole,
-        active: true,
+        isActive: true,
       };
 
       const result = await strategy.validate(payload);
 
       expect(result.role).toEqual(customRole);
       expect(result.userId).toBe('admin-user');
-      expect(result.active).toBe(true);
+      expect(result.isActive).toBe(true);
     });
 
     it('should handle payload with extra properties', async () => {
@@ -195,7 +195,7 @@ describe('JwtStrategy', () => {
         email: 'test@example.com',
         isTwoFactorEnabled: true,
         role: mockRole,
-        active: true,
+        isActive: true,
         iat: 1234567890,
         exp: 1234567890,
         extraProperty: 'should-be-ignored',
@@ -208,7 +208,7 @@ describe('JwtStrategy', () => {
         email: 'test@example.com',
         isTwoFactorEnabled: true,
         role: mockRole,
-        active: true,
+        isActive: true,
       });
 
       expect(result).not.toHaveProperty('iat');
@@ -230,7 +230,7 @@ describe('JwtStrategy', () => {
         email: undefined,
         isTwoFactorEnabled: undefined,
         role: undefined,
-        active: undefined,
+        isActive: undefined,
       });
     });
   });

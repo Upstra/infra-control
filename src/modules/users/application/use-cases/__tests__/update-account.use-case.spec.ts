@@ -12,7 +12,7 @@ describe('UpdateAccountUseCase', () => {
   let userDomainService: jest.Mocked<UserDomainService>;
   let userRepository: any;
 
-  const mockUser = {
+  const mockUser = Object.assign(new User(), {
     id: '123e4567-e89b-12d3-a456-426614174000',
     username: 'testuser',
     email: 'test@example.com',
@@ -24,12 +24,10 @@ describe('UpdateAccountUseCase', () => {
     isTwoFactorEnabled: false,
     twoFactorSecret: null,
     roles: [],
-    active: false,
-    deleted: false,
     deletedAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
-  } as User;
+  });
 
   beforeEach(async () => {
     const mockUserDomainService = {

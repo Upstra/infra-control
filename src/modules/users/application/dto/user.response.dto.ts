@@ -10,7 +10,6 @@ export class UserResponseDto {
   @ApiProperty() @IsString() readonly lastName: string;
   @ApiProperty() @IsEmail() readonly email: string;
 
-  @ApiProperty() @IsBoolean() readonly active: boolean;
   @ApiProperty() @IsBoolean() readonly isActive: boolean;
   @ApiProperty() @IsBoolean() readonly isVerified: boolean;
   @ApiProperty() @IsBoolean() readonly isTwoFactorEnabled: boolean;
@@ -26,7 +25,6 @@ export class UserResponseDto {
     this.firstName = u.firstName;
     this.lastName = u.lastName;
     this.email = u.email;
-    this.active = u.active;
     this.isActive = u.isActive;
     this.isVerified = u.isVerified;
     this.isTwoFactorEnabled = u.isTwoFactorEnabled;
@@ -42,7 +40,6 @@ export class UserResponseDto {
     user.firstName = this.firstName;
     user.lastName = this.lastName;
     user.email = this.email;
-    user.active = this.active;
     user.isActive = this.isActive;
     user.isVerified = this.isVerified;
     user.isTwoFactorEnabled = this.isTwoFactorEnabled;
