@@ -19,6 +19,8 @@ import {
   ResetPasswordUseCase,
   GetUserWithRoleUseCase,
   ToggleUserStatusUseCase,
+  UpdateAccountUseCase,
+  BulkActivateUseCase,
 } from '../../use-cases';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { RoleGuard } from '@/core/guards/role.guard';
@@ -90,6 +92,14 @@ describe('UserController - deleteAccount', () => {
         },
         {
           provide: ToggleUserStatusUseCase,
+          useValue: {},
+        },
+        {
+          provide: UpdateAccountUseCase,
+          useValue: {},
+        },
+        {
+          provide: BulkActivateUseCase,
           useValue: {},
         },
         Reflector,

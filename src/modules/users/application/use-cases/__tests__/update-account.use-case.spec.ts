@@ -139,7 +139,7 @@ describe('UpdateAccountUseCase', () => {
 
       await expect(
         useCase.execute('non-existent-id', updateData),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(UserExceptions.notFound());
 
       expect(userRepository.findById).toHaveBeenCalledWith('non-existent-id');
       expect(userDomainService.updateAccount).not.toHaveBeenCalled();

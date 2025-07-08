@@ -14,6 +14,8 @@ import {
   ResetPasswordUseCase,
   SoftDeleteUserUseCase,
   GetUserWithRoleUseCase,
+  UpdateAccountUseCase,
+  BulkActivateUseCase,
 } from '../../use-cases';
 
 describe('UserController - toggleUserStatus', () => {
@@ -102,6 +104,14 @@ describe('UserController - toggleUserStatus', () => {
         },
         {
           provide: GetUserWithRoleUseCase,
+          useValue: { execute: jest.fn() },
+        },
+        {
+          provide: UpdateAccountUseCase,
+          useValue: { execute: jest.fn() },
+        },
+        {
+          provide: BulkActivateUseCase,
           useValue: { execute: jest.fn() },
         },
       ],
