@@ -30,6 +30,7 @@ export class GetUserByUsernameUseCase {
     const user = await this.userRepo.findOneByField({
       field: 'username',
       value: username,
+      relations: ['roles'],
     });
     return user;
   }

@@ -30,7 +30,7 @@ export class RenewTokenUseCase {
   execute(refreshToken: string) {
     try {
       const payload = this.jwtService.verify<
-        JwtPayload & { isTwoFactorEnabled?: boolean; role?: any; isActive?: boolean }
+        JwtPayload & { isTwoFactorEnabled?: boolean; role?: any; roles?: any[]; isActive?: boolean }
       >(refreshToken);
 
       const tokens = this.tokenService.generateTokens({
@@ -38,6 +38,7 @@ export class RenewTokenUseCase {
         email: payload.email,
         isTwoFactorEnabled: payload.isTwoFactorEnabled,
         role: payload.role,
+        roles: payload.roles,
         isActive: payload.isActive,
       });
 

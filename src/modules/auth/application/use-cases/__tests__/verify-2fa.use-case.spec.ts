@@ -68,6 +68,8 @@ describe('Verify2FAUseCase', () => {
       userId: user.id,
       email: user.email,
       isTwoFactorAuthenticated: true,
+      isActive: user.isActive,
+      roles: user.roles,
     });
     expect(result).toEqual({
       isValid: true,
@@ -92,6 +94,8 @@ describe('Verify2FAUseCase', () => {
       userId: user.id,
       email: user.email,
       isTwoFactorAuthenticated: true,
+      isActive: user.isActive,
+      roles: user.roles,
     });
     expect(result).toEqual({
       isValid: true,
