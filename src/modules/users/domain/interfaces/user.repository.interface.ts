@@ -73,13 +73,13 @@ export interface UserRepositoryInterface
   countActiveAdmins(): Promise<number>;
 
   /**
-   * Find a user by ID including soft-deleted users.
-   * Use findOneById to exclude soft-deleted users.
+   * Find a user by ID.
    *
    * @param id - The ID of the user
+   * @param includeDeleted - Whether to include soft-deleted users (default: false)
    * @returns User or null
    */
-  findById(id: string): Promise<User | null>;
+  findById(id: string, includeDeleted?: boolean): Promise<User | null>;
 
   /**
    * Find all users.

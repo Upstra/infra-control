@@ -198,9 +198,10 @@ export class UserTypeormRepository
       .getCount();
   }
 
-  async findById(id: string): Promise<User | null> {
+  async findById(id: string, includeDeleted = false): Promise<User | null> {
+    const where = includeDeleted ? { id } : { id, deletedAt: null };
     return await this.findOne({
-      where: { id },
+      where,
     });
   }
 
