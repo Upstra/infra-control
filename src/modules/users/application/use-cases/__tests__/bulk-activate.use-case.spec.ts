@@ -5,6 +5,7 @@ import { UserDomainService } from '@modules/users/domain/services/user.domain.se
 import { BulkActivateDto } from '../../dto/bulk-activate.dto';
 import { UserResponseDto } from '../../dto/user.response.dto';
 import { User } from '@modules/users/domain/entities/user.entity';
+import { UserExceptions } from '@modules/users/domain/exceptions/user.exception';
 
 describe('BulkActivateUseCase', () => {
   let useCase: BulkActivateUseCase;
@@ -123,8 +124,6 @@ describe('BulkActivateUseCase', () => {
 
       const mockUser1 = createMockUser('id1', false);
       const activatedUser1 = { ...mockUser1, isActive: true };
-      const mockUser3 = createMockUser('id3', false);
-      const activatedUser3 = { ...mockUser3, isActive: true };
 
       userRepository.findById.mockResolvedValueOnce(mockUser1);
       userDomainService.activateUser.mockResolvedValueOnce(
@@ -134,35 +133,69 @@ describe('BulkActivateUseCase', () => {
 
       userRepository.findById.mockResolvedValueOnce(null);
 
-      userRepository.findById.mockResolvedValueOnce(mockUser3);
-      userDomainService.activateUser.mockResolvedValueOnce(
-        activatedUser3 as User,
+      await expect(useCase.execute(bulkActivateDto)).rejects.toThrow(
+        UserExceptions.notFound(),
       );
-      userRepository.save.mockResolvedValueOnce(activatedUser3 as User);
 
-      const result = await useCase.execute(bulkActivateDto);
-
-      expect(result).toHaveLength(2);
-      expect(userRepository.findById).toHaveBeenCalledTimes(3);
-      expect(userDomainService.activateUser).toHaveBeenCalledTimes(2);
-      expect(userRepository.save).toHaveBeenCalledTimes(2);
+      expect(userRepository.findById).toHaveBeenCalledTimes(2);
+      expect(userDomainService.activateUser).toHaveBeenCalledTimes(1);
+      expect(userRepository.save).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw NotFoundException when all users not found', async () => {
+    it('should throw UserNotFoundException when first user not found', async () => {
       const bulkActivateDto: BulkActivateDto = {
-        userIds: ['id1', 'id2'],
+        userIds: ['id1'],
       };
 
       userRepository.findById.mockResolvedValue(null);
 
       await expect(useCase.execute(bulkActivateDto)).rejects.toThrow(
-        NotFoundException,
-      );
-      await expect(useCase.execute(bulkActivateDto)).rejects.toThrow(
-        'None of the provided user IDs were found',
+        UserExceptions.notFound(),
       );
 
-      expect(userRepository.findById).toHaveBeenCalledTimes(4); // 2 calls per execution
+      expect(userRepository.findById).toHaveBeenCalledTimes(1);
+    });
+
+    it('should propagate UserNotFoundException when thrown', async () => {
+      const bulkActivateDto: BulkActivateDto = {
+        userIds: ['id1'],
+      };
+
+      userRepository.findById.mockRejectedValueOnce(UserExceptions.notFound());
+
+      await expect(useCase.execute(bulkActivateDto)).rejects.toThrow(
+        UserExceptions.notFound(),
+      );
+
+      expect(userRepository.findById).toHaveBeenCalledTimes(1);
+      expect(userDomainService.activateUser).not.toHaveBeenCalled();
+      expect(userRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('should handle NotFoundException thrown from other sources', async () => {
+      const bulkActivateDto: BulkActivateDto = {
+        userIds: ['id1', 'id2'],
+      };
+
+      const mockUser1 = createMockUser('id1', false);
+      const activatedUser1 = { ...mockUser1, isActive: true };
+
+      userRepository.findById.mockResolvedValueOnce(mockUser1);
+      userDomainService.activateUser.mockResolvedValueOnce(
+        activatedUser1 as User,
+      );
+      userRepository.save.mockResolvedValueOnce(activatedUser1 as User);
+
+      const notFoundError = new NotFoundException('User not found');
+      userRepository.findById.mockRejectedValueOnce(notFoundError);
+
+      const result = await useCase.execute(bulkActivateDto);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('id1');
+      expect(userRepository.findById).toHaveBeenCalledTimes(2);
+      expect(userDomainService.activateUser).toHaveBeenCalledTimes(1);
+      expect(userRepository.save).toHaveBeenCalledTimes(1);
     });
 
     it('should propagate non-UserNotFoundError errors', async () => {
@@ -218,15 +251,13 @@ describe('BulkActivateUseCase', () => {
       expect(userRepository.save).toHaveBeenCalledWith(activatedUser);
     });
 
-    it('should handle mixed success and failure', async () => {
+    it('should handle mixed success and NotFoundException', async () => {
       const bulkActivateDto: BulkActivateDto = {
-        userIds: ['id1', 'id2', 'id3', 'id4'],
+        userIds: ['id1', 'id2'],
       };
 
       const mockUser1 = createMockUser('id1', false);
       const activatedUser1 = { ...mockUser1, isActive: true };
-      const mockUser3 = createMockUser('id3', false);
-      const activatedUser3 = { ...mockUser3, isActive: true };
 
       // User 1: Success
       userRepository.findById.mockResolvedValueOnce(mockUser1);
@@ -235,27 +266,36 @@ describe('BulkActivateUseCase', () => {
       );
       userRepository.save.mockResolvedValueOnce(activatedUser1 as User);
 
-      // User 2: Not found
-      userRepository.findById.mockResolvedValueOnce(null);
-
-      // User 3: Success
-      userRepository.findById.mockResolvedValueOnce(mockUser3);
-      userDomainService.activateUser.mockResolvedValueOnce(
-        activatedUser3 as User,
-      );
-      userRepository.save.mockResolvedValueOnce(activatedUser3 as User);
-
-      // User 4: Not found
-      userRepository.findById.mockResolvedValueOnce(null);
+      // User 2: throws NotFoundException which should be caught
+      const notFoundError = new NotFoundException('User not found'); 
+      userRepository.findById.mockRejectedValueOnce(notFoundError);
 
       const result = await useCase.execute(bulkActivateDto);
 
-      expect(result).toHaveLength(2);
+      expect(result).toHaveLength(1);
       expect(result[0].id).toBe('id1');
-      expect(result[1].id).toBe('id3');
-      expect(userRepository.findById).toHaveBeenCalledTimes(4);
-      expect(userDomainService.activateUser).toHaveBeenCalledTimes(2);
-      expect(userRepository.save).toHaveBeenCalledTimes(2);
+      expect(userRepository.findById).toHaveBeenCalledTimes(2);
+      expect(userDomainService.activateUser).toHaveBeenCalledTimes(1);
+      expect(userRepository.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw NotFoundException when all users throw NotFoundException', async () => {
+      const bulkActivateDto: BulkActivateDto = {
+        userIds: ['id1', 'id2'],
+      };
+
+      const notFoundError = new NotFoundException('User not found');
+      userRepository.findById
+        .mockRejectedValueOnce(notFoundError)
+        .mockRejectedValueOnce(notFoundError);
+
+      await expect(useCase.execute(bulkActivateDto)).rejects.toThrow(
+        new NotFoundException('None of the provided user IDs were found'),
+      );
+
+      expect(userRepository.findById).toHaveBeenCalledTimes(2);
+      expect(userDomainService.activateUser).not.toHaveBeenCalled();
+      expect(userRepository.save).not.toHaveBeenCalled();
     });
 
     it('should process users in order', async () => {
