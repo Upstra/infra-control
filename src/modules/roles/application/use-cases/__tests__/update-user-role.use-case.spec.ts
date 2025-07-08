@@ -21,6 +21,7 @@ describe('UpdateUserRoleUseCase', () => {
       findOneOrFail: jest.fn(),
       save: jest.fn(),
       count: jest.fn(),
+      createQueryBuilder: jest.fn(),
     };
     roleRepo = {
       findOneOrFail: jest.fn(),
@@ -70,6 +71,12 @@ describe('UpdateUserRoleUseCase', () => {
   });
 
   it('should not add duplicate role and remove role, assign GUEST if no roles left', async () => {
+    const queryBuilder = {
+      innerJoin: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      getCount: jest.fn().mockResolvedValue(5), // Multiple admins
+    };
+    repo.createQueryBuilder.mockReturnValue(queryBuilder);
     const existingRole = createMockRole({ id: 'r1', isAdmin: true });
     const current = createMockUser({
       id: 'u1',
@@ -115,6 +122,12 @@ describe('UpdateUserRoleUseCase', () => {
   });
 
   it('should assign guest when removing last role', async () => {
+    const queryBuilder = {
+      innerJoin: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      getCount: jest.fn().mockResolvedValue(5), // Multiple admins
+    };
+    repo.createQueryBuilder.mockReturnValue(queryBuilder);
     const existingRole = createMockRole({ id: 'r1', name: 'USER' });
     const guestRole = createMockRole({ id: 'g1', name: 'GUEST' });
     const current = createMockUser({ id: 'u1', roles: [existingRole] });
@@ -151,6 +164,12 @@ describe('UpdateUserRoleUseCase', () => {
   });
 
   it('should throw when removing last admin role from last admin user', async () => {
+    const queryBuilder = {
+      innerJoin: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      getCount: jest.fn().mockResolvedValue(1), // Only 1 admin
+    };
+    repo.createQueryBuilder.mockReturnValue(queryBuilder);
     const adminRole = createMockRole({ id: 'a1', isAdmin: true });
     const current = createMockUser({ id: 'u1', roles: [adminRole] });
 
@@ -161,9 +180,8 @@ describe('UpdateUserRoleUseCase', () => {
     await expect(useCase.execute('u1', 'a1')).rejects.toThrow(
       CannotRemoveLastAdminException,
     );
-    expect(repo.count).toHaveBeenCalledWith({
-      where: { roles: { isAdmin: true } },
-    });
+    expect(queryBuilder.where).toHaveBeenCalledWith('role.isAdmin = :isAdmin', { isAdmin: true });
+    expect(queryBuilder.getCount).toHaveBeenCalled();
     expect(dataSource.transaction).toHaveBeenCalled();
   });
 
@@ -254,6 +272,12 @@ describe('UpdateUserRoleUseCase', () => {
     });
 
     it('should log role removal with structured data', async () => {
+      const queryBuilder = {
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getCount: jest.fn().mockResolvedValue(5), // Multiple admins
+      };
+      repo.createQueryBuilder.mockReturnValue(queryBuilder);
       const adminRole = createMockRole({
         id: 'r1',
         name: 'ADMIN',

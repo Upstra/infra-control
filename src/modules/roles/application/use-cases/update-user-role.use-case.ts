@@ -118,9 +118,13 @@ export class UpdateUserRoleUseCase {
   private async isLastAdmin(user: User, userRepo: any): Promise<boolean> {
     const adminRoles = user.roles.filter((r) => r.isAdmin);
     if (adminRoles.length !== 1) return false;
-    const adminCount = await userRepo.count({
-      where: { roles: { isAdmin: true } },
-    });
+    
+    const adminCount = await userRepo
+      .createQueryBuilder('user')
+      .innerJoin('user.roles', 'role')
+      .where('role.isAdmin = :isAdmin', { isAdmin: true })
+      .getCount();
+      
     return adminCount === 1;
   }
 
