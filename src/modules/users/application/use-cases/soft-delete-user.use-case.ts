@@ -23,7 +23,7 @@ export class SoftDeleteUserUseCase {
     userAgent?: string,
   ): Promise<void> {
     const targetUser = await this.userRepository.findById(targetUserId);
-    if (!targetUser || targetUser.deleted) {
+    if (!targetUser || targetUser.deletedAt) {
       throw UserExceptions.notFound(targetUserId);
     }
 
@@ -38,9 +38,8 @@ export class SoftDeleteUserUseCase {
       throw UserExceptions.cannotDeleteLastAdmin();
     }
 
-    targetUser.deleted = true;
     targetUser.deletedAt = new Date();
-    targetUser.active = false;
+    targetUser.isActive = false;
 
     const updatedUser = await this.userRepository.save(targetUser);
 
@@ -50,12 +49,11 @@ export class SoftDeleteUserUseCase {
       action: 'USER_DELETED',
       userId: adminUserId,
       oldValue: {
-        active: true,
-        deleted: false,
+        isActive: true,
+        deletedAt: null,
       },
       newValue: {
-        active: false,
-        deleted: true,
+        isActive: false,
         deletedAt: updatedUser.deletedAt,
       },
       metadata: {

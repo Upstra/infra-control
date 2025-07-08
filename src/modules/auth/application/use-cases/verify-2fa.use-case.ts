@@ -78,7 +78,7 @@ export class Verify2FAUseCase {
       userId: user.id,
       email: user.email,
       isTwoFactorAuthenticated: true,
-      active: user.active,
+      isActive: user.isActive,
     });
 
     message = message || '2FA verified successfully.';

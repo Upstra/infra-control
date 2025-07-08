@@ -206,7 +206,7 @@ describe('LoginUseCase', () => {
         metadata: {
           loginMethod: 'email',
           requires2FA: false,
-          userActive: user.active,
+          userActive: user.isActive,
         },
         ipAddress: '192.168.1.100',
         userAgent: 'Test-Agent/1.0',
@@ -236,7 +236,7 @@ describe('LoginUseCase', () => {
         metadata: {
           loginMethod: 'email',
           requires2FA: true,
-          userActive: user.active,
+          userActive: user.isActive,
         },
         ipAddress: '192.168.1.100',
         userAgent: 'Test-Agent/1.0',

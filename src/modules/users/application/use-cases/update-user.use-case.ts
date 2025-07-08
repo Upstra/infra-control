@@ -90,7 +90,7 @@ export class UpdateUserUseCase {
       lastName: user.lastName,
       isTwoFactorEnabled: user.isTwoFactorEnabled,
       roles: user.roles?.map((role) => role.name) ?? [],
-      active: user.active,
+      isActive: user.isActive,
     };
   }
 

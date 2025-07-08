@@ -21,11 +21,10 @@ describe('ToggleUserStatusUseCase', () => {
       id: 'user-id',
       username: 'testuser',
       email: 'test@example.com',
-      active: true,
+      isActive: true,
       isTwoFactorEnabled: false,
       firstName: 'Test',
       lastName: 'User',
-      deleted: false,
       deletedAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -39,11 +38,10 @@ describe('ToggleUserStatusUseCase', () => {
       id: 'admin-id',
       username: 'admin',
       email: 'admin@example.com',
-      active: true,
+      isActive: true,
       isTwoFactorEnabled: false,
       firstName: 'Admin',
       lastName: 'User',
-      deleted: false,
       deletedAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -94,8 +92,8 @@ describe('ToggleUserStatusUseCase', () => {
   describe('execute', () => {
     it('should activate a deactivated user', async () => {
       const user = mockUser();
-      user.active = false;
-      const savedUser = { ...user, active: true };
+      user.isActive = false;
+      const savedUser = { ...user, isActive: true };
 
       userRepository.findById.mockResolvedValue(user);
       const userWithRole = { ...user, roles: [mockRole(false)] } as User;
@@ -115,11 +113,11 @@ describe('ToggleUserStatusUseCase', () => {
       expect(result).toBeInstanceOf(UserResponseDto);
       expect(result.id).toBe('user-id');
       expect(result.username).toBe('testuser');
-      expect(result.active).toBe(true);
+      expect(result.isActive).toBe(true);
 
       expect(userRepository.save).toHaveBeenCalledWith({
         ...user,
-        active: true,
+        isActive: true,
       });
 
       expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith({
@@ -127,8 +125,8 @@ describe('ToggleUserStatusUseCase', () => {
         entityId: 'user-id',
         action: 'user.activated',
         userId: 'admin-id',
-        oldValue: { active: false },
-        newValue: { active: true },
+        oldValue: { isActive: false },
+        newValue: { isActive: true },
         metadata: {
           username: 'testuser',
           reason: 'User requested reactivation',
@@ -140,8 +138,8 @@ describe('ToggleUserStatusUseCase', () => {
 
     it('should deactivate an active user', async () => {
       const user = mockUser();
-      user.active = true;
-      const savedUser = { ...user, active: false };
+      user.isActive = true;
+      const savedUser = { ...user, isActive: false };
 
       userRepository.findById.mockResolvedValue(user);
       const userWithRole = { ...user, roles: [mockRole(false)] } as User;
@@ -154,10 +152,10 @@ describe('ToggleUserStatusUseCase', () => {
         reason: 'Security violation',
       });
 
-      expect(result.active).toBe(false);
+      expect(result.isActive).toBe(false);
       expect(userRepository.save).toHaveBeenCalledWith({
         ...user,
-        active: false,
+        isActive: false,
       });
 
       expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith({
@@ -165,8 +163,8 @@ describe('ToggleUserStatusUseCase', () => {
         entityId: 'user-id',
         action: 'user.deactivated',
         userId: 'admin-id',
-        oldValue: { active: true },
-        newValue: { active: false },
+        oldValue: { isActive: true },
+        newValue: { isActive: false },
         metadata: {
           username: 'testuser',
           reason: 'Security violation',
@@ -178,14 +176,13 @@ describe('ToggleUserStatusUseCase', () => {
 
     it('should reactivate a soft-deleted user', async () => {
       const user = mockUser();
-      user.active = false;
-      user.deleted = true;
+      user.isActive = false;
+      user.deletedAt = new Date();
       user.deletedAt = new Date();
       const savedUser = {
         ...user,
-        active: true,
-        deleted: false,
-        deletedAt: null,
+        isActive: true,
+          deletedAt: null,
       };
 
       userRepository.findById.mockResolvedValue(user);
@@ -198,12 +195,11 @@ describe('ToggleUserStatusUseCase', () => {
         adminId: 'admin-id',
       });
 
-      expect(result.active).toBe(true);
+      expect(result.isActive).toBe(true);
       expect(userRepository.save).toHaveBeenCalledWith({
         ...user,
-        active: true,
-        deleted: false,
-        deletedAt: null,
+        isActive: true,
+          deletedAt: null,
       });
     });
 
@@ -239,7 +235,7 @@ describe('ToggleUserStatusUseCase', () => {
 
     it('should throw CannotDeactivateLastAdminException when trying to deactivate last admin', async () => {
       const admin = mockAdmin();
-      admin.active = true;
+      admin.isActive = true;
 
       userRepository.findById.mockResolvedValue(admin);
       const adminWithRole = { ...admin, roles: [mockRole(true)] } as User;
@@ -260,8 +256,8 @@ describe('ToggleUserStatusUseCase', () => {
 
     it('should allow deactivating an admin if there are other active admins', async () => {
       const admin = mockAdmin();
-      admin.active = true;
-      const savedAdmin = { ...admin, active: false };
+      admin.isActive = true;
+      const savedAdmin = { ...admin, isActive: false };
 
       userRepository.findById.mockResolvedValue(admin);
       const adminWithRole = { ...admin, roles: [mockRole(true)] } as User;
@@ -274,15 +270,15 @@ describe('ToggleUserStatusUseCase', () => {
         adminId: 'other-admin-id',
       });
 
-      expect(result.active).toBe(false);
+      expect(result.isActive).toBe(false);
       expect(userRepository.countActiveAdmins).toHaveBeenCalled();
       expect(userRepository.save).toHaveBeenCalled();
     });
 
     it('should allow reactivating an admin without checking active admin count', async () => {
       const admin = mockAdmin();
-      admin.active = false;
-      const savedAdmin = { ...admin, active: true };
+      admin.isActive = false;
+      const savedAdmin = { ...admin, isActive: true };
 
       userRepository.findById.mockResolvedValue(admin);
       const adminWithRole = { ...admin, roles: [mockRole(true)] } as User;
@@ -294,15 +290,15 @@ describe('ToggleUserStatusUseCase', () => {
         adminId: 'other-admin-id',
       });
 
-      expect(result.active).toBe(true);
+      expect(result.isActive).toBe(true);
       expect(userRepository.countActiveAdmins).not.toHaveBeenCalled();
       expect(userRepository.save).toHaveBeenCalled();
     });
 
     it('should handle user without role gracefully', async () => {
       const user = mockUser();
-      user.active = true;
-      const savedUser = { ...user, active: false };
+      user.isActive = true;
+      const savedUser = { ...user, isActive: false };
 
       userRepository.findById.mockResolvedValue(user);
       const userWithoutRole = { ...user, roles: [] } as User;
@@ -314,13 +310,13 @@ describe('ToggleUserStatusUseCase', () => {
         adminId: 'admin-id',
       });
 
-      expect(result.active).toBe(false);
+      expect(result.isActive).toBe(false);
       expect(userRepository.save).toHaveBeenCalled();
     });
 
     it('should handle missing request context', async () => {
       const user = mockUser();
-      const savedUser = { ...user, active: false };
+      const savedUser = { ...user, isActive: false };
 
       userRepository.findById.mockResolvedValue(user);
       const userWithRole = { ...user, roles: [mockRole(false)] } as User;
@@ -342,10 +338,10 @@ describe('ToggleUserStatusUseCase', () => {
 
     it('should not reactivate a deleted user when deactivating', async () => {
       const user = mockUser();
-      user.active = true;
-      user.deleted = true;
+      user.isActive = true;
       user.deletedAt = new Date();
-      const savedUser = { ...user, active: false };
+      user.deletedAt = new Date();
+      const savedUser = { ...user, isActive: false };
 
       userRepository.findById.mockResolvedValue(user);
       const userWithRole = { ...user, roles: [mockRole(false)] } as User;
@@ -357,10 +353,10 @@ describe('ToggleUserStatusUseCase', () => {
         adminId: 'admin-id',
       });
 
-      expect(result.active).toBe(false);
+      expect(result.isActive).toBe(false);
       expect(userRepository.save).toHaveBeenCalledWith({
         ...user,
-        active: false,
+        isActive: false,
       });
     });
 
@@ -369,20 +365,20 @@ describe('ToggleUserStatusUseCase', () => {
 
       userRepository.findById.mockResolvedValue(user);
       userRepository.findWithRoles.mockResolvedValue(null);
-      userRepository.save.mockResolvedValue({ ...user, active: false } as User);
+      userRepository.save.mockResolvedValue({ ...user, isActive: false } as User);
 
       const result = await useCase.execute({
         targetUserId: 'user-id',
         adminId: 'admin-id',
       });
 
-      expect(result.active).toBe(false);
+      expect(result.isActive).toBe(false);
       expect(userRepository.findWithRoles).toHaveBeenCalledWith('user-id');
     });
 
     it('should log action without reason when reason is not provided', async () => {
       const user = mockUser();
-      const savedUser = { ...user, active: false };
+      const savedUser = { ...user, isActive: false };
 
       userRepository.findById.mockResolvedValue(user);
       const userWithRole = { ...user, roles: [mockRole(false)] } as User;

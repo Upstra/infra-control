@@ -11,8 +11,8 @@ describe('BulkActivateUseCase', () => {
   let userDomainService: jest.Mocked<UserDomainService>;
   let userRepository: any;
 
-  const createMockUser = (id: string, isActive: boolean = false) =>
-    ({
+  const createMockUser = (id: string, isActive: boolean = false): User =>
+    Object.assign(new User(), {
       id,
       username: `user${id}`,
       email: `user${id}@example.com`,
@@ -24,12 +24,10 @@ describe('BulkActivateUseCase', () => {
       isTwoFactorEnabled: false,
       twoFactorSecret: null,
       roles: [],
-      active: false,
-      deleted: false,
       deletedAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
-    }) as User;
+    });
 
   beforeEach(async () => {
     const mockUserDomainService = {

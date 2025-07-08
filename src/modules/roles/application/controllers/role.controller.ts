@@ -37,6 +37,7 @@ import {
   UpdateUserRoleUseCase,
 } from '@/modules/roles/application/use-cases';
 import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
+import { UserWithPresenceDto } from '../dto/user-with-presence.dto';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { AdminRoleCreationDto } from '../dto/role.creation.dto';
 import { RequireRole } from '@/core/decorators/role.decorator';
@@ -226,10 +227,10 @@ export class RoleController {
   @ApiBearerAuth()
   @ApiParam({ name: 'id', type: String })
   @ApiOperation({ summary: "Liste des utilisateurs d'un rôle" })
-  @ApiResponse({ status: 200, type: [UserResponseDto] })
+  @ApiResponse({ status: 200, type: [UserWithPresenceDto] })
   async getUsersByRole(
     @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<UserResponseDto[]> {
+  ): Promise<UserWithPresenceDto[]> {
     return this.getUsersByRoleUseCase.execute(id);
   }
 

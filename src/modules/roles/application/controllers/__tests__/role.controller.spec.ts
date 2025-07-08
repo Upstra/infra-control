@@ -196,7 +196,11 @@ describe('RoleController', () => {
 
   describe('getUsersByRole', () => {
     it('should return users of role', async () => {
-      const users = [new UserResponseDto(createMockUser({ id: 'u1' }))];
+      const mockUser = createMockUser({ id: 'u1' });
+      const userWithPresence = Object.assign(new UserResponseDto(mockUser), {
+        isOnline: true,
+      });
+      const users = [userWithPresence];
       getUsersByRoleUseCase.execute.mockResolvedValue(users);
 
       const result = await controller.getUsersByRole('role1');
