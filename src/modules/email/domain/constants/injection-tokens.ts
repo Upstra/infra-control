@@ -1,0 +1,1 @@
+export const MAIL_SERVICE_TOKEN = 'MAIL_SERVICE_TOKEN';
