@@ -39,6 +39,9 @@ describe('UserPreferencesController', () => {
     display: {
       defaultUserView: 'table',
       defaultServerView: 'grid',
+      defaultUpsView: 'grid',
+      defaultRoomView: 'grid',
+      defaultGroupView: 'grid',
       compactMode: false,
     },
     integrations: {},
@@ -120,6 +123,9 @@ describe('UserPreferencesController', () => {
         display: expect.objectContaining({
           defaultUserView: expect.any(String),
           defaultServerView: expect.any(String),
+          defaultUpsView: expect.any(String),
+          defaultRoomView: expect.any(String),
+          defaultGroupView: expect.any(String),
           compactMode: expect.any(Boolean),
         }),
         integrations: expect.any(Object),

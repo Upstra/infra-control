@@ -49,6 +49,9 @@ describe('UpdateUserPreferencesUseCase', () => {
       display: {
         defaultUserView: 'table',
         defaultServerView: 'grid',
+        defaultUpsView: 'grid',
+        defaultRoomView: 'grid',
+        defaultGroupView: 'grid',
         compactMode: false,
       },
       integrations: {},
@@ -134,8 +137,44 @@ describe('UpdateUserPreferencesUseCase', () => {
       expect(result.display).toEqual({
         defaultUserView: 'card',
         defaultServerView: 'grid', // unchanged
+        defaultUpsView: 'grid', // unchanged
+        defaultRoomView: 'grid', // unchanged
+        defaultGroupView: 'grid', // unchanged
         compactMode: true,
       });
+    });
+
+    it('should update new view preferences', async () => {
+      const freshPreferences = {
+        ...existingPreferences,
+        display: {
+          defaultUserView: 'table',
+          defaultServerView: 'grid',
+          defaultUpsView: 'grid',
+          defaultRoomView: 'grid',
+          defaultGroupView: 'grid',
+          compactMode: false,
+        },
+      } as UserPreference;
+
+      const updateDto: UpdateUserPreferencesDto = {
+        display: {
+          defaultUpsView: 'list',
+          defaultRoomView: 'list',
+          defaultGroupView: 'sections',
+        },
+      };
+
+      mockRepository.findByUserId.mockResolvedValue(freshPreferences);
+      mockRepository.update.mockImplementation(async (pref) => pref);
+
+      const result = await useCase.execute(userId, updateDto);
+
+      expect(result.display.defaultUpsView).toBe('list');
+      expect(result.display.defaultRoomView).toBe('list');
+      expect(result.display.defaultGroupView).toBe('sections');
+      expect(result.display.defaultUserView).toBe('table'); // unchanged
+      expect(result.display.defaultServerView).toBe('grid'); // unchanged
     });
 
     it('should update integration webhooks', async () => {
