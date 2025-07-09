@@ -76,10 +76,12 @@ describe('SafeRoleDeletionDomainService', () => {
       expect(permissionVmRepo.findAllByField).toHaveBeenCalledWith({
         field: 'roleId',
         value: roleId,
+        disableThrow: true,
       });
       expect(permissionServerRepo.findAllByField).toHaveBeenCalledWith({
         field: 'roleId',
         value: roleId,
+        disableThrow: true,
       });
       expect(roleRepo.deleteRole).toHaveBeenCalledWith(roleId);
       expect(userRepo.save).not.toHaveBeenCalled();
@@ -121,10 +123,12 @@ describe('SafeRoleDeletionDomainService', () => {
       expect(permissionVmRepo.findAllByField).toHaveBeenCalledWith({
         field: 'roleId',
         value: roleId,
+        disableThrow: true,
       });
       expect(permissionServerRepo.findAllByField).toHaveBeenCalledWith({
         field: 'roleId',
         value: roleId,
+        disableThrow: true,
       });
       expect(roleRepo.deleteRole).toHaveBeenCalledWith(roleId);
     });
@@ -156,10 +160,12 @@ describe('SafeRoleDeletionDomainService', () => {
       expect(permissionVmRepo.findAllByField).toHaveBeenCalledWith({
         field: 'roleId',
         value: roleId,
+        disableThrow: true,
       });
       expect(permissionServerRepo.findAllByField).toHaveBeenCalledWith({
         field: 'roleId',
         value: roleId,
+        disableThrow: true,
       });
       expect(roleRepo.deleteRole).toHaveBeenCalledWith(roleId);
     });
@@ -198,10 +204,12 @@ describe('SafeRoleDeletionDomainService', () => {
       expect(permissionVmRepo.findAllByField).toHaveBeenCalledWith({
         field: 'roleId',
         value: roleId,
+        disableThrow: true,
       });
       expect(permissionServerRepo.findAllByField).toHaveBeenCalledWith({
         field: 'roleId',
         value: roleId,
+        disableThrow: true,
       });
       expect(roleRepo.deleteRole).toHaveBeenCalledWith(roleId);
     });
@@ -245,10 +253,12 @@ describe('SafeRoleDeletionDomainService', () => {
       expect(permissionVmRepo.findAllByField).toHaveBeenCalledWith({
         field: 'roleId',
         value: roleId,
+        disableThrow: true,
       });
       expect(permissionServerRepo.findAllByField).toHaveBeenCalledWith({
         field: 'roleId',
         value: roleId,
+        disableThrow: true,
       });
       expect(roleRepo.deleteRole).toHaveBeenCalledWith(roleId);
     });

@@ -26,7 +26,11 @@ export class PermissionVmRepository
     try {
       return await this.find({ where: { [field]: value } as any, relations });
     } catch {
-      if (disableThrow) return null;
+      console.error(
+        `Error retrieving permissions by field ${String(field)} with value:`,
+        value,
+      );
+      if (disableThrow) return [];
       throw new PermissionNotFoundException('vm', JSON.stringify(value));
     }
   }

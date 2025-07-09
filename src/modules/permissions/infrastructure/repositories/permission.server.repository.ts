@@ -67,7 +67,7 @@ export class PermissionServerRepository
     try {
       return await this.find({ where: { [field]: value } as any, relations });
     } catch {
-      if (disableThrow) return null;
+      if (disableThrow) return [];
       throw new PermissionNotFoundException('server', JSON.stringify(value));
     }
   }

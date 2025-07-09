@@ -98,30 +98,39 @@ export class SafeRoleDeletionDomainService {
     const vmPermissions = await this.permissionVmRepository.findAllByField({
       field: 'roleId',
       value: roleId,
+      disableThrow: true,
     });
 
     const serverPermissions =
       await this.permissionServerRepository.findAllByField({
         field: 'roleId',
         value: roleId,
+        disableThrow: true,
       });
 
+    const vmPermissionCount = vmPermissions?.length ?? 0;
+    const serverPermissionCount = serverPermissions?.length ?? 0;
+    
     this.logger.log(
-      `Found ${vmPermissions.length} VM permissions and ${serverPermissions.length} server permissions to delete`,
+      `Found ${vmPermissionCount} VM permissions and ${serverPermissionCount} server permissions to delete`,
     );
 
     const deletePromises: Promise<void>[] = [];
 
-    for (const permission of vmPermissions) {
-      deletePromises.push(
-        this.permissionVmRepository.deleteById(permission.id),
-      );
+    if (vmPermissions && vmPermissions.length > 0) {
+      for (const permission of vmPermissions) {
+        deletePromises.push(
+          this.permissionVmRepository.deleteById(permission.id),
+        );
+      }
     }
 
-    for (const permission of serverPermissions) {
-      deletePromises.push(
-        this.permissionServerRepository.deleteById(permission.id),
-      );
+    if (serverPermissions && serverPermissions.length > 0) {
+      for (const permission of serverPermissions) {
+        deletePromises.push(
+          this.permissionServerRepository.deleteById(permission.id),
+        );
+      }
     }
 
     await Promise.all(deletePromises);
