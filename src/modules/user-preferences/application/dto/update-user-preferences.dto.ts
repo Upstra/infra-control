@@ -15,7 +15,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-class UpdateNotificationsDto {
+export class UpdateNotificationsDto {
   @ApiProperty({ description: 'Enable server notifications', required: false })
   @IsOptional()
   @IsBoolean()
@@ -37,7 +37,7 @@ class UpdateNotificationsDto {
   push?: boolean;
 }
 
-class UpdateDisplayDto {
+export class UpdateDisplayDto {
   @ApiProperty({
     description: 'Default view for users',
     enum: ['table', 'card'],
@@ -89,7 +89,7 @@ class UpdateDisplayDto {
   compactMode?: boolean;
 }
 
-class UpdateIntegrationsDto {
+export class UpdateIntegrationsDto {
   @ApiProperty({ description: 'Slack webhook URL', required: false })
   @IsOptional()
   @IsUrl({ protocols: ['https'] })
@@ -114,7 +114,7 @@ class UpdateIntegrationsDto {
   teamsWebhook?: string;
 }
 
-class UpdatePerformanceDto {
+export class UpdatePerformanceDto {
   @ApiProperty({ description: 'Enable auto refresh', required: false })
   @IsOptional()
   @IsBoolean()

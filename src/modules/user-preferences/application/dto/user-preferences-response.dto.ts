@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-class NotificationsDto {
+export class NotificationsDto {
   @ApiProperty({ description: 'Enable server notifications' })
   server: boolean;
 
@@ -14,7 +14,7 @@ class NotificationsDto {
   push: boolean;
 }
 
-class DisplayDto {
+export class DisplayDto {
   @ApiProperty({
     description: 'Default view for users',
     enum: ['table', 'card'],
@@ -49,7 +49,7 @@ class DisplayDto {
   compactMode: boolean;
 }
 
-class IntegrationsDto {
+export class IntegrationsDto {
   @ApiProperty({ description: 'Slack webhook URL', required: false })
   slackWebhook?: string;
 
@@ -63,7 +63,7 @@ class IntegrationsDto {
   teamsWebhook?: string;
 }
 
-class PerformanceDto {
+export class PerformanceDto {
   @ApiProperty({ description: 'Enable auto refresh' })
   autoRefresh: boolean;
 
