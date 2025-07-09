@@ -6,7 +6,13 @@
     "deleteOutDir": true,
     "webpack": false,
     "webpackConfigPath": "webpack.config.js",
-    "tsConfigPath": "tsconfig.json"
+    "tsConfigPath": "tsconfig.json",
+    "assets": [
+      {
+        "include": "**/*.hbs",
+        "watchAssets": true
+      }
+    ]
   },
   "watchIgnore": [
     "**/node_modules/**",

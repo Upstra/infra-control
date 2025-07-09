@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { ZohoMailAdapter } from '../adapters/zoho-mail.adapter';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -20,8 +21,11 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
           from: process.env.MAIL_FROM,
         },
         template: {
-          dir: __dirname + '/templates',
+          dir: join(process.cwd(), 'dist/modules/email/infrastructures/templates'),
           adapter: new HandlebarsAdapter(),
+          options: {
+            strict: true,
+          },
         },
       }),
     }),
