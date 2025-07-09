@@ -9,8 +9,10 @@ import { UpsExceptionFilter } from './ups.exception.filter';
 import { AuthFilters } from './auth';
 import { PermissionFilters } from './permission';
 import { GroupExceptionFilter } from './group.exception.filter';
+import { GlobalExceptionFilter } from './global-exception.filter';
 
 export const CoreFilters = [
+  GlobalExceptionFilter,
   GroupExceptionFilter,
   IloExceptionFilter,
   InvalidQueryExceptionFilter,

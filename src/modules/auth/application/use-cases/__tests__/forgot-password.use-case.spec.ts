@@ -76,6 +76,7 @@ describe('ForgotPasswordUseCase', () => {
       expect(userRepository.findOneByField).toHaveBeenCalledWith({
         field: 'email',
         value: email,
+        disableThrow: true,
       });
       expect(userRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -124,6 +125,7 @@ describe('ForgotPasswordUseCase', () => {
       expect(userRepository.findOneByField).toHaveBeenCalledWith({
         field: 'email',
         value: email,
+        disableThrow: true,
       });
       expect(userRepository.save).not.toHaveBeenCalled();
       expect(eventEmitter.emit).not.toHaveBeenCalled();

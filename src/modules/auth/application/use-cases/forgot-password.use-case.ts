@@ -22,6 +22,7 @@ export class ForgotPasswordUseCase {
       const user = await this.userRepository.findOneByField({
         field: 'email',
         value: email,
+        disableThrow: true,
       });
 
       if (!user) {
@@ -74,7 +75,9 @@ export class ForgotPasswordUseCase {
           'Si un compte existe avec cette adresse email, un lien de réinitialisation sera envoyé.',
       };
     } catch (error) {
-      this.logger.error('Error in forgot password use case', error);
+      this.logger.error(
+        `Error in forgot password use case: ${error.message}`,
+      );
       return {
         message:
           'Si un compte existe avec cette adresse email, un lien de réinitialisation sera envoyé.',
