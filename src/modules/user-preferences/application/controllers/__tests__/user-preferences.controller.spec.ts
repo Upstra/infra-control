@@ -207,7 +207,7 @@ describe('UserPreferencesController', () => {
 
   describe('resetPreferences', () => {
     it('should reset user preferences to defaults', async () => {
-      const defaultPreferences = UserPreference.createDefault(mockUser.id);
+      const defaultPreferences = UserPreference.createDefault(mockUser.userId);
       const resetResult = {
         ...defaultPreferences,
         id: mockPreferences.id,
@@ -233,7 +233,7 @@ describe('UserPreferencesController', () => {
 
     it('should preserve user ID when resetting', async () => {
       const resetResult = {
-        ...UserPreference.createDefault(mockUser.id),
+        ...UserPreference.createDefault(mockUser.userId),
         id: mockPreferences.id,
         createdAt: mockPreferences.createdAt,
         updatedAt: new Date(),
