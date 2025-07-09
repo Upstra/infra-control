@@ -24,6 +24,7 @@ import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.except
 import { LoginResponseDto } from '../dto';
 import { AuthRateLimitGuard } from '@/core/guards/rate-limit.guard';
 import { RequestContextDto } from '@/core/dto';
+import { PasswordResetRateLimitGuard } from '@/core/guards/password-reset-rate-limit.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -136,7 +137,7 @@ export class AuthController {
   }
 
   @Post('forgot-password')
-  @UseGuards(AuthRateLimitGuard)
+  @UseGuards(PasswordResetRateLimitGuard)
   @UseFilters(InvalidQueryExceptionFilter)
   @ApiOperation({
     summary: 'Demande de réinitialisation de mot de passe',
@@ -151,6 +152,10 @@ export class AuthController {
   @ApiResponse({
     status: 200,
     description: "Email envoyé si l'adresse existe",
+  })
+  @ApiResponse({
+    status: 429,
+    description: 'Trop de tentatives. Veuillez réessayer plus tard.',
   })
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.forgotPasswordUseCase.execute(dto.email);

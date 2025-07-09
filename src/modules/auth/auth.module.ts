@@ -13,6 +13,7 @@ import { TokenService } from './application/services/token.service';
 import { AuditModule } from '../audit/audit.module';
 import { EmailModule } from '../email/email.module';
 import { HistoryModule } from '../history/history.module';
+import { PasswordResetRateLimitGuard } from '../../core/guards/password-reset-rate-limit.guard';
 
 @Module({
   imports: [
@@ -33,7 +34,13 @@ import { HistoryModule } from '../history/history.module';
     }),
   ],
   controllers: [AuthController, TwoFAController],
-  providers: [JwtStrategy, RecoveryCodeService, TokenService, ...AuthUseCases],
+  providers: [
+    JwtStrategy,
+    RecoveryCodeService,
+    TokenService,
+    PasswordResetRateLimitGuard,
+    ...AuthUseCases,
+  ],
   exports: [JwtModule],
 })
 export class AuthModule {}

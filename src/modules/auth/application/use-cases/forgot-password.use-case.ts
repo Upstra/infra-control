@@ -34,6 +34,22 @@ export class ForgotPasswordUseCase {
         };
       }
 
+      if (user.resetPasswordToken && user.resetPasswordExpiry) {
+        const now = new Date();
+        if (user.resetPasswordExpiry > now) {
+          this.logger.log(
+            `Existing valid reset token found for ${email}, not generating new one`,
+          );
+
+          await this.logPasswordResetAttempt(user, 'existing_token_reused');
+
+          return {
+            message:
+              'Si un compte existe avec cette adresse email, un lien de réinitialisation sera envoyé.',
+          };
+        }
+      }
+
       const resetToken = randomBytes(32).toString('hex');
       const expiryTime = new Date();
       expiryTime.setHours(expiryTime.getHours() + 1);
@@ -51,6 +67,7 @@ export class ForgotPasswordUseCase {
       });
 
       await this.logPasswordResetRequest(user);
+      await this.logPasswordResetAttempt(user, 'new_token_generated');
 
       return {
         message:
@@ -73,6 +90,24 @@ export class ForgotPasswordUseCase {
       userId: user.id,
       metadata: {
         email: user.email,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  }
+
+  private async logPasswordResetAttempt(
+    user: User,
+    attemptType: 'new_token_generated' | 'existing_token_reused',
+  ): Promise<void> {
+    await this.logHistoryUseCase.executeStructured({
+      entity: 'user',
+      entityId: user.id,
+      action: 'PASSWORD_RESET_ATTEMPT',
+      userId: user.id,
+      metadata: {
+        email: user.email,
+        attemptType,
+        tokenExpiry: user.resetPasswordExpiry?.toISOString(),
         timestamp: new Date().toISOString(),
       },
     });

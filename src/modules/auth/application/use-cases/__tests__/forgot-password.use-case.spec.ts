@@ -91,6 +91,7 @@ describe('ForgotPasswordUseCase', () => {
           resetLink: expect.stringContaining('reset-password?token='),
         }),
       );
+      expect(logHistoryUseCase.executeStructured).toHaveBeenCalledTimes(2);
       expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith({
         entity: 'user',
         entityId: mockUser.id,
@@ -101,6 +102,14 @@ describe('ForgotPasswordUseCase', () => {
           timestamp: expect.any(String),
         },
       });
+      expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'PASSWORD_RESET_ATTEMPT',
+          metadata: expect.objectContaining({
+            attemptType: 'new_token_generated',
+          }),
+        }),
+      );
       expect(result).toEqual({
         message:
           'Si un compte existe avec cette adresse email, un lien de réinitialisation sera envoyé.',
@@ -139,7 +148,9 @@ describe('ForgotPasswordUseCase', () => {
     });
 
     it('should generate a valid reset token', async () => {
-      userRepository.findOneByField.mockResolvedValue(mockUser as User);
+      // Ensure user has no existing token
+      const userWithoutToken = { ...mockUser, resetPasswordToken: null, resetPasswordExpiry: null };
+      userRepository.findOneByField.mockResolvedValue(userWithoutToken as User);
       userRepository.save.mockImplementation(async (user) => user as User);
 
       await useCase.execute(email);
@@ -153,7 +164,9 @@ describe('ForgotPasswordUseCase', () => {
 
     it('should set expiry time to 1 hour from now', async () => {
       const before = new Date();
-      userRepository.findOneByField.mockResolvedValue(mockUser as User);
+      // Ensure user has no existing token
+      const userWithoutToken = { ...mockUser, resetPasswordToken: null, resetPasswordExpiry: null };
+      userRepository.findOneByField.mockResolvedValue(userWithoutToken as User);
       userRepository.save.mockImplementation(async (user) => user as User);
 
       await useCase.execute(email);
@@ -177,8 +190,10 @@ describe('ForgotPasswordUseCase', () => {
       const originalEnv = process.env.FRONTEND_URL;
       process.env.FRONTEND_URL = 'https://test.example.com';
 
-      userRepository.findOneByField.mockResolvedValue(mockUser as User);
-      userRepository.save.mockResolvedValue(mockUser as User);
+      // Ensure user has no existing token
+      const userWithoutToken = { ...mockUser, resetPasswordToken: null, resetPasswordExpiry: null };
+      userRepository.findOneByField.mockResolvedValue(userWithoutToken as User);
+      userRepository.save.mockResolvedValue(userWithoutToken as User);
 
       await useCase.execute(email);
 
@@ -194,6 +209,85 @@ describe('ForgotPasswordUseCase', () => {
       );
 
       process.env.FRONTEND_URL = originalEnv;
+    });
+
+    it('should not generate new token if existing token is still valid', async () => {
+      const validExpiry = new Date();
+      validExpiry.setMinutes(validExpiry.getMinutes() + 30); // 30 minutes in future
+      
+      const userWithValidToken = {
+        ...mockUser,
+        resetPasswordToken: 'existing-valid-token',
+        resetPasswordExpiry: validExpiry,
+      } as User;
+      
+      userRepository.findOneByField.mockResolvedValue(userWithValidToken);
+      userRepository.save.mockResolvedValue(userWithValidToken);
+
+      const result = await useCase.execute(email);
+
+      expect(userRepository.save).not.toHaveBeenCalled();
+      expect(eventEmitter.emit).not.toHaveBeenCalled();
+      expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'PASSWORD_RESET_ATTEMPT',
+          metadata: expect.objectContaining({
+            attemptType: 'existing_token_reused',
+          }),
+        }),
+      );
+      expect(result).toEqual({
+        message:
+          'Si un compte existe avec cette adresse email, un lien de réinitialisation sera envoyé.',
+      });
+    });
+
+    it('should generate new token if existing token is expired', async () => {
+      const expiredTime = new Date();
+      expiredTime.setHours(expiredTime.getHours() - 2); // 2 hours ago
+      
+      const userWithExpiredToken = {
+        ...mockUser,
+        resetPasswordToken: 'expired-token',
+        resetPasswordExpiry: expiredTime,
+      } as User;
+      
+      userRepository.findOneByField.mockResolvedValue(userWithExpiredToken);
+      userRepository.save.mockResolvedValue(userWithExpiredToken);
+
+      await useCase.execute(email);
+
+      expect(userRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          resetPasswordToken: expect.stringMatching(/^[a-f0-9]{64}$/),
+          resetPasswordExpiry: expect.any(Date),
+        }),
+      );
+      expect(eventEmitter.emit).toHaveBeenCalled();
+    });
+
+    it('should log password reset attempts', async () => {
+      // Ensure user has no existing token
+      const userWithoutToken = { ...mockUser, resetPasswordToken: null, resetPasswordExpiry: null };
+      userRepository.findOneByField.mockResolvedValue(userWithoutToken as User);
+      userRepository.save.mockResolvedValue(userWithoutToken as User);
+
+      await useCase.execute(email);
+
+      expect(logHistoryUseCase.executeStructured).toHaveBeenCalledTimes(2);
+      expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'PASSWORD_RESET_REQUESTED',
+        }),
+      );
+      expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'PASSWORD_RESET_ATTEMPT',
+          metadata: expect.objectContaining({
+            attemptType: 'new_token_generated',
+          }),
+        }),
+      );
     });
   });
 });
