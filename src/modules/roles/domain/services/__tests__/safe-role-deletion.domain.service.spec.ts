@@ -1,6 +1,8 @@
 import { SafeRoleDeletionDomainService } from '../safe-role-deletion.domain.service';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { RoleRepositoryInterface } from '../../interfaces/role.repository.interface';
+import { PermissionVmRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.vm.repository.interface';
+import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 import { createMockRole } from '@/modules/roles/__mocks__/role.mock';
 import {
@@ -12,6 +14,8 @@ describe('SafeRoleDeletionDomainService', () => {
   let service: SafeRoleDeletionDomainService;
   let userRepo: jest.Mocked<UserRepositoryInterface>;
   let roleRepo: jest.Mocked<RoleRepositoryInterface>;
+  let permissionVmRepo: jest.Mocked<PermissionVmRepositoryInterface>;
+  let permissionServerRepo: jest.Mocked<PermissionServerRepositoryInterface>;
 
   beforeEach(() => {
     userRepo = {
@@ -28,7 +32,22 @@ describe('SafeRoleDeletionDomainService', () => {
       countAdminRoles: jest.fn(),
     } as any;
 
-    service = new SafeRoleDeletionDomainService(userRepo, roleRepo);
+    permissionVmRepo = {
+      findAllByField: jest.fn(),
+      deletePermission: jest.fn(),
+    } as any;
+
+    permissionServerRepo = {
+      findAllByField: jest.fn(),
+      deletePermission: jest.fn(),
+    } as any;
+
+    service = new SafeRoleDeletionDomainService(
+      userRepo,
+      roleRepo,
+      permissionVmRepo,
+      permissionServerRepo,
+    );
   });
 
   describe('safelyDeleteRole', () => {
@@ -42,6 +61,8 @@ describe('SafeRoleDeletionDomainService', () => {
 
       roleRepo.findOneByField.mockResolvedValue(roleToDelete);
       userRepo.findUsersByRole.mockResolvedValue([]);
+      permissionVmRepo.findAllByField.mockResolvedValue([]);
+      permissionServerRepo.findAllByField.mockResolvedValue([]);
 
       await service.safelyDeleteRole(roleId);
 
@@ -50,6 +71,14 @@ describe('SafeRoleDeletionDomainService', () => {
         value: roleId,
       });
       expect(userRepo.findUsersByRole).toHaveBeenCalledWith(roleId);
+      expect(permissionVmRepo.findAllByField).toHaveBeenCalledWith({
+        field: 'roleId',
+        value: roleId,
+      });
+      expect(permissionServerRepo.findAllByField).toHaveBeenCalledWith({
+        field: 'roleId',
+        value: roleId,
+      });
       expect(roleRepo.deleteRole).toHaveBeenCalledWith(roleId);
       expect(userRepo.save).not.toHaveBeenCalled();
     });
@@ -77,6 +106,8 @@ describe('SafeRoleDeletionDomainService', () => {
       roleRepo.findOneByField.mockResolvedValueOnce(roleToDelete);
       roleRepo.findOneByField.mockResolvedValueOnce(guestRole);
       userRepo.findUsersByRole.mockResolvedValue([user1, user2]);
+      permissionVmRepo.findAllByField.mockResolvedValue([]);
+      permissionServerRepo.findAllByField.mockResolvedValue([]);
 
       await service.safelyDeleteRole(roleId);
 
@@ -85,6 +116,14 @@ describe('SafeRoleDeletionDomainService', () => {
       expect(userRepo.save).toHaveBeenCalledTimes(2);
       expect(userRepo.save).toHaveBeenCalledWith(user1);
       expect(userRepo.save).toHaveBeenCalledWith(user2);
+      expect(permissionVmRepo.findAllByField).toHaveBeenCalledWith({
+        field: 'roleId',
+        value: roleId,
+      });
+      expect(permissionServerRepo.findAllByField).toHaveBeenCalledWith({
+        field: 'roleId',
+        value: roleId,
+      });
       expect(roleRepo.deleteRole).toHaveBeenCalledWith(roleId);
     });
 
@@ -105,11 +144,21 @@ describe('SafeRoleDeletionDomainService', () => {
 
       roleRepo.findOneByField.mockResolvedValue(roleToDelete);
       userRepo.findUsersByRole.mockResolvedValue([user]);
+      permissionVmRepo.findAllByField.mockResolvedValue([]);
+      permissionServerRepo.findAllByField.mockResolvedValue([]);
 
       await service.safelyDeleteRole(roleId);
 
       expect(user.roles).toEqual([adminRole]);
       expect(userRepo.save).toHaveBeenCalledWith(user);
+      expect(permissionVmRepo.findAllByField).toHaveBeenCalledWith({
+        field: 'roleId',
+        value: roleId,
+      });
+      expect(permissionServerRepo.findAllByField).toHaveBeenCalledWith({
+        field: 'roleId',
+        value: roleId,
+      });
       expect(roleRepo.deleteRole).toHaveBeenCalledWith(roleId);
     });
 
@@ -132,6 +181,8 @@ describe('SafeRoleDeletionDomainService', () => {
       roleRepo.findOneByField.mockResolvedValueOnce(null);
       userRepo.findUsersByRole.mockResolvedValue([user]);
       roleRepo.createRole.mockResolvedValue(guestRole);
+      permissionVmRepo.findAllByField.mockResolvedValue([]);
+      permissionServerRepo.findAllByField.mockResolvedValue([]);
 
       await service.safelyDeleteRole(roleId);
 
@@ -142,6 +193,14 @@ describe('SafeRoleDeletionDomainService', () => {
       expect(roleRepo.createRole).toHaveBeenCalledWith('GUEST');
       expect(user.roles).toEqual([guestRole]);
       expect(userRepo.save).toHaveBeenCalledWith(user);
+      expect(permissionVmRepo.findAllByField).toHaveBeenCalledWith({
+        field: 'roleId',
+        value: roleId,
+      });
+      expect(permissionServerRepo.findAllByField).toHaveBeenCalledWith({
+        field: 'roleId',
+        value: roleId,
+      });
       expect(roleRepo.deleteRole).toHaveBeenCalledWith(roleId);
     });
 
@@ -173,12 +232,22 @@ describe('SafeRoleDeletionDomainService', () => {
         userWithOnlyDeletedRole,
         userWithMultipleRoles,
       ]);
+      permissionVmRepo.findAllByField.mockResolvedValue([]);
+      permissionServerRepo.findAllByField.mockResolvedValue([]);
 
       await service.safelyDeleteRole(roleId);
 
       expect(userWithOnlyDeletedRole.roles).toEqual([guestRole]);
       expect(userWithMultipleRoles.roles).toEqual([adminRole]);
       expect(userRepo.save).toHaveBeenCalledTimes(2);
+      expect(permissionVmRepo.findAllByField).toHaveBeenCalledWith({
+        field: 'roleId',
+        value: roleId,
+      });
+      expect(permissionServerRepo.findAllByField).toHaveBeenCalledWith({
+        field: 'roleId',
+        value: roleId,
+      });
       expect(roleRepo.deleteRole).toHaveBeenCalledWith(roleId);
     });
 
@@ -253,6 +322,8 @@ describe('SafeRoleDeletionDomainService', () => {
       roleRepo.findOneByField.mockResolvedValue(adminRole);
       roleRepo.countAdminRoles.mockResolvedValue(2);
       userRepo.findUsersByRole.mockResolvedValue([]);
+      permissionVmRepo.findAllByField.mockResolvedValue([]);
+      permissionServerRepo.findAllByField.mockResolvedValue([]);
 
       await service.safelyDeleteRole('custom-admin-id');
 
@@ -263,6 +334,72 @@ describe('SafeRoleDeletionDomainService', () => {
       expect(roleRepo.countAdminRoles).toHaveBeenCalled();
       expect(userRepo.findUsersByRole).toHaveBeenCalledWith('custom-admin-id');
       expect(roleRepo.deleteRole).toHaveBeenCalledWith('custom-admin-id');
+    });
+
+    it('should delete all associated permissions before deleting role', async () => {
+      const roleId = 'role-with-permissions';
+      const roleToDelete = createMockRole({
+        id: roleId,
+        name: 'DEVELOPER',
+        isAdmin: false,
+      });
+
+      const vmPermissions = [
+        { id: 'perm1', roleId, vmId: 'vm1', bitmask: 7 } as any,
+        { id: 'perm2', roleId, vmId: 'vm2', bitmask: 3 } as any,
+      ];
+
+      const serverPermissions = [
+        { id: 'perm3', roleId, serverId: 'server1', bitmask: 15 } as any,
+      ];
+
+      roleRepo.findOneByField.mockResolvedValue(roleToDelete);
+      userRepo.findUsersByRole.mockResolvedValue([]);
+      permissionVmRepo.findAllByField.mockResolvedValue(vmPermissions);
+      permissionServerRepo.findAllByField.mockResolvedValue(serverPermissions);
+
+      await service.safelyDeleteRole(roleId);
+
+      expect(permissionVmRepo.deletePermission).toHaveBeenCalledTimes(2);
+      expect(permissionVmRepo.deletePermission).toHaveBeenCalledWith('vm1', roleId);
+      expect(permissionVmRepo.deletePermission).toHaveBeenCalledWith('vm2', roleId);
+      
+      expect(permissionServerRepo.deletePermission).toHaveBeenCalledTimes(1);
+      expect(permissionServerRepo.deletePermission).toHaveBeenCalledWith('server1', roleId);
+      
+      expect(roleRepo.deleteRole).toHaveBeenCalledWith(roleId);
+    });
+
+    it('should handle permissions with null machine IDs', async () => {
+      const roleId = 'role-with-null-permissions';
+      const roleToDelete = createMockRole({
+        id: roleId,
+        name: 'DEVELOPER',
+        isAdmin: false,
+      });
+
+      const vmPermissions = [
+        { id: 'perm1', roleId, vmId: 'vm1', bitmask: 7 } as any,
+        { id: 'perm2', roleId, vmId: null, bitmask: 3 } as any,
+      ];
+
+      const serverPermissions = [
+        { id: 'perm3', roleId, serverId: null, bitmask: 15 } as any,
+      ];
+
+      roleRepo.findOneByField.mockResolvedValue(roleToDelete);
+      userRepo.findUsersByRole.mockResolvedValue([]);
+      permissionVmRepo.findAllByField.mockResolvedValue(vmPermissions);
+      permissionServerRepo.findAllByField.mockResolvedValue(serverPermissions);
+
+      await service.safelyDeleteRole(roleId);
+
+      expect(permissionVmRepo.deletePermission).toHaveBeenCalledTimes(1);
+      expect(permissionVmRepo.deletePermission).toHaveBeenCalledWith('vm1', roleId);
+      
+      expect(permissionServerRepo.deletePermission).not.toHaveBeenCalled();
+      
+      expect(roleRepo.deleteRole).toHaveBeenCalledWith(roleId);
     });
   });
 });

@@ -8,6 +8,8 @@ import {
   CannotDeleteLastAdminRoleException,
   RoleNotFoundException,
 } from '../exceptions/role.exception';
+import { PermissionVmRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.vm.repository.interface';
+import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
 
 @Injectable()
 export class SafeRoleDeletionDomainService {
@@ -18,6 +20,10 @@ export class SafeRoleDeletionDomainService {
     private readonly userRepository: UserRepositoryInterface,
     @Inject('RoleRepositoryInterface')
     private readonly roleRepository: RoleRepositoryInterface,
+    @Inject('PermissionVmRepositoryInterface')
+    private readonly permissionVmRepository: PermissionVmRepositoryInterface,
+    @Inject('PermissionServerRepositoryInterface')
+    private readonly permissionServerRepository: PermissionServerRepositoryInterface,
   ) {}
 
   /**
@@ -26,7 +32,8 @@ export class SafeRoleDeletionDomainService {
    * 2. Finding all users with this role
    * 3. Removing the role from their role list
    * 4. Assigning Guest role to users left without any roles
-   * 5. Deleting the role
+   * 5. Deleting all associated permissions (VM and Server)
+   * 6. Deleting the role
    */
   async safelyDeleteRole(roleId: string): Promise<void> {
     this.logger.log(`Starting safe deletion of role ${roleId}`);
@@ -76,8 +83,61 @@ export class SafeRoleDeletionDomainService {
       this.logger.log(`Updated ${updatedUsers.length} users`);
     }
 
+    await this.deleteRolePermissions(roleId);
+
     await this.roleRepository.deleteRole(roleId);
     this.logger.log(`Successfully deleted role ${roleId}`);
+  }
+
+  /**
+   * Delete all permissions associated with the role
+   */
+  private async deleteRolePermissions(roleId: string): Promise<void> {
+    this.logger.log(`Deleting permissions for role ${roleId}`);
+
+    const vmPermissions = await this.permissionVmRepository.findAllByField({
+      field: 'roleId',
+      value: roleId,
+    });
+
+    const serverPermissions =
+      await this.permissionServerRepository.findAllByField({
+        field: 'roleId',
+        value: roleId,
+      });
+
+    this.logger.log(
+      `Found ${vmPermissions.length} VM permissions and ${serverPermissions.length} server permissions to delete`,
+    );
+
+    const deletePromises: Promise<void>[] = [];
+
+    for (const permission of vmPermissions) {
+      if (permission.vmId) {
+        deletePromises.push(
+          this.permissionVmRepository.deletePermission(
+            permission.vmId,
+            roleId,
+          ),
+        );
+      }
+    }
+
+    for (const permission of serverPermissions) {
+      if (permission.serverId) {
+        deletePromises.push(
+          this.permissionServerRepository.deletePermission(
+            permission.serverId,
+            roleId,
+          ),
+        );
+      }
+    }
+
+    await Promise.all(deletePromises);
+    this.logger.log(
+      `Successfully deleted ${deletePromises.length} permissions for role ${roleId}`,
+    );
   }
 
   /**
