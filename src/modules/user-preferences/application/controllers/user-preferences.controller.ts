@@ -7,6 +7,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -16,7 +17,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
-import { User } from '@/modules/users/domain/entities/user.entity';
+import { AuthenticatedUserDto } from '@/modules/auth/application/dto/authenticated-user.dto';
 import { UserPreferencesResponseDto } from '../dto/user-preferences-response.dto';
 import { UpdateUserPreferencesDto } from '../dto/update-user-preferences.dto';
 import {
@@ -28,7 +29,7 @@ import {
 @ApiTags('User Preferences')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@Controller('users/me/preferences')
+@Controller('user/me/preferences')
 export class UserPreferencesController {
   constructor(
     private readonly getUserPreferencesUseCase: GetUserPreferencesUseCase,
@@ -44,9 +45,12 @@ export class UserPreferencesController {
     type: UserPreferencesResponseDto,
   })
   async getPreferences(
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthenticatedUserDto,
   ): Promise<UserPreferencesResponseDto> {
-    const preferences = await this.getUserPreferencesUseCase.execute(user.id);
+    if (!user?.userId) {
+      throw new BadRequestException('User ID not found in request');
+    }
+    const preferences = await this.getUserPreferencesUseCase.execute(user.userId);
     return this.toResponseDto(preferences);
   }
 
@@ -63,11 +67,14 @@ export class UserPreferencesController {
     description: 'Invalid request data',
   })
   async updatePreferences(
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthenticatedUserDto,
     @Body() updateDto: UpdateUserPreferencesDto,
   ): Promise<UserPreferencesResponseDto> {
+    if (!user?.userId) {
+      throw new BadRequestException('User ID not found in request');
+    }
     const preferences = await this.updateUserPreferencesUseCase.execute(
-      user.id,
+      user.userId,
       updateDto,
     );
     return this.toResponseDto(preferences);
@@ -82,9 +89,12 @@ export class UserPreferencesController {
     type: UserPreferencesResponseDto,
   })
   async resetPreferences(
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthenticatedUserDto,
   ): Promise<UserPreferencesResponseDto> {
-    const preferences = await this.resetUserPreferencesUseCase.execute(user.id);
+    if (!user?.userId) {
+      throw new BadRequestException('User ID not found in request');
+    }
+    const preferences = await this.resetUserPreferencesUseCase.execute(user.userId);
     return this.toResponseDto(preferences);
   }
 
