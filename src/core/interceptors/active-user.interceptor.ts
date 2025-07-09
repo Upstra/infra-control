@@ -14,7 +14,6 @@ export class ActiveUserInterceptor implements NestInterceptor {
     const user = request.user;
 
     if (user && user.isActive !== true) {
-      console.log(user);
       throw new InactiveUserException();
     }
 

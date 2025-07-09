@@ -71,16 +71,6 @@ export class LoginUseCase {
       throw new AuthNotFoundException();
     }
 
-    // TODO: Debug log - Remove after fixing
-    console.log('User from DB:', {
-      id: user.id,
-      email: user.email,
-      isActive: user.isActive,
-      roles: user.roles,
-      hasRoles: !!user.roles,
-      rolesLength: user.roles?.length,
-    });
-
     const isValidPassword = await this.userDomain.validatePassword(
       user.password,
       password,

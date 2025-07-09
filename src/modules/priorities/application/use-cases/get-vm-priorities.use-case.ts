@@ -26,8 +26,6 @@ export class GetVmPrioritiesUseCase {
       return [];
     }
 
-    console.log('VM IDs:', vmIds);
-
     const vms = await this.vmRepository
       .createQueryBuilder('vm')
       .where('vm.id IN (:...ids)', { ids: vmIds })
