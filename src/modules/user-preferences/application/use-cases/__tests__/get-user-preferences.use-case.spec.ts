@@ -47,6 +47,9 @@ describe('GetUserPreferencesUseCase', () => {
         display: {
           defaultUserView: 'table',
           defaultServerView: 'grid',
+          defaultUpsView: 'grid',
+          defaultRoomView: 'grid',
+          defaultGroupView: 'grid',
           compactMode: false,
         },
         integrations: {},
@@ -108,6 +111,9 @@ describe('GetUserPreferencesUseCase', () => {
       expect(result.display).toEqual({
         defaultUserView: 'table',
         defaultServerView: 'grid',
+        defaultUpsView: 'grid',
+        defaultRoomView: 'grid',
+        defaultGroupView: 'grid',
         compactMode: false,
       });
       expect(result.integrations).toEqual({});

@@ -31,6 +31,9 @@ describe('UserPreference Entity', () => {
       expect(preferences.display).toEqual({
         defaultUserView: 'table',
         defaultServerView: 'grid',
+        defaultUpsView: 'grid',
+        defaultRoomView: 'grid',
+        defaultGroupView: 'grid',
         compactMode: false,
       });
     });
@@ -110,6 +113,9 @@ describe('UserPreference Entity', () => {
       preference.display = {
         defaultUserView: 'table',
         defaultServerView: 'grid',
+        defaultUpsView: 'grid',
+        defaultRoomView: 'grid',
+        defaultGroupView: 'grid',
         compactMode: false,
       };
       preference.integrations = {};

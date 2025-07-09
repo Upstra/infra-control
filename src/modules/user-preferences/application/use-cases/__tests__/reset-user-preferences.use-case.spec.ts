@@ -50,6 +50,9 @@ describe('ResetUserPreferencesUseCase', () => {
         display: {
           defaultUserView: 'card',
           defaultServerView: 'list',
+          defaultUpsView: 'list',
+          defaultRoomView: 'list',
+          defaultGroupView: 'flow',
           compactMode: true,
         },
         integrations: {
@@ -76,6 +79,9 @@ describe('ResetUserPreferencesUseCase', () => {
         display: {
           defaultUserView: 'table' as const,
           defaultServerView: 'grid' as const,
+          defaultUpsView: 'grid' as const,
+          defaultRoomView: 'grid' as const,
+          defaultGroupView: 'grid' as const,
           compactMode: false,
         },
         integrations: {},
@@ -103,6 +109,9 @@ describe('ResetUserPreferencesUseCase', () => {
       expect(result.display).toEqual({
         defaultUserView: 'table',
         defaultServerView: 'grid',
+        defaultUpsView: 'grid',
+        defaultRoomView: 'grid',
+        defaultGroupView: 'grid',
         compactMode: false,
       });
       expect(result.integrations).toEqual({});
