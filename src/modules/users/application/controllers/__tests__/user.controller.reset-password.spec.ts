@@ -261,7 +261,7 @@ describe('UserController - Reset Password', () => {
         ip: '10.0.0.1',
         socket: { remoteAddress: '10.0.0.2' },
         get: jest.fn((header: string) => {
-          if (header === 'User-Agent') 
+          if (header === 'User-Agent')
             return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
           return undefined;
         }),
@@ -282,7 +282,8 @@ describe('UserController - Reset Password', () => {
         dto,
         expect.objectContaining({
           ipAddress: '10.0.0.1',
-          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          userAgent:
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
           sessionId: 'complex-session-456',
         }),
         adminPayload.userId,
@@ -330,11 +331,13 @@ describe('UserController - Reset Password', () => {
     it('should correctly extract all request information', () => {
       const context = RequestContextDto.fromRequest(mockRequest);
 
-      expect(context).toEqual(expect.objectContaining({
-        ipAddress: '192.168.1.1',
-        userAgent: 'Mozilla/5.0',
-        sessionId: 'session-123',
-      }));
+      expect(context).toEqual(
+        expect.objectContaining({
+          ipAddress: '192.168.1.1',
+          userAgent: 'Mozilla/5.0',
+          sessionId: 'session-123',
+        }),
+      );
     });
 
     it('should handle edge cases gracefully', () => {
@@ -343,11 +346,13 @@ describe('UserController - Reset Password', () => {
       };
       const context = RequestContextDto.fromRequest(minimalRequest);
 
-      expect(context).toEqual(expect.objectContaining({
-        ipAddress: 'unknown',
-        userAgent: 'unknown',
-        sessionId: undefined,
-      }));
+      expect(context).toEqual(
+        expect.objectContaining({
+          ipAddress: 'unknown',
+          userAgent: 'unknown',
+          sessionId: undefined,
+        }),
+      );
     });
   });
 });

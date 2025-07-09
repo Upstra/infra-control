@@ -12,10 +12,14 @@ import { ApiBody, ApiOperation, ApiTags, ApiResponse } from '@nestjs/swagger';
 
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
+import { ForgotPasswordDto } from '../dto/forgot-password.dto';
+import { ResetPasswordWithTokenDto } from '../dto/reset-password-with-token.dto';
 
 import { LoginUseCase } from '../use-cases/login.use-case';
 import { RegisterUseCase } from '../use-cases/register.use-case';
 import { RenewTokenUseCase } from '../use-cases/renew-token.use-case';
+import { ForgotPasswordUseCase } from '../use-cases/forgot-password.use-case';
+import { ResetPasswordWithTokenUseCase } from '../use-cases/reset-password-with-token.use-case';
 import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.exception.filter';
 import { LoginResponseDto } from '../dto';
 import { AuthRateLimitGuard } from '@/core/guards/rate-limit.guard';
@@ -28,6 +32,8 @@ export class AuthController {
     private readonly loginUseCase: LoginUseCase,
     private readonly registerUseCase: RegisterUseCase,
     private readonly renewTokenUseCase: RenewTokenUseCase,
+    private readonly forgotPasswordUseCase: ForgotPasswordUseCase,
+    private readonly resetPasswordWithTokenUseCase: ResetPasswordWithTokenUseCase,
   ) {}
 
   @Post('login')
@@ -127,5 +133,53 @@ export class AuthController {
   logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie('refreshToken', { path: '/auth/refresh' });
     return { message: 'Déconnexion réussie' };
+  }
+
+  @Post('forgot-password')
+  @UseGuards(AuthRateLimitGuard)
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiOperation({
+    summary: 'Demande de réinitialisation de mot de passe',
+    description:
+      "Envoie un email avec un lien de réinitialisation si l'adresse email existe",
+  })
+  @ApiBody({
+    type: ForgotPasswordDto,
+    description: "Email de l'utilisateur",
+    required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Email envoyé si l'adresse existe",
+  })
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.forgotPasswordUseCase.execute(dto.email);
+  }
+
+  @Post('reset-password')
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiOperation({
+    summary: 'Réinitialisation du mot de passe avec token',
+    description:
+      'Réinitialise le mot de passe avec un token valide reçu par email',
+  })
+  @ApiBody({
+    type: ResetPasswordWithTokenDto,
+    description: 'Token et nouveau mot de passe',
+    required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Mot de passe réinitialisé avec succès',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Token invalide ou expiré',
+  })
+  resetPasswordWithToken(@Body() dto: ResetPasswordWithTokenDto) {
+    return this.resetPasswordWithTokenUseCase.execute(
+      dto.token,
+      dto.newPassword,
+    );
   }
 }

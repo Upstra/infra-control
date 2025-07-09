@@ -240,7 +240,10 @@ describe('UserController', () => {
   describe('resetPassword', () => {
     it('should reset password by admin', async () => {
       const dto: ResetPasswordDto = { newPassword: 'xxx' } as any;
-      const mockAdmin = { userId: 'admin-123', email: 'admin@example.com' } as JwtPayload;
+      const mockAdmin = {
+        userId: 'admin-123',
+        email: 'admin@example.com',
+      } as JwtPayload;
       const mockRequest = {
         ip: '192.168.1.1',
         get: jest.fn(() => 'Mozilla/5.0'),
