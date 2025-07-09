@@ -5,12 +5,14 @@ import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 import { RegisterUserUseCase } from '@/modules/users/application/use-cases';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 import { RequestContextDto } from '@/core/dto';
+import { SendAccountCreatedEmailUseCase } from '@/modules/email/application/use-cases/send-account-created-email.use-case';
 
 describe('RegisterUseCase', () => {
   let useCase: RegisterUseCase;
   let registerUserUseCase: jest.Mocked<RegisterUserUseCase>;
   let tokenService: jest.Mocked<TokenService>;
   let logHistory: jest.Mocked<LogHistoryUseCase>;
+  let emailService: jest.Mocked<SendAccountCreatedEmailUseCase>;
 
   const mockDto: RegisterDto = {
     firstName: 'John',
@@ -34,10 +36,15 @@ describe('RegisterUseCase', () => {
       executeStructured: jest.fn(),
     } as any;
 
+    emailService = {
+      execute: jest.fn(),
+    } as any;
+
     useCase = new RegisterUseCase(
       registerUserUseCase,
       tokenService,
       logHistory,
+      emailService,
     );
   });
 
@@ -63,6 +70,11 @@ describe('RegisterUseCase', () => {
       accessToken: 'access.jwt.token',
       refreshToken: 'refresh.jwt.token',
     });
+
+    expect(emailService.execute).toHaveBeenCalledWith(
+      mockDto.email,
+      mockDto.firstName,
+    );
   });
 
   describe('Structured Logging', () => {
@@ -113,6 +125,28 @@ describe('RegisterUseCase', () => {
           userAgent: undefined,
         }),
       );
+    });
+  });
+
+  it('should work without email service', async () => {
+    const fakeUser = createMockUser();
+    registerUserUseCase.execute.mockResolvedValue(fakeUser);
+    tokenService.generateTokens.mockReturnValue({
+      accessToken: 'access.jwt.token',
+      refreshToken: 'refresh.jwt.token',
+    });
+
+    const useCaseWithoutEmail = new RegisterUseCase(
+      registerUserUseCase,
+      tokenService,
+      logHistory,
+    );
+
+    const result = await useCaseWithoutEmail.execute(mockDto);
+
+    expect(result).toEqual({
+      accessToken: 'access.jwt.token',
+      refreshToken: 'refresh.jwt.token',
     });
   });
 });

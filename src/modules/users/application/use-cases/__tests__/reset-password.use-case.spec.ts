@@ -7,10 +7,12 @@ import {
   UserExceptions,
   UserNotFoundException,
 } from '@/modules/users/domain/exceptions/user.exception';
+import { SendPasswordChangedEmailUseCase } from '@/modules/email/application/use-cases/send-password-changed-email.use-case';
 describe('ResetPasswordUseCase', () => {
   let useCase: ResetPasswordUseCase;
   let repo: jest.Mocked<UserRepositoryInterface>;
   let domainService: jest.Mocked<UserDomainService>;
+  let emailService: jest.Mocked<SendPasswordChangedEmailUseCase>;
 
   beforeEach(() => {
     repo = {
@@ -22,7 +24,11 @@ describe('ResetPasswordUseCase', () => {
       hashPassword: jest.fn(),
     } as any;
 
-    useCase = new ResetPasswordUseCase(repo, domainService);
+    emailService = {
+      execute: jest.fn(),
+    } as any;
+
+    useCase = new ResetPasswordUseCase(repo, domainService, emailService);
   });
 
   it('should reset password and return updated user response', async () => {
@@ -58,6 +64,11 @@ describe('ResetPasswordUseCase', () => {
         lastName: user.lastName,
       }),
     );
+
+    expect(emailService.execute).toHaveBeenCalledWith(
+      user.email,
+      user.firstName || user.username,
+    );
   });
 
   it('should throw if user is not found', async () => {
@@ -89,5 +100,47 @@ describe('ResetPasswordUseCase', () => {
     await expect(
       useCase.execute('user-id', { newPassword: '123456' }),
     ).rejects.toThrow('save failed');
+  });
+
+  it('should send email with username when firstName is not available', async () => {
+    const mockUser = createMockUser();
+    const user = Object.assign(new User(), { ...mockUser, firstName: null });
+    const hashedPassword = 'newHashedPassword';
+
+    repo.findOneByField.mockResolvedValue(user);
+    domainService.hashPassword.mockResolvedValue(hashedPassword);
+    repo.save.mockResolvedValue(
+      Object.assign(new User(), { ...user, password: hashedPassword }),
+    );
+
+    await useCase.execute('user-id', { newPassword: 'newPassword123' });
+
+    expect(emailService.execute).toHaveBeenCalledWith(
+      user.email,
+      user.username,
+    );
+  });
+
+  it('should work without email service', async () => {
+    const user = createMockUser();
+    const hashedPassword = 'newHashedPassword';
+
+    repo.findOneByField.mockResolvedValue(user);
+    domainService.hashPassword.mockResolvedValue(hashedPassword);
+    repo.save.mockResolvedValue(
+      Object.assign(new User(), { ...user, password: hashedPassword }),
+    );
+
+    const useCaseWithoutEmail = new ResetPasswordUseCase(repo, domainService);
+    const result = await useCaseWithoutEmail.execute('user-id', { 
+      newPassword: 'newPassword123' 
+    });
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        id: user.id,
+        email: user.email,
+      }),
+    );
   });
 });
