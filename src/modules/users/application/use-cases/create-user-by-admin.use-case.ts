@@ -7,6 +7,7 @@ import { User } from '../../domain/entities/user.entity';
 import { UserExceptions } from '../../domain/exceptions/user.exception';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 import { Role } from '@/modules/roles/domain/entities/role.entity';
+import { SendAccountCreatedEmailUseCase } from '@/modules/email/application/use-cases/send-account-created-email.use-case';
 
 /**
  * Creates a new user account by an administrator with specified roles.
@@ -23,6 +24,7 @@ export class CreateUserByAdminUseCase {
     private readonly roleRepo: RoleRepositoryInterface,
     private readonly userDomainService: UserDomainService,
     private readonly logHistory?: LogHistoryUseCase,
+    private readonly sendAccountCreatedEmailUseCase?: SendAccountCreatedEmailUseCase,
   ) {}
 
   async execute(dto: UserCreateDto, adminId: string): Promise<User> {
@@ -63,6 +65,11 @@ export class CreateUserByAdminUseCase {
 
     const saved = await this.userRepo.save(user);
     await this.logHistory?.execute('user', saved.id, 'CREATE', adminId);
+
+    await this.sendAccountCreatedEmailUseCase?.execute(
+      saved.email,
+      saved.firstName || saved.username,
+    );
 
     return this.userRepo.findById(saved.id);
   }
