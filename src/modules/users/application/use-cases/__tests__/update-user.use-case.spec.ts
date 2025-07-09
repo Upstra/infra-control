@@ -146,7 +146,7 @@ describe('UpdateUserUseCase', () => {
         lastName: 'User',
         isTwoFactorEnabled: updatedUser.isTwoFactorEnabled,
         roles: [],
-        active: updatedUser.active,
+        isActive: updatedUser.isActive,
       },
       metadata: {
         changedFields: ['email', 'username', 'firstName', 'lastName'],

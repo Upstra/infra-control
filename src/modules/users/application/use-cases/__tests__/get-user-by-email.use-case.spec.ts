@@ -22,6 +22,7 @@ describe('GetUserByEmailUseCase', () => {
     expect(userRepo.findOneByField).toHaveBeenCalledWith({
       field: 'email',
       value: 'james@mail.com',
+      relations: ['roles'],
     });
     expect(result).toBe(user);
   });
@@ -33,6 +34,7 @@ describe('GetUserByEmailUseCase', () => {
     expect(userRepo.findOneByField).toHaveBeenCalledWith({
       field: 'email',
       value: 'absent@mail.com',
+      relations: ['roles'],
     });
     expect(result).toBeNull();
   });
@@ -44,6 +46,7 @@ describe('GetUserByEmailUseCase', () => {
     expect(userRepo.findOneByField).toHaveBeenCalledWith({
       field: 'email',
       value: 'fail@mail.com',
+      relations: ['roles'],
     });
   });
 });

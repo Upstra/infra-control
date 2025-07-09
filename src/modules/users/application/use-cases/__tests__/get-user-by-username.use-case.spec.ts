@@ -23,6 +23,7 @@ describe('GetUserByUsernameUseCase', () => {
     expect(repo.findOneByField).toHaveBeenCalledWith({
       field: 'username',
       value: 'james_bond',
+      relations: ['roles'],
     });
 
     expect(result).toBe(user);
@@ -37,6 +38,7 @@ describe('GetUserByUsernameUseCase', () => {
     expect(repo.findOneByField).toHaveBeenCalledWith({
       field: 'username',
       value: 'unknown_user',
+      relations: ['roles'],
     });
   });
 
