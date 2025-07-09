@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { SendEmailDto } from '../application/dto/send-email.dto';
 import { IMailService } from '../domain/services/mail.service';
+import { EmailSendFailedException } from '../domain/exceptions/email.exception';
 
 @Injectable()
 export class ZohoMailAdapter implements IMailService {
@@ -22,7 +23,7 @@ export class ZohoMailAdapter implements IMailService {
       );
     } catch (err) {
       this.logger.error(`Failed to send email to ${dto.to.value}`, err.stack);
-      throw err;
+      throw new EmailSendFailedException(dto.to.value, err.message);
     }
   }
 }
