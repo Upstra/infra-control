@@ -215,14 +215,23 @@ describe('UserController', () => {
   describe('resetCurrentUserPassword', () => {
     it('should reset current user password', async () => {
       const dto: ResetPasswordDto = { newPassword: 'xxx' } as any;
+      const mockRequest = {
+        ip: '192.168.1.1',
+        get: jest.fn(() => 'Mozilla/5.0'),
+      };
       resetPasswordUseCase.execute.mockResolvedValue(mockUser);
       const result = await controller.resetCurrentUserPassword(
         mockUser as any,
         dto,
+        mockRequest,
       );
       expect(resetPasswordUseCase.execute).toHaveBeenCalledWith(
         mockUser.userId,
         dto,
+        expect.objectContaining({
+          ipAddress: '192.168.1.1',
+          userAgent: 'Mozilla/5.0',
+        }),
       );
       expect(result).toBe(mockUser);
     });
@@ -231,11 +240,26 @@ describe('UserController', () => {
   describe('resetPassword', () => {
     it('should reset password by admin', async () => {
       const dto: ResetPasswordDto = { newPassword: 'xxx' } as any;
+      const mockAdmin = { userId: 'admin-123', email: 'admin@example.com' } as JwtPayload;
+      const mockRequest = {
+        ip: '192.168.1.1',
+        get: jest.fn(() => 'Mozilla/5.0'),
+      };
       resetPasswordUseCase.execute.mockResolvedValue(mockUser);
-      const result = await controller.resetPassword(mockUser.userId, dto);
+      const result = await controller.resetPassword(
+        mockUser.userId,
+        dto,
+        mockAdmin,
+        mockRequest,
+      );
       expect(resetPasswordUseCase.execute).toHaveBeenCalledWith(
         mockUser.userId,
         dto,
+        expect.objectContaining({
+          ipAddress: '192.168.1.1',
+          userAgent: 'Mozilla/5.0',
+        }),
+        mockAdmin.userId,
       );
       expect(result).toBe(mockUser);
     });
