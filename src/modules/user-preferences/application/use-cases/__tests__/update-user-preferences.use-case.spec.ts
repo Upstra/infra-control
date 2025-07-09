@@ -280,5 +280,92 @@ describe('UpdateUserPreferencesUseCase', () => {
       expect(result.timezone).toBe(existingPreferences.timezone); // unchanged
       expect(result.notifications).toEqual(existingPreferences.notifications); // unchanged
     });
+
+    it('should handle all webhook types in integrations', async () => {
+      const updateDto: UpdateUserPreferencesDto = {
+        integrations: {
+          slackWebhook: 'https://slack.com/webhook',
+          discordWebhook: 'https://discord.com/webhook',
+          teamsWebhook: 'https://teams.com/webhook',
+          alertEmail: 'alert@test.com',
+        },
+      };
+
+      mockRepository.findByUserId.mockResolvedValue(existingPreferences);
+      mockRepository.update.mockImplementation(async (pref) => pref);
+
+      const result = await useCase.execute(userId, updateDto);
+
+      expect(result.integrations).toEqual({
+        slackWebhook: 'https://slack.com/webhook',
+        discordWebhook: 'https://discord.com/webhook',
+        teamsWebhook: 'https://teams.com/webhook',
+        alertEmail: 'alert@test.com',
+      });
+    });
+
+    it('should handle undefined values in integrations without modifying existing values', async () => {
+      const prefsWithIntegrations = {
+        ...existingPreferences,
+        integrations: {
+          slackWebhook: 'https://existing-slack.com',
+          discordWebhook: 'https://existing-discord.com',
+          teamsWebhook: 'https://existing-teams.com',
+          alertEmail: 'existing@test.com',
+        },
+      };
+
+      const updateDto: UpdateUserPreferencesDto = {
+        integrations: {
+          slackWebhook: undefined,
+          discordWebhook: undefined,
+        },
+      };
+
+      mockRepository.findByUserId.mockResolvedValue(prefsWithIntegrations);
+      mockRepository.update.mockImplementation(async (pref) => pref);
+
+      const result = await useCase.execute(userId, updateDto);
+
+      expect(result.integrations).toEqual({
+        slackWebhook: 'https://existing-slack.com',
+        discordWebhook: 'https://existing-discord.com',
+        teamsWebhook: 'https://existing-teams.com',
+        alertEmail: 'existing@test.com',
+      });
+    });
+
+    it('should apply all updates when multiple fields are provided', async () => {
+      const updateDto: UpdateUserPreferencesDto = {
+        locale: 'en',
+        theme: 'light',
+        timezone: 'America/New_York',
+        notifications: {
+          email: true,
+        },
+        display: {
+          compactMode: true,
+        },
+        integrations: {
+          slackWebhook: 'https://slack.com/new',
+        },
+        performance: {
+          autoRefresh: false,
+        },
+      };
+
+      mockRepository.findByUserId.mockResolvedValue(existingPreferences);
+      mockRepository.update.mockImplementation(async (pref) => pref);
+
+      const result = await useCase.execute(userId, updateDto);
+
+      expect(result.locale).toBe('en');
+      expect(result.theme).toBe('light');
+      expect(result.timezone).toBe('America/New_York');
+      expect(result.notifications.email).toBe(true);
+      expect(result.display.compactMode).toBe(true);
+      expect(result.integrations.slackWebhook).toBe('https://slack.com/new');
+      expect(result.performance.autoRefresh).toBe(false);
+    });
   });
 });

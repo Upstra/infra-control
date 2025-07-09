@@ -16,12 +16,34 @@ export class UpdateUserPreferencesUseCase {
     userId: string,
     updateDto: UpdateUserPreferencesDto,
   ): Promise<UserPreference> {
-    let preferences = await this.userPreferencesRepository.findByUserId(userId);
+    const preferences = await this.getOrCreatePreferences(userId);
+    
+    this.applyUpdates(preferences, updateDto);
 
-    if (!preferences) {
-      preferences = UserPreference.createDefault(userId);
+    try {
+      return await this.userPreferencesRepository.update(preferences);
+    } catch (error) {
+      throw UserPreferencesExceptions.failedToUpdate();
     }
+  }
 
+  private async getOrCreatePreferences(userId: string): Promise<UserPreference> {
+    const preferences = await this.userPreferencesRepository.findByUserId(userId);
+    return preferences ?? UserPreference.createDefault(userId);
+  }
+
+  private applyUpdates(
+    preferences: UserPreference,
+    updateDto: UpdateUserPreferencesDto,
+  ): void {
+    this.updateBasicFields(preferences, updateDto);
+    this.updateComplexFields(preferences, updateDto);
+  }
+
+  private updateBasicFields(
+    preferences: UserPreference,
+    updateDto: UpdateUserPreferencesDto,
+  ): void {
     if (updateDto.locale !== undefined) {
       preferences.locale = updateDto.locale;
     }
@@ -36,7 +58,12 @@ export class UpdateUserPreferencesUseCase {
       }
       preferences.timezone = updateDto.timezone;
     }
+  }
 
+  private updateComplexFields(
+    preferences: UserPreference,
+    updateDto: UpdateUserPreferencesDto,
+  ): void {
     if (updateDto.notifications) {
       preferences.notifications = {
         ...preferences.notifications,
@@ -52,22 +79,10 @@ export class UpdateUserPreferencesUseCase {
     }
 
     if (updateDto.integrations) {
-      const integrations = { ...preferences.integrations };
-
-      if (updateDto.integrations.slackWebhook !== undefined) {
-        integrations.slackWebhook = updateDto.integrations.slackWebhook || undefined;
-      }
-      if (updateDto.integrations.discordWebhook !== undefined) {
-        integrations.discordWebhook = updateDto.integrations.discordWebhook || undefined;
-      }
-      if (updateDto.integrations.teamsWebhook !== undefined) {
-        integrations.teamsWebhook = updateDto.integrations.teamsWebhook || undefined;
-      }
-      if (updateDto.integrations.alertEmail !== undefined) {
-        integrations.alertEmail = updateDto.integrations.alertEmail || undefined;
-      }
-
-      preferences.integrations = integrations;
+      preferences.integrations = this.mergeIntegrations(
+        preferences.integrations,
+        updateDto.integrations,
+      );
     }
 
     if (updateDto.performance) {
@@ -76,11 +91,21 @@ export class UpdateUserPreferencesUseCase {
         ...updateDto.performance,
       };
     }
+  }
 
-    try {
-      return await this.userPreferencesRepository.update(preferences);
-    } catch (error) {
-      throw UserPreferencesExceptions.failedToUpdate();
-    }
+  private mergeIntegrations(
+    current: UserPreference['integrations'],
+    updates: UpdateUserPreferencesDto['integrations'],
+  ): UserPreference['integrations'] {
+    const integrations = { ...current };
+    const webhookFields = ['slackWebhook', 'discordWebhook', 'teamsWebhook', 'alertEmail'] as const;
+
+    webhookFields.forEach(field => {
+      if (updates[field] !== undefined) {
+        integrations[field] = updates[field] || undefined;
+      }
+    });
+
+    return integrations;
   }
 }
