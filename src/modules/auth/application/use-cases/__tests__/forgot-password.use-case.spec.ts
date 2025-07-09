@@ -4,12 +4,13 @@ import { ForgotPasswordUseCase } from '../forgot-password.use-case';
 import { UserRepositoryInterface } from '../../../../users/domain/interfaces/user.repository.interface';
 import { User } from '../../../../users/domain/entities/user.entity';
 import { EmailEventType } from '../../../../email/domain/events/email.events';
+import { LogHistoryUseCase } from '../../../../history/application/use-cases/log-history.use-case';
 
 describe('ForgotPasswordUseCase', () => {
   let useCase: ForgotPasswordUseCase;
   let userRepository: jest.Mocked<UserRepositoryInterface>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
-  let historyService: any;
+  let logHistoryUseCase: jest.Mocked<LogHistoryUseCase>;
 
   const mockUser: Partial<User> = {
     id: '123',
@@ -45,9 +46,9 @@ describe('ForgotPasswordUseCase', () => {
           },
         },
         {
-          provide: 'HistoryService',
+          provide: LogHistoryUseCase,
           useValue: {
-            logEvent: jest.fn(),
+            executeStructured: jest.fn(),
           },
         },
       ],
@@ -56,7 +57,7 @@ describe('ForgotPasswordUseCase', () => {
     useCase = module.get<ForgotPasswordUseCase>(ForgotPasswordUseCase);
     userRepository = module.get('UserRepositoryInterface');
     eventEmitter = module.get(EventEmitter2);
-    historyService = module.get('HistoryService');
+    logHistoryUseCase = module.get(LogHistoryUseCase);
   });
 
   afterEach(() => {
@@ -94,11 +95,12 @@ describe('ForgotPasswordUseCase', () => {
           }),
         }),
       );
-      expect(historyService.logEvent).toHaveBeenCalledWith({
-        eventType: 'AUTH',
+      expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith({
+        entity: 'user',
+        entityId: mockUser.id,
+        action: 'PASSWORD_RESET_REQUESTED',
         userId: mockUser.id,
-        eventData: {
-          action: 'PASSWORD_RESET_REQUESTED',
+        metadata: {
           email: mockUser.email,
           timestamp: expect.any(String),
         },
@@ -120,7 +122,7 @@ describe('ForgotPasswordUseCase', () => {
       });
       expect(userRepository.save).not.toHaveBeenCalled();
       expect(eventEmitter.emit).not.toHaveBeenCalled();
-      expect(historyService.logEvent).not.toHaveBeenCalled();
+      expect(logHistoryUseCase.executeStructured).not.toHaveBeenCalled();
       expect(result).toEqual({
         message:
           'Si un compte existe avec cette adresse email, un lien de réinitialisation sera envoyé.',

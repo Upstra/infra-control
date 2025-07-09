@@ -4,6 +4,7 @@ import { randomBytes } from 'crypto';
 import { User } from '../../../users/domain/entities/user.entity';
 import { UserRepositoryInterface } from '../../../users/domain/interfaces/user.repository.interface';
 import { EmailEventType } from '../../../email/domain/events/email.events';
+import { LogHistoryUseCase } from '../../../history/application/use-cases/log-history.use-case';
 
 @Injectable()
 export class ForgotPasswordUseCase {
@@ -13,8 +14,7 @@ export class ForgotPasswordUseCase {
     @Inject('UserRepositoryInterface')
     private readonly userRepository: UserRepositoryInterface,
     private readonly eventEmitter: EventEmitter2,
-    @Inject('HistoryService')
-    private readonly historyService: any,
+    private readonly logHistoryUseCase: LogHistoryUseCase,
   ) {}
 
   async execute(email: string): Promise<{ message: string }> {
@@ -70,11 +70,12 @@ export class ForgotPasswordUseCase {
   }
 
   private async logPasswordResetRequest(user: User): Promise<void> {
-    await this.historyService.logEvent({
-      eventType: 'AUTH',
+    await this.logHistoryUseCase.executeStructured({
+      entity: 'user',
+      entityId: user.id,
+      action: 'PASSWORD_RESET_REQUESTED',
       userId: user.id,
-      eventData: {
-        action: 'PASSWORD_RESET_REQUESTED',
+      metadata: {
         email: user.email,
         timestamp: new Date().toISOString(),
       },
