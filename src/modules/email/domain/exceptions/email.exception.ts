@@ -12,9 +12,12 @@ export class InvalidEmailAddressException extends BadRequestException {
 
 export class EmailSendFailedException extends BadRequestException {
   constructor(email: string, reason?: string) {
+    const baseMessage = `Failed to send email to ${email}`;
+    const fullMessage = reason ? `${baseMessage}: ${reason}` : baseMessage;
+    
     super({
       statusCode: 400,
-      message: `Failed to send email to ${email}${reason ? `: ${reason}` : ''}`,
+      message: fullMessage,
       error: 'EmailSendFailed',
     });
   }

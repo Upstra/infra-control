@@ -24,7 +24,7 @@ export class ResetPasswordWithTokenUseCase {
       value: token,
     });
 
-    if (!user || !user.resetPasswordToken || !user.resetPasswordExpiry) {
+    if (!user?.resetPasswordToken || !user?.resetPasswordExpiry) {
       throw new UnauthorizedException('Token de réinitialisation invalide');
     }
 
