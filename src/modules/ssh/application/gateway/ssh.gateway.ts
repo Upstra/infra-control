@@ -37,8 +37,7 @@ export class SshGateway {
         client.emit('ssh:close');
         client.disconnect(true);
       });
-    } catch (err) {
-      console.error('SSH connection error:', err);
+    } catch {
       client.emit('ssh:error', 'Unable to connect');
       client.disconnect(true);
     }

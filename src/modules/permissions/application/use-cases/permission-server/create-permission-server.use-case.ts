@@ -39,7 +39,7 @@ export class CreatePermissionServerUseCase {
     await this.logHistory?.executeStructured({
       entity: 'permission_server',
       entityId: `${saved.serverId}_${saved.roleId}`,
-      action: 'CREATE',
+      action: 'CREATE_PERMISSION_SERVER',
       userId: userId || 'system',
       newValue: {
         serverId: saved.serverId,

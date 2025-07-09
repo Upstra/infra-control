@@ -18,7 +18,7 @@ export class PermissionVmRepository
     field,
     value,
     disableThrow = false,
-    relations = ['vms'],
+    relations = [],
   }: FindOneByFieldOptions<PermissionVm, K>): Promise<PermissionVm[]> {
     if (value === undefined || value === null) {
       throw new Error(`Invalid value for ${String(field)}`);
@@ -26,10 +26,6 @@ export class PermissionVmRepository
     try {
       return await this.find({ where: { [field]: value } as any, relations });
     } catch {
-      console.error(
-        `Error retrieving permissions by field ${String(field)} with value:`,
-        value,
-      );
       if (disableThrow) return [];
       throw new PermissionNotFoundException('vm', JSON.stringify(value));
     }
@@ -102,6 +98,12 @@ export class PermissionVmRepository
   }
 
   async deleteById(id: string): Promise<void> {
-    await this.delete({ id });
+    const result = await this.delete({ id });
+    console.log(`Deleted permission with id ${id}, result:`, result);
+  }
+
+  async deleteByRoleId(roleId: string): Promise<void> {
+    const result = await this.delete({ roleId });
+    console.log(`Deleted all VM permissions for role ${roleId}, result:`, result);
   }
 }

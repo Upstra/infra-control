@@ -95,48 +95,21 @@ export class SafeRoleDeletionDomainService {
   private async deleteRolePermissions(roleId: string): Promise<void> {
     this.logger.log(`Deleting permissions for role ${roleId}`);
 
-    const vmPermissions = await this.permissionVmRepository.findAllByField({
-      field: 'roleId',
-      value: roleId,
-      disableThrow: true,
-    });
-
-    const serverPermissions =
-      await this.permissionServerRepository.findAllByField({
-        field: 'roleId',
-        value: roleId,
-        disableThrow: true,
-      });
-
-    const vmPermissionCount = vmPermissions?.length ?? 0;
-    const serverPermissionCount = serverPermissions?.length ?? 0;
-    
-    this.logger.log(
-      `Found ${vmPermissionCount} VM permissions and ${serverPermissionCount} server permissions to delete`,
-    );
-
-    const deletePromises: Promise<void>[] = [];
-
-    if (vmPermissions && vmPermissions.length > 0) {
-      for (const permission of vmPermissions) {
-        deletePromises.push(
-          this.permissionVmRepository.deleteById(permission.id),
-        );
-      }
+    try {
+      await Promise.all([
+        this.permissionVmRepository.deleteByRoleId(roleId),
+        this.permissionServerRepository.deleteByRoleId(roleId),
+      ]);
+      
+      this.logger.log(
+        `Successfully deleted all permissions for role ${roleId}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Error deleting permissions for role ${roleId}: ${error.message}`,
+      );
+      throw error;
     }
-
-    if (serverPermissions && serverPermissions.length > 0) {
-      for (const permission of serverPermissions) {
-        deletePromises.push(
-          this.permissionServerRepository.deleteById(permission.id),
-        );
-      }
-    }
-
-    await Promise.all(deletePromises);
-    this.logger.log(
-      `Successfully deleted ${deletePromises.length} permissions for role ${roleId}`,
-    );
   }
 
   /**
