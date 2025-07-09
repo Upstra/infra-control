@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { UserRepositoryInterface } from '../../domain/interfaces/user.repository.interface';
 import { UserDomainService } from '../../domain/services/user.domain.service';
 import { ResetPasswordDto, UserResponseDto } from '../dto';
+import { SendPasswordChangedEmailUseCase } from '@/modules/email/application/use-cases/send-password-changed-email.use-case';
 
 /**
  * Resets a user’s password given a valid reset token and new credentials.
@@ -27,6 +28,7 @@ export class ResetPasswordUseCase {
     @Inject('UserRepositoryInterface')
     private readonly repo: UserRepositoryInterface,
     private readonly userDomainService: UserDomainService,
+    private readonly sendPasswordChangedEmailUseCase?: SendPasswordChangedEmailUseCase,
   ) {}
 
   async execute(id: string, dto: ResetPasswordDto): Promise<UserResponseDto> {
@@ -35,6 +37,13 @@ export class ResetPasswordUseCase {
       value: id,
     });
     user.password = await this.userDomainService.hashPassword(dto.newPassword);
-    return new UserResponseDto(await this.repo.save(user));
+    const updatedUser = await this.repo.save(user);
+    
+    await this.sendPasswordChangedEmailUseCase?.execute(
+      updatedUser.email,
+      updatedUser.firstName || updatedUser.username,
+    );
+    
+    return new UserResponseDto(updatedUser);
   }
 }
