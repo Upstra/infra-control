@@ -11,7 +11,7 @@ export class UserPreference {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'user_id', nullable: true })
+  @Column({ name: 'user_id', unique: true })
   userId: string;
 
   @Column({
