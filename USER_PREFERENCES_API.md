@@ -4,6 +4,14 @@
 
 Un nouveau module de gestion des préférences utilisateur a été implémenté côté backend. Ce module permet de persister toutes les préférences utilisateur en base de données (au lieu du localStorage uniquement).
 
+### ⚡ Mise à jour importante (janvier 2025)
+De nouvelles préférences de vue ont été ajoutées pour supporter les vues séparées de chaque type de ressource :
+- `defaultUpsView`: Vue par défaut pour les UPS ('grid' | 'list')
+- `defaultRoomView`: Vue par défaut pour les salles ('grid' | 'list')
+- `defaultGroupView`: Vue par défaut pour les groupes ('grid' | 'list' | 'sections' | 'flow')
+
+Note: Le type `defaultGroupView` supporte 4 options au lieu de 2, car la vue des groupes a des modes d'affichage supplémentaires.
+
 ## Endpoints API
 
 ### 1. Récupérer les préférences utilisateur
@@ -34,6 +42,9 @@ Authorization: Bearer <JWT_TOKEN>
   display: {
     defaultUserView: 'table' | 'card';
     defaultServerView: 'grid' | 'list';
+    defaultUpsView: 'grid' | 'list';
+    defaultRoomView: 'grid' | 'list';
+    defaultGroupView: 'grid' | 'list' | 'sections' | 'flow';
     compactMode: boolean;
   };
   integrations: {
@@ -80,6 +91,9 @@ Content-Type: application/json
   display?: {
     defaultUserView?: 'table' | 'card';
     defaultServerView?: 'grid' | 'list';
+    defaultUpsView?: 'grid' | 'list';
+    defaultRoomView?: 'grid' | 'list';
+    defaultGroupView?: 'grid' | 'list' | 'sections' | 'flow';
     compactMode?: boolean;
   };
   integrations?: {
@@ -130,6 +144,9 @@ Authorization: Bearer <JWT_TOKEN>
   display: {
     defaultUserView: 'table',
     defaultServerView: 'grid',
+    defaultUpsView: 'grid',
+    defaultRoomView: 'grid',
+    defaultGroupView: 'grid',
     compactMode: false
   },
   integrations: {}, // Toutes les intégrations sont optionnelles
@@ -221,6 +238,9 @@ export interface NotificationPreferences {
 export interface DisplayPreferences {
   defaultUserView: 'table' | 'card';
   defaultServerView: 'grid' | 'list';
+  defaultUpsView: 'grid' | 'list';
+  defaultRoomView: 'grid' | 'list';
+  defaultGroupView: 'grid' | 'list' | 'sections' | 'flow';
   compactMode: boolean;
 }
 
