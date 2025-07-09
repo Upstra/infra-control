@@ -5,10 +5,8 @@ import {
   BaseEntity,
   ManyToMany,
   JoinTable,
-  OneToOne,
 } from 'typeorm';
 import { Role } from '../../../roles/domain/entities/role.entity';
-import { UserPreference } from '../../../user-preferences/domain/entities/user-preference.entity';
 
 @Entity('user')
 export class User extends BaseEntity {
@@ -68,7 +66,4 @@ export class User extends BaseEntity {
 
   @Column({ type: 'timestamp', nullable: true })
   resetPasswordExpiry?: Date;
-
-  @OneToOne(() => UserPreference, (preference) => preference.user)
-  preferences?: UserPreference;
 }

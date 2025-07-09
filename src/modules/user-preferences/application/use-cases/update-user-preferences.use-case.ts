@@ -17,18 +17,21 @@ export class UpdateUserPreferencesUseCase {
     updateDto: UpdateUserPreferencesDto,
   ): Promise<UserPreference> {
     const preferences = await this.getOrCreatePreferences(userId);
-    
+
     this.applyUpdates(preferences, updateDto);
 
     try {
       return await this.userPreferencesRepository.update(preferences);
-    } catch (error) {
+    } catch {
       throw UserPreferencesExceptions.failedToUpdate();
     }
   }
 
-  private async getOrCreatePreferences(userId: string): Promise<UserPreference> {
-    const preferences = await this.userPreferencesRepository.findByUserId(userId);
+  private async getOrCreatePreferences(
+    userId: string,
+  ): Promise<UserPreference> {
+    const preferences =
+      await this.userPreferencesRepository.findByUserId(userId);
     return preferences ?? UserPreference.createDefault(userId);
   }
 
@@ -98,9 +101,14 @@ export class UpdateUserPreferencesUseCase {
     updates: UpdateUserPreferencesDto['integrations'],
   ): UserPreference['integrations'] {
     const integrations = { ...current };
-    const webhookFields = ['slackWebhook', 'discordWebhook', 'teamsWebhook', 'alertEmail'] as const;
+    const webhookFields = [
+      'slackWebhook',
+      'discordWebhook',
+      'teamsWebhook',
+      'alertEmail',
+    ] as const;
 
-    webhookFields.forEach(field => {
+    webhookFields.forEach((field) => {
       if (updates[field] !== undefined) {
         integrations[field] = updates[field] || undefined;
       }
