@@ -56,6 +56,33 @@ class UpdateDisplayDto {
   @IsEnum(['grid', 'list'])
   defaultServerView?: 'grid' | 'list';
 
+  @ApiProperty({
+    description: 'Default view for UPS',
+    enum: ['grid', 'list'],
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(['grid', 'list'])
+  defaultUpsView?: 'grid' | 'list';
+
+  @ApiProperty({
+    description: 'Default view for rooms',
+    enum: ['grid', 'list'],
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(['grid', 'list'])
+  defaultRoomView?: 'grid' | 'list';
+
+  @ApiProperty({
+    description: 'Default view for groups',
+    enum: ['grid', 'list', 'sections', 'flow'],
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(['grid', 'list', 'sections', 'flow'])
+  defaultGroupView?: 'grid' | 'list' | 'sections' | 'flow';
+
   @ApiProperty({ description: 'Enable compact mode', required: false })
   @IsOptional()
   @IsBoolean()

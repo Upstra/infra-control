@@ -27,6 +27,24 @@ class DisplayDto {
   })
   defaultServerView: 'grid' | 'list';
 
+  @ApiProperty({
+    description: 'Default view for UPS',
+    enum: ['grid', 'list'],
+  })
+  defaultUpsView: 'grid' | 'list';
+
+  @ApiProperty({
+    description: 'Default view for rooms',
+    enum: ['grid', 'list'],
+  })
+  defaultRoomView: 'grid' | 'list';
+
+  @ApiProperty({
+    description: 'Default view for groups',
+    enum: ['grid', 'list', 'sections', 'flow'],
+  })
+  defaultGroupView: 'grid' | 'list' | 'sections' | 'flow';
+
   @ApiProperty({ description: 'Enable compact mode' })
   compactMode: boolean;
 }
