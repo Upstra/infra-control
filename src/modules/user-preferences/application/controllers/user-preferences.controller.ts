@@ -14,7 +14,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/core/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { User } from '@/modules/users/domain/entities/user.entity';
 import { UserPreferencesResponseDto } from '../dto/user-preferences-response.dto';
