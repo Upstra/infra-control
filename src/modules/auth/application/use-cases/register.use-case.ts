@@ -51,7 +51,10 @@ export class RegisterUseCase {
       userAgent: requestContext?.userAgent,
     });
 
-    await this.sendAccountCreatedEmailUseCase?.execute(dto.email, dto.firstName);
+    await this.sendAccountCreatedEmailUseCase?.execute(
+      dto.email,
+      dto.firstName,
+    );
 
     return this.tokenService.generateTokens({
       userId: user.id,
