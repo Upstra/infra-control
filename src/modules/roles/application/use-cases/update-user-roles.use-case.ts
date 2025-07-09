@@ -51,8 +51,11 @@ export class UpdateUserRolesUseCase {
           isAdmin: role.isAdmin,
         })) ?? [];
 
-      let operationType: 'ADD_ROLE' | 'REMOVE_ROLE' | 'ASSIGN_ROLES' | 'ASSIGN_GUEST' =
-        'ASSIGN_GUEST';
+      let operationType:
+        | 'ADD_ROLE'
+        | 'REMOVE_ROLE'
+        | 'ASSIGN_ROLES'
+        | 'ASSIGN_GUEST' = 'ASSIGN_GUEST';
 
       if (roleIds !== undefined) {
         await this.assignMultipleRoles(user, roleIds, roleRepo, manager);
@@ -155,7 +158,11 @@ export class UpdateUserRolesUseCase {
     return user.roles?.some((r) => r.id === roleId) ?? false;
   }
 
-  private async handleRoleRemoval(user: User, role: Role, userRepo: any): Promise<void> {
+  private async handleRoleRemoval(
+    user: User,
+    role: Role,
+    userRepo: any,
+  ): Promise<void> {
     if (role.name === 'GUEST' && user.roles.length === 1) {
       throw RoleExceptions.cannotRemoveGuestRole();
     }
@@ -176,7 +183,7 @@ export class UpdateUserRolesUseCase {
       .innerJoin('user.roles', 'role')
       .where('role.isAdmin = :isAdmin', { isAdmin: true })
       .getCount();
-      
+
     return adminCount === 1;
   }
 

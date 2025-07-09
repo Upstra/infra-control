@@ -14,6 +14,8 @@ export interface PermissionRepositoryInterface<T extends Permission>
     bitmask: number,
   ): Promise<T>;
   deletePermission(machineId: string, roleId: string): Promise<void>;
+  deleteById(id: string): Promise<void>;
+  deleteByRoleId(roleId: string): Promise<void>;
   createPermission(
     machineId: string,
     roleId: string,

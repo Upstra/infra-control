@@ -247,11 +247,13 @@ export class RoleController {
   })
   @ApiBody({
     type: UpdateUserRolesDto,
-    description: 'Roles to update - supports both single roleId (toggle) and roleIds array (replace all)',
+    description:
+      'Roles to update - supports both single roleId (toggle) and roleIds array (replace all)',
   })
-  @ApiOperation({ 
+  @ApiOperation({
     summary: "Mettre à jour le(s) rôle(s) d'un utilisateur",
-    description: 'Supports both single role toggle (roleId) and multiple roles assignment (roleIds)'
+    description:
+      'Supports both single role toggle (roleId) and multiple roles assignment (roleIds)',
   })
   @ApiResponse({ status: 200, type: UserResponseDto })
   async updateUserRole(
@@ -261,7 +263,7 @@ export class RoleController {
     @Req() req: any,
   ): Promise<UserResponseDto> {
     const requestContext = RequestContextDto.fromRequest(req);
-    
+
     if (dto.roleId !== undefined) {
       return this.updateUserRoleUseCase.execute(
         userId,

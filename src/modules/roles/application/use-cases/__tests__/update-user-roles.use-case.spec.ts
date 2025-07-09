@@ -52,7 +52,11 @@ describe('UpdateUserRolesUseCase', () => {
       const roleId = 'role-id';
       const currentUserId = 'current-user-id';
 
-      const existingRole = { id: 'existing-role-id', name: 'USER', isAdmin: false };
+      const existingRole = {
+        id: 'existing-role-id',
+        name: 'USER',
+        isAdmin: false,
+      };
       const newRole = { id: roleId, name: 'ADMIN', isAdmin: true };
       const user = {
         id: userId,
@@ -66,13 +70,20 @@ describe('UpdateUserRolesUseCase', () => {
         roles: [existingRole, newRole],
       });
 
-      const result = await useCase.execute(userId, roleId, undefined, currentUserId);
+      await useCase.execute(
+        userId,
+        roleId,
+        undefined,
+        currentUserId,
+      );
 
       expect(userRepo.findOneOrFail).toHaveBeenCalledWith({
         where: { id: userId },
         relations: ['roles'],
       });
-      expect(roleRepo.findOneOrFail).toHaveBeenCalledWith({ where: { id: roleId } });
+      expect(roleRepo.findOneOrFail).toHaveBeenCalledWith({
+        where: { id: roleId },
+      });
       expect(userRepo.save).toHaveBeenCalledWith({
         ...user,
         roles: [existingRole, newRole],
@@ -86,7 +97,11 @@ describe('UpdateUserRolesUseCase', () => {
       const currentUserId = 'current-user-id';
 
       const roleToRemove = { id: roleId, name: 'USER', isAdmin: false };
-      const remainingRole = { id: 'remaining-role-id', name: 'GUEST', isAdmin: false };
+      const remainingRole = {
+        id: 'remaining-role-id',
+        name: 'GUEST',
+        isAdmin: false,
+      };
       const user = {
         id: userId,
         roles: [roleToRemove, remainingRole],
@@ -99,7 +114,12 @@ describe('UpdateUserRolesUseCase', () => {
         roles: [remainingRole],
       });
 
-      const result = await useCase.execute(userId, roleId, undefined, currentUserId);
+      await useCase.execute(
+        userId,
+        roleId,
+        undefined,
+        currentUserId,
+      );
 
       expect(user.roles).toEqual([remainingRole]);
       expect(userRepo.save).toHaveBeenCalledWith(user);
@@ -117,7 +137,7 @@ describe('UpdateUserRolesUseCase', () => {
 
       userRepo.findOneOrFail.mockResolvedValue(user);
       roleRepo.findOneOrFail.mockResolvedValue(adminRole);
-      
+
       const queryBuilder = {
         innerJoin: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
@@ -143,7 +163,7 @@ describe('UpdateUserRolesUseCase', () => {
 
       userRepo.findOneOrFail.mockResolvedValue(user);
       roleRepo.findOneOrFail.mockResolvedValue(adminRole);
-      
+
       const queryBuilder = {
         innerJoin: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
@@ -155,7 +175,7 @@ describe('UpdateUserRolesUseCase', () => {
         roles: [guestRole],
       });
 
-      const result = await useCase.execute(userId, roleId, undefined);
+      await useCase.execute(userId, roleId, undefined);
 
       expect(user.roles).toEqual([guestRole]);
       expect(userRepo.save).toHaveBeenCalledWith(user);
@@ -197,7 +217,7 @@ describe('UpdateUserRolesUseCase', () => {
         roles: [userRole],
       });
 
-      const result = await useCase.execute(userId, roleId, undefined);
+      await useCase.execute(userId, roleId, undefined);
 
       expect(user.roles).toEqual([userRole]);
       expect(userRepo.save).toHaveBeenCalledWith(user);
@@ -208,7 +228,11 @@ describe('UpdateUserRolesUseCase', () => {
       const roleId = 'admin1-id';
 
       const adminRole1 = { id: roleId, name: 'ADMIN', isAdmin: true };
-      const adminRole2 = { id: 'admin2-id', name: 'SUPER_ADMIN', isAdmin: true };
+      const adminRole2 = {
+        id: 'admin2-id',
+        name: 'SUPER_ADMIN',
+        isAdmin: true,
+      };
       const userRole = { id: 'user-role', name: 'USER', isAdmin: false };
       const user = {
         id: userId,
@@ -222,7 +246,7 @@ describe('UpdateUserRolesUseCase', () => {
         roles: [adminRole2, userRole],
       });
 
-      const result = await useCase.execute(userId, roleId, undefined);
+      await useCase.execute(userId, roleId, undefined);
 
       expect(user.roles).toEqual([adminRole2, userRole]);
       expect(userRepo.save).toHaveBeenCalledWith(user);
@@ -247,7 +271,9 @@ describe('UpdateUserRolesUseCase', () => {
 
       await useCase.execute(userId, null, undefined);
 
-      expect(roleRepo.findOneOrFail).toHaveBeenCalledWith({ where: { name: 'GUEST' } });
+      expect(roleRepo.findOneOrFail).toHaveBeenCalledWith({
+        where: { name: 'GUEST' },
+      });
       expect(user.roles).toEqual([guestRole]);
     });
   });
@@ -275,7 +301,12 @@ describe('UpdateUserRolesUseCase', () => {
         roles: newRoles,
       });
 
-      const result = await useCase.execute(userId, undefined, roleIds, currentUserId);
+      await useCase.execute(
+        userId,
+        undefined,
+        roleIds,
+        currentUserId,
+      );
 
       expect(roleRepo.findByIds).toHaveBeenCalledWith(roleIds);
       expect(user.roles).toEqual(newRoles);
@@ -325,7 +356,7 @@ describe('UpdateUserRolesUseCase', () => {
     it('should throw error when trying to remove last admin via multiple roles', async () => {
       const userId = 'user-id';
       const roleIds = ['regular-role'];
-      
+
       const adminRole = { id: 'admin-role', name: 'ADMIN', isAdmin: true };
       const regularRole = { id: 'regular-role', name: 'USER', isAdmin: false };
       const user = {
@@ -335,13 +366,13 @@ describe('UpdateUserRolesUseCase', () => {
 
       userRepo.findOneOrFail.mockResolvedValue(user);
       roleRepo.findByIds.mockResolvedValue([regularRole]);
-      
+
       const queryBuilder = {
         innerJoin: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         getCount: jest.fn().mockResolvedValue(1),
       };
-      
+
       // Ensure manager.getRepository returns the right repository for each entity
       manager.getRepository.mockImplementation((entity) => {
         if (entity === User) {
@@ -377,7 +408,11 @@ describe('UpdateUserRolesUseCase', () => {
         userAgent: 'test-agent',
       };
 
-      const existingRole = { id: 'existing-role-id', name: 'USER', isAdmin: false };
+      const existingRole = {
+        id: 'existing-role-id',
+        name: 'USER',
+        isAdmin: false,
+      };
       const newRole = { id: roleId, name: 'ADMIN', isAdmin: true };
       const user = {
         id: userId,
@@ -391,7 +426,13 @@ describe('UpdateUserRolesUseCase', () => {
         roles: [existingRole, newRole],
       });
 
-      await useCase.execute(userId, roleId, undefined, currentUserId, requestContext);
+      await useCase.execute(
+        userId,
+        roleId,
+        undefined,
+        currentUserId,
+        requestContext,
+      );
 
       expect(logHistory.executeStructured).toHaveBeenCalledWith({
         entity: 'user_role',
@@ -437,7 +478,7 @@ describe('UpdateUserRolesUseCase', () => {
   describe('Without logHistory', () => {
     it('should work without logHistory service', async () => {
       const useCaseWithoutHistory = new UpdateUserRolesUseCase(dataSource);
-      
+
       const userId = 'user-id';
       const roleId = 'role-id';
       const newRole = { id: roleId, name: 'USER', isAdmin: false };
@@ -453,9 +494,11 @@ describe('UpdateUserRolesUseCase', () => {
         roles: [newRole],
       });
 
-      const result = await useCaseWithoutHistory.execute(userId, roleId, undefined);
-      
-      expect(result).toBeDefined();
+      await useCaseWithoutHistory.execute(
+        userId,
+        roleId,
+        undefined,
+      );
       expect(userRepo.save).toHaveBeenCalled();
     });
   });

@@ -11,12 +11,17 @@ import { RecoveryCodeService } from './domain/services/recovery-code.domain.serv
 import { AuthUseCases } from './application/use-cases';
 import { TokenService } from './application/services/token.service';
 import { AuditModule } from '../audit/audit.module';
+import { EmailModule } from '../email/email.module';
+import { HistoryModule } from '../history/history.module';
+import { PasswordResetRateLimitGuard } from '../../core/guards/password-reset-rate-limit.guard';
 
 @Module({
   imports: [
     UserModule,
     PassportModule,
     AuditModule,
+    EmailModule,
+    HistoryModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -29,7 +34,13 @@ import { AuditModule } from '../audit/audit.module';
     }),
   ],
   controllers: [AuthController, TwoFAController],
-  providers: [JwtStrategy, RecoveryCodeService, TokenService, ...AuthUseCases],
+  providers: [
+    JwtStrategy,
+    RecoveryCodeService,
+    TokenService,
+    PasswordResetRateLimitGuard,
+    ...AuthUseCases,
+  ],
   exports: [JwtModule],
 })
 export class AuthModule {}

@@ -4,7 +4,6 @@ import { User } from '../entities/user.entity';
 import { Role } from '@/modules/roles/domain/entities/role.entity';
 import { UserConflictException } from '../exceptions/user.exception';
 import { UserUpdateDto } from '../../application/dto/user.update.dto';
-import { UpdateAccountDto } from '../../application/dto/update-account.dto';
 
 jest.mock('bcryptjs', () => ({
   compare: jest.fn(),
@@ -171,7 +170,7 @@ describe('UserDomainService', () => {
 
   describe('updateAccount', () => {
     let user: User;
-    
+
     beforeEach(() => {
       user = new User();
       user.id = 'user-id';
@@ -186,7 +185,7 @@ describe('UserDomainService', () => {
     it('should update firstName when provided', async () => {
       const dto = { firstName: 'New' };
       const result = await service.updateAccount(user, dto);
-      
+
       expect(result.firstName).toBe('New');
       expect(result.lastName).toBe('Name');
       expect(result.email).toBe('old@email.com');
@@ -196,7 +195,7 @@ describe('UserDomainService', () => {
     it('should update lastName when provided', async () => {
       const dto = { lastName: 'UpdatedName' };
       const result = await service.updateAccount(user, dto);
-      
+
       expect(result.firstName).toBe('Old');
       expect(result.lastName).toBe('UpdatedName');
       expect(result.updatedAt).not.toEqual(new Date('2023-01-01'));
@@ -206,7 +205,7 @@ describe('UserDomainService', () => {
       const spy = jest.spyOn(service, 'ensureUniqueEmail').mockResolvedValue();
       const dto = { email: 'NEW@EMAIL.COM' };
       const result = await service.updateAccount(user, dto);
-      
+
       expect(spy).toHaveBeenCalledWith('NEW@EMAIL.COM', 'user-id');
       expect(result.email).toBe('new@email.com');
       expect(result.updatedAt).not.toEqual(new Date('2023-01-01'));
@@ -215,7 +214,7 @@ describe('UserDomainService', () => {
     it('should update isActive when provided', async () => {
       const dto = { isActive: true };
       const result = await service.updateAccount(user, dto);
-      
+
       expect(result.isActive).toBe(true);
       expect(result.updatedAt).not.toEqual(new Date('2023-01-01'));
     });
@@ -223,7 +222,7 @@ describe('UserDomainService', () => {
     it('should update isVerified when provided', async () => {
       const dto = { isVerified: true };
       const result = await service.updateAccount(user, dto);
-      
+
       expect(result.isVerified).toBe(true);
       expect(result.updatedAt).not.toEqual(new Date('2023-01-01'));
     });
@@ -235,10 +234,10 @@ describe('UserDomainService', () => {
         lastName: 'NewLast',
         email: 'new@test.com',
         isActive: true,
-        isVerified: true
+        isVerified: true,
       };
       const result = await service.updateAccount(user, dto);
-      
+
       expect(result.firstName).toBe('NewFirst');
       expect(result.lastName).toBe('NewLast');
       expect(result.email).toBe('new@test.com');
@@ -254,10 +253,10 @@ describe('UserDomainService', () => {
         lastName: undefined,
         email: undefined,
         isActive: undefined,
-        isVerified: undefined
+        isVerified: undefined,
       };
       const result = await service.updateAccount(user, dto);
-      
+
       expect(result.firstName).toBe('Old');
       expect(result.lastName).toBe('Name');
       expect(result.email).toBe('old@email.com');
@@ -269,10 +268,10 @@ describe('UserDomainService', () => {
     it('should handle empty string values', async () => {
       const dto = {
         firstName: '',
-        lastName: ''
+        lastName: '',
       };
       const result = await service.updateAccount(user, dto);
-      
+
       expect(result.firstName).toBe('');
       expect(result.lastName).toBe('');
     });
@@ -283,9 +282,9 @@ describe('UserDomainService', () => {
       const user = new User();
       user.isActive = false;
       user.updatedAt = new Date('2023-01-01');
-      
+
       const result = await service.activateUser(user);
-      
+
       expect(result.isActive).toBe(true);
       expect(result.updatedAt).not.toEqual(new Date('2023-01-01'));
       expect(result.updatedAt).toBeInstanceOf(Date);
@@ -295,9 +294,9 @@ describe('UserDomainService', () => {
       const user = new User();
       user.isActive = true;
       user.updatedAt = new Date('2023-01-01');
-      
+
       const result = await service.activateUser(user);
-      
+
       expect(result.isActive).toBe(true);
       expect(result.updatedAt).not.toEqual(new Date('2023-01-01'));
     });

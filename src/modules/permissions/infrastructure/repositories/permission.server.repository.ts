@@ -67,7 +67,7 @@ export class PermissionServerRepository
     try {
       return await this.find({ where: { [field]: value } as any, relations });
     } catch {
-      if (disableThrow) return null;
+      if (disableThrow) return [];
       throw new PermissionNotFoundException('server', JSON.stringify(value));
     }
   }
@@ -100,6 +100,16 @@ export class PermissionServerRepository
   async deletePermission(serverId: string, roleId: string): Promise<void> {
     await this.findPermissionByIds(serverId, roleId);
     await super.delete({ serverId, roleId });
+  }
+
+  async deleteById(id: string): Promise<void> {
+    const result = await this.delete({ id });
+    console.log(`Deleted server permission with id ${id}, result:`, result);
+  }
+
+  async deleteByRoleId(roleId: string): Promise<void> {
+    const result = await this.delete({ roleId });
+    console.log(`Deleted all server permissions for role ${roleId}, result:`, result);
   }
 
   async deleteByRoleAndServerIds(

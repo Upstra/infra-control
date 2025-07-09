@@ -7,8 +7,12 @@ import { Generate2FAUseCase } from '../use-cases/generate-2fa.use-case';
 import { Verify2FAUseCase } from '../use-cases/verify-2fa.use-case';
 import { Disable2FAUseCase } from '../use-cases/disable-2fa.use-case';
 import { RenewTokenUseCase } from '../use-cases/renew-token.use-case';
+import { ForgotPasswordUseCase } from '../use-cases/forgot-password.use-case';
+import { ResetPasswordWithTokenUseCase } from '../use-cases/reset-password-with-token.use-case';
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
+import { ForgotPasswordDto } from '../dto/forgot-password.dto';
+import { ResetPasswordWithTokenDto } from '../dto/reset-password-with-token.dto';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -20,6 +24,8 @@ describe('AuthController', () => {
   const verify2FAUseCase = { execute: jest.fn() };
   const disable2FAUseCase = { execute: jest.fn() };
   const renewTokenUseCase = { execute: jest.fn() };
+  const forgotPasswordUseCase = { execute: jest.fn() };
+  const resetPasswordWithTokenUseCase = { execute: jest.fn() };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -32,6 +38,11 @@ describe('AuthController', () => {
         { provide: Verify2FAUseCase, useValue: verify2FAUseCase },
         { provide: Disable2FAUseCase, useValue: disable2FAUseCase },
         { provide: RenewTokenUseCase, useValue: renewTokenUseCase },
+        { provide: ForgotPasswordUseCase, useValue: forgotPasswordUseCase },
+        {
+          provide: ResetPasswordWithTokenUseCase,
+          useValue: resetPasswordWithTokenUseCase,
+        },
       ],
     }).compile();
 
@@ -120,5 +131,113 @@ describe('AuthController', () => {
         path: '/auth/refresh',
       }),
     );
+  });
+
+  describe('logout', () => {
+    it('should clear refresh token cookie', async () => {
+      const mockRes = { clearCookie: jest.fn() } as any;
+
+      const result = await controller.logout(mockRes);
+
+      expect(mockRes.clearCookie).toHaveBeenCalledWith('refreshToken', {
+        path: '/auth/refresh',
+      });
+      expect(result).toEqual({ message: 'Déconnexion réussie' });
+    });
+  });
+
+  describe('forgotPassword', () => {
+    it('should call forgot password use case with email', async () => {
+      const dto: ForgotPasswordDto = {
+        email: 'test@example.com',
+      };
+
+      forgotPasswordUseCase.execute.mockResolvedValue({
+        message:
+          'Si un compte existe avec cette adresse email, un lien de réinitialisation sera envoyé.',
+      });
+
+      const result = await controller.forgotPassword(dto);
+
+      expect(forgotPasswordUseCase.execute).toHaveBeenCalledWith(dto.email);
+      expect(result).toEqual({
+        message:
+          'Si un compte existe avec cette adresse email, un lien de réinitialisation sera envoyé.',
+      });
+    });
+
+    it('should handle forgot password errors gracefully', async () => {
+      const dto: ForgotPasswordDto = {
+        email: 'test@example.com',
+      };
+
+      forgotPasswordUseCase.execute.mockRejectedValue(
+        new Error('Database error'),
+      );
+
+      await expect(controller.forgotPassword(dto)).rejects.toThrow(
+        'Database error',
+      );
+      expect(forgotPasswordUseCase.execute).toHaveBeenCalledWith(dto.email);
+    });
+  });
+
+  describe('resetPasswordWithToken', () => {
+    it('should call reset password with token use case successfully', async () => {
+      const dto: ResetPasswordWithTokenDto = {
+        token: 'valid-reset-token',
+        newPassword: 'NewSecurePassword123!',
+      };
+
+      resetPasswordWithTokenUseCase.execute.mockResolvedValue({
+        message: 'Votre mot de passe a été réinitialisé avec succès',
+      });
+
+      const result = await controller.resetPasswordWithToken(dto);
+
+      expect(resetPasswordWithTokenUseCase.execute).toHaveBeenCalledWith(
+        dto.token,
+        dto.newPassword,
+      );
+      expect(result).toEqual({
+        message: 'Votre mot de passe a été réinitialisé avec succès',
+      });
+    });
+
+    it('should propagate UnauthorizedException for invalid token', async () => {
+      const dto: ResetPasswordWithTokenDto = {
+        token: 'invalid-token',
+        newPassword: 'NewSecurePassword123!',
+      };
+
+      const error = new Error('Token de réinitialisation invalide');
+      resetPasswordWithTokenUseCase.execute.mockRejectedValue(error);
+
+      await expect(controller.resetPasswordWithToken(dto)).rejects.toThrow(
+        error,
+      );
+      expect(resetPasswordWithTokenUseCase.execute).toHaveBeenCalledWith(
+        dto.token,
+        dto.newPassword,
+      );
+    });
+
+    it('should propagate error for expired token', async () => {
+      const dto: ResetPasswordWithTokenDto = {
+        token: 'expired-token',
+        newPassword: 'NewSecurePassword123!',
+      };
+
+      const error = new Error('Le token de réinitialisation a expiré');
+      resetPasswordWithTokenUseCase.execute.mockRejectedValue(error);
+
+      await expect(controller.resetPasswordWithToken(dto)).rejects.toThrow(
+        error,
+      );
+      expect(resetPasswordWithTokenUseCase.execute).toHaveBeenCalledWith(
+        dto.token,
+        dto.newPassword,
+      );
+    });
   });
 });

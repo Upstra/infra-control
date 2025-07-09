@@ -40,7 +40,7 @@ export class CreatePermissionVmUseCase {
     await this.logHistory?.executeStructured({
       entity: 'permission_vm',
       entityId: `${permission.vmId}_${permission.roleId}`,
-      action: 'CREATE',
+      action: 'CREATE_PERMISSION_VM',
       userId: userId || 'system',
       newValue: {
         vmId: permission.vmId,

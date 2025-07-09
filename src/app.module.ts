@@ -1,5 +1,6 @@
 import { configModule } from './core/config/config.module';
 import { Logger, Module } from '@nestjs/common';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './core/config/typeorm.config';
@@ -25,12 +26,14 @@ import { ReleasesModule } from './modules/releases/releases.module';
 import { HealthModule } from './modules/health/health.module';
 import { PriorityModule } from './modules/priorities/priority.module';
 import { PrometheusModule } from './modules/prometheus/prometheus.module';
+import { EmailModule } from './modules/email/email.module';
 
 @Module({
   controllers: [],
   imports: [
     configModule,
     TypeOrmModule.forRoot(typeOrmConfig),
+    EventEmitterModule.forRoot(),
     GuardsModule,
     InterceptorsModule,
     AuthModule,
@@ -53,6 +56,7 @@ import { PrometheusModule } from './modules/prometheus/prometheus.module';
     HealthModule,
     PriorityModule,
     PrometheusModule,
+    EmailModule,
   ],
   providers: [Logger],
 })

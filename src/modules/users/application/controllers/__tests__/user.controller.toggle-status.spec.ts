@@ -16,6 +16,7 @@ import {
   GetUserWithRoleUseCase,
   UpdateAccountUseCase,
   BulkActivateUseCase,
+  CreateUserByAdminUseCase,
 } from '../../use-cases';
 
 describe('UserController - toggleUserStatus', () => {
@@ -112,6 +113,10 @@ describe('UserController - toggleUserStatus', () => {
         },
         {
           provide: BulkActivateUseCase,
+          useValue: { execute: jest.fn() },
+        },
+        {
+          provide: CreateUserByAdminUseCase,
           useValue: { execute: jest.fn() },
         },
       ],

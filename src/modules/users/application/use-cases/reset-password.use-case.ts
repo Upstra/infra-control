@@ -1,7 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UserRepositoryInterface } from '../../domain/interfaces/user.repository.interface';
 import { UserDomainService } from '../../domain/services/user.domain.service';
 import { ResetPasswordDto, UserResponseDto } from '../dto';
+import { EmailEventType } from '@/modules/email/domain/events/email.events';
+import { RequestContextDto } from '@/core/dto';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
 
 /**
  * Resets a user’s password given a valid reset token and new credentials.
@@ -27,14 +31,47 @@ export class ResetPasswordUseCase {
     @Inject('UserRepositoryInterface')
     private readonly repo: UserRepositoryInterface,
     private readonly userDomainService: UserDomainService,
+    private readonly eventEmitter: EventEmitter2,
+    private readonly logHistoryUseCase: LogHistoryUseCase,
   ) {}
 
-  async execute(id: string, dto: ResetPasswordDto): Promise<UserResponseDto> {
+  async execute(
+    id: string,
+    dto: ResetPasswordDto,
+    requestContext?: RequestContextDto,
+    adminId?: string,
+  ): Promise<UserResponseDto> {
     const user = await this.repo.findOneByField({
       field: 'id',
       value: id,
     });
+
+    const oldPasswordHash = user.password;
     user.password = await this.userDomainService.hashPassword(dto.newPassword);
-    return new UserResponseDto(await this.repo.save(user));
+    const updatedUser = await this.repo.save(user);
+
+    this.eventEmitter.emit(EmailEventType.PASSWORD_CHANGED, {
+      email: updatedUser.email,
+      firstname: updatedUser.firstName || updatedUser.username,
+      ipAddress: requestContext?.ipAddress,
+      userAgent: requestContext?.userAgent,
+    });
+
+    await this.logHistoryUseCase.executeStructured({
+      entity: 'user',
+      entityId: id,
+      action: 'PASSWORD_RESET',
+      userId: adminId ?? id,
+      oldValue: { passwordHash: oldPasswordHash },
+      newValue: { passwordHash: user.password },
+      metadata: {
+        performedBy: adminId ? 'admin' : 'self',
+        adminId: adminId,
+      },
+      ipAddress: requestContext?.ipAddress,
+      userAgent: requestContext?.userAgent,
+    });
+
+    return new UserResponseDto(updatedUser);
   }
 }

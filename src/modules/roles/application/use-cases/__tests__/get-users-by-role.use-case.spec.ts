@@ -36,10 +36,10 @@ describe('GetUsersByRoleUseCase', () => {
   it('should filter out soft-deleted users', async () => {
     const activeUser = createMockUser({ id: 'u1', deletedAt: null });
     const deletedUser = createMockUser({ id: 'u2', deletedAt: new Date() });
-    const role = Object.assign(createMockRole(), { 
-      users: [activeUser, deletedUser] 
+    const role = Object.assign(createMockRole(), {
+      users: [activeUser, deletedUser],
     });
-    
+
     roleRepo.findOneByField.mockResolvedValue(role);
     presenceService.isOnline.mockResolvedValue(true);
 
@@ -68,7 +68,7 @@ describe('GetUsersByRoleUseCase', () => {
   it('should return empty array when role has no users property', async () => {
     const roleWithoutUsers = createMockRole();
     delete roleWithoutUsers.users;
-    
+
     roleRepo.findOneByField.mockResolvedValue(roleWithoutUsers);
 
     const result = await useCase.execute('r1');

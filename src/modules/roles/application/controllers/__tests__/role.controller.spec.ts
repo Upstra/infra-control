@@ -257,7 +257,12 @@ describe('RoleController', () => {
         get: jest.fn().mockReturnValue('Test-Agent'),
       } as any;
       await expect(
-        controller.updateUserRole('u1', { roleId: null }, mockCurrentUser, mockReq),
+        controller.updateUserRole(
+          'u1',
+          { roleId: null },
+          mockCurrentUser,
+          mockReq,
+        ),
       ).rejects.toThrow('fail');
     });
 

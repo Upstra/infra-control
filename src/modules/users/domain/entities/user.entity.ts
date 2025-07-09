@@ -60,4 +60,10 @@ export class User extends BaseEntity {
 
   @Column({ type: 'timestamp', nullable: true })
   deletedAt?: Date;
+
+  @Column({ type: 'varchar', nullable: true })
+  resetPasswordToken?: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  resetPasswordExpiry?: Date;
 }

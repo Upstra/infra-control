@@ -199,8 +199,10 @@ export class UserController {
   async resetCurrentUserPassword(
     @CurrentUser() user: JwtPayload,
     @Body() dto: ResetPasswordDto,
+    @Req() req: any,
   ): Promise<UserResponseDto> {
-    return this.resetPasswordUseCase.execute(user.userId, dto);
+    const requestContext = RequestContextDto.fromRequest(req);
+    return this.resetPasswordUseCase.execute(user.userId, dto, requestContext);
   }
 
   @Patch(':id/reset-password')
@@ -213,8 +215,16 @@ export class UserController {
   async resetPassword(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: ResetPasswordDto,
+    @CurrentUser() admin: JwtPayload,
+    @Req() req: any,
   ): Promise<UserResponseDto> {
-    return this.resetPasswordUseCase.execute(id, dto);
+    const requestContext = RequestContextDto.fromRequest(req);
+    return this.resetPasswordUseCase.execute(
+      id,
+      dto,
+      requestContext,
+      admin.userId,
+    );
   }
 
   @Delete('/me/delete-account')
@@ -407,7 +417,7 @@ export class UserController {
   @ApiOperation({
     summary: 'Créer un nouvel utilisateur (admin)',
     description:
-      "Permet à un administrateur de créer un nouvel utilisateur avec des rôles spécifiques.",
+      'Permet à un administrateur de créer un nouvel utilisateur avec des rôles spécifiques.',
   })
   @ApiResponse({
     status: 201,
