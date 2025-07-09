@@ -26,7 +26,7 @@ export class EmailEventListener {
       this.logger.log(`Sending account created email to ${payload.email}`);
       await this.sendAccountCreatedEmail.execute(
         payload.email,
-        payload.firstname,
+        payload.firstName,
       );
     } catch (error) {
       this.logger.error(
@@ -42,7 +42,7 @@ export class EmailEventListener {
       this.logger.log(`Sending password changed email to ${payload.email}`);
       await this.sendPasswordChangedEmail.execute(
         payload.email,
-        payload.firstname,
+        payload.firstName,
         payload.ipAddress,
         payload.userAgent,
         payload.location,
@@ -62,7 +62,7 @@ export class EmailEventListener {
       await this.sendResetPasswordEmail.execute(
         payload.email,
         payload.resetLink,
-        payload.firstname,
+        payload.firstName,
       );
     } catch (error) {
       this.logger.error(

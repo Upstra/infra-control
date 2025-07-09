@@ -37,9 +37,9 @@ describe('SendResetPasswordEmailUseCase', () => {
     it('should send reset password email with correct parameters', async () => {
       const email = 'test@example.com';
       const resetLink = 'https://example.com/reset?token=abc123';
-      const firstname = 'John';
+      const firstName = 'John';
 
-      await useCase.execute(email, resetLink, firstname);
+      await useCase.execute(email, resetLink, firstName);
 
       expect(mockMailService.send).toHaveBeenCalledTimes(1);
       const callArgs = mockMailService.send.mock.calls[0][0] as SendEmailDto;
@@ -48,7 +48,7 @@ describe('SendResetPasswordEmailUseCase', () => {
       expect(callArgs.subject).toBe('Réinitialisation de votre mot de passe');
       expect(callArgs.template).toBe('reset-password');
       expect(callArgs.context).toMatchObject({
-        prenom: firstname,
+        prenom: firstName,
         email,
         resetLink,
       });
@@ -59,10 +59,10 @@ describe('SendResetPasswordEmailUseCase', () => {
     it('should handle invalid email gracefully', async () => {
       const invalidEmail = 'invalid-email';
       const resetLink = 'https://example.com/reset?token=abc123';
-      const firstname = 'John';
+      const firstName = 'John';
 
       await expect(
-        useCase.execute(invalidEmail, resetLink, firstname),
+        useCase.execute(invalidEmail, resetLink, firstName),
       ).rejects.toThrow(InvalidEmailAddressException);
       expect(mockMailService.send).not.toHaveBeenCalled();
     });
@@ -70,13 +70,13 @@ describe('SendResetPasswordEmailUseCase', () => {
     it('should propagate mail service errors', async () => {
       const email = 'test@example.com';
       const resetLink = 'https://example.com/reset?token=abc123';
-      const firstname = 'John';
+      const firstName = 'John';
       const error = new Error('Mail service error');
 
       mockMailService.send.mockRejectedValueOnce(error);
 
       await expect(
-        useCase.execute(email, resetLink, firstname),
+        useCase.execute(email, resetLink, firstName),
       ).rejects.toThrow(error);
       expect(mockMailService.send).toHaveBeenCalledTimes(1);
     });
@@ -84,15 +84,15 @@ describe('SendResetPasswordEmailUseCase', () => {
     it('should handle empty resetLink', async () => {
       const email = 'test@example.com';
       const resetLink = '';
-      const firstname = 'John';
+      const firstName = 'John';
 
-      await useCase.execute(email, resetLink, firstname);
+      await useCase.execute(email, resetLink, firstName);
 
       expect(mockMailService.send).toHaveBeenCalledTimes(1);
       const callArgs = mockMailService.send.mock.calls[0][0] as SendEmailDto;
 
       expect(callArgs.context).toMatchObject({
-        prenom: firstname,
+        prenom: firstName,
         email,
         resetLink: '',
       });
@@ -103,14 +103,14 @@ describe('SendResetPasswordEmailUseCase', () => {
     it('should handle all parameters correctly', async () => {
       const email = 'user@domain.com';
       const resetLink = 'https://app.com/reset/token123';
-      const firstname = 'Jane';
+      const firstName = 'Jane';
 
-      await useCase.execute(email, resetLink, firstname);
+      await useCase.execute(email, resetLink, firstName);
 
       const callArgs = mockMailService.send.mock.calls[0][0] as SendEmailDto;
       expect(callArgs.to.value).toBe(email);
       expect(callArgs.context).toMatchObject({
-        prenom: firstname,
+        prenom: firstName,
         email,
         resetLink,
       });

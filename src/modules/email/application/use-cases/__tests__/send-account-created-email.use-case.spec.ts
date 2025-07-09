@@ -36,9 +36,9 @@ describe('SendAccountCreatedEmailUseCase', () => {
   describe('execute', () => {
     it('should send account created email with correct parameters', async () => {
       const email = 'test@example.com';
-      const firstname = 'John';
+      const firstName = 'John';
 
-      await useCase.execute(email, firstname);
+      await useCase.execute(email, firstName);
 
       expect(mockMailService.send).toHaveBeenCalledTimes(1);
       const callArgs = mockMailService.send.mock.calls[0][0] as SendEmailDto;
@@ -46,14 +46,14 @@ describe('SendAccountCreatedEmailUseCase', () => {
       expect(callArgs.to.value).toBe(email);
       expect(callArgs.subject).toBe('Bienvenue sur Upstra !');
       expect(callArgs.template).toBe('account-created');
-      expect(callArgs.context).toEqual({ prenom: firstname, email });
+      expect(callArgs.context).toEqual({ prenom: firstName, email });
     });
 
     it('should handle invalid email gracefully', async () => {
       const invalidEmail = 'invalid-email';
-      const firstname = 'John';
+      const firstName = 'John';
 
-      await expect(useCase.execute(invalidEmail, firstname)).rejects.toThrow(
+      await expect(useCase.execute(invalidEmail, firstName)).rejects.toThrow(
         InvalidEmailAddressException,
       );
       expect(mockMailService.send).not.toHaveBeenCalled();
@@ -61,20 +61,20 @@ describe('SendAccountCreatedEmailUseCase', () => {
 
     it('should propagate mail service errors', async () => {
       const email = 'test@example.com';
-      const firstname = 'John';
+      const firstName = 'John';
       const error = new Error('Mail service error');
 
       mockMailService.send.mockRejectedValueOnce(error);
 
-      await expect(useCase.execute(email, firstname)).rejects.toThrow(error);
+      await expect(useCase.execute(email, firstName)).rejects.toThrow(error);
       expect(mockMailService.send).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle empty firstname', async () => {
+    it('should handle empty firstName', async () => {
       const email = 'test@example.com';
-      const firstname = '';
+      const firstName = '';
 
-      await useCase.execute(email, firstname);
+      await useCase.execute(email, firstName);
 
       expect(mockMailService.send).toHaveBeenCalledTimes(1);
       const callArgs = mockMailService.send.mock.calls[0][0] as SendEmailDto;

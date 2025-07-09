@@ -6,12 +6,12 @@ export enum EmailEventType {
 
 export interface AccountCreatedEvent {
   email: string;
-  firstname: string;
+  firstName: string;
 }
 
 export interface PasswordChangedEvent {
   email: string;
-  firstname: string;
+  firstName: string;
   ipAddress?: string;
   userAgent?: string;
   location?: string;
@@ -19,6 +19,6 @@ export interface PasswordChangedEvent {
 
 export interface PasswordResetEvent {
   email: string;
-  firstname: string;
+  firstName: string;
   resetLink: string;
 }

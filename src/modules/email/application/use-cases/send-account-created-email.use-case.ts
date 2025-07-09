@@ -10,12 +10,12 @@ export class SendAccountCreatedEmailUseCase {
     @Inject(MAIL_SERVICE_TOKEN) private readonly mailService: IMailService,
   ) {}
 
-  async execute(email: string, firstname: string): Promise<void> {
+  async execute(email: string, firstName: string): Promise<void> {
     const dto = new SendEmailDto();
     dto.to = new EmailAddressVO(email);
     dto.subject = 'Bienvenue sur Upstra !';
     dto.template = 'account-created';
-    dto.context = { prenom: firstname, email };
+    dto.context = { prenom: firstName, email };
     await this.mailService.send(dto);
   }
 }

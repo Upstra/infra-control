@@ -36,14 +36,14 @@ describe('EmailEventListener', () => {
     it('should send account created email', async () => {
       const payload = {
         email: 'test@example.com',
-        firstname: 'John',
+        firstName: 'John',
       };
 
       await listener.handleAccountCreated(payload);
 
       expect(sendAccountCreated.execute).toHaveBeenCalledWith(
         payload.email,
-        payload.firstname,
+        payload.firstName,
       );
       expect(listener['logger'].log).toHaveBeenCalledWith(
         `Sending account created email to ${payload.email}`,
@@ -53,7 +53,7 @@ describe('EmailEventListener', () => {
     it('should handle errors gracefully', async () => {
       const payload = {
         email: 'test@example.com',
-        firstname: 'John',
+        firstName: 'John',
       };
       const error = new Error('Email service failed');
 
@@ -72,7 +72,7 @@ describe('EmailEventListener', () => {
     it('should send password changed email', async () => {
       const payload = {
         email: 'test@example.com',
-        firstname: 'John',
+        firstName: 'John',
         ipAddress: '127.0.0.1',
         userAgent: 'Chrome',
         location: 'France',
@@ -82,7 +82,7 @@ describe('EmailEventListener', () => {
 
       expect(sendPasswordChanged.execute).toHaveBeenCalledWith(
         payload.email,
-        payload.firstname,
+        payload.firstName,
         payload.ipAddress,
         payload.userAgent,
         payload.location,
@@ -95,14 +95,14 @@ describe('EmailEventListener', () => {
     it('should send password changed email without optional parameters', async () => {
       const payload = {
         email: 'test@example.com',
-        firstname: 'John',
+        firstName: 'John',
       };
 
       await listener.handlePasswordChanged(payload);
 
       expect(sendPasswordChanged.execute).toHaveBeenCalledWith(
         payload.email,
-        payload.firstname,
+        payload.firstName,
         undefined,
         undefined,
         undefined,
@@ -112,7 +112,7 @@ describe('EmailEventListener', () => {
     it('should handle errors gracefully', async () => {
       const payload = {
         email: 'test@example.com',
-        firstname: 'John',
+        firstName: 'John',
       };
       const error = new Error('Email service failed');
 
@@ -131,7 +131,7 @@ describe('EmailEventListener', () => {
     it('should send password reset email', async () => {
       const payload = {
         email: 'test@example.com',
-        firstname: 'John',
+        firstName: 'John',
         resetLink: 'https://example.com/reset/token123',
       };
 
@@ -140,7 +140,7 @@ describe('EmailEventListener', () => {
       expect(sendResetPassword.execute).toHaveBeenCalledWith(
         payload.email,
         payload.resetLink,
-        payload.firstname,
+        payload.firstName,
       );
       expect(listener['logger'].log).toHaveBeenCalledWith(
         `Sending password reset email to ${payload.email}`,
@@ -150,7 +150,7 @@ describe('EmailEventListener', () => {
     it('should handle errors gracefully', async () => {
       const payload = {
         email: 'test@example.com',
-        firstname: 'John',
+        firstName: 'John',
         resetLink: 'https://example.com/reset/token123',
       };
       const error = new Error('Email service failed');

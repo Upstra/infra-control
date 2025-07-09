@@ -12,7 +12,7 @@ export class SendPasswordChangedEmailUseCase {
 
   async execute(
     email: string,
-    firstname: string,
+    firstName: string,
     ipAddress?: string,
     userAgent?: string,
     location?: string,
@@ -22,7 +22,7 @@ export class SendPasswordChangedEmailUseCase {
     dto.subject = 'Votre mot de passe a été changé';
     dto.template = 'password-changed';
     dto.context = {
-      prenom: firstname,
+      prenom: firstName,
       email,
       changeDate: new Date().toLocaleDateString('fr-FR'),
       changeTime: new Date().toLocaleTimeString('fr-FR', {

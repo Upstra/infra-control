@@ -13,14 +13,14 @@ export class SendResetPasswordEmailUseCase {
   async execute(
     email: string,
     resetLink: string,
-    firstname: string,
+    firstName: string,
   ): Promise<void> {
     const dto = new SendEmailDto();
     dto.to = new EmailAddressVO(email);
     dto.subject = 'Réinitialisation de votre mot de passe';
     dto.template = 'reset-password';
     dto.context = {
-      prenom: firstname,
+      prenom: firstName,
       email,
       resetLink,
       requestDate: new Date().toLocaleDateString('fr-FR'),

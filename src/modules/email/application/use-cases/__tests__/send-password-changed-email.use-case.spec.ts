@@ -36,12 +36,12 @@ describe('SendPasswordChangedEmailUseCase', () => {
   describe('execute', () => {
     it('should send password changed email with correct parameters', async () => {
       const email = 'test@example.com';
-      const firstname = 'John';
+      const firstName = 'John';
       const ipAddress = '192.168.1.1';
       const userAgent = 'Mozilla/5.0';
       const location = 'France';
 
-      await useCase.execute(email, firstname, ipAddress, userAgent, location);
+      await useCase.execute(email, firstName, ipAddress, userAgent, location);
 
       expect(mockMailService.send).toHaveBeenCalledTimes(1);
       const callArgs = mockMailService.send.mock.calls[0][0] as SendEmailDto;
@@ -50,7 +50,7 @@ describe('SendPasswordChangedEmailUseCase', () => {
       expect(callArgs.subject).toBe('Votre mot de passe a été changé');
       expect(callArgs.template).toBe('password-changed');
       expect(callArgs.context).toMatchObject({
-        prenom: firstname,
+        prenom: firstName,
         email,
         ipAddress: '192.168.1.1',
         userAgent: 'Mozilla/5.0',
@@ -62,15 +62,15 @@ describe('SendPasswordChangedEmailUseCase', () => {
 
     it('should use default values when optional parameters are not provided', async () => {
       const email = 'test@example.com';
-      const firstname = 'John';
+      const firstName = 'John';
 
-      await useCase.execute(email, firstname);
+      await useCase.execute(email, firstName);
 
       expect(mockMailService.send).toHaveBeenCalledTimes(1);
       const callArgs = mockMailService.send.mock.calls[0][0] as SendEmailDto;
 
       expect(callArgs.context).toMatchObject({
-        prenom: firstname,
+        prenom: firstName,
         email,
         ipAddress: 'Adresse IP non disponible',
         userAgent: 'Agent utilisateur non disponible',
@@ -80,9 +80,9 @@ describe('SendPasswordChangedEmailUseCase', () => {
 
     it('should handle invalid email gracefully', async () => {
       const invalidEmail = 'invalid-email';
-      const firstname = 'John';
+      const firstName = 'John';
 
-      await expect(useCase.execute(invalidEmail, firstname)).rejects.toThrow(
+      await expect(useCase.execute(invalidEmail, firstName)).rejects.toThrow(
         InvalidEmailAddressException,
       );
       expect(mockMailService.send).not.toHaveBeenCalled();
@@ -90,20 +90,20 @@ describe('SendPasswordChangedEmailUseCase', () => {
 
     it('should propagate mail service errors', async () => {
       const email = 'test@example.com';
-      const firstname = 'John';
+      const firstName = 'John';
       const error = new Error('Mail service error');
 
       mockMailService.send.mockRejectedValueOnce(error);
 
-      await expect(useCase.execute(email, firstname)).rejects.toThrow(error);
+      await expect(useCase.execute(email, firstName)).rejects.toThrow(error);
       expect(mockMailService.send).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle empty firstname', async () => {
+    it('should handle empty firstName', async () => {
       const email = 'test@example.com';
-      const firstname = '';
+      const firstName = '';
 
-      await useCase.execute(email, firstname);
+      await useCase.execute(email, firstName);
 
       expect(mockMailService.send).toHaveBeenCalledTimes(1);
       const callArgs = mockMailService.send.mock.calls[0][0] as SendEmailDto;
@@ -121,21 +121,21 @@ describe('SendPasswordChangedEmailUseCase', () => {
 
     it('should send notification for different users', async () => {
       const testCases = [
-        { email: 'user1@example.com', firstname: 'Alice' },
-        { email: 'user2@example.com', firstname: 'Bob' },
-        { email: 'admin@company.com', firstname: 'Admin' },
+        { email: 'user1@example.com', firstName: 'Alice' },
+        { email: 'user2@example.com', firstName: 'Bob' },
+        { email: 'admin@company.com', firstName: 'Admin' },
       ];
 
       for (const testCase of testCases) {
         mockMailService.send.mockClear();
-        await useCase.execute(testCase.email, testCase.firstname);
+        await useCase.execute(testCase.email, testCase.firstName);
 
         expect(mockMailService.send).toHaveBeenCalledTimes(1);
         const callArgs = mockMailService.send.mock.calls[0][0] as SendEmailDto;
 
         expect(callArgs.to.value).toBe(testCase.email);
         expect(callArgs.context).toMatchObject({
-          prenom: testCase.firstname,
+          prenom: testCase.firstName,
           email: testCase.email,
           ipAddress: 'Adresse IP non disponible',
           userAgent: 'Agent utilisateur non disponible',
