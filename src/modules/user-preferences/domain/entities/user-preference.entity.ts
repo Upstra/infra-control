@@ -59,12 +59,18 @@ export class UserPreference {
     default: {
       defaultUserView: 'table',
       defaultServerView: 'grid',
+      defaultUpsView: 'grid',
+      defaultRoomView: 'grid',
+      defaultGroupView: 'grid',
       compactMode: false,
     },
   })
   display: {
     defaultUserView: 'table' | 'card';
     defaultServerView: 'grid' | 'list';
+    defaultUpsView: 'grid' | 'list';
+    defaultRoomView: 'grid' | 'list';
+    defaultGroupView: 'grid' | 'list' | 'sections' | 'flow';
     compactMode: boolean;
   };
 
@@ -112,6 +118,9 @@ export class UserPreference {
     preference.display = {
       defaultUserView: 'table',
       defaultServerView: 'grid',
+      defaultUpsView: 'grid',
+      defaultRoomView: 'grid',
+      defaultGroupView: 'grid',
       compactMode: false,
     };
     preference.integrations = {};
