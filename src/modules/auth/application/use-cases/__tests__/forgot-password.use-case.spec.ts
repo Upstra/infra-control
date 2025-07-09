@@ -86,13 +86,9 @@ describe('ForgotPasswordUseCase', () => {
       expect(eventEmitter.emit).toHaveBeenCalledWith(
         EmailEventType.PASSWORD_RESET,
         expect.objectContaining({
-          to: email,
-          subject: 'Réinitialisation de votre mot de passe',
-          context: expect.objectContaining({
-            firstName: mockUser.firstName,
-            resetLink: expect.stringContaining('reset-password?token='),
-            expirationTime: '1 heure',
-          }),
+          email: email,
+          firstName: mockUser.firstName,
+          resetLink: expect.stringContaining('reset-password?token='),
         }),
       );
       expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith({
@@ -189,11 +185,11 @@ describe('ForgotPasswordUseCase', () => {
       expect(eventEmitter.emit).toHaveBeenCalledWith(
         EmailEventType.PASSWORD_RESET,
         expect.objectContaining({
-          context: expect.objectContaining({
-            resetLink: expect.stringContaining(
-              'https://test.example.com/reset-password?token=',
-            ),
-          }),
+          email: email,
+          firstName: mockUser.firstName,
+          resetLink: expect.stringContaining(
+            'https://test.example.com/reset-password?token=',
+          ),
         }),
       );
 

@@ -39,7 +39,10 @@ describe('AuthController', () => {
         { provide: Disable2FAUseCase, useValue: disable2FAUseCase },
         { provide: RenewTokenUseCase, useValue: renewTokenUseCase },
         { provide: ForgotPasswordUseCase, useValue: forgotPasswordUseCase },
-        { provide: ResetPasswordWithTokenUseCase, useValue: resetPasswordWithTokenUseCase },
+        {
+          provide: ResetPasswordWithTokenUseCase,
+          useValue: resetPasswordWithTokenUseCase,
+        },
       ],
     }).compile();
 
@@ -148,16 +151,18 @@ describe('AuthController', () => {
       const dto: ForgotPasswordDto = {
         email: 'test@example.com',
       };
-      
+
       forgotPasswordUseCase.execute.mockResolvedValue({
-        message: 'Si un compte existe avec cette adresse email, un lien de réinitialisation sera envoyé.',
+        message:
+          'Si un compte existe avec cette adresse email, un lien de réinitialisation sera envoyé.',
       });
 
       const result = await controller.forgotPassword(dto);
 
       expect(forgotPasswordUseCase.execute).toHaveBeenCalledWith(dto.email);
       expect(result).toEqual({
-        message: 'Si un compte existe avec cette adresse email, un lien de réinitialisation sera envoyé.',
+        message:
+          'Si un compte existe avec cette adresse email, un lien de réinitialisation sera envoyé.',
       });
     });
 
@@ -165,10 +170,14 @@ describe('AuthController', () => {
       const dto: ForgotPasswordDto = {
         email: 'test@example.com',
       };
-      
-      forgotPasswordUseCase.execute.mockRejectedValue(new Error('Database error'));
 
-      await expect(controller.forgotPassword(dto)).rejects.toThrow('Database error');
+      forgotPasswordUseCase.execute.mockRejectedValue(
+        new Error('Database error'),
+      );
+
+      await expect(controller.forgotPassword(dto)).rejects.toThrow(
+        'Database error',
+      );
       expect(forgotPasswordUseCase.execute).toHaveBeenCalledWith(dto.email);
     });
   });
@@ -179,7 +188,7 @@ describe('AuthController', () => {
         token: 'valid-reset-token',
         newPassword: 'NewSecurePassword123!',
       };
-      
+
       resetPasswordWithTokenUseCase.execute.mockResolvedValue({
         message: 'Votre mot de passe a été réinitialisé avec succès',
       });
@@ -200,11 +209,13 @@ describe('AuthController', () => {
         token: 'invalid-token',
         newPassword: 'NewSecurePassword123!',
       };
-      
+
       const error = new Error('Token de réinitialisation invalide');
       resetPasswordWithTokenUseCase.execute.mockRejectedValue(error);
 
-      await expect(controller.resetPasswordWithToken(dto)).rejects.toThrow(error);
+      await expect(controller.resetPasswordWithToken(dto)).rejects.toThrow(
+        error,
+      );
       expect(resetPasswordWithTokenUseCase.execute).toHaveBeenCalledWith(
         dto.token,
         dto.newPassword,
@@ -216,11 +227,13 @@ describe('AuthController', () => {
         token: 'expired-token',
         newPassword: 'NewSecurePassword123!',
       };
-      
+
       const error = new Error('Le token de réinitialisation a expiré');
       resetPasswordWithTokenUseCase.execute.mockRejectedValue(error);
 
-      await expect(controller.resetPasswordWithToken(dto)).rejects.toThrow(error);
+      await expect(controller.resetPasswordWithToken(dto)).rejects.toThrow(
+        error,
+      );
       expect(resetPasswordWithTokenUseCase.execute).toHaveBeenCalledWith(
         dto.token,
         dto.newPassword,

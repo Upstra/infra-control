@@ -45,13 +45,9 @@ export class ForgotPasswordUseCase {
       const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
       this.eventEmitter.emit(EmailEventType.PASSWORD_RESET, {
-        to: user.email,
-        subject: 'Réinitialisation de votre mot de passe',
-        context: {
-          firstName: user.firstName,
-          resetLink,
-          expirationTime: '1 heure',
-        },
+        email: user.email,
+        firstName: user.firstName,
+        resetLink,
       });
 
       await this.logPasswordResetRequest(user);
