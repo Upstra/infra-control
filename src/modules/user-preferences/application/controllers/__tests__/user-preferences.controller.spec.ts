@@ -7,7 +7,7 @@ import {
 } from '../../use-cases';
 import { UserPreferencesResponseDto } from '../../dto/user-preferences-response.dto';
 import { UpdateUserPreferencesDto } from '../../dto/update-user-preferences.dto';
-import { User } from '@/modules/users/domain/entities/user.entity';
+import { AuthenticatedUserDto } from '@/modules/auth/application/dto/authenticated-user.dto';
 import { UserPreference } from '../../../domain/entities/user-preference.entity';
 
 describe('UserPreferencesController', () => {
@@ -17,10 +17,12 @@ describe('UserPreferencesController', () => {
   let mockResetUseCase: jest.Mocked<ResetUserPreferencesUseCase>;
 
   const mockUser = {
-    id: 'user-123',
-    username: 'testuser',
+    userId: 'user-123',
     email: 'test@example.com',
-  } as User;
+    isTwoFactorEnabled: false,
+    role: { id: 'role-123', name: 'USER' },
+    isActive: true,
+  } as any as AuthenticatedUserDto;
 
   const mockPreferences = {
     id: 'pref-123',
@@ -95,7 +97,7 @@ describe('UserPreferencesController', () => {
       expect(result.userId).toBe(mockPreferences.userId);
       expect(result.locale).toBe(mockPreferences.locale);
       expect(result.theme).toBe(mockPreferences.theme);
-      expect(mockGetUseCase.execute).toHaveBeenCalledWith(mockUser.id);
+      expect(mockGetUseCase.execute).toHaveBeenCalledWith(mockUser.userId);
     });
 
     it('should return correct response DTO structure', async () => {
@@ -151,7 +153,7 @@ describe('UserPreferencesController', () => {
       expect(result.locale).toBe('en');
       expect(result.theme).toBe('light');
       expect(mockUpdateUseCase.execute).toHaveBeenCalledWith(
-        mockUser.id,
+        mockUser.userId,
         updateDto,
       );
     });
@@ -226,7 +228,7 @@ describe('UserPreferencesController', () => {
         email: false,
         push: true,
       });
-      expect(mockResetUseCase.execute).toHaveBeenCalledWith(mockUser.id);
+      expect(mockResetUseCase.execute).toHaveBeenCalledWith(mockUser.userId);
     });
 
     it('should preserve user ID when resetting', async () => {
@@ -241,7 +243,7 @@ describe('UserPreferencesController', () => {
 
       const result = await controller.resetPreferences(mockUser);
 
-      expect(result.userId).toBe(mockUser.id);
+      expect(result.userId).toBe(mockUser.userId);
       expect(result.id).toBe(mockPreferences.id);
     });
   });
