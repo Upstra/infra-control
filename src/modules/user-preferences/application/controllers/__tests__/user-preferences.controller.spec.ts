@@ -5,7 +5,6 @@ import {
   UpdateUserPreferencesUseCase,
   ResetUserPreferencesUseCase,
 } from '../../use-cases';
-import { UserPreferencesResponseDto } from '../../dto/user-preferences-response.dto';
 import { UpdateUserPreferencesDto } from '../../dto/update-user-preferences.dto';
 import { AuthenticatedUserDto } from '@/modules/auth/application/dto/authenticated-user.dto';
 import { UserPreference } from '../../../domain/entities/user-preference.entity';

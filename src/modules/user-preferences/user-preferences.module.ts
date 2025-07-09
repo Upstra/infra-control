@@ -21,9 +21,6 @@ import {
     UpdateUserPreferencesUseCase,
     ResetUserPreferencesUseCase,
   ],
-  exports: [
-    'IUserPreferencesRepository',
-    GetUserPreferencesUseCase,
-  ],
+  exports: ['IUserPreferencesRepository', GetUserPreferencesUseCase],
 })
 export class UserPreferencesModule {}

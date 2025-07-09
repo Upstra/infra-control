@@ -69,12 +69,12 @@ export class CreateUserByAdminUseCase {
     }
 
     const saved = await this.userRepo.save(user);
-    
+
     if (this.userPreferencesRepository) {
       const defaultPreferences = UserPreference.createDefault(saved.id);
       await this.userPreferencesRepository.create(defaultPreferences);
     }
-    
+
     await this.logHistory?.execute('user', saved.id, 'CREATE', adminId);
 
     this.eventEmitter.emit(EmailEventType.ACCOUNT_CREATED, {

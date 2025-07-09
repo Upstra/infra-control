@@ -70,12 +70,7 @@ describe('UpdateUserRolesUseCase', () => {
         roles: [existingRole, newRole],
       });
 
-      await useCase.execute(
-        userId,
-        roleId,
-        undefined,
-        currentUserId,
-      );
+      await useCase.execute(userId, roleId, undefined, currentUserId);
 
       expect(userRepo.findOneOrFail).toHaveBeenCalledWith({
         where: { id: userId },
@@ -114,12 +109,7 @@ describe('UpdateUserRolesUseCase', () => {
         roles: [remainingRole],
       });
 
-      await useCase.execute(
-        userId,
-        roleId,
-        undefined,
-        currentUserId,
-      );
+      await useCase.execute(userId, roleId, undefined, currentUserId);
 
       expect(user.roles).toEqual([remainingRole]);
       expect(userRepo.save).toHaveBeenCalledWith(user);
@@ -301,12 +291,7 @@ describe('UpdateUserRolesUseCase', () => {
         roles: newRoles,
       });
 
-      await useCase.execute(
-        userId,
-        undefined,
-        roleIds,
-        currentUserId,
-      );
+      await useCase.execute(userId, undefined, roleIds, currentUserId);
 
       expect(roleRepo.findByIds).toHaveBeenCalledWith(roleIds);
       expect(user.roles).toEqual(newRoles);
@@ -494,11 +479,7 @@ describe('UpdateUserRolesUseCase', () => {
         roles: [newRole],
       });
 
-      await useCaseWithoutHistory.execute(
-        userId,
-        roleId,
-        undefined,
-      );
+      await useCaseWithoutHistory.execute(userId, roleId, undefined);
       expect(userRepo.save).toHaveBeenCalled();
     });
   });

@@ -75,9 +75,7 @@ export class ForgotPasswordUseCase {
           'Si un compte existe avec cette adresse email, un lien de réinitialisation sera envoyé.',
       };
     } catch (error) {
-      this.logger.error(
-        `Error in forgot password use case: ${error.message}`,
-      );
+      this.logger.error(`Error in forgot password use case: ${error.message}`);
       return {
         message:
           'Si un compte existe avec cette adresse email, un lien de réinitialisation sera envoyé.',

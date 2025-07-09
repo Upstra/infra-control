@@ -24,7 +24,8 @@ describe('UserPreferencesExceptions', () => {
   describe('invalidRefreshInterval', () => {
     it('should return BadRequestException for interval too low', () => {
       const interval = 10;
-      const exception = UserPreferencesExceptions.invalidRefreshInterval(interval);
+      const exception =
+        UserPreferencesExceptions.invalidRefreshInterval(interval);
 
       expect(exception).toBeInstanceOf(BadRequestException);
       expect(exception.message).toBe(
@@ -34,7 +35,8 @@ describe('UserPreferencesExceptions', () => {
 
     it('should return BadRequestException for interval too high', () => {
       const interval = 500;
-      const exception = UserPreferencesExceptions.invalidRefreshInterval(interval);
+      const exception =
+        UserPreferencesExceptions.invalidRefreshInterval(interval);
 
       expect(exception).toBeInstanceOf(BadRequestException);
       expect(exception.message).toBe(
@@ -47,7 +49,10 @@ describe('UserPreferencesExceptions', () => {
     it('should return BadRequestException with service and URL', () => {
       const service = 'Slack';
       const url = 'http://insecure.com/webhook';
-      const exception = UserPreferencesExceptions.invalidWebhookUrl(service, url);
+      const exception = UserPreferencesExceptions.invalidWebhookUrl(
+        service,
+        url,
+      );
 
       expect(exception).toBeInstanceOf(BadRequestException);
       expect(exception.message).toBe(

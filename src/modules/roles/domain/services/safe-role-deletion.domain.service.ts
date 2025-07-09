@@ -100,7 +100,7 @@ export class SafeRoleDeletionDomainService {
         this.permissionVmRepository.deleteByRoleId(roleId),
         this.permissionServerRepository.deleteByRoleId(roleId),
       ]);
-      
+
       this.logger.log(
         `Successfully deleted all permissions for role ${roleId}`,
       );

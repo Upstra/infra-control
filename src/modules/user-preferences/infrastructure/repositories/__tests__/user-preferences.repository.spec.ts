@@ -25,7 +25,9 @@ describe('UserPreferencesRepository', () => {
       ],
     }).compile();
 
-    repository = module.get<UserPreferencesRepository>(UserPreferencesRepository);
+    repository = module.get<UserPreferencesRepository>(
+      UserPreferencesRepository,
+    );
     typeormRepository = module.get(getRepositoryToken(UserPreference));
   });
 

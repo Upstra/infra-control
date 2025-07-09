@@ -29,7 +29,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           : (exceptionResponse as any).message || exception.message;
     } else if (exception instanceof Error) {
       message = exception.message;
-      
+
       if (process.env.NODE_ENV !== 'production') {
         this.logger.error(
           `Unhandled exception: ${exception.message}`,

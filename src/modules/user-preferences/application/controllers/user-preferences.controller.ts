@@ -50,7 +50,9 @@ export class UserPreferencesController {
     if (!user?.userId) {
       throw new BadRequestException('User ID not found in request');
     }
-    const preferences = await this.getUserPreferencesUseCase.execute(user.userId);
+    const preferences = await this.getUserPreferencesUseCase.execute(
+      user.userId,
+    );
     return this.toResponseDto(preferences);
   }
 
@@ -94,7 +96,9 @@ export class UserPreferencesController {
     if (!user?.userId) {
       throw new BadRequestException('User ID not found in request');
     }
-    const preferences = await this.resetUserPreferencesUseCase.execute(user.userId);
+    const preferences = await this.resetUserPreferencesUseCase.execute(
+      user.userId,
+    );
     return this.toResponseDto(preferences);
   }
 

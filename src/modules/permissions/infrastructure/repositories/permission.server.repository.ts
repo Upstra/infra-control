@@ -109,7 +109,10 @@ export class PermissionServerRepository
 
   async deleteByRoleId(roleId: string): Promise<void> {
     const result = await this.delete({ roleId });
-    console.log(`Deleted all server permissions for role ${roleId}, result:`, result);
+    console.log(
+      `Deleted all server permissions for role ${roleId}, result:`,
+      result,
+    );
   }
 
   async deleteByRoleAndServerIds(

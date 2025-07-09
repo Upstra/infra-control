@@ -63,12 +63,12 @@ export class RegisterUserUseCase {
       dto.lastName,
     );
     const saved = await this.repo.save(user);
-    
+
     if (this.userPreferencesRepository) {
       const defaultPreferences = UserPreference.createDefault(saved.id);
       await this.userPreferencesRepository.create(defaultPreferences);
     }
-    
+
     await this.logHistory?.execute('user', saved.id, 'CREATE', saved.id);
     return saved;
   }

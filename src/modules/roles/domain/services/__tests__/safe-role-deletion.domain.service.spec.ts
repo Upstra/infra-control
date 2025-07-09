@@ -326,9 +326,13 @@ describe('SafeRoleDeletionDomainService', () => {
 
       roleRepo.findOneByField.mockResolvedValue(roleToDelete);
       userRepo.findUsersByRole.mockResolvedValue([]);
-      permissionVmRepo.deleteByRoleId.mockRejectedValue(new Error('Delete failed'));
+      permissionVmRepo.deleteByRoleId.mockRejectedValue(
+        new Error('Delete failed'),
+      );
 
-      await expect(service.safelyDeleteRole(roleId)).rejects.toThrow('Delete failed');
+      await expect(service.safelyDeleteRole(roleId)).rejects.toThrow(
+        'Delete failed',
+      );
 
       expect(permissionVmRepo.deleteByRoleId).toHaveBeenCalledWith(roleId);
       expect(roleRepo.deleteRole).not.toHaveBeenCalled();
