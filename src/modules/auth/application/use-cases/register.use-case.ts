@@ -4,6 +4,7 @@ import { RegisterUserUseCase } from '@/modules/users/application/use-cases';
 import { TokenService } from '../services/token.service';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 import { RequestContextDto } from '@/core/dto';
+import { SendAccountCreatedEmailUseCase } from '@/modules/email/application/use-cases/send-account-created-email.use-case';
 
 /**
  * Registers a new user account and issues authentication tokens.
@@ -29,6 +30,7 @@ export class RegisterUseCase {
     private readonly registerUserUseCase: RegisterUserUseCase,
     private readonly tokenService: TokenService,
     private readonly logHistory?: LogHistoryUseCase,
+    private readonly sendAccountCreatedEmailUseCase?: SendAccountCreatedEmailUseCase,
   ) {}
 
   async execute(dto: RegisterDto, requestContext?: RequestContextDto) {
@@ -48,6 +50,8 @@ export class RegisterUseCase {
       ipAddress: requestContext?.ipAddress,
       userAgent: requestContext?.userAgent,
     });
+
+    await this.sendAccountCreatedEmailUseCase.execute(dto.email, dto.firstName);
 
     return this.tokenService.generateTokens({
       userId: user.id,

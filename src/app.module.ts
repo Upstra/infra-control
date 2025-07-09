@@ -25,6 +25,7 @@ import { ReleasesModule } from './modules/releases/releases.module';
 import { HealthModule } from './modules/health/health.module';
 import { PriorityModule } from './modules/priorities/priority.module';
 import { PrometheusModule } from './modules/prometheus/prometheus.module';
+import { EmailInfrastructureModule } from './modules/email/email.module';
 
 @Module({
   controllers: [],
@@ -53,6 +54,7 @@ import { PrometheusModule } from './modules/prometheus/prometheus.module';
     HealthModule,
     PriorityModule,
     PrometheusModule,
+    EmailInfrastructureModule,
   ],
   providers: [Logger],
 })

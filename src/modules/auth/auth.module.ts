@@ -11,11 +11,13 @@ import { RecoveryCodeService } from './domain/services/recovery-code.domain.serv
 import { AuthUseCases } from './application/use-cases';
 import { TokenService } from './application/services/token.service';
 import { AuditModule } from '../audit/audit.module';
+import { EmailApplicationModule } from '../email/application/email-application.module';
 
 @Module({
   imports: [
     UserModule,
     PassportModule,
+    EmailApplicationModule,
     AuditModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

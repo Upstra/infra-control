@@ -95,7 +95,7 @@ BACKEND_URL=http://localhost:3002
 RATE_LIMIT_GLOBAL_WINDOW_MS=900000    # 15 minutes
 RATE_LIMIT_GLOBAL_MAX=1000            # 1000 requests per window
 
-RATE_LIMIT_AUTH_WINDOW_MS=900000      # 15 minutes  
+RATE_LIMIT_AUTH_WINDOW_MS=900000      # 15 minutes
 RATE_LIMIT_AUTH_STRICT_MAX=5          # Login/register: 5 attempts
 RATE_LIMIT_AUTH_MODERATE_MAX=10       # 2FA: 10 attempts
 
@@ -140,6 +140,26 @@ Puis l’API est dispo sur `http://localhost:3000`
 La doc Swagger est dispo sur `http://localhost:3000/docs`
 Le JSON du schéma est disponible sur `http://localhost:3000/docs-json`
 
+### Email Transactionnel
+
+**Dossier** : src/modules/email
+
+**Templates** : src/modules/email/infrastructure/templates/\*.hbs
+
+**Use-Cases** :
+
+```
+SendAccountCreatedEmailUseCase
+
+SendResetPasswordEmailUseCase
+
+SendPasswordChangedEmailUseCase
+```
+
+**Configuration** : variables d’environnement listées ci-dessus.
+
+Pour créer un nouveau template, ajoutez un xxx.hbs et un SendXxxEmailUseCase.
+
 ### 📊 Monitoring avec Prometheus et Grafana
 
 L'application expose des métriques Prometheus sur `/metrics`:
@@ -149,19 +169,21 @@ L'application expose des métriques Prometheus sur `/metrics`:
   - Login: admin / Password: admin
 
 Les métriques incluent:
+
 - Utilisation CPU et mémoire
 - Event loop lag
 - Handles et requêtes actives
 - Statistiques de garbage collection
 
 Pour ajouter des métriques personnalisées dans votre code:
+
 ```typescript
 import { Counter, Histogram } from 'prom-client';
 
 const httpRequestDuration = new Histogram({
   name: 'infra_control_http_request_duration_seconds',
   help: 'Duration of HTTP requests in seconds',
-  labelNames: ['method', 'route', 'status']
+  labelNames: ['method', 'route', 'status'],
 });
 ```
 
@@ -280,11 +302,13 @@ Ces commandes utilisent `-r dotenv/config` pour charger automatiquement les vari
 L'application intègre un système de sécurité multi-niveau :
 
 ### 🛡️ Protection des Headers (Helmet)
+
 - Content Security Policy (CSP)
 - Protection XSS et clickjacking
 - Headers de sécurité automatiques
 
 ### ⚡ Rate Limiting Intelligent
+
 - **Rate limiting global** : Protection DDoS générale
 - **Rate limiting auth** : Limitation des tentatives de connexion/2FA
 - **Rate limiting sensitif** : Protection des opérations critiques (rôles, permissions)
@@ -295,6 +319,7 @@ L'application intègre un système de sécurité multi-niveau :
 ### Configuration des limites par environnement
 
 Les variables peuvent être ajustées selon l'environnement :
+
 - **Développement** : Limites permissives pour faciliter les tests
 - **Production** : Limites strictes pour la sécurité
 
