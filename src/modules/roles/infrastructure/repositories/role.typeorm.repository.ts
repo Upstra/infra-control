@@ -106,4 +106,14 @@ export class RoleTypeormRepository
       where: { isAdmin: true },
     });
   }
+
+  async findByIds(ids: string[]): Promise<Role[]> {
+    if (!ids || ids.length === 0) {
+      return [];
+    }
+    return await this.find({
+      where: ids.map(id => ({ id })),
+      relations: ['users', 'permissionServers', 'permissionVms'],
+    });
+  }
 }

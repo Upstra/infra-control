@@ -33,11 +33,13 @@ describe('CustomValidationPipe - Enum Validation', () => {
     dto.type = 'INVALID' as any;
 
     const errors = await validate(dto);
-    const exception = (pipe as any).exceptionFactory(errors) as BadRequestException;
+    const exception = (pipe as any).exceptionFactory(
+      errors,
+    ) as BadRequestException;
     const response = exception.getResponse() as any;
 
     expect(response.message).toContain(
-      'type: doit être l\'une des valeurs suivantes: OPTION_A, OPTION_B, OPTION_C',
+      "type: doit être l'une des valeurs suivantes: OPTION_A, OPTION_B, OPTION_C",
     );
   });
 
@@ -60,14 +62,16 @@ describe('CustomValidationPipe - Enum Validation', () => {
     dto.status = 'INVALID_STATUS' as any;
 
     const errors = await validate(dto);
-    const exception = (pipe as any).exceptionFactory(errors) as BadRequestException;
+    const exception = (pipe as any).exceptionFactory(
+      errors,
+    ) as BadRequestException;
     const response = exception.getResponse() as any;
 
     expect(response.message).toContain(
-      'type: doit être l\'une des valeurs suivantes: OPTION_A, OPTION_B, OPTION_C',
+      "type: doit être l'une des valeurs suivantes: OPTION_A, OPTION_B, OPTION_C",
     );
     expect(response.message).toContain(
-      'status: doit être l\'une des valeurs suivantes: ACTIVE, INACTIVE',
+      "status: doit être l'une des valeurs suivantes: ACTIVE, INACTIVE",
     );
   });
 

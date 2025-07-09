@@ -35,6 +35,7 @@ describe('LoginUseCase', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       roles: [createMockRole()],
+      isActive: true,
       ...overrides,
     });
 
@@ -85,6 +86,8 @@ describe('LoginUseCase', () => {
       userId: user.id,
       email: user.email,
       isTwoFactorEnabled: user.isTwoFactorEnabled,
+      isActive: user.isActive,
+      roles: user.roles,
     });
     expect(result).toEqual({
       accessToken: 'access.jwt.token',
@@ -111,6 +114,8 @@ describe('LoginUseCase', () => {
       userId: user.id,
       email: user.email,
       isTwoFactorEnabled: user.isTwoFactorEnabled,
+      isActive: user.isActive,
+      roles: user.roles,
     });
     expect(result).toEqual({
       accessToken: 'access.jwt.token',
@@ -135,6 +140,8 @@ describe('LoginUseCase', () => {
       step: '2fa',
       email: user.email,
       isTwoFactorEnabled: user.isTwoFactorEnabled,
+      isActive: user.isActive,
+      roles: user.roles,
     });
     expect(result).toEqual({
       requiresTwoFactor: true,
@@ -206,7 +213,7 @@ describe('LoginUseCase', () => {
         metadata: {
           loginMethod: 'email',
           requires2FA: false,
-          userActive: user.active,
+          userActive: user.isActive,
         },
         ipAddress: '192.168.1.100',
         userAgent: 'Test-Agent/1.0',
@@ -236,7 +243,7 @@ describe('LoginUseCase', () => {
         metadata: {
           loginMethod: 'email',
           requires2FA: true,
-          userActive: user.active,
+          userActive: user.isActive,
         },
         ipAddress: '192.168.1.100',
         userAgent: 'Test-Agent/1.0',

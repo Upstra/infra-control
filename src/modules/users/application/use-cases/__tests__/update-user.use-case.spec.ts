@@ -137,7 +137,7 @@ describe('UpdateUserUseCase', () => {
         lastName: 'Name',
         isTwoFactorEnabled: originalUser.isTwoFactorEnabled,
         roles: [],
-        active: originalUser.active,
+        isActive: originalUser.isActive,
       },
       newValue: {
         email: 'new@mail.com',

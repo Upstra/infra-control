@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PermissionVmDto } from '../../dto/permission.vm.dto';
 import { PermissionVmRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.vm.repository.interface';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
 
 /**
  * Grants specific permissions on a VM to a user or role.
@@ -23,14 +24,34 @@ export class CreatePermissionVmUseCase {
   constructor(
     @Inject('PermissionVmRepositoryInterface')
     private readonly repository: PermissionVmRepositoryInterface,
+    private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(dto: PermissionVmDto): Promise<PermissionVmDto> {
+  async execute(
+    dto: PermissionVmDto,
+    userId?: string,
+  ): Promise<PermissionVmDto> {
     const permission = await this.repository.createPermission(
       dto.vmId,
       dto.roleId,
       dto.bitmask,
     );
-    return new PermissionVmDto(permission);
+
+    await this.logHistory?.executeStructured({
+      entity: 'permission_vm',
+      entityId: `${permission.vmId}_${permission.roleId}`,
+      action: 'CREATE',
+      userId: userId || 'system',
+      newValue: {
+        vmId: permission.vmId,
+        roleId: permission.roleId,
+        bitmask: permission.bitmask,
+      },
+      metadata: {
+        permissionType: 'vm',
+      },
+    });
+
+    return PermissionVmDto.fromEntity(permission);
   }
 }

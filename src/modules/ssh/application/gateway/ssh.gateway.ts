@@ -29,7 +29,6 @@ export class SshGateway {
       });
       client.data.sshClient = sshClient;
       client.data.shell = shell;
-      console.log(`SSH connection established for ${username}@${ip}`);
 
       shell.on('data', (data: Buffer) => {
         client.emit('ssh:data', data.toString());

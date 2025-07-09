@@ -20,4 +20,8 @@ export class AuthenticatedUserDto {
   @ValidateNested()
   @Type(() => RoleDto)
   role: RoleDto;
+
+  @ApiProperty()
+  @IsBoolean()
+  isActive: boolean;
 }

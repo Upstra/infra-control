@@ -12,7 +12,7 @@ import {
   GetUserByEmailUseCase,
   UpdateUserFieldsUseCase,
 } from '@/modules/users/application/use-cases';
-import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
+import { UserExceptions } from '@/modules/users/domain/exceptions/user.exception';
 
 /**
  * Verifies a submitted TOTP code and handles 2FA activation if not already enabled.
@@ -50,7 +50,7 @@ export class Verify2FAUseCase {
     let message: string = '2FA verified successfully.';
 
     const user = await this.getUserByEmailUseCase.execute(userJwtPayload.email);
-    if (!user) throw new UserNotFoundException(userJwtPayload.email);
+    if (!user) throw UserExceptions.notFound(userJwtPayload.email);
 
     const isValid: boolean = speakeasy.totp.verify({
       secret: user.twoFactorSecret,
@@ -78,6 +78,8 @@ export class Verify2FAUseCase {
       userId: user.id,
       email: user.email,
       isTwoFactorAuthenticated: true,
+      isActive: user.isActive,
+      roles: user.roles,
     });
 
     message = message || '2FA verified successfully.';

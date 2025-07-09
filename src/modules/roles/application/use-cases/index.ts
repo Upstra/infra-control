@@ -7,6 +7,7 @@ import { GetRoleListUseCase } from './get-role-list.use-case';
 import { UpdateRoleUseCase } from './update-role.use-case';
 import { GetUsersByRoleUseCase } from './get-users-by-role.use-case';
 import { UpdateUserRoleUseCase } from './update-user-role.use-case';
+import { UpdateUserRolesUseCase } from './update-user-roles.use-case';
 
 export const RoleUseCases = [
   CreateRoleUseCase,
@@ -18,6 +19,7 @@ export const RoleUseCases = [
   EnsureDefaultRoleUseCase,
   GetUsersByRoleUseCase,
   UpdateUserRoleUseCase,
+  UpdateUserRolesUseCase,
 ];
 
 export {
@@ -30,4 +32,5 @@ export {
   EnsureDefaultRoleUseCase,
   GetUsersByRoleUseCase,
   UpdateUserRoleUseCase,
+  UpdateUserRolesUseCase,
 };

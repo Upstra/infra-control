@@ -4,6 +4,7 @@ import { User } from '../entities/user.entity';
 import { Role } from '@/modules/roles/domain/entities/role.entity';
 import { UserConflictException } from '../exceptions/user.exception';
 import { UserUpdateDto } from '../../application/dto/user.update.dto';
+import { UpdateAccountDto } from '../../application/dto/update-account.dto';
 
 jest.mock('bcryptjs', () => ({
   compare: jest.fn(),
@@ -165,6 +166,140 @@ describe('UserDomainService', () => {
       const spy = jest.spyOn(service, 'ensureUniqueField').mockResolvedValue();
       await service.ensureUniqueUsername('monuser', 'id2');
       expect(spy).toHaveBeenCalledWith('username', 'monuser', 'id2');
+    });
+  });
+
+  describe('updateAccount', () => {
+    let user: User;
+    
+    beforeEach(() => {
+      user = new User();
+      user.id = 'user-id';
+      user.firstName = 'Old';
+      user.lastName = 'Name';
+      user.email = 'old@email.com';
+      user.isActive = false;
+      user.isVerified = false;
+      user.updatedAt = new Date('2023-01-01');
+    });
+
+    it('should update firstName when provided', async () => {
+      const dto = { firstName: 'New' };
+      const result = await service.updateAccount(user, dto);
+      
+      expect(result.firstName).toBe('New');
+      expect(result.lastName).toBe('Name');
+      expect(result.email).toBe('old@email.com');
+      expect(result.updatedAt).not.toEqual(new Date('2023-01-01'));
+    });
+
+    it('should update lastName when provided', async () => {
+      const dto = { lastName: 'UpdatedName' };
+      const result = await service.updateAccount(user, dto);
+      
+      expect(result.firstName).toBe('Old');
+      expect(result.lastName).toBe('UpdatedName');
+      expect(result.updatedAt).not.toEqual(new Date('2023-01-01'));
+    });
+
+    it('should update email when provided and ensure uniqueness', async () => {
+      const spy = jest.spyOn(service, 'ensureUniqueEmail').mockResolvedValue();
+      const dto = { email: 'NEW@EMAIL.COM' };
+      const result = await service.updateAccount(user, dto);
+      
+      expect(spy).toHaveBeenCalledWith('NEW@EMAIL.COM', 'user-id');
+      expect(result.email).toBe('new@email.com');
+      expect(result.updatedAt).not.toEqual(new Date('2023-01-01'));
+    });
+
+    it('should update isActive when provided', async () => {
+      const dto = { isActive: true };
+      const result = await service.updateAccount(user, dto);
+      
+      expect(result.isActive).toBe(true);
+      expect(result.updatedAt).not.toEqual(new Date('2023-01-01'));
+    });
+
+    it('should update isVerified when provided', async () => {
+      const dto = { isVerified: true };
+      const result = await service.updateAccount(user, dto);
+      
+      expect(result.isVerified).toBe(true);
+      expect(result.updatedAt).not.toEqual(new Date('2023-01-01'));
+    });
+
+    it('should update multiple fields at once', async () => {
+      const spy = jest.spyOn(service, 'ensureUniqueEmail').mockResolvedValue();
+      const dto = {
+        firstName: 'NewFirst',
+        lastName: 'NewLast',
+        email: 'new@test.com',
+        isActive: true,
+        isVerified: true
+      };
+      const result = await service.updateAccount(user, dto);
+      
+      expect(result.firstName).toBe('NewFirst');
+      expect(result.lastName).toBe('NewLast');
+      expect(result.email).toBe('new@test.com');
+      expect(result.isActive).toBe(true);
+      expect(result.isVerified).toBe(true);
+      expect(spy).toHaveBeenCalledWith('new@test.com', 'user-id');
+      expect(result.updatedAt).not.toEqual(new Date('2023-01-01'));
+    });
+
+    it('should not update fields when undefined', async () => {
+      const dto = {
+        firstName: undefined,
+        lastName: undefined,
+        email: undefined,
+        isActive: undefined,
+        isVerified: undefined
+      };
+      const result = await service.updateAccount(user, dto);
+      
+      expect(result.firstName).toBe('Old');
+      expect(result.lastName).toBe('Name');
+      expect(result.email).toBe('old@email.com');
+      expect(result.isActive).toBe(false);
+      expect(result.isVerified).toBe(false);
+      expect(result.updatedAt).not.toEqual(new Date('2023-01-01'));
+    });
+
+    it('should handle empty string values', async () => {
+      const dto = {
+        firstName: '',
+        lastName: ''
+      };
+      const result = await service.updateAccount(user, dto);
+      
+      expect(result.firstName).toBe('');
+      expect(result.lastName).toBe('');
+    });
+  });
+
+  describe('activateUser', () => {
+    it('should set isActive to true and update updatedAt', async () => {
+      const user = new User();
+      user.isActive = false;
+      user.updatedAt = new Date('2023-01-01');
+      
+      const result = await service.activateUser(user);
+      
+      expect(result.isActive).toBe(true);
+      expect(result.updatedAt).not.toEqual(new Date('2023-01-01'));
+      expect(result.updatedAt).toBeInstanceOf(Date);
+    });
+
+    it('should update updatedAt even if user is already active', async () => {
+      const user = new User();
+      user.isActive = true;
+      user.updatedAt = new Date('2023-01-01');
+      
+      const result = await service.activateUser(user);
+      
+      expect(result.isActive).toBe(true);
+      expect(result.updatedAt).not.toEqual(new Date('2023-01-01'));
     });
   });
 });

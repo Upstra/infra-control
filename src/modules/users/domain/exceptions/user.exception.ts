@@ -4,6 +4,12 @@ export class UserNotFoundException extends Error {
   }
 }
 
+export class UserBadRequestException extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}
+
 export class UserUpdateException extends Error {
   constructor(message = 'Erreur lors de la mise à jour de l’utilisateur') {
     super(message);
@@ -48,5 +54,78 @@ export class CannotRemoveLastAdminException extends Error {
     message = 'Impossible de retirer le dernier rôle administrateur',
   ) {
     super(message);
+  }
+}
+
+export class CannotDeleteOwnAccountException extends Error {
+  constructor(
+    message = 'Impossible de supprimer votre propre compte administrateur',
+  ) {
+    super(message);
+  }
+}
+
+export class CannotToggleOwnStatusException extends Error {
+  constructor(message = 'Impossible de modifier votre propre statut') {
+    super(message);
+  }
+}
+
+export class CannotDeactivateLastAdminException extends Error {
+  constructor(message = 'Impossible de désactiver le dernier administrateur') {
+    super(message);
+  }
+}
+
+export class UserExceptions {
+  static notFound(id?: string): UserNotFoundException {
+    return new UserNotFoundException(id ?? 'Utilisateur introuvable');
+  }
+
+  static updateFailed(message?: string): UserUpdateException {
+    return new UserUpdateException(message);
+  }
+
+  static deletionFailed(message?: string): UserDeletionException {
+    return new UserDeletionException(message);
+  }
+
+  static retrievalFailed(message?: string): UserRetrievalException {
+    return new UserRetrievalException(message);
+  }
+
+  static conflict(
+    type: 'username' | 'email',
+    message?: string,
+  ): UserConflictException {
+    return new UserConflictException(type, message);
+  }
+
+  static registrationFailed(message?: string): UserRegistrationException {
+    return new UserRegistrationException(message);
+  }
+
+  static cannotDeleteLastAdmin(): CannotDeleteLastAdminException {
+    return new CannotDeleteLastAdminException();
+  }
+
+  static cannotRemoveLastAdminRole(): CannotRemoveLastAdminException {
+    return new CannotRemoveLastAdminException();
+  }
+
+  static cannotDeleteOwnAccount(): CannotDeleteOwnAccountException {
+    return new CannotDeleteOwnAccountException();
+  }
+
+  static cannotToggleOwnStatus(): CannotToggleOwnStatusException {
+    return new CannotToggleOwnStatusException();
+  }
+
+  static cannotDeactivateLastAdmin(): CannotDeactivateLastAdminException {
+    return new CannotDeactivateLastAdminException();
+  }
+
+  static badRequest(message: string): UserBadRequestException {
+    return new UserBadRequestException(message);
   }
 }

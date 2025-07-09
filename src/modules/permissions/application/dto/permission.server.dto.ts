@@ -31,3 +31,13 @@ export class PermissionServerDto {
     return permissions.map((saved) => this.fromEntity(saved));
   }
 }
+
+export class UpdatePermissionServerDto {
+  @ApiProperty()
+  @IsInt()
+  bitmask: number;
+
+  constructor(partial?: Partial<UpdatePermissionServerDto>) {
+    Object.assign(this, partial);
+  }
+}

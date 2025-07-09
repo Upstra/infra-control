@@ -38,7 +38,7 @@ describe('GetPermissionVmByIdsUseCase', () => {
       roleId: 'role-vm',
     });
 
-    const result = await useCase.execute(dto);
+    const result = await useCase.execute(dto.vmId, dto.roleId);
 
     expect(repository.findPermissionByIds).toHaveBeenCalledWith(
       'vm-1',
@@ -57,7 +57,7 @@ describe('GetPermissionVmByIdsUseCase', () => {
       roleId: 'invalid-role',
     });
 
-    await expect(useCase.execute(dto)).rejects.toThrow(
+    await expect(useCase.execute(dto.vmId, dto.roleId)).rejects.toThrow(
       PermissionNotFoundException,
     );
   });
@@ -71,9 +71,7 @@ describe('GetPermissionVmByIdsUseCase', () => {
 
     repository.findPermissionByIds.mockResolvedValue(permission);
 
-    const result = await useCase.execute(
-      new PermissionVmDto({ vmId: 'v2', roleId: 'r2' }),
-    );
+    const result = await useCase.execute('v2', 'r2');
 
     expect(result).toEqual({
       roleId: 'r2',

@@ -2,26 +2,36 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PermissionServerController } from '../permission.server.controller';
 
 import { createMockPermissionServerDto } from '@/modules/permissions/__mocks__/permissions.mock';
+import { UpdatePermissionServerDto } from '../../dto/permission.server.dto';
 import {
   CreatePermissionServerUseCase,
+  CreateBatchPermissionServerUseCase,
   DeletePermissionServerUseCase,
   GetPermissionServerByIdsUseCase,
   GetPermissionsServerByRoleUseCase,
   UpdatePermissionServerUseCase,
   GetUserServerPermissionsUseCase,
 } from '../../use-cases/permission-server';
+import {
+  BatchPermissionServerDto,
+  BatchPermissionServerResponseDto,
+} from '../../dto/batch-permission.server.dto';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 describe('PermissionServerController', () => {
   let controller: PermissionServerController;
   let createPermissionUsecase: any;
+  let createBatchPermissionUsecase: any;
   let getAllByRoleUsecase: any;
   let getByIdsUsecase: any;
   let updatePermissionUsecase: any;
   let deletePermissionUsecase: any;
   let getUserServerPermissionsUseCase: any;
+  let mockUser: JwtPayload;
 
   beforeEach(async () => {
     createPermissionUsecase = { execute: jest.fn() };
+    createBatchPermissionUsecase = { execute: jest.fn() };
     getAllByRoleUsecase = { execute: jest.fn() };
     getByIdsUsecase = { execute: jest.fn() };
     updatePermissionUsecase = { execute: jest.fn() };
@@ -34,6 +44,10 @@ describe('PermissionServerController', () => {
         {
           provide: CreatePermissionServerUseCase,
           useValue: createPermissionUsecase,
+        },
+        {
+          provide: CreateBatchPermissionServerUseCase,
+          useValue: createBatchPermissionUsecase,
         },
         {
           provide: GetPermissionsServerByRoleUseCase,
@@ -58,6 +72,11 @@ describe('PermissionServerController', () => {
     controller = module.get<PermissionServerController>(
       PermissionServerController,
     );
+
+    mockUser = {
+      userId: 'test-user-id',
+      email: 'test@example.com',
+    } as JwtPayload;
   });
   it('should be defined', () => {
     expect(controller).toBeDefined();
@@ -66,9 +85,12 @@ describe('PermissionServerController', () => {
   it('should call createPermission', async () => {
     const dto = createMockPermissionServerDto();
     createPermissionUsecase.execute.mockResolvedValue(dto);
-    const res = await controller.createPermission(dto);
+    const res = await controller.createPermission(dto, mockUser);
     expect(res).toEqual(dto);
-    expect(createPermissionUsecase.execute).toHaveBeenCalledWith(dto);
+    expect(createPermissionUsecase.execute).toHaveBeenCalledWith(
+      dto,
+      mockUser.userId,
+    );
   });
 
   it('should call getPermissionsByRole', async () => {
@@ -91,29 +113,72 @@ describe('PermissionServerController', () => {
   });
 
   it('should call updatePermission', async () => {
-    const dto = createMockPermissionServerDto();
-    updatePermissionUsecase.execute.mockResolvedValue(dto);
+    const updateDto: UpdatePermissionServerDto = {
+      bitmask: 7,
+    };
+    const expectedResult = createMockPermissionServerDto();
+    expectedResult.bitmask = 7;
+    updatePermissionUsecase.execute.mockResolvedValue(expectedResult);
     const res = await controller.updatePermission(
       'server-uuid',
       'role-uuid',
-      dto,
+      updateDto,
+      mockUser,
     );
-    expect(res).toEqual(dto);
+    expect(res).toEqual(expectedResult);
     expect(updatePermissionUsecase.execute).toHaveBeenCalledWith(
       'server-uuid',
       'role-uuid',
-      dto,
+      updateDto,
+      mockUser.userId,
     );
+  });
+
+  it('should update permission with different bitmask values', async () => {
+    const serverId = 'server-uuid';
+    const roleId = 'role-uuid';
+    const testCases = [
+      { bitmask: 0 },
+      { bitmask: 1 },
+      { bitmask: 15 },
+      { bitmask: 255 },
+    ];
+
+    for (const testCase of testCases) {
+      const updateDto: UpdatePermissionServerDto = {
+        bitmask: testCase.bitmask,
+      };
+      const expectedResult = createMockPermissionServerDto();
+      expectedResult.bitmask = testCase.bitmask;
+
+      updatePermissionUsecase.execute.mockResolvedValue(expectedResult);
+
+      const result = await controller.updatePermission(
+        serverId,
+        roleId,
+        updateDto,
+        mockUser,
+      );
+
+      expect(result).toEqual(expectedResult);
+      expect(updatePermissionUsecase.execute).toHaveBeenCalledWith(
+        serverId,
+        roleId,
+        updateDto,
+        mockUser.userId,
+      );
+    }
   });
 
   it('should call deletePermission', async () => {
     deletePermissionUsecase.execute.mockResolvedValue(undefined);
     await expect(
-      controller.deletePermission('server-uuid', 'role-uuid'),
+      controller.deletePermission('server-uuid', 'role-uuid', mockUser),
     ).resolves.toBeUndefined();
     expect(deletePermissionUsecase.execute).toHaveBeenCalledWith(
       'server-uuid',
       'role-uuid',
+      mockUser.userId,
     );
   });
 
@@ -136,5 +201,56 @@ describe('PermissionServerController', () => {
     expect(getUserServerPermissionsUseCase.execute).toHaveBeenCalledWith(
       'user-456',
     );
+  });
+
+  it('should call createBatchPermissions', async () => {
+    const batchDto = new BatchPermissionServerDto();
+    batchDto.permissions = [
+      createMockPermissionServerDto(),
+      createMockPermissionServerDto(),
+    ];
+
+    const response: BatchPermissionServerResponseDto = {
+      created: batchDto.permissions,
+      failed: [],
+      total: 2,
+      successCount: 2,
+      failureCount: 0,
+    };
+
+    createBatchPermissionUsecase.execute.mockResolvedValue(response);
+    const res = await controller.createBatchPermissions(batchDto, mockUser);
+    expect(res).toEqual(response);
+    expect(createBatchPermissionUsecase.execute).toHaveBeenCalledWith(
+      batchDto,
+      mockUser.userId,
+    );
+  });
+
+  it('should handle partial failures in createBatchPermissions', async () => {
+    const batchDto = new BatchPermissionServerDto();
+    batchDto.permissions = [
+      createMockPermissionServerDto(),
+      createMockPermissionServerDto(),
+    ];
+
+    const response: BatchPermissionServerResponseDto = {
+      created: [batchDto.permissions[0]],
+      failed: [
+        {
+          permission: batchDto.permissions[1],
+          error: 'Duplicate permission',
+        },
+      ],
+      total: 2,
+      successCount: 1,
+      failureCount: 1,
+    };
+
+    createBatchPermissionUsecase.execute.mockResolvedValue(response);
+    const res = await controller.createBatchPermissions(batchDto, mockUser);
+    expect(res).toEqual(response);
+    expect(res.failureCount).toBe(1);
+    expect(res.failed[0].error).toBe('Duplicate permission');
   });
 });

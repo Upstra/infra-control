@@ -15,7 +15,6 @@ export class GetVmPrioritiesUseCase {
 
   async execute(userId: string): Promise<VmPriorityResponseDto[]> {
     const permissions = await this.getUserPermissionVm.execute(userId);
-    console.log('Permissions:', permissions);
 
     const vmIds = permissions
       .filter(
@@ -26,8 +25,6 @@ export class GetVmPrioritiesUseCase {
     if (vmIds.length === 0) {
       return [];
     }
-
-    console.log('VM IDs:', vmIds);
 
     const vms = await this.vmRepository
       .createQueryBuilder('vm')

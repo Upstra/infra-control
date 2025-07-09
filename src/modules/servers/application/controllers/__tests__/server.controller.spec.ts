@@ -9,6 +9,7 @@ import {
   GetUserServersUseCase,
   UpdateServerUseCase,
   UpdateServerPriorityUseCase,
+  CheckServerPermissionUseCase,
 } from '@/modules/servers/application/use-cases';
 import { createMockServerDto } from '@/modules/servers/__mocks__/servers.mock';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
@@ -30,6 +31,7 @@ describe('ServerController', () => {
   let getUserServersUseCase: jest.Mocked<GetUserServersUseCase>;
   let getServerByIdWithPermissionCheckUseCase: jest.Mocked<GetServerByIdWithPermissionCheckUseCase>;
   let updateServerPriorityUseCase: jest.Mocked<UpdateServerPriorityUseCase>;
+  let checkServerPermissionUseCase: jest.Mocked<CheckServerPermissionUseCase>;
 
   const mockPayload: JwtPayload = {
     userId: 'user-123',
@@ -68,6 +70,7 @@ describe('ServerController', () => {
     getUserServersUseCase = { execute: jest.fn() } as any;
     getServerByIdWithPermissionCheckUseCase = { execute: jest.fn() } as any;
     updateServerPriorityUseCase = { execute: jest.fn() } as any;
+    checkServerPermissionUseCase = { execute: jest.fn() } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ServerController],
@@ -85,6 +88,10 @@ describe('ServerController', () => {
         {
           provide: UpdateServerPriorityUseCase,
           useValue: updateServerPriorityUseCase,
+        },
+        {
+          provide: CheckServerPermissionUseCase,
+          useValue: checkServerPermissionUseCase,
         },
         {
           provide: GetUserWithRoleUseCase,
@@ -232,10 +239,13 @@ describe('ServerController', () => {
     it('should delete a server', async () => {
       deleteServerUseCase.execute.mockResolvedValue(undefined);
 
-      const result = await controller.deleteServer('server-uuid');
+      const result = await controller.deleteServer('server-uuid', mockPayload);
 
       expect(result).toBeUndefined();
-      expect(deleteServerUseCase.execute).toHaveBeenCalledWith('server-uuid');
+      expect(deleteServerUseCase.execute).toHaveBeenCalledWith(
+        'server-uuid',
+        mockPayload.userId,
+      );
     });
   });
 
@@ -347,6 +357,71 @@ describe('ServerController', () => {
       getUserServersUseCase.execute.mockRejectedValue(new Error('Forbidden'));
 
       await expect(controller.getMyServers(user)).rejects.toThrow('Forbidden');
+    });
+  });
+
+  describe('checkPermission', () => {
+    it('should check if user has permission on a server', async () => {
+      const dto = {
+        serverId: 'server-123',
+        permission: 1, // PermissionBit.READ
+      };
+
+      const expectedResponse = {
+        hasPermission: true,
+        userId: mockPayload.userId,
+        resourceId: dto.serverId,
+        resourceType: 'server' as const,
+        permission: dto.permission,
+      };
+
+      checkServerPermissionUseCase.execute.mockResolvedValue(expectedResponse);
+
+      const result = await controller.checkPermission(dto, mockPayload);
+
+      expect(result).toEqual(expectedResponse);
+      expect(checkServerPermissionUseCase.execute).toHaveBeenCalledWith(
+        dto.serverId,
+        mockPayload.userId,
+        dto.permission,
+      );
+    });
+
+    it('should return false when user does not have permission', async () => {
+      const dto = {
+        serverId: 'server-123',
+        permission: 4, // PermissionBit.DELETE
+      };
+
+      const expectedResponse = {
+        hasPermission: false,
+        userId: mockPayload.userId,
+        resourceId: dto.serverId,
+        resourceType: 'server' as const,
+        permission: dto.permission,
+      };
+
+      checkServerPermissionUseCase.execute.mockResolvedValue(expectedResponse);
+
+      const result = await controller.checkPermission(dto, mockPayload);
+
+      expect(result).toEqual(expectedResponse);
+      expect(result.hasPermission).toBe(false);
+    });
+
+    it('should throw NotFoundException when server does not exist', async () => {
+      const dto = {
+        serverId: 'nonexistent-server',
+        permission: 1,
+      };
+
+      checkServerPermissionUseCase.execute.mockRejectedValue(
+        new Error('Server not found'),
+      );
+
+      await expect(
+        controller.checkPermission(dto, mockPayload),
+      ).rejects.toThrow('Server not found');
     });
   });
 });

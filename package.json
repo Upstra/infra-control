@@ -1,6 +1,6 @@
 {
   "name": "infra-control",
-  "version": "0.8.8",
+  "version": "0.9.1",
   "description": "",
   "author": "",
   "private": true,
@@ -22,7 +22,9 @@
     "test:e2e": "NODE_OPTIONS='-r tsconfig-paths/register' jest --config ./test/jest-e2e.json",
     "migration:generate": "ts-node -r dotenv/config ./node_modules/typeorm/cli.js -d src/core/config/data-source.ts migration:generate",
     "migration:run": "node ./node_modules/typeorm/cli.js -d dist/src/core/config/data-source.js migration:run",
-    "migration:run:dev": "ts-node -r dotenv/config ./node_modules/typeorm/cli.js -d src/core/config/data-source.ts migration:run"
+    "migration:run:dev": "ts-node -r dotenv/config ./node_modules/typeorm/cli.js -d src/core/config/data-source.ts migration:run",
+    "schema:backup": "ts-node scripts/generate-schema-backup.ts",
+    "schema:backup:sh": "./scripts/generate-schema-backup.sh"
   },
   "dependencies": {
     "@liaoliaots/nestjs-redis": "^10.0.0",
@@ -38,7 +40,6 @@
     "@nestjs/terminus": "^11.0.0",
     "@nestjs/typeorm": "^11.0.0",
     "@nestjs/websockets": "^11.1.0",
-    "@types/express-rate-limit": "^6.0.2",
     "@willsoto/nestjs-prometheus": "^6.0.2",
     "bcryptjs": "^3.0.2",
     "class-transformer": "^0.5.1",
@@ -121,7 +122,11 @@
       "!src/**/*.interface.ts",
       "!src/**/*.entity.ts",
       "!**/index.ts",
-      "!**/repositories/**/*.ts"
+      "!**/repositories/**/*.ts",
+      "!**/backups/**",
+      "!**/migrations/**",
+      "!src/migrations/**",
+      "!**/providers/*.provider.ts"
     ],
     "coverageDirectory": "../coverage",
     "coverageThreshold": {
@@ -135,7 +140,8 @@
     "testEnvironment": "node",
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/$1",
-      "^@core/(.*)$": "<rootDir>/core/$1"
+      "^@core/(.*)$": "<rootDir>/core/$1",
+      "^@modules/(.*)$": "<rootDir>/modules/$1"
     }
   },
   "packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184"

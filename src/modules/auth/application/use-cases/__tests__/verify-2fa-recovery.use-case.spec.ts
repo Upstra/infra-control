@@ -63,6 +63,8 @@ describe('Verify2FARecoveryUseCase', () => {
       userId: mockUser.id,
       email: mockUser.email,
       isTwoFactorAuthenticated: true,
+      isActive: mockUser.isActive,
+      roles: mockUser.roles,
     });
     expect(result).toEqual({
       isValid: true,

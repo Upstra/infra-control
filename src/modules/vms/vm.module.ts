@@ -8,6 +8,8 @@ import { VmUseCase } from './application/use-cases';
 import { ServerModule } from '../servers/server.module';
 import { AuditModule } from '../audit/audit.module';
 import { GroupModule } from '../groups/group.module';
+import { UserModule } from '../users/user.module';
+import { PermissionModule } from '../permissions/permission.module';
 
 @Module({
   controllers: [VmController],
@@ -17,6 +19,8 @@ import { GroupModule } from '../groups/group.module';
     forwardRef(() => ServerModule),
     AuditModule,
     GroupModule,
+    forwardRef(() => UserModule),
+    PermissionModule,
   ],
   providers: [
     ...VmUseCase,

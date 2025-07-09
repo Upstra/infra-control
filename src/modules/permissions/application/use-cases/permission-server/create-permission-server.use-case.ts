@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { PermissionDomainServerService } from '../../../domain/services/permission.domain.server.service';
 import { PermissionServerDto } from '../../dto/permission.server.dto';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
 
 /**
  * Grants a specific permission on a server to a user or role.
@@ -25,11 +26,31 @@ export class CreatePermissionServerUseCase {
     @Inject('PermissionServerRepositoryInterface')
     private readonly repository: PermissionServerRepositoryInterface,
     private readonly domainService: PermissionDomainServerService,
+    private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
-  async execute(dto: PermissionServerDto): Promise<PermissionServerDto> {
+  async execute(
+    dto: PermissionServerDto,
+    userId?: string,
+  ): Promise<PermissionServerDto> {
     const entity = this.domainService.createPermissionEntityFromDto(dto);
     const saved = await this.repository.save(entity);
+
+    await this.logHistory?.executeStructured({
+      entity: 'permission_server',
+      entityId: `${saved.serverId}_${saved.roleId}`,
+      action: 'CREATE',
+      userId: userId || 'system',
+      newValue: {
+        serverId: saved.serverId,
+        roleId: saved.roleId,
+        bitmask: saved.bitmask,
+      },
+      metadata: {
+        permissionType: 'server',
+      },
+    });
+
     return new PermissionServerDto(saved);
   }
 }

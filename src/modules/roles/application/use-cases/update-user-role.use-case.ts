@@ -4,7 +4,7 @@ import { User } from '@/modules/users/domain/entities/user.entity';
 import { Role } from '../../domain/entities/role.entity';
 import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
 import { CannotRemoveGuestRoleException } from '../../domain/exceptions/role.exception';
-import { CannotRemoveLastAdminException } from '@/modules/users/domain/exceptions/user.exception';
+import { UserExceptions } from '@/modules/users/domain/exceptions/user.exception';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 import { RequestContextDto } from '@/core/dto';
 
@@ -110,7 +110,7 @@ export class UpdateUserRoleUseCase {
       throw new CannotRemoveGuestRoleException();
     }
     if (role.isAdmin && (await this.isLastAdmin(user, userRepo))) {
-      throw new CannotRemoveLastAdminException();
+      throw UserExceptions.cannotRemoveLastAdminRole();
     }
     user.roles = user.roles.filter((r) => r.id !== role.id);
   }
@@ -118,9 +118,13 @@ export class UpdateUserRoleUseCase {
   private async isLastAdmin(user: User, userRepo: any): Promise<boolean> {
     const adminRoles = user.roles.filter((r) => r.isAdmin);
     if (adminRoles.length !== 1) return false;
-    const adminCount = await userRepo.count({
-      where: { roles: { isAdmin: true } },
-    });
+    
+    const adminCount = await userRepo
+      .createQueryBuilder('user')
+      .innerJoin('user.roles', 'role')
+      .where('role.isAdmin = :isAdmin', { isAdmin: true })
+      .getCount();
+      
     return adminCount === 1;
   }
 

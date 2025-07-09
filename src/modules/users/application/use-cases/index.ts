@@ -10,8 +10,13 @@ import { GetUserCountUseCase } from './get-user-count.use-case';
 import { ResetPasswordUseCase } from './reset-password.use-case';
 import { GetUserWithRoleUseCase } from './get-user-with-role.use-case';
 import { GetUserListUseCase } from './get-user-list.use-case';
-
+import { SoftDeleteUserUseCase } from './soft-delete-user.use-case';
+import { ToggleUserStatusUseCase } from './toggle-user-status.use-case';
+import { UpdateAccountUseCase } from './update-account.use-case';
+import { BulkActivateUseCase } from './bulk-activate.use-case';
+import { CreateUserByAdminUseCase } from './create-user-by-admin.use-case';
 export const UserUseCase = [
+  CreateUserByAdminUseCase,
   GetUserByIdUseCase,
   GetUserByEmailUseCase,
   GetUserByUsernameUseCase,
@@ -24,6 +29,10 @@ export const UserUseCase = [
   DeleteUserUseCase,
   RegisterUserUseCase,
   ResetPasswordUseCase,
+  SoftDeleteUserUseCase,
+  ToggleUserStatusUseCase,
+  UpdateAccountUseCase,
+  BulkActivateUseCase,
 ];
 
 export {
@@ -39,4 +48,9 @@ export {
   DeleteUserUseCase,
   RegisterUserUseCase,
   ResetPasswordUseCase,
+  SoftDeleteUserUseCase,
+  ToggleUserStatusUseCase,
+  UpdateAccountUseCase,
+  BulkActivateUseCase,
+  CreateUserByAdminUseCase,
 };

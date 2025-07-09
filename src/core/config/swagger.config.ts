@@ -12,6 +12,7 @@ export function setupSwagger(app: INestApplication): void {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
 
   SwaggerModule.setup('docs', app, document, {
+    customSiteTitle: 'Infra Control API Documentation',
     swaggerOptions: {
       tagsSorter: 'alpha',
       operationsSorter: 'alpha',

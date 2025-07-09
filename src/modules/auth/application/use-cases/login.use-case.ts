@@ -103,7 +103,7 @@ export class LoginUseCase {
       metadata: {
         loginMethod: isEmail ? 'email' : 'username',
         requires2FA,
-        userActive: user.active,
+        userActive: user.isActive,
       },
       ipAddress: requestContext?.ipAddress,
       userAgent: requestContext?.userAgent,
@@ -115,6 +115,8 @@ export class LoginUseCase {
         step: '2fa',
         email: user.email,
         isTwoFactorEnabled: user.isTwoFactorEnabled,
+        isActive: user.isActive,
+        roles: user.roles,
       });
 
       return {
@@ -127,6 +129,8 @@ export class LoginUseCase {
       userId: user.id,
       email: user.email,
       isTwoFactorEnabled: user.isTwoFactorEnabled,
+      isActive: user.isActive,
+      roles: user.roles,
     });
   }
 }

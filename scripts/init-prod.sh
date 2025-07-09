@@ -36,9 +36,9 @@ echo "   - Démarrage de PostgreSQL, Redis et du backend"
 echo "   - Création de la base de données"
 echo "   - Exécution des migrations initiales"
 echo ""
-read -p "Continuer? (oui/non): " confirm
+read -p "Continuer? (y/n): " ir
 
-if [ "$confirm" != "oui" ]; then
+if [ "$confirm" =~ ^[Yy]$ ]; then
     echo -e "${RED}❌ Initialisation annulée${NC}"
     exit 1
 fi
@@ -48,7 +48,6 @@ echo -e "\n${YELLOW}📁 Création des dossiers...${NC}"
 mkdir -p backups
 mkdir -p logs
 
-# Vérifier si Docker est installé
 if ! command -v docker &> /dev/null; then
     echo -e "${RED}❌ Docker n'est pas installé!${NC}"
     exit 1
@@ -59,16 +58,14 @@ if ! command -v docker-compose &> /dev/null; then
     exit 1
 fi
 
-# Arrêter les services existants s'ils existent
 echo -e "\n${YELLOW}🛑 Arrêt des services existants...${NC}"
 docker-compose -f docker-compose.prod.yml down 2>/dev/null || true
 
-# Nettoyer les volumes si première installation
 echo -e "\n${YELLOW}❓ Est-ce une installation complètement nouvelle?${NC}"
 echo "   (Répondre 'oui' supprimera toutes les données existantes!)"
-read -p "Nouvelle installation? (oui/non): " new_install
+read -p "Nouvelle installation? (y/n): " new_install
 
-if [ "$new_install" = "oui" ]; then
+if [ "$new_install" =~ ^[Yy]$ ]; then
     echo -e "${YELLOW}🗑️  Suppression des volumes existants...${NC}"
     docker-compose -f docker-compose.prod.yml down -v 2>/dev/null || true
     docker volume rm infra-control_postgres-data 2>/dev/null || true

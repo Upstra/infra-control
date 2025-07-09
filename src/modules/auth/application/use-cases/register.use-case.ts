@@ -57,6 +57,8 @@ export class RegisterUseCase {
       userId: user.id,
       email: user.email,
       isTwoFactorEnabled: user.isTwoFactorEnabled,
+      isActive: user.isActive,
+      roles: user.roles,
     });
   }
 }

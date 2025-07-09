@@ -11,13 +11,14 @@ import {
   Query,
   UseGuards,
   UseFilters,
-  Req,
 } from '@nestjs/common';
 import { VmCreationDto } from '../dto/vm.creation.dto';
 import { VmResponseDto } from '../dto/vm.response.dto';
 import { VmListResponseDto } from '../dto/vm.list.response.dto';
 import { VmEndpointInterface } from '../interfaces/vm.endpoint.interface';
 import { VmUpdateDto } from '../dto/vm.update.dto';
+import { CheckVmPermissionDto } from '../dto/check-vm-permission.dto';
+import { VmPermissionCheckResponseDto } from '../dto/permission-check.response.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -32,9 +33,11 @@ import {
   DeleteVmUseCase,
   GetVmListUseCase,
   GetAllVmsUseCase,
+  GetAllVmsAdminUseCase,
   GetVmByIdUseCase,
   UpdateVmUseCase,
   UpdateVmPriorityUseCase,
+  CheckVmPermissionUseCase,
 } from '@/modules/vms/application/use-cases';
 import { UpdatePriorityDto } from '../../../priorities/application/dto/update-priority.dto';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
@@ -44,20 +47,43 @@ import { PermissionBit } from '@/modules/permissions/domain/value-objects/permis
 import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.exception.filter';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
-import { RequestContextDto } from '@/core/dto';
+import { LogToHistory } from '@/core/decorators/logging-context.decorator';
+import { RoleGuard } from '@/core/guards/role.guard';
+import { RequireRole } from '@/core/decorators/role.decorator';
 
 @ApiTags('VM')
 @Controller('vm')
 export class VmController implements VmEndpointInterface {
   constructor(
     private readonly getAllVmsUseCase: GetAllVmsUseCase,
+    private readonly getAllVmsAdminUseCase: GetAllVmsAdminUseCase,
     private readonly getVmListUseCase: GetVmListUseCase,
     private readonly getVmByIdUseCase: GetVmByIdUseCase,
     private readonly createVmUseCase: CreateVmUseCase,
     private readonly updateVmUseCase: UpdateVmUseCase,
     private readonly deleteVmUseCase: DeleteVmUseCase,
     private readonly updateVmPriorityUseCase: UpdateVmPriorityUseCase,
+    private readonly checkVmPermissionUseCase: CheckVmPermissionUseCase,
   ) {}
+
+  @Get('admin/all')
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
+  @ApiOperation({
+    summary: 'Lister toutes les VMs',
+    description:
+      'Renvoie la liste de toutes les machines virtuelles enregistrées dans le système. Nécessite le rôle admin.',
+  })
+  @ApiResponse({ status: 200, type: [VmResponseDto] })
+  @ApiResponse({
+    status: 403,
+    description: 'Accès refusé - Rôle admin requis',
+  })
+  async getAllVmsAdmin(): Promise<VmResponseDto[]> {
+    return this.getAllVmsAdminUseCase.execute();
+  }
 
   @Get()
   @UseGuards(JwtAuthGuard)
@@ -124,13 +150,17 @@ export class VmController implements VmEndpointInterface {
       'Crée une machine virtuelle sur un serveur spécifique. Nécessite la permission WRITE sur le serveur hôte.',
   })
   @ApiResponse({ status: 201, type: VmResponseDto })
-  async createVm(
-    @Body() vmDto: VmCreationDto,
-    @CurrentUser() user: JwtPayload,
-    @Req() req: any,
-  ): Promise<VmResponseDto> {
-    const requestContext = RequestContextDto.fromRequest(req);
-    return this.createVmUseCase.execute(vmDto, user.userId, requestContext);
+  @LogToHistory('vm', 'CREATE', {
+    extractMetadata: (data) => ({
+      vmType: 'virtual',
+      operatingSystem: data.os,
+      serverId: data.serverId,
+      assignedToGroup: !!data.groupId,
+      priority: data.priority,
+    }),
+  })
+  async createVm(@Body() vmDto: VmCreationDto): Promise<VmResponseDto> {
+    return this.createVmUseCase.execute(vmDto);
   }
 
   @UseGuards(JwtAuthGuard, ResourcePermissionGuard)
@@ -248,5 +278,39 @@ export class VmController implements VmEndpointInterface {
   })
   async deleteVm(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.deleteVmUseCase.execute(id);
+  }
+
+  @Post('check')
+  @UseGuards(JwtAuthGuard)
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Check user permission on a VM',
+    description:
+      'Checks if the current user has a specific permission on a given VM.',
+  })
+  @ApiBody({
+    type: CheckVmPermissionDto,
+    description: 'VM ID and permission to check',
+    required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    type: VmPermissionCheckResponseDto,
+    description: 'Permission check result',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'VM not found',
+  })
+  async checkPermission(
+    @Body() dto: CheckVmPermissionDto,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<VmPermissionCheckResponseDto> {
+    return this.checkVmPermissionUseCase.execute(
+      dto.vmId,
+      user.userId,
+      dto.permission,
+    );
   }
 }

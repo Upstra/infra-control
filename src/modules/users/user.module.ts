@@ -12,7 +12,12 @@ import { AuditModule } from '../audit/audit.module';
 @Global()
 @Module({
   controllers: [UserController],
-  exports: [...UserUseCase, UserDomainService, 'UserRepositoryInterface', UserTypeormRepository],
+  exports: [
+    ...UserUseCase,
+    UserDomainService,
+    'UserRepositoryInterface',
+    UserTypeormRepository,
+  ],
   imports: [
     TypeOrmModule.forFeature([User]),
     forwardRef(() => RoleModule),

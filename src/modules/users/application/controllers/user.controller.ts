@@ -6,6 +6,7 @@ import {
   Param,
   ParseUUIDPipe,
   Patch,
+  Post,
   Query,
   UseGuards,
   Req,
@@ -27,8 +28,10 @@ import { RequestContextDto } from '@/core/dto';
 
 import { UserResponseDto } from '../dto/user.response.dto';
 import { UserListResponseDto } from '../dto/user.list.response.dto';
-
+import { UserCreateDto } from '../dto/user.create.dto';
 import { UserUpdateDto } from '../dto/user.update.dto';
+import { UpdateAccountDto } from '../dto/update-account.dto';
+import { BulkActivateDto } from '../dto/bulk-activate.dto';
 
 import {
   GetMeUseCase,
@@ -38,8 +41,19 @@ import {
   UpdateUserUseCase,
   DeleteUserUseCase,
   ResetPasswordUseCase,
+  SoftDeleteUserUseCase,
+  ToggleUserStatusUseCase,
+  UpdateAccountUseCase,
+  BulkActivateUseCase,
+  CreateUserByAdminUseCase,
 } from '../use-cases';
 import { ResetPasswordDto } from '../dto';
+import {
+  DeleteAccountDto,
+  DeleteAccountResponseDto,
+} from '../dto/delete-account.dto';
+import { RequireRole } from '@/core/decorators/role.decorator';
+import { RoleGuard } from '@/core/guards/role.guard';
 
 @ApiTags('User')
 @Controller('user')
@@ -52,6 +66,11 @@ export class UserController {
     private readonly updateUserUseCase: UpdateUserUseCase,
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
     private readonly deleteUserUseCase: DeleteUserUseCase,
+    private readonly softDeleteUserUseCase: SoftDeleteUserUseCase,
+    private readonly toggleUserStatusUseCase: ToggleUserStatusUseCase,
+    private readonly updateAccountUseCase: UpdateAccountUseCase,
+    private readonly bulkActivateUseCase: BulkActivateUseCase,
+    private readonly createUserByAdminUseCase: CreateUserByAdminUseCase,
   ) {}
 
   @Get('me')
@@ -227,5 +246,190 @@ export class UserController {
   @ApiResponse({ status: 204, description: 'Utilisateur supprimé avec succès' })
   async deleteUser(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.deleteUserUseCase.execute(id);
+  }
+
+  @Patch(':id/delete-account')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: "UUID de l'utilisateur à supprimer (soft delete)",
+    required: true,
+  })
+  @ApiBody({
+    type: DeleteAccountDto,
+    description: 'Données optionnelles pour la suppression',
+    required: false,
+  })
+  @ApiOperation({
+    summary: 'Supprimer un compte utilisateur (soft delete)',
+    description:
+      'Effectue une suppression logique du compte utilisateur. Admin uniquement.',
+  })
+  @ApiResponse({
+    status: 200,
+    type: DeleteAccountResponseDto,
+    description: 'Compte utilisateur supprimé avec succès',
+  })
+  async deleteAccount(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: DeleteAccountDto,
+    @CurrentUser() admin: JwtPayload,
+    @Req() req: any,
+  ): Promise<DeleteAccountResponseDto> {
+    const requestContext = RequestContextDto.fromRequest(req);
+
+    await this.softDeleteUserUseCase.execute(
+      id,
+      admin.userId,
+      dto.reason,
+      dto.details,
+      requestContext.ipAddress,
+      requestContext.userAgent,
+    );
+
+    return {
+      success: true,
+      message: 'User account has been deleted',
+    };
+  }
+
+  @Patch(':id/toggle-status')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: "UUID de l'utilisateur à activer/désactiver",
+    required: true,
+  })
+  @ApiBody({
+    type: Object,
+    description: 'Body optionnel',
+    required: false,
+  })
+  @ApiOperation({
+    summary: 'Activer/Désactiver un utilisateur',
+    description:
+      "Change le statut actif/inactif d'un utilisateur. Admin uniquement.",
+  })
+  @ApiResponse({
+    status: 200,
+    type: UserResponseDto,
+    description: 'Statut utilisateur modifié avec succès',
+  })
+  async toggleUserStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() admin: JwtPayload,
+    @Req() req: any,
+  ): Promise<UserResponseDto> {
+    const requestContext = RequestContextDto.fromRequest(req);
+
+    return this.toggleUserStatusUseCase.execute({
+      targetUserId: id,
+      adminId: admin.userId,
+      requestContext: {
+        ip: requestContext.ipAddress,
+        userAgent: requestContext.userAgent,
+      },
+    });
+  }
+
+  @Patch(':id/update-account')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: "UUID de l'utilisateur à mettre à jour",
+    required: true,
+  })
+  @ApiBody({
+    type: UpdateAccountDto,
+    description: 'Données pour mettre à jour le compte utilisateur',
+    required: true,
+  })
+  @ApiOperation({
+    summary: 'Mettre à jour un compte utilisateur (admin)',
+    description:
+      "Permet à un administrateur de mettre à jour les informations d'un compte utilisateur.",
+  })
+  @ApiResponse({
+    status: 200,
+    type: UserResponseDto,
+    description: 'Compte utilisateur mis à jour avec succès',
+  })
+  async updateAccount(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateAccountDto: UpdateAccountDto,
+  ): Promise<UserResponseDto> {
+    return this.updateAccountUseCase.execute(id, updateAccountDto);
+  }
+
+  @Patch('bulk-activate')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
+  @ApiBearerAuth()
+  @ApiBody({
+    type: BulkActivateDto,
+    description: 'Liste des IDs utilisateurs à activer',
+    required: true,
+  })
+  @ApiOperation({
+    summary: 'Activer plusieurs utilisateurs (admin)',
+    description:
+      "Permet à un administrateur d'activer plusieurs utilisateurs en une seule opération.",
+  })
+  @ApiResponse({
+    status: 200,
+    type: [UserResponseDto],
+    description: 'Utilisateurs activés avec succès',
+  })
+  async bulkActivateUsers(
+    @Body() bulkActivateDto: BulkActivateDto,
+  ): Promise<UserResponseDto[]> {
+    return this.bulkActivateUseCase.execute(bulkActivateDto);
+  }
+
+  @Post('admin/create')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
+  @ApiBearerAuth()
+  @ApiBody({
+    type: UserCreateDto,
+    description: 'Données pour créer un nouvel utilisateur',
+    required: true,
+  })
+  @ApiOperation({
+    summary: 'Créer un nouvel utilisateur (admin)',
+    description:
+      "Permet à un administrateur de créer un nouvel utilisateur avec des rôles spécifiques.",
+  })
+  @ApiResponse({
+    status: 201,
+    type: UserResponseDto,
+    description: 'Utilisateur créé avec succès',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Username ou email déjà existant',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Données invalides',
+  })
+  async createUser(
+    @Body() createUserDto: UserCreateDto,
+    @CurrentUser() admin: JwtPayload,
+  ): Promise<UserResponseDto> {
+    const user = await this.createUserByAdminUseCase.execute(
+      createUserDto,
+      admin.userId,
+    );
+    return UserResponseDto.fromEntity(user);
   }
 }

@@ -3,7 +3,10 @@ import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.
 import { UserDomainService } from '@/modules/users/domain/services/user.domain.service';
 import { User } from '@/modules/users/domain/entities/user.entity';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
-import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
+import {
+  UserExceptions,
+  UserNotFoundException,
+} from '@/modules/users/domain/exceptions/user.exception';
 describe('ResetPasswordUseCase', () => {
   let useCase: ResetPasswordUseCase;
   let repo: jest.Mocked<UserRepositoryInterface>;
@@ -59,12 +62,12 @@ describe('ResetPasswordUseCase', () => {
 
   it('should throw if user is not found', async () => {
     repo.findOneByField.mockRejectedValue(
-      new UserNotFoundException('invalid-id'),
+      UserExceptions.notFound('invalid-id'),
     );
 
     await expect(
       useCase.execute('invalid-id', { newPassword: '123456' }),
-    ).rejects.toThrow("Utilisateur avec l'ID invalid-id introuvable.");
+    ).rejects.toThrow(UserNotFoundException);
   });
 
   it('should throw if password hashing fails', async () => {

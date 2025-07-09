@@ -3,19 +3,20 @@ import { PermissionVmDto } from '../../dto/permission.vm.dto';
 import { PermissionVmRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.vm.repository.interface';
 
 /**
- * Fetches VM permissions for a given list of VM IDs.
+ * Fetches VM permission for a specific VM and role.
  *
  * Responsibilities:
- * - Validate the array of VM UUIDs.
- * - Delegate to PermissionDomainVmService to load each permission entry.
+ * - Validate the VM and role UUIDs.
+ * - Retrieve the permission entry from the repository.
  *
- * @param vmIds  Array of VM UUIDs to retrieve permissions for.
- * @returns       Promise<PermissionVmDto[]> corresponding permission DTOs.
+ * @param vmId    VM UUID to retrieve permission for.
+ * @param roleId  Role UUID to retrieve permission for.
+ * @returns       Promise<PermissionVmDto> corresponding permission DTO.
  *
- * @throws {NotFoundException} if any VM ID is invalid or missing.
+ * @throws {NotFoundException} if VM ID or role ID is invalid or missing.
  *
  * @example
- * const perms = await getPermissionVmByIdsUseCase.execute(['vm1','vm2']);
+ * const perm = await getPermissionVmByIdsUseCase.execute('vm1', 'role1');
  */
 
 @Injectable()
@@ -25,11 +26,8 @@ export class GetPermissionVmByIdsUseCase {
     private readonly repository: PermissionVmRepositoryInterface,
   ) {}
 
-  async execute(dto: PermissionVmDto): Promise<PermissionVmDto> {
-    const permission = await this.repository.findPermissionByIds(
-      dto.vmId,
-      dto.roleId,
-    );
-    return new PermissionVmDto(permission);
+  async execute(vmId: string, roleId: string): Promise<PermissionVmDto> {
+    const permission = await this.repository.findPermissionByIds(vmId, roleId);
+    return PermissionVmDto.fromEntity(permission);
   }
 }

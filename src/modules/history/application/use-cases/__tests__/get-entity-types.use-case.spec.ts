@@ -10,12 +10,14 @@ describe('GetHistoryEntityTypesUseCase', () => {
   beforeEach(async () => {
     mockHistoryRepository = {
       findDistinctEntityTypes: jest.fn(),
+      findDistinctActionTypes: jest.fn(),
       count: jest.fn(),
       save: jest.fn(),
       findAll: jest.fn(),
       findOneByField: jest.fn(),
       countCreatedByMonth: jest.fn(),
       paginate: jest.fn(),
+      getStats: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
