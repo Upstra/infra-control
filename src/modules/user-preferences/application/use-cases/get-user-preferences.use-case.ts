@@ -1,7 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { UserPreference } from '../../domain/entities/user-preference.entity';
 import { IUserPreferencesRepository } from '../../domain/interfaces/user-preferences.repository.interface';
-import { UserPreferencesExceptions } from '../../domain/exceptions/user-preferences.exception';
 
 @Injectable()
 export class GetUserPreferencesUseCase {
@@ -11,7 +10,8 @@ export class GetUserPreferencesUseCase {
   ) {}
 
   async execute(userId: string): Promise<UserPreference> {
-    const preferences = await this.userPreferencesRepository.findByUserId(userId);
+    const preferences =
+      await this.userPreferencesRepository.findByUserId(userId);
 
     if (!preferences) {
       const defaultPreferences = UserPreference.createDefault(userId);

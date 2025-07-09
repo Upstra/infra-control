@@ -28,7 +28,7 @@ export class ResetUserPreferencesUseCase {
 
     try {
       return await this.userPreferencesRepository.update(preferences);
-    } catch (error) {
+    } catch {
       throw UserPreferencesExceptions.failedToReset();
     }
   }
