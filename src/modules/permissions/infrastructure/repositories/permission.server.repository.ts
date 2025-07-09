@@ -102,6 +102,10 @@ export class PermissionServerRepository
     await super.delete({ serverId, roleId });
   }
 
+  async deleteById(id: string): Promise<void> {
+    await this.delete({ id });
+  }
+
   async deleteByRoleAndServerIds(
     roleId: string,
     serverIds: string[],

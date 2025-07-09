@@ -96,4 +96,8 @@ export class PermissionVmRepository
     await this.findPermissionByIds(vmId, roleId);
     await this.delete({ vmId, roleId });
   }
+
+  async deleteById(id: string): Promise<void> {
+    await this.delete({ id });
+  }
 }

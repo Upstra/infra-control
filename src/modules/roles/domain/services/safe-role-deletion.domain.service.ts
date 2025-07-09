@@ -113,25 +113,15 @@ export class SafeRoleDeletionDomainService {
     const deletePromises: Promise<void>[] = [];
 
     for (const permission of vmPermissions) {
-      if (permission.vmId) {
-        deletePromises.push(
-          this.permissionVmRepository.deletePermission(
-            permission.vmId,
-            roleId,
-          ),
-        );
-      }
+      deletePromises.push(
+        this.permissionVmRepository.deleteById(permission.id),
+      );
     }
 
     for (const permission of serverPermissions) {
-      if (permission.serverId) {
-        deletePromises.push(
-          this.permissionServerRepository.deletePermission(
-            permission.serverId,
-            roleId,
-          ),
-        );
-      }
+      deletePromises.push(
+        this.permissionServerRepository.deleteById(permission.id),
+      );
     }
 
     await Promise.all(deletePromises);

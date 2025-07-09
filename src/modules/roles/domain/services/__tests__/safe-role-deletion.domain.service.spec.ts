@@ -35,11 +35,13 @@ describe('SafeRoleDeletionDomainService', () => {
     permissionVmRepo = {
       findAllByField: jest.fn(),
       deletePermission: jest.fn(),
+      deleteById: jest.fn(),
     } as any;
 
     permissionServerRepo = {
       findAllByField: jest.fn(),
       deletePermission: jest.fn(),
+      deleteById: jest.fn(),
     } as any;
 
     service = new SafeRoleDeletionDomainService(
@@ -360,12 +362,12 @@ describe('SafeRoleDeletionDomainService', () => {
 
       await service.safelyDeleteRole(roleId);
 
-      expect(permissionVmRepo.deletePermission).toHaveBeenCalledTimes(2);
-      expect(permissionVmRepo.deletePermission).toHaveBeenCalledWith('vm1', roleId);
-      expect(permissionVmRepo.deletePermission).toHaveBeenCalledWith('vm2', roleId);
+      expect(permissionVmRepo.deleteById).toHaveBeenCalledTimes(2);
+      expect(permissionVmRepo.deleteById).toHaveBeenCalledWith('perm1');
+      expect(permissionVmRepo.deleteById).toHaveBeenCalledWith('perm2');
       
-      expect(permissionServerRepo.deletePermission).toHaveBeenCalledTimes(1);
-      expect(permissionServerRepo.deletePermission).toHaveBeenCalledWith('server1', roleId);
+      expect(permissionServerRepo.deleteById).toHaveBeenCalledTimes(1);
+      expect(permissionServerRepo.deleteById).toHaveBeenCalledWith('perm3');
       
       expect(roleRepo.deleteRole).toHaveBeenCalledWith(roleId);
     });
@@ -394,10 +396,12 @@ describe('SafeRoleDeletionDomainService', () => {
 
       await service.safelyDeleteRole(roleId);
 
-      expect(permissionVmRepo.deletePermission).toHaveBeenCalledTimes(1);
-      expect(permissionVmRepo.deletePermission).toHaveBeenCalledWith('vm1', roleId);
+      expect(permissionVmRepo.deleteById).toHaveBeenCalledTimes(2);
+      expect(permissionVmRepo.deleteById).toHaveBeenCalledWith('perm1');
+      expect(permissionVmRepo.deleteById).toHaveBeenCalledWith('perm2');
       
-      expect(permissionServerRepo.deletePermission).not.toHaveBeenCalled();
+      expect(permissionServerRepo.deleteById).toHaveBeenCalledTimes(1);
+      expect(permissionServerRepo.deleteById).toHaveBeenCalledWith('perm3');
       
       expect(roleRepo.deleteRole).toHaveBeenCalledWith(roleId);
     });
