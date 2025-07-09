@@ -68,7 +68,7 @@ describe('UpdateUserPreferencesUseCase', () => {
       const updatedPreferences = {
         ...existingPreferences,
         ...updateDto,
-      };
+      } as UserPreference;
 
       mockRepository.findByUserId.mockResolvedValue(existingPreferences);
       mockRepository.update.mockResolvedValue(updatedPreferences);
@@ -237,8 +237,8 @@ describe('UpdateUserPreferencesUseCase', () => {
       const result = await useCase.execute(userId, updateDto);
 
       expect(result.theme).toBe('light');
-      expect(result.locale).toBe('fr'); // unchanged
-      expect(result.timezone).toBe('UTC'); // unchanged
+      expect(result.locale).toBe(existingPreferences.locale); // unchanged
+      expect(result.timezone).toBe(existingPreferences.timezone); // unchanged
       expect(result.notifications).toEqual(existingPreferences.notifications); // unchanged
     });
   });

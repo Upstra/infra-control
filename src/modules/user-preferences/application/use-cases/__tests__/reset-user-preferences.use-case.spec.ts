@@ -64,8 +64,8 @@ describe('ResetUserPreferencesUseCase', () => {
 
       const resetPreferences = {
         ...existingPreferences,
-        locale: 'fr',
-        theme: 'dark',
+        locale: 'fr' as const,
+        theme: 'dark' as const,
         timezone: 'UTC',
         notifications: {
           server: true,
@@ -74,8 +74,8 @@ describe('ResetUserPreferencesUseCase', () => {
           push: true,
         },
         display: {
-          defaultUserView: 'table',
-          defaultServerView: 'grid',
+          defaultUserView: 'table' as const,
+          defaultServerView: 'grid' as const,
           compactMode: false,
         },
         integrations: {},
@@ -83,7 +83,7 @@ describe('ResetUserPreferencesUseCase', () => {
           autoRefresh: true,
           refreshInterval: 60,
         },
-      };
+      } as UserPreference;
 
       mockRepository.findByUserId.mockResolvedValue(existingPreferences);
       mockRepository.update.mockResolvedValue(resetPreferences);

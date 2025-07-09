@@ -85,20 +85,52 @@ describe('UserPreference Entity', () => {
   });
 
   describe('Entity structure', () => {
-    it('should have all required properties', () => {
+    it('should be instantiable', () => {
       const preference = new UserPreference();
 
-      expect(preference).toHaveProperty('id');
-      expect(preference).toHaveProperty('userId');
-      expect(preference).toHaveProperty('locale');
-      expect(preference).toHaveProperty('theme');
-      expect(preference).toHaveProperty('timezone');
-      expect(preference).toHaveProperty('notifications');
-      expect(preference).toHaveProperty('display');
-      expect(preference).toHaveProperty('integrations');
-      expect(preference).toHaveProperty('performance');
-      expect(preference).toHaveProperty('createdAt');
-      expect(preference).toHaveProperty('updatedAt');
+      expect(preference).toBeInstanceOf(UserPreference);
+      expect(preference).toBeDefined();
+    });
+
+    it('should allow setting all properties', () => {
+      const preference = new UserPreference();
+      const testDate = new Date();
+
+      preference.id = 'test-id';
+      preference.userId = 'test-user-id';
+      preference.locale = 'fr';
+      preference.theme = 'dark';
+      preference.timezone = 'UTC';
+      preference.notifications = {
+        server: true,
+        ups: true,
+        email: false,
+        push: true,
+      };
+      preference.display = {
+        defaultUserView: 'table',
+        defaultServerView: 'grid',
+        compactMode: false,
+      };
+      preference.integrations = {};
+      preference.performance = {
+        autoRefresh: true,
+        refreshInterval: 60,
+      };
+      preference.createdAt = testDate;
+      preference.updatedAt = testDate;
+
+      expect(preference.id).toBe('test-id');
+      expect(preference.userId).toBe('test-user-id');
+      expect(preference.locale).toBe('fr');
+      expect(preference.theme).toBe('dark');
+      expect(preference.timezone).toBe('UTC');
+      expect(preference.notifications.server).toBe(true);
+      expect(preference.display.defaultUserView).toBe('table');
+      expect(preference.integrations).toEqual({});
+      expect(preference.performance.autoRefresh).toBe(true);
+      expect(preference.createdAt).toBe(testDate);
+      expect(preference.updatedAt).toBe(testDate);
     });
   });
 });

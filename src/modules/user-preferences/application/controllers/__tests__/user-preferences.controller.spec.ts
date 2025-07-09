@@ -140,8 +140,8 @@ describe('UserPreferencesController', () => {
 
       const updatedPreferences = {
         ...mockPreferences,
-        locale: 'en',
-        theme: 'light',
+        locale: 'en' as const,
+        theme: 'light' as const,
       };
 
       mockUpdateUseCase.execute.mockResolvedValue(updatedPreferences);
