@@ -70,7 +70,7 @@ describe('UpdateUserRolesUseCase', () => {
         roles: [existingRole, newRole],
       });
 
-      const result = await useCase.execute(
+      await useCase.execute(
         userId,
         roleId,
         undefined,
@@ -114,7 +114,7 @@ describe('UpdateUserRolesUseCase', () => {
         roles: [remainingRole],
       });
 
-      const result = await useCase.execute(
+      await useCase.execute(
         userId,
         roleId,
         undefined,
@@ -175,7 +175,7 @@ describe('UpdateUserRolesUseCase', () => {
         roles: [guestRole],
       });
 
-      const result = await useCase.execute(userId, roleId, undefined);
+      await useCase.execute(userId, roleId, undefined);
 
       expect(user.roles).toEqual([guestRole]);
       expect(userRepo.save).toHaveBeenCalledWith(user);
@@ -217,7 +217,7 @@ describe('UpdateUserRolesUseCase', () => {
         roles: [userRole],
       });
 
-      const result = await useCase.execute(userId, roleId, undefined);
+      await useCase.execute(userId, roleId, undefined);
 
       expect(user.roles).toEqual([userRole]);
       expect(userRepo.save).toHaveBeenCalledWith(user);
@@ -246,7 +246,7 @@ describe('UpdateUserRolesUseCase', () => {
         roles: [adminRole2, userRole],
       });
 
-      const result = await useCase.execute(userId, roleId, undefined);
+      await useCase.execute(userId, roleId, undefined);
 
       expect(user.roles).toEqual([adminRole2, userRole]);
       expect(userRepo.save).toHaveBeenCalledWith(user);
@@ -301,7 +301,7 @@ describe('UpdateUserRolesUseCase', () => {
         roles: newRoles,
       });
 
-      const result = await useCase.execute(
+      await useCase.execute(
         userId,
         undefined,
         roleIds,
@@ -494,13 +494,11 @@ describe('UpdateUserRolesUseCase', () => {
         roles: [newRole],
       });
 
-      const result = await useCaseWithoutHistory.execute(
+      await useCaseWithoutHistory.execute(
         userId,
         roleId,
         undefined,
       );
-
-      expect(result).toBeDefined();
       expect(userRepo.save).toHaveBeenCalled();
     });
   });
