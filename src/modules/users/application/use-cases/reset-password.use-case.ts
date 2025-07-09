@@ -1,8 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UserRepositoryInterface } from '../../domain/interfaces/user.repository.interface';
 import { UserDomainService } from '../../domain/services/user.domain.service';
 import { ResetPasswordDto, UserResponseDto } from '../dto';
-import { SendPasswordChangedEmailUseCase } from '@/modules/email/application/use-cases/send-password-changed-email.use-case';
+import { EmailEventType } from '@/modules/email/domain/events/email.events';
 
 /**
  * Resets a user’s password given a valid reset token and new credentials.
@@ -28,7 +29,7 @@ export class ResetPasswordUseCase {
     @Inject('UserRepositoryInterface')
     private readonly repo: UserRepositoryInterface,
     private readonly userDomainService: UserDomainService,
-    private readonly sendPasswordChangedEmailUseCase?: SendPasswordChangedEmailUseCase,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async execute(id: string, dto: ResetPasswordDto): Promise<UserResponseDto> {
@@ -39,10 +40,10 @@ export class ResetPasswordUseCase {
     user.password = await this.userDomainService.hashPassword(dto.newPassword);
     const updatedUser = await this.repo.save(user);
     
-    await this.sendPasswordChangedEmailUseCase?.execute(
-      updatedUser.email,
-      updatedUser.firstName || updatedUser.username,
-    );
+    this.eventEmitter.emit(EmailEventType.PASSWORD_CHANGED, {
+      email: updatedUser.email,
+      firstname: updatedUser.firstName || updatedUser.username,
+    });
     
     return new UserResponseDto(updatedUser);
   }

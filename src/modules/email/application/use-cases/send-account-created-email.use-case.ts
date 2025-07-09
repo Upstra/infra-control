@@ -15,7 +15,7 @@ export class SendAccountCreatedEmailUseCase {
     dto.to = new EmailAddressVO(email);
     dto.subject = 'Bienvenue sur Upstra !';
     dto.template = 'account-created';
-    dto.context = { prenom: firstname };
+    dto.context = { prenom: firstname, email };
     await this.mailService.send(dto);
   }
 }

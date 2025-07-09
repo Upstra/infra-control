@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { RegisterDto } from '../dto/register.dto';
 import { RegisterUserUseCase } from '@/modules/users/application/use-cases';
 import { TokenService } from '../services/token.service';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 import { RequestContextDto } from '@/core/dto';
-import { SendAccountCreatedEmailUseCase } from '@/modules/email/application/use-cases/send-account-created-email.use-case';
+import { EmailEventType } from '@/modules/email/domain/events/email.events';
 
 /**
  * Registers a new user account and issues authentication tokens.
@@ -29,8 +30,8 @@ export class RegisterUseCase {
   constructor(
     private readonly registerUserUseCase: RegisterUserUseCase,
     private readonly tokenService: TokenService,
+    private readonly eventEmitter: EventEmitter2,
     private readonly logHistory?: LogHistoryUseCase,
-    private readonly sendAccountCreatedEmailUseCase?: SendAccountCreatedEmailUseCase,
   ) {}
 
   async execute(dto: RegisterDto, requestContext?: RequestContextDto) {
@@ -51,10 +52,10 @@ export class RegisterUseCase {
       userAgent: requestContext?.userAgent,
     });
 
-    await this.sendAccountCreatedEmailUseCase?.execute(
-      dto.email,
-      dto.firstName,
-    );
+    this.eventEmitter.emit(EmailEventType.ACCOUNT_CREATED, {
+      email: dto.email,
+      firstname: dto.firstName ?? user.username,
+    });
 
     return this.tokenService.generateTokens({
       userId: user.id,

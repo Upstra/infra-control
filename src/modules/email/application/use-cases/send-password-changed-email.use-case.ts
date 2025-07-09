@@ -15,7 +15,15 @@ export class SendPasswordChangedEmailUseCase {
     dto.to = new EmailAddressVO(email);
     dto.subject = 'Votre mot de passe a été changé';
     dto.template = 'password-changed';
-    dto.context = { prenom: firstname };
+    dto.context = { 
+      prenom: firstname, 
+      email,
+      changeDate: new Date().toLocaleDateString('fr-FR'),
+      changeTime: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+      ipAddress: '127.0.0.1', // TODO: Passer l'IP réelle
+      userAgent: 'Navigateur web', // TODO: Passer le user agent réel
+      location: 'France' // TODO: Déterminer la localisation réelle
+    };
     await this.mailService.send(dto);
   }
 }

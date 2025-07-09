@@ -8,7 +8,6 @@ import { RoleModule } from '../roles/role.module';
 import { UserUseCase } from './application/use-cases';
 import { SetupModule } from '../setup/setup.module';
 import { AuditModule } from '../audit/audit.module';
-import { EmailApplicationModule } from '../email/application/email-application.module';
 
 @Global()
 @Module({
@@ -24,7 +23,6 @@ import { EmailApplicationModule } from '../email/application/email-application.m
     forwardRef(() => RoleModule),
     forwardRef(() => SetupModule),
     AuditModule,
-    EmailApplicationModule,
   ],
   providers: [
     ...UserUseCase,

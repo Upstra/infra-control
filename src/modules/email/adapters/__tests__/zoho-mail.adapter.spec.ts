@@ -48,7 +48,12 @@ describe('ZohoMailAdapter', () => {
         to: 'test@example.com',
         subject: 'Test Subject',
         template: 'account-created',
-        context: { name: 'John' },
+        context: {
+          name: 'John',
+          logoUrl: 'https://github.com/Upstra/.github/blob/dcd1f2dc99276f0fd22eea7b8dd7f35902c562cc/PA2025%20Upstra%20Logo.png?raw=true',
+          loginUrl: 'http://localhost:3000',
+          currentYear: new Date().getFullYear(),
+        },
       });
     });
 
@@ -67,7 +72,12 @@ describe('ZohoMailAdapter', () => {
         to: 'user1@example.com',
         subject: 'Multi-recipient Test',
         template: 'password-changed',
-        context: { message: 'Hello everyone' },
+        context: {
+          message: 'Hello everyone',
+          logoUrl: 'https://github.com/Upstra/.github/blob/dcd1f2dc99276f0fd22eea7b8dd7f35902c562cc/PA2025%20Upstra%20Logo.png?raw=true',
+          loginUrl: 'http://localhost:3000',
+          currentYear: new Date().getFullYear(),
+        },
       });
     });
 
@@ -136,7 +146,11 @@ describe('ZohoMailAdapter', () => {
         to: 'test@example.com',
         subject: 'No Context Email',
         template: 'reset-password',
-        context: {},
+        context: {
+          logoUrl: 'https://github.com/Upstra/.github/blob/dcd1f2dc99276f0fd22eea7b8dd7f35902c562cc/PA2025%20Upstra%20Logo.png?raw=true',
+          loginUrl: 'http://localhost:3000',
+          currentYear: new Date().getFullYear(),
+        },
       });
     });
 
@@ -165,7 +179,12 @@ describe('ZohoMailAdapter', () => {
         to: 'test@example.com',
         subject: 'Complex Context',
         template: 'account-created',
-        context: dto.context,
+        context: {
+          ...dto.context,
+          logoUrl: 'https://github.com/Upstra/.github/blob/dcd1f2dc99276f0fd22eea7b8dd7f35902c562cc/PA2025%20Upstra%20Logo.png?raw=true',
+          loginUrl: 'http://localhost:3000',
+          currentYear: new Date().getFullYear(),
+        },
       });
     });
   });

@@ -46,7 +46,7 @@ describe('SendAccountCreatedEmailUseCase', () => {
       expect(callArgs.to.value).toBe(email);
       expect(callArgs.subject).toBe('Bienvenue sur Upstra !');
       expect(callArgs.template).toBe('account-created');
-      expect(callArgs.context).toEqual({ prenom: firstname });
+      expect(callArgs.context).toEqual({ prenom: firstname, email });
     });
 
     it('should handle invalid email gracefully', async () => {
@@ -77,7 +77,7 @@ describe('SendAccountCreatedEmailUseCase', () => {
       expect(mockMailService.send).toHaveBeenCalledTimes(1);
       const callArgs = mockMailService.send.mock.calls[0][0] as SendEmailDto;
 
-      expect(callArgs.context).toEqual({ prenom: '' });
+      expect(callArgs.context).toEqual({ prenom: '', email });
     });
   });
 });

@@ -46,7 +46,15 @@ describe('SendPasswordChangedEmailUseCase', () => {
       expect(callArgs.to.value).toBe(email);
       expect(callArgs.subject).toBe('Votre mot de passe a été changé');
       expect(callArgs.template).toBe('password-changed');
-      expect(callArgs.context).toEqual({ prenom: firstname });
+      expect(callArgs.context).toMatchObject({ 
+        prenom: firstname,
+        email,
+        ipAddress: '127.0.0.1',
+        userAgent: 'Navigateur web',
+        location: 'France'
+      });
+      expect(callArgs.context.changeDate).toBeDefined();
+      expect(callArgs.context.changeTime).toBeDefined();
     });
 
     it('should handle invalid email gracefully', async () => {
@@ -77,7 +85,15 @@ describe('SendPasswordChangedEmailUseCase', () => {
       expect(mockMailService.send).toHaveBeenCalledTimes(1);
       const callArgs = mockMailService.send.mock.calls[0][0] as SendEmailDto;
 
-      expect(callArgs.context).toEqual({ prenom: '' });
+      expect(callArgs.context).toMatchObject({ 
+        prenom: '',
+        email,
+        ipAddress: '127.0.0.1',
+        userAgent: 'Navigateur web',
+        location: 'France'
+      });
+      expect(callArgs.context.changeDate).toBeDefined();
+      expect(callArgs.context.changeTime).toBeDefined();
     });
 
     it('should send notification for different users', async () => {
@@ -95,7 +111,15 @@ describe('SendPasswordChangedEmailUseCase', () => {
         const callArgs = mockMailService.send.mock.calls[0][0] as SendEmailDto;
 
         expect(callArgs.to.value).toBe(testCase.email);
-        expect(callArgs.context.prenom).toBe(testCase.firstname);
+        expect(callArgs.context).toMatchObject({
+          prenom: testCase.firstname,
+          email: testCase.email,
+          ipAddress: '127.0.0.1',
+          userAgent: 'Navigateur web',
+          location: 'France'
+        });
+        expect(callArgs.context.changeDate).toBeDefined();
+        expect(callArgs.context.changeTime).toBeDefined();
       }
     });
   });

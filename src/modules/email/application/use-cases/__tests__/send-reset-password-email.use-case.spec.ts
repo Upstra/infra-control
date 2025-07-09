@@ -47,7 +47,13 @@ describe('SendResetPasswordEmailUseCase', () => {
       expect(callArgs.to.value).toBe(email);
       expect(callArgs.subject).toBe('Réinitialisation de votre mot de passe');
       expect(callArgs.template).toBe('reset-password');
-      expect(callArgs.context).toEqual({ prenom: firstname, resetLink });
+      expect(callArgs.context).toMatchObject({ 
+        prenom: firstname,
+        email,
+        resetLink
+      });
+      expect(callArgs.context.requestDate).toBeDefined();
+      expect(callArgs.context.requestTime).toBeDefined();
     });
 
     it('should handle invalid email gracefully', async () => {
@@ -85,7 +91,13 @@ describe('SendResetPasswordEmailUseCase', () => {
       expect(mockMailService.send).toHaveBeenCalledTimes(1);
       const callArgs = mockMailService.send.mock.calls[0][0] as SendEmailDto;
 
-      expect(callArgs.context.resetLink).toBe('');
+      expect(callArgs.context).toMatchObject({
+        prenom: firstname,
+        email,
+        resetLink: ''
+      });
+      expect(callArgs.context.requestDate).toBeDefined();
+      expect(callArgs.context.requestTime).toBeDefined();
     });
 
     it('should handle all parameters correctly', async () => {
@@ -97,8 +109,13 @@ describe('SendResetPasswordEmailUseCase', () => {
 
       const callArgs = mockMailService.send.mock.calls[0][0] as SendEmailDto;
       expect(callArgs.to.value).toBe(email);
-      expect(callArgs.context.prenom).toBe(firstname);
-      expect(callArgs.context.resetLink).toBe(resetLink);
+      expect(callArgs.context).toMatchObject({
+        prenom: firstname,
+        email,
+        resetLink
+      });
+      expect(callArgs.context.requestDate).toBeDefined();
+      expect(callArgs.context.requestTime).toBeDefined();
     });
   });
 });

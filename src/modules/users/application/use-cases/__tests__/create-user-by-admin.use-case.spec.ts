@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CreateUserByAdminUseCase } from '../create-user-by-admin.use-case';
 import { UserRepositoryInterface } from '../../../domain/interfaces/user.repository.interface';
 import { RoleRepositoryInterface } from '@/modules/roles/domain/interfaces/role.repository.interface';
@@ -8,7 +9,7 @@ import { UserCreateDto } from '../../dto/user.create.dto';
 import { User } from '../../../domain/entities/user.entity';
 import { Role } from '@/modules/roles/domain/entities/role.entity';
 import { UserExceptions } from '../../../domain/exceptions/user.exception';
-import { SendAccountCreatedEmailUseCase } from '@/modules/email/application/use-cases/send-account-created-email.use-case';
+import { EmailEventType } from '@/modules/email/domain/events/email.events';
 
 describe('CreateUserByAdminUseCase', () => {
   let useCase: CreateUserByAdminUseCase;
@@ -16,7 +17,7 @@ describe('CreateUserByAdminUseCase', () => {
   let roleRepository: jest.Mocked<RoleRepositoryInterface>;
   let userDomainService: jest.Mocked<UserDomainService>;
   let logHistoryUseCase: jest.Mocked<LogHistoryUseCase>;
-  let emailService: jest.Mocked<SendAccountCreatedEmailUseCase>;
+  let eventEmitter: jest.Mocked<EventEmitter2>;
 
   const mockUser = new User();
   mockUser.id = '123e4567-e89b-12d3-a456-426614174000';
@@ -67,9 +68,9 @@ describe('CreateUserByAdminUseCase', () => {
           },
         },
         {
-          provide: SendAccountCreatedEmailUseCase,
+          provide: EventEmitter2,
           useValue: {
-            execute: jest.fn(),
+            emit: jest.fn(),
           },
         },
       ],
@@ -80,7 +81,7 @@ describe('CreateUserByAdminUseCase', () => {
     roleRepository = module.get('RoleRepositoryInterface');
     userDomainService = module.get(UserDomainService);
     logHistoryUseCase = module.get(LogHistoryUseCase);
-    emailService = module.get(SendAccountCreatedEmailUseCase);
+    eventEmitter = module.get(EventEmitter2);
   });
 
   it('should be defined', () => {
@@ -145,9 +146,12 @@ describe('CreateUserByAdminUseCase', () => {
         ...mockUser,
         roles: [mockRole1, mockRole2],
       });
-      expect(emailService.execute).toHaveBeenCalledWith(
-        mockUser.email,
-        mockUser.firstName,
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        EmailEventType.ACCOUNT_CREATED,
+        {
+          email: mockUser.email,
+          firstname: mockUser.firstName,
+        }
       );
     });
 
@@ -253,7 +257,7 @@ describe('CreateUserByAdminUseCase', () => {
       expect(result.roles).toEqual([mockRole1]);
     });
 
-    it('should send email with username when firstName is not available', async () => {
+    it('should send email event with username when firstName is not available', async () => {
       const dtoWithoutFirstName = { ...dto, firstName: undefined, roleIds: ['role1-id'] };
       const userWithoutFirstName = Object.assign(new User(), { 
         ...mockUser, 
@@ -268,9 +272,12 @@ describe('CreateUserByAdminUseCase', () => {
 
       await useCase.execute(dtoWithoutFirstName, adminId);
 
-      expect(emailService.execute).toHaveBeenCalledWith(
-        userWithoutFirstName.email,
-        userWithoutFirstName.username,
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        EmailEventType.ACCOUNT_CREATED,
+        {
+          email: userWithoutFirstName.email,
+          firstname: userWithoutFirstName.username,
+        }
       );
     });
 
@@ -295,10 +302,8 @@ describe('CreateUserByAdminUseCase', () => {
             useValue: undefined,
           },
           {
-            provide: SendAccountCreatedEmailUseCase,
-            useValue: {
-              execute: jest.fn(),
-            },
+            provide: EventEmitter2,
+            useValue: eventEmitter,
           },
         ],
       }).compile();
@@ -315,49 +320,6 @@ describe('CreateUserByAdminUseCase', () => {
 
       const dtoWithSingleRole = { ...dto, roleIds: ['role1-id'] };
       const result = await useCaseWithoutHistory.execute(dtoWithSingleRole, adminId);
-
-      expect(result).toEqual(mockUser);
-    });
-
-    it('should work without email service', async () => {
-      const moduleWithoutEmail: TestingModule = await Test.createTestingModule({
-        providers: [
-          CreateUserByAdminUseCase,
-          {
-            provide: 'UserRepositoryInterface',
-            useValue: userRepository,
-          },
-          {
-            provide: 'RoleRepositoryInterface',
-            useValue: roleRepository,
-          },
-          {
-            provide: UserDomainService,
-            useValue: userDomainService,
-          },
-          {
-            provide: LogHistoryUseCase,
-            useValue: logHistoryUseCase,
-          },
-          {
-            provide: SendAccountCreatedEmailUseCase,
-            useValue: undefined,
-          },
-        ],
-      }).compile();
-
-      const useCaseWithoutEmail = moduleWithoutEmail.get<CreateUserByAdminUseCase>(
-        CreateUserByAdminUseCase,
-      );
-
-      userRepository.findOneByField.mockResolvedValue(null);
-      roleRepository.findByIds.mockResolvedValue([mockRole1]);
-      userDomainService.createUserEntity.mockResolvedValue(mockUser);
-      userRepository.save.mockResolvedValue(mockUser);
-      userRepository.findById.mockResolvedValue(mockUser);
-
-      const dtoWithSingleRole = { ...dto, roleIds: ['role1-id'] };
-      const result = await useCaseWithoutEmail.execute(dtoWithSingleRole, adminId);
 
       expect(result).toEqual(mockUser);
     });

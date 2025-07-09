@@ -7,12 +7,13 @@ import {
   UserExceptions,
   UserNotFoundException,
 } from '@/modules/users/domain/exceptions/user.exception';
-import { SendPasswordChangedEmailUseCase } from '@/modules/email/application/use-cases/send-password-changed-email.use-case';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EmailEventType } from '@/modules/email/domain/events/email.events';
 describe('ResetPasswordUseCase', () => {
   let useCase: ResetPasswordUseCase;
   let repo: jest.Mocked<UserRepositoryInterface>;
   let domainService: jest.Mocked<UserDomainService>;
-  let emailService: jest.Mocked<SendPasswordChangedEmailUseCase>;
+  let eventEmitter: jest.Mocked<EventEmitter2>;
 
   beforeEach(() => {
     repo = {
@@ -24,11 +25,11 @@ describe('ResetPasswordUseCase', () => {
       hashPassword: jest.fn(),
     } as any;
 
-    emailService = {
-      execute: jest.fn(),
+    eventEmitter = {
+      emit: jest.fn(),
     } as any;
 
-    useCase = new ResetPasswordUseCase(repo, domainService, emailService);
+    useCase = new ResetPasswordUseCase(repo, domainService, eventEmitter);
   });
 
   it('should reset password and return updated user response', async () => {
@@ -65,9 +66,12 @@ describe('ResetPasswordUseCase', () => {
       }),
     );
 
-    expect(emailService.execute).toHaveBeenCalledWith(
-      user.email,
-      user.firstName || user.username,
+    expect(eventEmitter.emit).toHaveBeenCalledWith(
+      EmailEventType.PASSWORD_CHANGED,
+      {
+        email: user.email,
+        firstname: user.firstName || user.username,
+      }
     );
   });
 
@@ -115,13 +119,16 @@ describe('ResetPasswordUseCase', () => {
 
     await useCase.execute('user-id', { newPassword: 'newPassword123' });
 
-    expect(emailService.execute).toHaveBeenCalledWith(
-      user.email,
-      user.username,
+    expect(eventEmitter.emit).toHaveBeenCalledWith(
+      EmailEventType.PASSWORD_CHANGED,
+      {
+        email: user.email,
+        firstname: user.username,
+      }
     );
   });
 
-  it('should work without email service', async () => {
+  it('should emit password changed event', async () => {
     const user = createMockUser();
     const hashedPassword = 'newHashedPassword';
 
@@ -131,16 +138,17 @@ describe('ResetPasswordUseCase', () => {
       Object.assign(new User(), { ...user, password: hashedPassword }),
     );
 
-    const useCaseWithoutEmail = new ResetPasswordUseCase(repo, domainService);
-    const result = await useCaseWithoutEmail.execute('user-id', { 
+    const result = await useCase.execute('user-id', { 
       newPassword: 'newPassword123' 
     });
 
-    expect(result).toEqual(
+    expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
+    expect(eventEmitter.emit).toHaveBeenCalledWith(
+      EmailEventType.PASSWORD_CHANGED,
       expect.objectContaining({
-        id: user.id,
         email: user.email,
-      }),
+        firstname: expect.any(String),
+      })
     );
   });
 });
