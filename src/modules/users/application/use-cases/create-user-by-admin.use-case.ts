@@ -9,6 +9,8 @@ import { UserExceptions } from '../../domain/exceptions/user.exception';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 import { Role } from '@/modules/roles/domain/entities/role.entity';
 import { EmailEventType } from '@/modules/email/domain/events/email.events';
+import { IUserPreferencesRepository } from '@/modules/user-preferences/domain/interfaces/user-preferences.repository.interface';
+import { UserPreference } from '@/modules/user-preferences/domain/entities/user-preference.entity';
 
 /**
  * Creates a new user account by an administrator with specified roles.
@@ -25,6 +27,8 @@ export class CreateUserByAdminUseCase {
     private readonly roleRepo: RoleRepositoryInterface,
     private readonly userDomainService: UserDomainService,
     private readonly eventEmitter: EventEmitter2,
+    @Inject('IUserPreferencesRepository')
+    private readonly userPreferencesRepository?: IUserPreferencesRepository,
     private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
@@ -65,6 +69,12 @@ export class CreateUserByAdminUseCase {
     }
 
     const saved = await this.userRepo.save(user);
+    
+    if (this.userPreferencesRepository) {
+      const defaultPreferences = UserPreference.createDefault(saved.id);
+      await this.userPreferencesRepository.create(defaultPreferences);
+    }
+    
     await this.logHistory?.execute('user', saved.id, 'CREATE', adminId);
 
     this.eventEmitter.emit(EmailEventType.ACCOUNT_CREATED, {
