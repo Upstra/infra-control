@@ -21,7 +21,7 @@ export class UpdateAccountUseCase {
     if (!user) {
       throw UserExceptions.notFound();
     }
-    
+
     const updatedUser = await this.userDomainService.updateAccount(
       user,
       updateData,

@@ -182,7 +182,7 @@ describe('ToggleUserStatusUseCase', () => {
       const savedUser = {
         ...user,
         isActive: true,
-          deletedAt: null,
+        deletedAt: null,
       };
 
       userRepository.findById.mockResolvedValue(user);
@@ -199,7 +199,7 @@ describe('ToggleUserStatusUseCase', () => {
       expect(userRepository.save).toHaveBeenCalledWith({
         ...user,
         isActive: true,
-          deletedAt: null,
+        deletedAt: null,
       });
     });
 
@@ -365,7 +365,10 @@ describe('ToggleUserStatusUseCase', () => {
 
       userRepository.findById.mockResolvedValue(user);
       userRepository.findWithRoles.mockResolvedValue(null);
-      userRepository.save.mockResolvedValue({ ...user, isActive: false } as User);
+      userRepository.save.mockResolvedValue({
+        ...user,
+        isActive: false,
+      } as User);
 
       const result = await useCase.execute({
         targetUserId: 'user-id',

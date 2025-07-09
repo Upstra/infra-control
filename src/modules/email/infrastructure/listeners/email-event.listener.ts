@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { 
-  EmailEventType, 
-  AccountCreatedEvent, 
-  PasswordChangedEvent, 
-  PasswordResetEvent 
+import {
+  EmailEventType,
+  AccountCreatedEvent,
+  PasswordChangedEvent,
+  PasswordResetEvent,
 } from '../../domain/events/email.events';
 import { SendAccountCreatedEmailUseCase } from '../../application/use-cases/send-account-created-email.use-case';
 import { SendPasswordChangedEmailUseCase } from '../../application/use-cases/send-password-changed-email.use-case';
@@ -24,9 +24,15 @@ export class EmailEventListener {
   async handleAccountCreated(payload: AccountCreatedEvent) {
     try {
       this.logger.log(`Sending account created email to ${payload.email}`);
-      await this.sendAccountCreatedEmail.execute(payload.email, payload.firstname);
+      await this.sendAccountCreatedEmail.execute(
+        payload.email,
+        payload.firstname,
+      );
     } catch (error) {
-      this.logger.error(`Failed to send account created email to ${payload.email}`, error.stack);
+      this.logger.error(
+        `Failed to send account created email to ${payload.email}`,
+        error.stack,
+      );
     }
   }
 
@@ -34,9 +40,18 @@ export class EmailEventListener {
   async handlePasswordChanged(payload: PasswordChangedEvent) {
     try {
       this.logger.log(`Sending password changed email to ${payload.email}`);
-      await this.sendPasswordChangedEmail.execute(payload.email, payload.firstname);
+      await this.sendPasswordChangedEmail.execute(
+        payload.email,
+        payload.firstname,
+        payload.ipAddress,
+        payload.userAgent,
+        payload.location,
+      );
     } catch (error) {
-      this.logger.error(`Failed to send password changed email to ${payload.email}`, error.stack);
+      this.logger.error(
+        `Failed to send password changed email to ${payload.email}`,
+        error.stack,
+      );
     }
   }
 
@@ -45,12 +60,15 @@ export class EmailEventListener {
     try {
       this.logger.log(`Sending password reset email to ${payload.email}`);
       await this.sendResetPasswordEmail.execute(
-        payload.email, 
-        payload.resetLink, 
-        payload.firstname
+        payload.email,
+        payload.resetLink,
+        payload.firstname,
       );
     } catch (error) {
-      this.logger.error(`Failed to send password reset email to ${payload.email}`, error.stack);
+      this.logger.error(
+        `Failed to send password reset email to ${payload.email}`,
+        error.stack,
+      );
     }
   }
 }

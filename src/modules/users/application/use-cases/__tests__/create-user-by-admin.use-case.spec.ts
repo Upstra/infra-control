@@ -151,7 +151,7 @@ describe('CreateUserByAdminUseCase', () => {
         {
           email: mockUser.email,
           firstname: mockUser.firstName,
-        }
+        },
       );
     });
 
@@ -258,15 +258,21 @@ describe('CreateUserByAdminUseCase', () => {
     });
 
     it('should send email event with username when firstName is not available', async () => {
-      const dtoWithoutFirstName = { ...dto, firstName: undefined, roleIds: ['role1-id'] };
-      const userWithoutFirstName = Object.assign(new User(), { 
-        ...mockUser, 
-        firstName: null 
+      const dtoWithoutFirstName = {
+        ...dto,
+        firstName: undefined,
+        roleIds: ['role1-id'],
+      };
+      const userWithoutFirstName = Object.assign(new User(), {
+        ...mockUser,
+        firstName: null,
       });
 
       userRepository.findOneByField.mockResolvedValue(null);
       roleRepository.findByIds.mockResolvedValue([mockRole1]);
-      userDomainService.createUserEntity.mockResolvedValue(userWithoutFirstName);
+      userDomainService.createUserEntity.mockResolvedValue(
+        userWithoutFirstName,
+      );
       userRepository.save.mockResolvedValue(userWithoutFirstName);
       userRepository.findById.mockResolvedValue(userWithoutFirstName);
 
@@ -277,40 +283,42 @@ describe('CreateUserByAdminUseCase', () => {
         {
           email: userWithoutFirstName.email,
           firstname: userWithoutFirstName.username,
-        }
+        },
       );
     });
 
     it('should work without logHistoryUseCase', async () => {
-      const moduleWithoutHistory: TestingModule = await Test.createTestingModule({
-        providers: [
-          CreateUserByAdminUseCase,
-          {
-            provide: 'UserRepositoryInterface',
-            useValue: userRepository,
-          },
-          {
-            provide: 'RoleRepositoryInterface',
-            useValue: roleRepository,
-          },
-          {
-            provide: UserDomainService,
-            useValue: userDomainService,
-          },
-          {
-            provide: LogHistoryUseCase,
-            useValue: undefined,
-          },
-          {
-            provide: EventEmitter2,
-            useValue: eventEmitter,
-          },
-        ],
-      }).compile();
+      const moduleWithoutHistory: TestingModule =
+        await Test.createTestingModule({
+          providers: [
+            CreateUserByAdminUseCase,
+            {
+              provide: 'UserRepositoryInterface',
+              useValue: userRepository,
+            },
+            {
+              provide: 'RoleRepositoryInterface',
+              useValue: roleRepository,
+            },
+            {
+              provide: UserDomainService,
+              useValue: userDomainService,
+            },
+            {
+              provide: LogHistoryUseCase,
+              useValue: undefined,
+            },
+            {
+              provide: EventEmitter2,
+              useValue: eventEmitter,
+            },
+          ],
+        }).compile();
 
-      const useCaseWithoutHistory = moduleWithoutHistory.get<CreateUserByAdminUseCase>(
-        CreateUserByAdminUseCase,
-      );
+      const useCaseWithoutHistory =
+        moduleWithoutHistory.get<CreateUserByAdminUseCase>(
+          CreateUserByAdminUseCase,
+        );
 
       userRepository.findOneByField.mockResolvedValue(null);
       roleRepository.findByIds.mockResolvedValue([mockRole1]);
@@ -319,7 +327,10 @@ describe('CreateUserByAdminUseCase', () => {
       userRepository.findById.mockResolvedValue(mockUser);
 
       const dtoWithSingleRole = { ...dto, roleIds: ['role1-id'] };
-      const result = await useCaseWithoutHistory.execute(dtoWithSingleRole, adminId);
+      const result = await useCaseWithoutHistory.execute(
+        dtoWithSingleRole,
+        adminId,
+      );
 
       expect(result).toEqual(mockUser);
     });

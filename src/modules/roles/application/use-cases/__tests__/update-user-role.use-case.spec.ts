@@ -180,7 +180,9 @@ describe('UpdateUserRoleUseCase', () => {
     await expect(useCase.execute('u1', 'a1')).rejects.toThrow(
       CannotRemoveLastAdminException,
     );
-    expect(queryBuilder.where).toHaveBeenCalledWith('role.isAdmin = :isAdmin', { isAdmin: true });
+    expect(queryBuilder.where).toHaveBeenCalledWith('role.isAdmin = :isAdmin', {
+      isAdmin: true,
+    });
     expect(queryBuilder.getCount).toHaveBeenCalled();
     expect(dataSource.transaction).toHaveBeenCalled();
   });

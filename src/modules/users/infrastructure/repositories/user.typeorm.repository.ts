@@ -182,7 +182,7 @@ export class UserTypeormRepository
   ): Promise<User | null> {
     const where = includeDeleted
       ? { id: userId }
-      : { id: userId, deletedAt: IsNull() } as any;
+      : ({ id: userId, deletedAt: IsNull() } as any);
     return await this.findOne({
       where,
       relations: ['roles'],
@@ -199,7 +199,9 @@ export class UserTypeormRepository
   }
 
   async findById(id: string, includeDeleted = false): Promise<User | null> {
-    const where = includeDeleted ? { id } : { id, deletedAt: IsNull() } as any;
+    const where = includeDeleted
+      ? { id }
+      : ({ id, deletedAt: IsNull() } as any);
     return await this.findOne({
       where,
     });

@@ -74,7 +74,9 @@ describe('Role Exceptions', () => {
   describe('CannotRemoveGuestRoleException', () => {
     it('should create exception with correct message', () => {
       const exception = new CannotRemoveGuestRoleException();
-      expect(exception.message).toBe('Cannot remove last guest role from user.');
+      expect(exception.message).toBe(
+        'Cannot remove last guest role from user.',
+      );
       expect(exception.name).toBe('CannotRemoveGuestRoleException');
     });
   });
@@ -83,7 +85,9 @@ describe('Role Exceptions', () => {
     it('should create RoleNotFoundException via roleNotFound', () => {
       const exception = RoleExceptions.roleNotFound();
       expect(exception).toBeInstanceOf(RoleNotFoundException);
-      expect(exception.message).toBe('Role with ID One or more roles not found not found');
+      expect(exception.message).toBe(
+        'Role with ID One or more roles not found not found',
+      );
       expect(exception.name).toBe('RoleNotFoundException');
     });
 
@@ -96,7 +100,9 @@ describe('Role Exceptions', () => {
     it('should create CannotRemoveGuestRoleException via cannotRemoveGuestRole', () => {
       const exception = RoleExceptions.cannotRemoveGuestRole();
       expect(exception).toBeInstanceOf(CannotRemoveGuestRoleException);
-      expect(exception.message).toBe('Cannot remove last guest role from user.');
+      expect(exception.message).toBe(
+        'Cannot remove last guest role from user.',
+      );
       expect(exception.name).toBe('CannotRemoveGuestRoleException');
     });
   });

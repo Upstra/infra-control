@@ -14,7 +14,9 @@ export class ZohoMailAdapter implements IMailService {
     try {
       const enrichedContext = {
         ...dto.context,
-        logoUrl: process.env.MAIL_LOGO_URL ?? 'https://github.com/Upstra/.github/blob/dcd1f2dc99276f0fd22eea7b8dd7f35902c562cc/PA2025%20Upstra%20Logo.png?raw=true',
+        logoUrl:
+          process.env.MAIL_LOGO_URL ??
+          'https://github.com/Upstra/.github/blob/dcd1f2dc99276f0fd22eea7b8dd7f35902c562cc/PA2025%20Upstra%20Logo.png?raw=true',
         loginUrl: process.env.APP_URL ?? 'http://localhost:3000',
         currentYear: new Date().getFullYear(),
       };

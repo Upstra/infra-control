@@ -2,7 +2,6 @@ import { EmailEventListener } from '../email-event.listener';
 import { SendAccountCreatedEmailUseCase } from '../../../application/use-cases/send-account-created-email.use-case';
 import { SendPasswordChangedEmailUseCase } from '../../../application/use-cases/send-password-changed-email.use-case';
 import { SendResetPasswordEmailUseCase } from '../../../application/use-cases/send-reset-password-email.use-case';
-import { EmailEventType } from '../../../domain/events/email.events';
 
 describe('EmailEventListener', () => {
   let listener: EmailEventListener;
@@ -84,9 +83,29 @@ describe('EmailEventListener', () => {
       expect(sendPasswordChanged.execute).toHaveBeenCalledWith(
         payload.email,
         payload.firstname,
+        payload.ipAddress,
+        payload.userAgent,
+        payload.location,
       );
       expect(listener['logger'].log).toHaveBeenCalledWith(
         `Sending password changed email to ${payload.email}`,
+      );
+    });
+
+    it('should send password changed email without optional parameters', async () => {
+      const payload = {
+        email: 'test@example.com',
+        firstname: 'John',
+      };
+
+      await listener.handlePasswordChanged(payload);
+
+      expect(sendPasswordChanged.execute).toHaveBeenCalledWith(
+        payload.email,
+        payload.firstname,
+        undefined,
+        undefined,
+        undefined,
       );
     });
 

@@ -21,7 +21,10 @@ import { join } from 'path';
           from: process.env.MAIL_FROM,
         },
         template: {
-          dir: join(process.cwd(), 'dist/modules/email/infrastructures/templates'),
+          dir: join(
+            process.cwd(),
+            'dist/modules/email/infrastructures/templates',
+          ),
           adapter: new HandlebarsAdapter(),
           options: {
             strict: true,

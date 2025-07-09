@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
 import { UpdateAccountUseCase } from '../update-account.use-case';
 import { UserDomainService } from '@modules/users/domain/services/user.domain.service';
 import { UpdateAccountDto } from '../../dto/update-account.dto';

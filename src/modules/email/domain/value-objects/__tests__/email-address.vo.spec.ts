@@ -43,7 +43,9 @@ describe('EmailAddressVO', () => {
       ];
 
       invalidEmails.forEach((email) => {
-        expect(() => new EmailAddressVO(email)).toThrow(InvalidEmailAddressException);
+        expect(() => new EmailAddressVO(email)).toThrow(
+          InvalidEmailAddressException,
+        );
       });
     });
 

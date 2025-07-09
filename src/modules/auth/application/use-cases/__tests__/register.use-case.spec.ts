@@ -77,14 +77,14 @@ describe('RegisterUseCase', () => {
       {
         email: mockDto.email,
         firstname: mockDto.firstName,
-      }
+      },
     );
   });
 
   it('should use username when firstName is not provided', async () => {
     const fakeUser = createMockUser();
     const dtoWithoutFirstName = { ...mockDto, firstName: undefined };
-    
+
     registerUserUseCase.execute.mockResolvedValue(fakeUser);
     tokenService.generateTokens.mockReturnValue({
       accessToken: 'access.jwt.token',
@@ -98,7 +98,7 @@ describe('RegisterUseCase', () => {
       {
         email: dtoWithoutFirstName.email,
         firstname: fakeUser.username,
-      }
+      },
     );
   });
 

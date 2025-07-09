@@ -53,7 +53,9 @@ describe('SendAccountCreatedEmailUseCase', () => {
       const invalidEmail = 'invalid-email';
       const firstname = 'John';
 
-      await expect(useCase.execute(invalidEmail, firstname)).rejects.toThrow(InvalidEmailAddressException);
+      await expect(useCase.execute(invalidEmail, firstname)).rejects.toThrow(
+        InvalidEmailAddressException,
+      );
       expect(mockMailService.send).not.toHaveBeenCalled();
     });
 

@@ -72,7 +72,10 @@ describe('UserController', () => {
         { provide: ToggleUserStatusUseCase, useValue: toggleUserStatusUseCase },
         { provide: UpdateAccountUseCase, useValue: updateAccountUseCase },
         { provide: BulkActivateUseCase, useValue: bulkActivateUseCase },
-        { provide: CreateUserByAdminUseCase, useValue: createUserByAdminUseCase },
+        {
+          provide: CreateUserByAdminUseCase,
+          useValue: createUserByAdminUseCase,
+        },
       ],
     }).compile();
 

@@ -267,7 +267,7 @@ describe('BulkActivateUseCase', () => {
       userRepository.save.mockResolvedValueOnce(activatedUser1 as User);
 
       // User 2: throws NotFoundException which should be caught
-      const notFoundError = new NotFoundException('User not found'); 
+      const notFoundError = new NotFoundException('User not found');
       userRepository.findById.mockRejectedValueOnce(notFoundError);
 
       const result = await useCase.execute(bulkActivateDto);

@@ -50,7 +50,8 @@ describe('ZohoMailAdapter', () => {
         template: 'account-created',
         context: {
           name: 'John',
-          logoUrl: 'https://github.com/Upstra/.github/blob/dcd1f2dc99276f0fd22eea7b8dd7f35902c562cc/PA2025%20Upstra%20Logo.png?raw=true',
+          logoUrl:
+            'https://github.com/Upstra/.github/blob/dcd1f2dc99276f0fd22eea7b8dd7f35902c562cc/PA2025%20Upstra%20Logo.png?raw=true',
           loginUrl: 'http://localhost:3000',
           currentYear: new Date().getFullYear(),
         },
@@ -74,7 +75,8 @@ describe('ZohoMailAdapter', () => {
         template: 'password-changed',
         context: {
           message: 'Hello everyone',
-          logoUrl: 'https://github.com/Upstra/.github/blob/dcd1f2dc99276f0fd22eea7b8dd7f35902c562cc/PA2025%20Upstra%20Logo.png?raw=true',
+          logoUrl:
+            'https://github.com/Upstra/.github/blob/dcd1f2dc99276f0fd22eea7b8dd7f35902c562cc/PA2025%20Upstra%20Logo.png?raw=true',
           loginUrl: 'http://localhost:3000',
           currentYear: new Date().getFullYear(),
         },
@@ -147,7 +149,8 @@ describe('ZohoMailAdapter', () => {
         subject: 'No Context Email',
         template: 'reset-password',
         context: {
-          logoUrl: 'https://github.com/Upstra/.github/blob/dcd1f2dc99276f0fd22eea7b8dd7f35902c562cc/PA2025%20Upstra%20Logo.png?raw=true',
+          logoUrl:
+            'https://github.com/Upstra/.github/blob/dcd1f2dc99276f0fd22eea7b8dd7f35902c562cc/PA2025%20Upstra%20Logo.png?raw=true',
           loginUrl: 'http://localhost:3000',
           currentYear: new Date().getFullYear(),
         },
@@ -181,7 +184,8 @@ describe('ZohoMailAdapter', () => {
         template: 'account-created',
         context: {
           ...dto.context,
-          logoUrl: 'https://github.com/Upstra/.github/blob/dcd1f2dc99276f0fd22eea7b8dd7f35902c562cc/PA2025%20Upstra%20Logo.png?raw=true',
+          logoUrl:
+            'https://github.com/Upstra/.github/blob/dcd1f2dc99276f0fd22eea7b8dd7f35902c562cc/PA2025%20Upstra%20Logo.png?raw=true',
           loginUrl: 'http://localhost:3000',
           currentYear: new Date().getFullYear(),
         },

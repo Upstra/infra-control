@@ -112,7 +112,7 @@ export class RoleTypeormRepository
       return [];
     }
     return await this.find({
-      where: ids.map(id => ({ id })),
+      where: ids.map((id) => ({ id })),
       relations: ['users', 'permissionServers', 'permissionVms'],
     });
   }

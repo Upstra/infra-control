@@ -11,7 +11,7 @@ describe('SendEmailDto', () => {
   it('should accept all required properties', () => {
     const dto = new SendEmailDto();
     const email = new EmailAddressVO('test@example.com');
-    
+
     dto.to = email;
     dto.subject = 'Test Subject';
     dto.template = 'account-created';
@@ -25,11 +25,9 @@ describe('SendEmailDto', () => {
 
   it('should accept different template types', () => {
     const dto = new SendEmailDto();
-    const templates: Array<'reset-password' | 'password-changed' | 'account-created'> = [
-      'reset-password',
-      'password-changed',
-      'account-created',
-    ];
+    const templates: Array<
+      'reset-password' | 'password-changed' | 'account-created'
+    > = ['reset-password', 'password-changed', 'account-created'];
 
     templates.forEach((template) => {
       dto.template = template;

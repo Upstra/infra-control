@@ -9,11 +9,14 @@ import {
 } from '@/modules/users/domain/exceptions/user.exception';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EmailEventType } from '@/modules/email/domain/events/email.events';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
+import { RequestContextDto } from '@/core/dto';
 describe('ResetPasswordUseCase', () => {
   let useCase: ResetPasswordUseCase;
   let repo: jest.Mocked<UserRepositoryInterface>;
   let domainService: jest.Mocked<UserDomainService>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
+  let logHistoryUseCase: jest.Mocked<LogHistoryUseCase>;
 
   beforeEach(() => {
     repo = {
@@ -29,7 +32,16 @@ describe('ResetPasswordUseCase', () => {
       emit: jest.fn(),
     } as any;
 
-    useCase = new ResetPasswordUseCase(repo, domainService, eventEmitter);
+    logHistoryUseCase = {
+      executeStructured: jest.fn(),
+    } as any;
+
+    useCase = new ResetPasswordUseCase(
+      repo,
+      domainService,
+      eventEmitter,
+      logHistoryUseCase,
+    );
   });
 
   it('should reset password and return updated user response', async () => {
@@ -71,8 +83,25 @@ describe('ResetPasswordUseCase', () => {
       {
         email: user.email,
         firstname: user.firstName || user.username,
-      }
+        ipAddress: undefined,
+        userAgent: undefined,
+      },
     );
+
+    expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith({
+      entity: 'user',
+      entityId: 'user-id',
+      action: 'PASSWORD_RESET',
+      userId: 'user-id',
+      oldValue: { passwordHash: 'hashed_password' },
+      newValue: { passwordHash: hashedPassword },
+      metadata: {
+        performedBy: 'self',
+        adminId: undefined,
+      },
+      ipAddress: undefined,
+      userAgent: undefined,
+    });
   });
 
   it('should throw if user is not found', async () => {
@@ -124,7 +153,9 @@ describe('ResetPasswordUseCase', () => {
       {
         email: user.email,
         firstname: user.username,
-      }
+        ipAddress: undefined,
+        userAgent: undefined,
+      },
     );
   });
 
@@ -138,8 +169,8 @@ describe('ResetPasswordUseCase', () => {
       Object.assign(new User(), { ...user, password: hashedPassword }),
     );
 
-    const result = await useCase.execute('user-id', { 
-      newPassword: 'newPassword123' 
+    await useCase.execute('user-id', {
+      newPassword: 'newPassword123',
     });
 
     expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
@@ -148,7 +179,76 @@ describe('ResetPasswordUseCase', () => {
       expect.objectContaining({
         email: user.email,
         firstname: expect.any(String),
-      })
+        ipAddress: undefined,
+        userAgent: undefined,
+      }),
+    );
+  });
+
+  it('should include request context when provided', async () => {
+    const user = createMockUser();
+    const hashedPassword = 'newHashedPassword';
+    const requestContext = RequestContextDto.forTesting({
+      ipAddress: '192.168.1.1',
+      userAgent: 'Mozilla/5.0',
+    });
+
+    repo.findOneByField.mockResolvedValue(user);
+    domainService.hashPassword.mockResolvedValue(hashedPassword);
+    repo.save.mockResolvedValue(
+      Object.assign(new User(), { ...user, password: hashedPassword }),
+    );
+
+    await useCase.execute(
+      'user-id',
+      { newPassword: 'newPassword123' },
+      requestContext,
+    );
+
+    expect(eventEmitter.emit).toHaveBeenCalledWith(
+      EmailEventType.PASSWORD_CHANGED,
+      {
+        email: user.email,
+        firstname: user.firstName || user.username,
+        ipAddress: '192.168.1.1',
+        userAgent: 'Mozilla/5.0',
+      },
+    );
+
+    expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ipAddress: '192.168.1.1',
+        userAgent: 'Mozilla/5.0',
+      }),
+    );
+  });
+
+  it('should log as admin action when adminId is provided', async () => {
+    const user = createMockUser();
+    const hashedPassword = 'newHashedPassword';
+    const adminId = 'admin-123';
+
+    repo.findOneByField.mockResolvedValue(user);
+    domainService.hashPassword.mockResolvedValue(hashedPassword);
+    repo.save.mockResolvedValue(
+      Object.assign(new User(), { ...user, password: hashedPassword }),
+    );
+
+    await useCase.execute(
+      'user-id',
+      { newPassword: 'newPassword123' },
+      undefined,
+      adminId,
+    );
+
+    expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: adminId,
+        metadata: {
+          performedBy: 'admin',
+          adminId: adminId,
+        },
+      }),
     );
   });
 });

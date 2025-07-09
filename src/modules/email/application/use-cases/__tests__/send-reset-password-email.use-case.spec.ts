@@ -47,10 +47,10 @@ describe('SendResetPasswordEmailUseCase', () => {
       expect(callArgs.to.value).toBe(email);
       expect(callArgs.subject).toBe('Réinitialisation de votre mot de passe');
       expect(callArgs.template).toBe('reset-password');
-      expect(callArgs.context).toMatchObject({ 
+      expect(callArgs.context).toMatchObject({
         prenom: firstname,
         email,
-        resetLink
+        resetLink,
       });
       expect(callArgs.context.requestDate).toBeDefined();
       expect(callArgs.context.requestTime).toBeDefined();
@@ -94,7 +94,7 @@ describe('SendResetPasswordEmailUseCase', () => {
       expect(callArgs.context).toMatchObject({
         prenom: firstname,
         email,
-        resetLink: ''
+        resetLink: '',
       });
       expect(callArgs.context.requestDate).toBeDefined();
       expect(callArgs.context.requestTime).toBeDefined();
@@ -112,7 +112,7 @@ describe('SendResetPasswordEmailUseCase', () => {
       expect(callArgs.context).toMatchObject({
         prenom: firstname,
         email,
-        resetLink
+        resetLink,
       });
       expect(callArgs.context.requestDate).toBeDefined();
       expect(callArgs.context.requestTime).toBeDefined();
