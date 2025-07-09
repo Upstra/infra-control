@@ -11,6 +11,10 @@
       {
         "include": "**/*.hbs",
         "watchAssets": true
+      },
+      {
+        "include": "**/assets/**/*",
+        "watchAssets": true
       }
     ]
   },
