@@ -7,7 +7,7 @@ export class CleanupUserPreferencesConstraints1752100192730 implements Migration
         await queryRunner.query(`
             DELETE FROM user_preferences 
             WHERE user_id IS NULL 
-            OR user_id NOT IN (SELECT id FROM "user")
+            OR user_id::uuid NOT IN (SELECT id FROM "user")
         `);
         
         // Drop existing foreign key if it exists
