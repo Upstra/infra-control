@@ -5,6 +5,7 @@ import {
   GetHistoryListUseCase,
   GetHistoryEntityTypesUseCase,
   GetHistoryActionTypesUseCase,
+  LogHistoryUseCase,
 } from './application/use-cases';
 import { HistoryController } from './application/controllers/history.controller';
 import { AuditModule } from '../audit/audit.module';
@@ -26,6 +27,7 @@ import { UserModule } from '../users/user.module';
     GetHistoryListUseCase,
     GetHistoryEntityTypesUseCase,
     GetHistoryActionTypesUseCase,
+    AuditModule,
   ],
 })
 export class HistoryModule {}

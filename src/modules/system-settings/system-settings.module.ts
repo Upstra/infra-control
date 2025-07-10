@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { EventEmitterModule } from '@nestjs/event-emitter';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SystemSettings } from './domain/entities/system-settings.entity';
 import { SystemSettingsRepository } from './infrastructure/repositories/system-settings.repository';
 import { DefaultSettingsService } from './domain/services/default-settings.service';
@@ -13,9 +13,13 @@ import { ExportSettingsUseCase } from './application/use-cases/export-settings.u
 import { ImportSettingsUseCase } from './application/use-cases/import-settings.use-case';
 import { SystemSettingsController } from './application/controllers/system-settings.controller';
 import { HistoryModule } from '../history/history.module';
+import { LogHistoryUseCase } from '../history/application/use-cases/log-history.use-case';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([SystemSettings]), EventEmitterModule, HistoryModule],
+  imports: [
+    TypeOrmModule.forFeature([SystemSettings]),
+    HistoryModule,
+  ],
   controllers: [SystemSettingsController],
   providers: [
     {
@@ -29,8 +33,8 @@ import { HistoryModule } from '../history/history.module';
       useFactory: (
         repository: SystemSettingsRepository,
         defaultSettingsService: DefaultSettingsService,
-        eventEmitter: any,
-        logHistoryUseCase: any,
+        eventEmitter: EventEmitter2,
+        logHistoryUseCase: LogHistoryUseCase,
       ) => {
         return new SystemSettingsService(
           repository,
@@ -42,8 +46,8 @@ import { HistoryModule } from '../history/history.module';
       inject: [
         SystemSettingsRepository,
         DefaultSettingsService,
-        'EventEmitter2',
-        'LogHistoryUseCase',
+        EventEmitter2,
+        LogHistoryUseCase,
       ],
     },
 
