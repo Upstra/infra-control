@@ -89,6 +89,12 @@ describe('ImportSettingsUseCase', () => {
             updateSettings: jest.fn(),
           },
         },
+        {
+          provide: 'LogHistoryUseCase',
+          useValue: {
+            executeStructured: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -112,6 +118,8 @@ describe('ImportSettingsUseCase', () => {
       expect(systemSettingsService.updateSettings).toHaveBeenCalledWith(
         validImportData.settings,
         userId,
+        undefined,
+        undefined,
       );
     });
 

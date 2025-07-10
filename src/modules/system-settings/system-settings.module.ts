@@ -12,9 +12,10 @@ import { TestEmailConfigurationUseCase } from './application/use-cases/test-emai
 import { ExportSettingsUseCase } from './application/use-cases/export-settings.use-case';
 import { ImportSettingsUseCase } from './application/use-cases/import-settings.use-case';
 import { SystemSettingsController } from './application/controllers/system-settings.controller';
+import { HistoryModule } from '../history/history.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([SystemSettings]), EventEmitterModule],
+  imports: [TypeOrmModule.forFeature([SystemSettings]), EventEmitterModule, HistoryModule],
   controllers: [SystemSettingsController],
   providers: [
     {
@@ -29,17 +30,20 @@ import { SystemSettingsController } from './application/controllers/system-setti
         repository: SystemSettingsRepository,
         defaultSettingsService: DefaultSettingsService,
         eventEmitter: any,
+        logHistoryUseCase: any,
       ) => {
         return new SystemSettingsService(
           repository,
           defaultSettingsService,
           eventEmitter,
+          logHistoryUseCase,
         );
       },
       inject: [
         SystemSettingsRepository,
         DefaultSettingsService,
         'EventEmitter2',
+        'LogHistoryUseCase',
       ],
     },
 

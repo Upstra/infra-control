@@ -113,7 +113,7 @@ describe('UpdateSystemSettingsUseCase', () => {
       const result = await useCase.execute(updates, userId);
 
       expect(result).toEqual(updatedSettings.settings);
-      expect(systemSettingsService.updateSettings).toHaveBeenCalledWith(updates, userId);
+      expect(systemSettingsService.updateSettings).toHaveBeenCalledWith(updates, userId, undefined, undefined);
     });
 
     it('should handle partial updates', async () => {
@@ -131,7 +131,7 @@ describe('UpdateSystemSettingsUseCase', () => {
       const result = await useCase.execute(updates, userId);
 
       expect(result).toEqual(mockSettings.settings);
-      expect(systemSettingsService.updateSettings).toHaveBeenCalledWith(updates, userId);
+      expect(systemSettingsService.updateSettings).toHaveBeenCalledWith(updates, userId, undefined, undefined);
     });
 
     it('should handle service errors', async () => {

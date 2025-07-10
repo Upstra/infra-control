@@ -114,7 +114,7 @@ describe('ResetSettingsCategoryUseCase', () => {
 
       expect(result).toEqual(mockSettings.settings);
       expect(defaultSettingsService.isValidCategory).toHaveBeenCalledWith(category);
-      expect(systemSettingsService.resetCategory).toHaveBeenCalledWith(category, userId);
+      expect(systemSettingsService.resetCategory).toHaveBeenCalledWith(category, userId, undefined, undefined);
     });
 
     it('should throw error for invalid category', async () => {
