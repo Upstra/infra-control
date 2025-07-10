@@ -165,7 +165,7 @@ describe('ImportSettingsUseCase', () => {
           email: mockSettings.settings.email,
           backup: mockSettings.settings.backup,
           // logging is missing
-        },
+        } as SystemSettingsData,
       };
 
       await expect(useCase.execute(invalidSettings, 'user123')).rejects.toThrow(
@@ -180,9 +180,9 @@ describe('ImportSettingsUseCase', () => {
           ...mockSettings.settings,
           security: {
             ...mockSettings.settings.security,
-            passwordPolicy: 'invalid',
+            passwordPolicy: 'invalid' as any,
           },
-        },
+        } as SystemSettingsData,
       };
 
       await expect(useCase.execute(invalidSettings, 'user123')).rejects.toThrow(
@@ -197,9 +197,9 @@ describe('ImportSettingsUseCase', () => {
           ...mockSettings.settings,
           email: {
             ...mockSettings.settings.email,
-            smtp: 'invalid',
+            smtp: 'invalid' as any,
           },
-        },
+        } as SystemSettingsData,
       };
 
       await expect(useCase.execute(invalidSettings, 'user123')).rejects.toThrow(

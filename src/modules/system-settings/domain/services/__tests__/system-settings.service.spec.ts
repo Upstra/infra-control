@@ -156,7 +156,16 @@ describe('SystemSettingsService', () => {
     it('should update settings successfully', async () => {
       const updates = { system: { maintenanceMode: true } };
       const userId = 'user123';
-      const updatedSettings = { ...mockSettings, settings: { ...mockSettings.settings, ...updates } };
+      const updatedSettings = { 
+        ...mockSettings, 
+        settings: { 
+          ...mockSettings.settings, 
+          system: {
+            ...mockSettings.settings.system,
+            maintenanceMode: true,
+          },
+        },
+      };
 
       jest.spyOn(repository, 'findSettings').mockResolvedValue(mockSettings);
       jest.spyOn(repository, 'updateSettings').mockResolvedValue(updatedSettings);
@@ -165,6 +174,7 @@ describe('SystemSettingsService', () => {
 
       expect(result).toEqual(updatedSettings);
       expect(repository.updateSettings).toHaveBeenCalled();
+      expect((service as any).logHistoryUseCase.executeStructured).toHaveBeenCalled();
       expect(eventEmitter.emit).toHaveBeenCalledWith('system-settings.updated', {
         settings: updatedSettings,
         changes: updates,
@@ -233,6 +243,7 @@ describe('SystemSettingsService', () => {
 
       const savedSettings = (repository.updateSettings as jest.Mock).mock.calls[0][0];
       expect(savedSettings.settings.security).toEqual(defaultSecurity);
+      expect((service as any).logHistoryUseCase.executeStructured).toHaveBeenCalled();
       expect(eventEmitter.emit).toHaveBeenCalledWith('system-settings.category-reset', {
         category,
         userId,
