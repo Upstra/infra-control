@@ -86,7 +86,9 @@ describe('ExportSettingsUseCase', () => {
     }).compile();
 
     useCase = module.get<ExportSettingsUseCase>(ExportSettingsUseCase);
-    systemSettingsService = module.get<SystemSettingsService>(SystemSettingsService);
+    systemSettingsService = module.get<SystemSettingsService>(
+      SystemSettingsService,
+    );
   });
 
   it('should be defined', () => {
@@ -95,7 +97,9 @@ describe('ExportSettingsUseCase', () => {
 
   describe('execute', () => {
     it('should export settings successfully', async () => {
-      jest.spyOn(systemSettingsService, 'getSettings').mockResolvedValue(mockSettings);
+      jest
+        .spyOn(systemSettingsService, 'getSettings')
+        .mockResolvedValue(mockSettings);
 
       const result = await useCase.execute();
 
@@ -107,14 +111,20 @@ describe('ExportSettingsUseCase', () => {
     });
 
     it('should include current timestamp in export', async () => {
-      jest.spyOn(systemSettingsService, 'getSettings').mockResolvedValue(mockSettings);
+      jest
+        .spyOn(systemSettingsService, 'getSettings')
+        .mockResolvedValue(mockSettings);
       const beforeExport = new Date();
 
       const result = await useCase.execute();
 
       const afterExport = new Date();
-      expect(result.exportedAt.getTime()).toBeGreaterThanOrEqual(beforeExport.getTime());
-      expect(result.exportedAt.getTime()).toBeLessThanOrEqual(afterExport.getTime());
+      expect(result.exportedAt.getTime()).toBeGreaterThanOrEqual(
+        beforeExport.getTime(),
+      );
+      expect(result.exportedAt.getTime()).toBeLessThanOrEqual(
+        afterExport.getTime(),
+      );
     });
 
     it('should handle service errors', async () => {

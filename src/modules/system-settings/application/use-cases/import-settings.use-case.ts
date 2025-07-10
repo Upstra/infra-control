@@ -55,7 +55,7 @@ export class ImportSettingsUseCase {
       userId,
       oldValue: {},
       newValue: importData.settings,
-      metadata: { 
+      metadata: {
         version: importData.version,
         exportedAt: importData.exportedAt,
       },
@@ -67,16 +67,31 @@ export class ImportSettingsUseCase {
   }
 
   private validateSettings(settings: any): { valid: boolean; error?: string } {
-    const requiredCategories = ['security', 'system', 'email', 'backup', 'logging'];
-    
+    const requiredCategories = [
+      'security',
+      'system',
+      'email',
+      'backup',
+      'logging',
+    ];
+
     for (const category of requiredCategories) {
       if (!settings[category]) {
-        return { valid: false, error: `Missing required category: ${category}` };
+        return {
+          valid: false,
+          error: `Missing required category: ${category}`,
+        };
       }
     }
 
-    if (settings.security && typeof settings.security.passwordPolicy !== 'object') {
-      return { valid: false, error: 'Invalid security.passwordPolicy structure' };
+    if (
+      settings.security &&
+      typeof settings.security.passwordPolicy !== 'object'
+    ) {
+      return {
+        valid: false,
+        error: 'Invalid security.passwordPolicy structure',
+      };
     }
 
     if (settings.email && typeof settings.email.smtp !== 'object') {

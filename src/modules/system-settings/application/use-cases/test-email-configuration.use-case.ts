@@ -5,16 +5,16 @@ import { EmailConfigurationException } from '../../domain/exceptions/system-sett
 
 @Injectable()
 export class TestEmailConfigurationUseCase {
-  constructor(
-    private readonly systemSettingsService: SystemSettingsService,
-  ) {}
+  constructor(private readonly systemSettingsService: SystemSettingsService) {}
 
   async execute(to: string): Promise<void> {
     const settings = await this.systemSettingsService.getSettings();
     const emailConfig = settings.settings.email;
 
     if (!emailConfig.enabled) {
-      throw new EmailConfigurationException('Email is not enabled in system settings');
+      throw new EmailConfigurationException(
+        'Email is not enabled in system settings',
+      );
     }
 
     if (!emailConfig.smtp.host || !emailConfig.smtp.user) {
@@ -33,7 +33,7 @@ export class TestEmailConfigurationUseCase {
 
     try {
       await transporter.verify();
-      
+
       await transporter.sendMail({
         from: `"${emailConfig.from.name}" <${emailConfig.from.address}>`,
         to,

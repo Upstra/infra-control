@@ -86,7 +86,9 @@ describe('GetSystemSettingsUseCase', () => {
     }).compile();
 
     useCase = module.get<GetSystemSettingsUseCase>(GetSystemSettingsUseCase);
-    systemSettingsService = module.get<SystemSettingsService>(SystemSettingsService);
+    systemSettingsService = module.get<SystemSettingsService>(
+      SystemSettingsService,
+    );
   });
 
   it('should be defined', () => {
@@ -95,7 +97,9 @@ describe('GetSystemSettingsUseCase', () => {
 
   describe('execute', () => {
     it('should return system settings data', async () => {
-      jest.spyOn(systemSettingsService, 'getSettings').mockResolvedValue(mockSettings);
+      jest
+        .spyOn(systemSettingsService, 'getSettings')
+        .mockResolvedValue(mockSettings);
 
       const result = await useCase.execute();
 

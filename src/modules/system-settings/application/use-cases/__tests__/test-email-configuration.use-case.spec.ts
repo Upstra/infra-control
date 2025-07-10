@@ -51,8 +51,12 @@ describe('TestEmailConfigurationUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<TestEmailConfigurationUseCase>(TestEmailConfigurationUseCase);
-    systemSettingsService = module.get<SystemSettingsService>(SystemSettingsService);
+    useCase = module.get<TestEmailConfigurationUseCase>(
+      TestEmailConfigurationUseCase,
+    );
+    systemSettingsService = module.get<SystemSettingsService>(
+      SystemSettingsService,
+    );
   });
 
   afterEach(() => {
@@ -67,7 +71,9 @@ describe('TestEmailConfigurationUseCase', () => {
     it('should send test email successfully', async () => {
       const testEmail = 'recipient@example.com';
 
-      jest.spyOn(systemSettingsService, 'getSettings').mockResolvedValue(mockSettings as any);
+      jest
+        .spyOn(systemSettingsService, 'getSettings')
+        .mockResolvedValue(mockSettings as any);
       mockTransporter.verify.mockResolvedValue(true);
       mockTransporter.sendMail.mockResolvedValue({ messageId: '123' });
 
@@ -105,10 +111,14 @@ describe('TestEmailConfigurationUseCase', () => {
         },
       };
 
-      jest.spyOn(systemSettingsService, 'getSettings').mockResolvedValue(disabledSettings as any);
+      jest
+        .spyOn(systemSettingsService, 'getSettings')
+        .mockResolvedValue(disabledSettings as any);
 
       await expect(useCase.execute('test@example.com')).rejects.toThrow(
-        new EmailConfigurationException('Email is not enabled in system settings'),
+        new EmailConfigurationException(
+          'Email is not enabled in system settings',
+        ),
       );
     });
 
@@ -127,7 +137,9 @@ describe('TestEmailConfigurationUseCase', () => {
         },
       };
 
-      jest.spyOn(systemSettingsService, 'getSettings').mockResolvedValue(incompleteSettings as any);
+      jest
+        .spyOn(systemSettingsService, 'getSettings')
+        .mockResolvedValue(incompleteSettings as any);
 
       await expect(useCase.execute('test@example.com')).rejects.toThrow(
         new EmailConfigurationException('SMTP configuration is incomplete'),
@@ -135,21 +147,31 @@ describe('TestEmailConfigurationUseCase', () => {
     });
 
     it('should throw error if email verification fails', async () => {
-      jest.spyOn(systemSettingsService, 'getSettings').mockResolvedValue(mockSettings as any);
-      mockTransporter.verify.mockRejectedValue(new Error('SMTP connection failed'));
+      jest
+        .spyOn(systemSettingsService, 'getSettings')
+        .mockResolvedValue(mockSettings as any);
+      mockTransporter.verify.mockRejectedValue(
+        new Error('SMTP connection failed'),
+      );
 
       await expect(useCase.execute('test@example.com')).rejects.toThrow(
-        new EmailConfigurationException('Failed to send test email: SMTP connection failed'),
+        new EmailConfigurationException(
+          'Failed to send test email: SMTP connection failed',
+        ),
       );
     });
 
     it('should throw error if email sending fails', async () => {
-      jest.spyOn(systemSettingsService, 'getSettings').mockResolvedValue(mockSettings as any);
+      jest
+        .spyOn(systemSettingsService, 'getSettings')
+        .mockResolvedValue(mockSettings as any);
       mockTransporter.verify.mockResolvedValue(true);
       mockTransporter.sendMail.mockRejectedValue(new Error('Failed to send'));
 
       await expect(useCase.execute('test@example.com')).rejects.toThrow(
-        new EmailConfigurationException('Failed to send test email: Failed to send'),
+        new EmailConfigurationException(
+          'Failed to send test email: Failed to send',
+        ),
       );
     });
   });

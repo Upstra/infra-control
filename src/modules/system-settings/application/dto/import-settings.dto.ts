@@ -1,6 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsDateString, IsNotEmpty, IsObject, IsString, ValidateNested } from 'class-validator';
+import {
+  IsDateString,
+  IsNotEmpty,
+  IsObject,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { UpdateSystemSettingsDto } from './update-system-settings.dto';
 
 export class ImportSettingsDto {

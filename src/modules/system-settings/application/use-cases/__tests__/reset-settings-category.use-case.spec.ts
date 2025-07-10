@@ -93,9 +93,15 @@ describe('ResetSettingsCategoryUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<ResetSettingsCategoryUseCase>(ResetSettingsCategoryUseCase);
-    systemSettingsService = module.get<SystemSettingsService>(SystemSettingsService);
-    defaultSettingsService = module.get<DefaultSettingsService>(DefaultSettingsService);
+    useCase = module.get<ResetSettingsCategoryUseCase>(
+      ResetSettingsCategoryUseCase,
+    );
+    systemSettingsService = module.get<SystemSettingsService>(
+      SystemSettingsService,
+    );
+    defaultSettingsService = module.get<DefaultSettingsService>(
+      DefaultSettingsService,
+    );
   });
 
   it('should be defined', () => {
@@ -107,21 +113,34 @@ describe('ResetSettingsCategoryUseCase', () => {
       const category = 'security';
       const userId = 'user123';
 
-      jest.spyOn(defaultSettingsService, 'isValidCategory').mockReturnValue(true);
-      jest.spyOn(systemSettingsService, 'resetCategory').mockResolvedValue(mockSettings as any);
+      jest
+        .spyOn(defaultSettingsService, 'isValidCategory')
+        .mockReturnValue(true);
+      jest
+        .spyOn(systemSettingsService, 'resetCategory')
+        .mockResolvedValue(mockSettings as any);
 
       const result = await useCase.execute(category, userId);
 
       expect(result).toEqual(mockSettings.settings);
-      expect(defaultSettingsService.isValidCategory).toHaveBeenCalledWith(category);
-      expect(systemSettingsService.resetCategory).toHaveBeenCalledWith(category, userId, undefined, undefined);
+      expect(defaultSettingsService.isValidCategory).toHaveBeenCalledWith(
+        category,
+      );
+      expect(systemSettingsService.resetCategory).toHaveBeenCalledWith(
+        category,
+        userId,
+        undefined,
+        undefined,
+      );
     });
 
     it('should throw error for invalid category', async () => {
       const category = 'invalid';
       const userId = 'user123';
 
-      jest.spyOn(defaultSettingsService, 'isValidCategory').mockReturnValue(false);
+      jest
+        .spyOn(defaultSettingsService, 'isValidCategory')
+        .mockReturnValue(false);
 
       await expect(useCase.execute(category, userId)).rejects.toThrow(
         InvalidSettingsCategoryException,
@@ -130,18 +149,30 @@ describe('ResetSettingsCategoryUseCase', () => {
     });
 
     it('should handle all valid categories', async () => {
-      const validCategories = ['security', 'system', 'email', 'backup', 'logging'];
+      const validCategories = [
+        'security',
+        'system',
+        'email',
+        'backup',
+        'logging',
+      ];
       const userId = 'user123';
 
-      jest.spyOn(defaultSettingsService, 'isValidCategory').mockReturnValue(true);
-      jest.spyOn(systemSettingsService, 'resetCategory').mockResolvedValue(mockSettings as any);
+      jest
+        .spyOn(defaultSettingsService, 'isValidCategory')
+        .mockReturnValue(true);
+      jest
+        .spyOn(systemSettingsService, 'resetCategory')
+        .mockResolvedValue(mockSettings as any);
 
       for (const category of validCategories) {
         const result = await useCase.execute(category, userId);
         expect(result).toEqual(mockSettings.settings);
       }
 
-      expect(systemSettingsService.resetCategory).toHaveBeenCalledTimes(validCategories.length);
+      expect(systemSettingsService.resetCategory).toHaveBeenCalledTimes(
+        validCategories.length,
+      );
     });
   });
 });
