@@ -85,4 +85,15 @@ export class VmTypeormRepository
       throw new VmDeletionException();
     }
   }
+
+  async countByState(state: 'UP' | 'DOWN'): Promise<number> {
+    try {
+      return await this.count({
+        where: { state },
+      });
+    } catch (error) {
+      Logger.error(`Error counting VMs with state ${state}:`, error);
+      throw new VmRetrievalException();
+    }
+  }
 }

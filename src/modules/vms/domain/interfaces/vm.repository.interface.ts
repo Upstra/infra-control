@@ -13,4 +13,5 @@ export interface VmRepositoryInterface extends GenericRepositoryInterface<Vm> {
    * @param limit - items per page
    */
   paginate(page: number, limit: number): Promise<[Vm[], number]>;
+  countByState(state: 'UP' | 'DOWN'): Promise<number>;
 }
