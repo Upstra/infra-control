@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { SystemSettingsService } from '../../domain/services/system-settings.service';
 import { SystemSettingsData } from '../../domain/entities/system-settings.entity';
+import { UpdateSystemSettingsDto } from '../dto/update-system-settings.dto';
 
 @Injectable()
 export class UpdateSystemSettingsUseCase {
@@ -9,11 +10,11 @@ export class UpdateSystemSettingsUseCase {
   ) {}
 
   async execute(
-    updates: Partial<SystemSettingsData>,
+    updates: UpdateSystemSettingsDto,
     userId: string,
   ): Promise<SystemSettingsData> {
     const updatedSettings = await this.systemSettingsService.updateSettings(
-      updates,
+      updates as Partial<SystemSettingsData>,
       userId,
     );
     return updatedSettings.settings;

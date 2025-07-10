@@ -6,7 +6,7 @@ import { SettingsImportException } from '../../domain/exceptions/system-settings
 export interface ImportSettingsData {
   version: string;
   exportedAt: Date;
-  settings: SystemSettingsData;
+  settings: any;
 }
 
 @Injectable()
