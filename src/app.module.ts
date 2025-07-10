@@ -28,6 +28,7 @@ import { PriorityModule } from './modules/priorities/priority.module';
 import { PrometheusModule } from './modules/prometheus/prometheus.module';
 import { EmailModule } from './modules/email/email.module';
 import { UserPreferencesModule } from './modules/user-preferences/user-preferences.module';
+import { SystemSettingsModule } from './modules/system-settings/system-settings.module';
 
 @Module({
   controllers: [],
@@ -59,6 +60,7 @@ import { UserPreferencesModule } from './modules/user-preferences/user-preferenc
     PrometheusModule,
     EmailModule,
     UserPreferencesModule,
+    SystemSettingsModule,
   ],
   providers: [Logger],
 })
