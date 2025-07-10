@@ -3,15 +3,12 @@ import { SystemSettingsService } from '../../domain/services/system-settings.ser
 import { SystemSettingsData } from '../../domain/entities/system-settings.entity';
 import { DefaultSettingsService } from '../../domain/services/default-settings.service';
 import { InvalidSettingsCategoryException } from '../../domain/exceptions/system-settings.exceptions';
-import { LogHistoryUseCase } from '../../../history/application/use-cases/log-history.use-case';
 
 @Injectable()
 export class ResetSettingsCategoryUseCase {
   constructor(
     private readonly systemSettingsService: SystemSettingsService,
     private readonly defaultSettingsService: DefaultSettingsService,
-        @Inject(LogHistoryUseCase)
-    private readonly logHistoryUseCase: LogHistoryUseCase,
   ) {}
 
   async execute(
@@ -30,7 +27,7 @@ export class ResetSettingsCategoryUseCase {
       ipAddress,
       userAgent,
     );
-    
+
     return updatedSettings.settings;
   }
 }
