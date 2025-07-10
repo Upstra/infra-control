@@ -10,6 +10,8 @@ import { User } from '../../../domain/entities/user.entity';
 import { Role } from '@/modules/roles/domain/entities/role.entity';
 import { UserExceptions } from '../../../domain/exceptions/user.exception';
 import { EmailEventType } from '@/modules/email/domain/events/email.events';
+import { IUserPreferencesRepository } from '@/modules/user-preferences/domain/interfaces/user-preferences.repository.interface';
+import { UserPreference } from '@/modules/user-preferences/domain/entities/user-preference.entity';
 
 describe('CreateUserByAdminUseCase', () => {
   let useCase: CreateUserByAdminUseCase;
@@ -18,6 +20,7 @@ describe('CreateUserByAdminUseCase', () => {
   let userDomainService: jest.Mocked<UserDomainService>;
   let logHistoryUseCase: jest.Mocked<LogHistoryUseCase>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
+  let userPreferencesRepository: jest.Mocked<IUserPreferencesRepository>;
 
   const mockUser = new User();
   mockUser.id = '123e4567-e89b-12d3-a456-426614174000';
@@ -73,6 +76,12 @@ describe('CreateUserByAdminUseCase', () => {
             emit: jest.fn(),
           },
         },
+        {
+          provide: 'IUserPreferencesRepository',
+          useValue: {
+            create: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -82,6 +91,9 @@ describe('CreateUserByAdminUseCase', () => {
     userDomainService = module.get(UserDomainService);
     logHistoryUseCase = module.get(LogHistoryUseCase);
     eventEmitter = module.get(EventEmitter2);
+    userPreferencesRepository = module.get('IUserPreferencesRepository');
+    
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -153,6 +165,7 @@ describe('CreateUserByAdminUseCase', () => {
           firstname: mockUser.firstName,
         },
       );
+      expect(userPreferencesRepository.create).toHaveBeenCalled();
     });
 
     it('should create a new user without roles when roleIds is empty', async () => {
@@ -312,6 +325,10 @@ describe('CreateUserByAdminUseCase', () => {
               provide: EventEmitter2,
               useValue: eventEmitter,
             },
+            {
+              provide: 'IUserPreferencesRepository',
+              useValue: userPreferencesRepository,
+            },
           ],
         }).compile();
 
@@ -333,6 +350,76 @@ describe('CreateUserByAdminUseCase', () => {
       );
 
       expect(result).toEqual(mockUser);
+    });
+
+    it('should create user preferences when userPreferencesRepository is available', async () => {
+      userRepository.findOneByField.mockResolvedValue(null);
+      roleRepository.findByIds.mockResolvedValue([mockRole1]);
+      userDomainService.createUserEntity.mockResolvedValue(mockUser);
+      userRepository.save.mockResolvedValue(mockUser);
+      userRepository.findById.mockResolvedValue(mockUser);
+
+      const dtoWithSingleRole = { ...dto, roleIds: ['role1-id'] };
+      await useCase.execute(dtoWithSingleRole, adminId);
+
+      expect(userPreferencesRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: mockUser.id,
+        }),
+      );
+    });
+
+    it('should work without userPreferencesRepository', async () => {
+      const moduleWithoutPreferences: TestingModule =
+        await Test.createTestingModule({
+          providers: [
+            CreateUserByAdminUseCase,
+            {
+              provide: 'UserRepositoryInterface',
+              useValue: userRepository,
+            },
+            {
+              provide: 'RoleRepositoryInterface',
+              useValue: roleRepository,
+            },
+            {
+              provide: UserDomainService,
+              useValue: userDomainService,
+            },
+            {
+              provide: LogHistoryUseCase,
+              useValue: logHistoryUseCase,
+            },
+            {
+              provide: EventEmitter2,
+              useValue: eventEmitter,
+            },
+            {
+              provide: 'IUserPreferencesRepository',
+              useValue: null,
+            },
+          ],
+        }).compile();
+
+      const useCaseWithoutPreferences =
+        moduleWithoutPreferences.get<CreateUserByAdminUseCase>(
+          CreateUserByAdminUseCase,
+        );
+
+      userRepository.findOneByField.mockResolvedValue(null);
+      roleRepository.findByIds.mockResolvedValue([mockRole1]);
+      userDomainService.createUserEntity.mockResolvedValue(mockUser);
+      userRepository.save.mockResolvedValue(mockUser);
+      userRepository.findById.mockResolvedValue(mockUser);
+
+      const dtoWithSingleRole = { ...dto, roleIds: ['role1-id'] };
+      const result = await useCaseWithoutPreferences.execute(
+        dtoWithSingleRole,
+        adminId,
+      );
+
+      expect(result).toEqual(mockUser);
+      // Should not crash when userPreferencesRepository is null
     });
   });
 });
