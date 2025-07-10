@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { SystemSettingsService } from '../../domain/services/system-settings.service';
 import { SystemSettingsData } from '../../domain/entities/system-settings.entity';
 import { UpdateSystemSettingsDto } from '../dto/update-system-settings.dto';

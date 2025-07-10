@@ -16,10 +16,7 @@ import { HistoryModule } from '../history/history.module';
 import { LogHistoryUseCase } from '../history/application/use-cases/log-history.use-case';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([SystemSettings]),
-    HistoryModule,
-  ],
+  imports: [TypeOrmModule.forFeature([SystemSettings]), HistoryModule],
   controllers: [SystemSettingsController],
   providers: [
     {

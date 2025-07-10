@@ -167,7 +167,7 @@ export class SystemSettingsController {
     @Req() req: Request,
   ): Promise<SystemSettingsResponseDto> {
     return await this.importSettingsUseCase.execute(
-      importDto as ImportSettingsData, 
+      importDto as ImportSettingsData,
       payload.userId,
       req.ip,
       req.get('user-agent'),

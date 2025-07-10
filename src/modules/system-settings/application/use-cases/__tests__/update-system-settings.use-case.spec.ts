@@ -85,8 +85,12 @@ describe('UpdateSystemSettingsUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<UpdateSystemSettingsUseCase>(UpdateSystemSettingsUseCase);
-    systemSettingsService = module.get<SystemSettingsService>(SystemSettingsService);
+    useCase = module.get<UpdateSystemSettingsUseCase>(
+      UpdateSystemSettingsUseCase,
+    );
+    systemSettingsService = module.get<SystemSettingsService>(
+      SystemSettingsService,
+    );
   });
 
   it('should be defined', () => {
@@ -108,12 +112,19 @@ describe('UpdateSystemSettingsUseCase', () => {
         },
       };
 
-      jest.spyOn(systemSettingsService, 'updateSettings').mockResolvedValue(updatedSettings);
+      jest
+        .spyOn(systemSettingsService, 'updateSettings')
+        .mockResolvedValue(updatedSettings);
 
       const result = await useCase.execute(updates, userId);
 
       expect(result).toEqual(updatedSettings.settings);
-      expect(systemSettingsService.updateSettings).toHaveBeenCalledWith(updates, userId, undefined, undefined);
+      expect(systemSettingsService.updateSettings).toHaveBeenCalledWith(
+        updates,
+        userId,
+        undefined,
+        undefined,
+      );
     });
 
     it('should handle partial updates', async () => {
@@ -126,17 +137,26 @@ describe('UpdateSystemSettingsUseCase', () => {
       };
       const userId = 'user123';
 
-      jest.spyOn(systemSettingsService, 'updateSettings').mockResolvedValue(mockSettings);
+      jest
+        .spyOn(systemSettingsService, 'updateSettings')
+        .mockResolvedValue(mockSettings);
 
       const result = await useCase.execute(updates, userId);
 
       expect(result).toEqual(mockSettings.settings);
-      expect(systemSettingsService.updateSettings).toHaveBeenCalledWith(updates, userId, undefined, undefined);
+      expect(systemSettingsService.updateSettings).toHaveBeenCalledWith(
+        updates,
+        userId,
+        undefined,
+        undefined,
+      );
     });
 
     it('should handle service errors', async () => {
       const error = new Error('Update failed');
-      jest.spyOn(systemSettingsService, 'updateSettings').mockRejectedValue(error);
+      jest
+        .spyOn(systemSettingsService, 'updateSettings')
+        .mockRejectedValue(error);
 
       await expect(useCase.execute({}, 'user123')).rejects.toThrow(error);
     });

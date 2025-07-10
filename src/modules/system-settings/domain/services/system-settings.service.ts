@@ -6,7 +6,6 @@ import {
 } from '../entities/system-settings.entity';
 import { ISystemSettingsRepository } from '../interfaces/system-settings-repository.interface';
 import { DefaultSettingsService } from './default-settings.service';
-import { SystemSettingsNotFoundException } from '../exceptions/system-settings.exceptions';
 import { LogHistoryUseCase } from '../../../history/application/use-cases/log-history.use-case';
 
 @Injectable()

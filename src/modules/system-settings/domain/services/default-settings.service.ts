@@ -71,7 +71,13 @@ export class DefaultSettingsService {
   }
 
   isValidCategory(category: string): boolean {
-    const validCategories = ['security', 'system', 'email', 'backup', 'logging'];
+    const validCategories = [
+      'security',
+      'system',
+      'email',
+      'backup',
+      'logging',
+    ];
     return validCategories.includes(category);
   }
 }

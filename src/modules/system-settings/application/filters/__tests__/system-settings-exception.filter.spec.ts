@@ -14,7 +14,7 @@ describe('SystemSettingsExceptionFilter', () => {
 
   beforeEach(() => {
     filter = new SystemSettingsExceptionFilter();
-    
+
     mockResponse = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
@@ -32,7 +32,7 @@ describe('SystemSettingsExceptionFilter', () => {
   describe('catch', () => {
     it('should handle SystemSettingsNotFoundException with 404 status', () => {
       const exception = new SystemSettingsNotFoundException();
-      
+
       filter.catch(exception, mockHost);
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
@@ -46,7 +46,7 @@ describe('SystemSettingsExceptionFilter', () => {
 
     it('should handle InvalidSettingsCategoryException with 400 status', () => {
       const exception = new InvalidSettingsCategoryException('invalid');
-      
+
       filter.catch(exception, mockHost);
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
@@ -60,7 +60,7 @@ describe('SystemSettingsExceptionFilter', () => {
 
     it('should handle EmailConfigurationException with 400 status', () => {
       const exception = new EmailConfigurationException('SMTP error');
-      
+
       filter.catch(exception, mockHost);
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
@@ -74,7 +74,7 @@ describe('SystemSettingsExceptionFilter', () => {
 
     it('should handle SettingsImportException with 400 status', () => {
       const exception = new SettingsImportException('Invalid format');
-      
+
       filter.catch(exception, mockHost);
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
@@ -89,13 +89,15 @@ describe('SystemSettingsExceptionFilter', () => {
     it('should return ISO timestamp', () => {
       const exception = new EmailConfigurationException('test');
       const beforeTime = new Date().toISOString();
-      
+
       filter.catch(exception, mockHost);
-      
+
       const afterTime = new Date().toISOString();
       const responseCall = mockResponse.json.mock.calls[0][0];
-      
-      expect(new Date(responseCall.timestamp).toISOString()).toEqual(responseCall.timestamp);
+
+      expect(new Date(responseCall.timestamp).toISOString()).toEqual(
+        responseCall.timestamp,
+      );
       expect(responseCall.timestamp >= beforeTime).toBe(true);
       expect(responseCall.timestamp <= afterTime).toBe(true);
     });
