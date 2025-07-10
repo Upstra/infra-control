@@ -238,7 +238,7 @@ describe('SystemSettingsController', () => {
     it('should export settings', async () => {
       const exportedData = {
         version: '1.0',
-        exportedAt: new Date(),
+        exportedAt: new Date().toISOString(),
         settings: mockSettings,
       };
 
@@ -257,7 +257,7 @@ describe('SystemSettingsController', () => {
     it('should import settings', async () => {
       const importDto: ImportSettingsDto = {
         version: '1.0',
-        exportedAt: new Date(),
+        exportedAt: new Date().toISOString(),
         settings: mockSettings as UpdateSystemSettingsDto,
       };
 

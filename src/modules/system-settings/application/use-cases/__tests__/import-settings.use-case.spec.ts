@@ -81,7 +81,7 @@ describe('ImportSettingsUseCase', () => {
 
   const validImportData: ImportSettingsData = {
     version: '1.0',
-    exportedAt: new Date(),
+    exportedAt: new Date().toISOString(),
     settings: mockSettings.settings,
   };
 
@@ -135,9 +135,9 @@ describe('ImportSettingsUseCase', () => {
 
     it('should throw error if version is missing', async () => {
       const invalidData = {
-        exportedAt: new Date(),
+        exportedAt: new Date().toISOString(),
         settings: mockSettings.settings,
-      } as ImportSettingsData;
+      } as unknown as ImportSettingsData;
 
       await expect(useCase.execute(invalidData, 'user123')).rejects.toThrow(
         new SettingsImportException('Invalid import data format'),
@@ -147,8 +147,8 @@ describe('ImportSettingsUseCase', () => {
     it('should throw error if settings are missing', async () => {
       const invalidData = {
         version: '1.0',
-        exportedAt: new Date(),
-      } as ImportSettingsData;
+        exportedAt: new Date().toISOString(),
+      } as unknown as ImportSettingsData;
 
       await expect(useCase.execute(invalidData, 'user123')).rejects.toThrow(
         new SettingsImportException('Invalid import data format'),

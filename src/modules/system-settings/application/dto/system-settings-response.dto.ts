@@ -78,7 +78,7 @@ export class ExportSettingsResponseDto {
   version: string;
 
   @ApiProperty()
-  exportedAt: Date;
+  exportedAt: string;
 
   @ApiProperty()
   settings: SystemSettingsResponseDto;
