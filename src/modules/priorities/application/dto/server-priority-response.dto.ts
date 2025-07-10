@@ -29,8 +29,8 @@ export class ServerPriorityResponseDto {
 
   @ApiProperty({
     description: 'Server state',
-    enum: ['active', 'inactive', 'maintenance'],
-    example: 'active',
+    enum: ['UP', 'DOWN', 'MAINTENANCE'],
+    example: 'UP',
   })
   state: string;
 }
