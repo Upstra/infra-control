@@ -16,11 +16,9 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../../../core/guards/jwt-auth.guard';
 import { RoleGuard } from '../../../../core/guards/role.guard';
-import { RequireRole } from '../../../../core/decorators/require-role.decorator';
+
 import { CurrentUser } from '../../../../core/decorators/current-user.decorator';
-import { User } from '../../../users/domain/entities/user.entity';
 import { GetSystemSettingsUseCase } from '../use-cases/get-system-settings.use-case';
 import { UpdateSystemSettingsUseCase } from '../use-cases/update-system-settings.use-case';
 import { ResetSettingsCategoryUseCase } from '../use-cases/reset-settings-category.use-case';
@@ -34,12 +32,15 @@ import {
   SystemSettingsResponseDto,
   ExportSettingsResponseDto,
 } from '../dto/system-settings-response.dto';
+import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { RequireRole } from '@/core/decorators/role.decorator';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 @ApiTags('Admin Settings')
 @ApiBearerAuth()
 @Controller('admin/settings')
 @UseGuards(JwtAuthGuard, RoleGuard)
-@RequireRole('admin')
+@RequireRole({ isAdmin: true })
 export class SystemSettingsController {
   constructor(
     private readonly getSystemSettingsUseCase: GetSystemSettingsUseCase,
@@ -70,9 +71,12 @@ export class SystemSettingsController {
   })
   async updateSettings(
     @Body() updateDto: UpdateSystemSettingsDto,
-    @CurrentUser() user: User,
+    @CurrentUser() payload: JwtPayload,
   ): Promise<SystemSettingsResponseDto> {
-    return await this.updateSystemSettingsUseCase.execute(updateDto, user.id);
+    return await this.updateSystemSettingsUseCase.execute(
+      updateDto,
+      payload.userId,
+    );
   }
 
   @Post(':category/reset')
@@ -88,9 +92,12 @@ export class SystemSettingsController {
   })
   async resetCategory(
     @Param('category') category: string,
-    @CurrentUser() user: User,
+    @CurrentUser() payload: JwtPayload,
   ): Promise<SystemSettingsResponseDto> {
-    return await this.resetSettingsCategoryUseCase.execute(category, user.id);
+    return await this.resetSettingsCategoryUseCase.execute(
+      category,
+      payload.userId,
+    );
   }
 
   @Post('email/test')
@@ -124,8 +131,8 @@ export class SystemSettingsController {
   })
   async importSettings(
     @Body() importDto: ImportSettingsDto,
-    @CurrentUser() user: User,
+    @CurrentUser() payload: JwtPayload,
   ): Promise<SystemSettingsResponseDto> {
-    return await this.importSettingsUseCase.execute(importDto, user.id);
+    return await this.importSettingsUseCase.execute(importDto, payload.userId);
   }
 }

@@ -14,20 +14,14 @@ import { ImportSettingsUseCase } from './application/use-cases/import-settings.u
 import { SystemSettingsController } from './application/controllers/system-settings.controller';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([SystemSettings]),
-    EventEmitterModule,
-  ],
+  imports: [TypeOrmModule.forFeature([SystemSettings]), EventEmitterModule],
   controllers: [SystemSettingsController],
   providers: [
-    // Infrastructure
     {
       provide: 'ISystemSettingsRepository',
       useClass: SystemSettingsRepository,
     },
     SystemSettingsRepository,
-    
-    // Domain Services
     DefaultSettingsService,
     {
       provide: SystemSettingsService,
@@ -42,10 +36,13 @@ import { SystemSettingsController } from './application/controllers/system-setti
           eventEmitter,
         );
       },
-      inject: [SystemSettingsRepository, DefaultSettingsService, 'EventEmitter2'],
+      inject: [
+        SystemSettingsRepository,
+        DefaultSettingsService,
+        'EventEmitter2',
+      ],
     },
-    
-    // Use Cases
+
     GetSystemSettingsUseCase,
     UpdateSystemSettingsUseCase,
     ResetSettingsCategoryUseCase,

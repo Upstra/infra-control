@@ -5,7 +5,7 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { GroupType } from '../../domain/enums/group-type.enum';
 
 export class CreateGroupDto {
@@ -15,7 +15,7 @@ export class CreateGroupDto {
   @MaxLength(255)
   name: string;
 
-  @ApiProperty({ description: 'Group description', required: false })
+  @ApiPropertyOptional({ description: 'Group description', required: false })
   @IsOptional()
   @IsString()
   description?: string;
