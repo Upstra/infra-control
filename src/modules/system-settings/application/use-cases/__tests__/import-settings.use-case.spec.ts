@@ -1,8 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ImportSettingsUseCase, ImportSettingsData } from '../import-settings.use-case';
+import {
+  ImportSettingsUseCase,
+  ImportSettingsData,
+} from '../import-settings.use-case';
 import { SystemSettingsService } from '../../../domain/services/system-settings.service';
 import { SettingsImportException } from '../../../domain/exceptions/system-settings.exceptions';
-import { SystemSettings } from '../../../domain/entities/system-settings.entity';
+import {
+  SystemSettings,
+  SystemSettingsData,
+} from '../../../domain/entities/system-settings.entity';
 
 describe('ImportSettingsUseCase', () => {
   let useCase: ImportSettingsUseCase;
@@ -99,7 +105,9 @@ describe('ImportSettingsUseCase', () => {
     }).compile();
 
     useCase = module.get<ImportSettingsUseCase>(ImportSettingsUseCase);
-    systemSettingsService = module.get<SystemSettingsService>(SystemSettingsService);
+    systemSettingsService = module.get<SystemSettingsService>(
+      SystemSettingsService,
+    );
   });
 
   it('should be defined', () => {
@@ -110,7 +118,9 @@ describe('ImportSettingsUseCase', () => {
     it('should import settings successfully', async () => {
       const userId = 'user123';
 
-      jest.spyOn(systemSettingsService, 'updateSettings').mockResolvedValue(mockSettings);
+      jest
+        .spyOn(systemSettingsService, 'updateSettings')
+        .mockResolvedValue(mockSettings);
 
       const result = await useCase.execute(validImportData, userId);
 
@@ -164,12 +174,13 @@ describe('ImportSettingsUseCase', () => {
           system: mockSettings.settings.system,
           email: mockSettings.settings.email,
           backup: mockSettings.settings.backup,
-          // logging is missing
         } as SystemSettingsData,
       };
 
       await expect(useCase.execute(invalidSettings, 'user123')).rejects.toThrow(
-        new SettingsImportException('Invalid settings structure: Missing required category: logging'),
+        new SettingsImportException(
+          'Invalid settings structure: Missing required category: logging',
+        ),
       );
     });
 
@@ -186,7 +197,9 @@ describe('ImportSettingsUseCase', () => {
       };
 
       await expect(useCase.execute(invalidSettings, 'user123')).rejects.toThrow(
-        new SettingsImportException('Invalid settings structure: Invalid security.passwordPolicy structure'),
+        new SettingsImportException(
+          'Invalid settings structure: Invalid security.passwordPolicy structure',
+        ),
       );
     });
 
@@ -203,15 +216,21 @@ describe('ImportSettingsUseCase', () => {
       };
 
       await expect(useCase.execute(invalidSettings, 'user123')).rejects.toThrow(
-        new SettingsImportException('Invalid settings structure: Invalid email.smtp structure'),
+        new SettingsImportException(
+          'Invalid settings structure: Invalid email.smtp structure',
+        ),
       );
     });
 
     it('should handle service errors', async () => {
       const error = new Error('Update failed');
-      jest.spyOn(systemSettingsService, 'updateSettings').mockRejectedValue(error);
+      jest
+        .spyOn(systemSettingsService, 'updateSettings')
+        .mockRejectedValue(error);
 
-      await expect(useCase.execute(validImportData, 'user123')).rejects.toThrow(error);
+      await expect(useCase.execute(validImportData, 'user123')).rejects.toThrow(
+        error,
+      );
     });
   });
 });
