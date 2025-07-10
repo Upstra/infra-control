@@ -37,6 +37,7 @@ export const RateLimitConfigs = {
   login: {
     limit: 5,
     window: 900, // 15 minutes
-    errorMessage: 'Trop de tentatives de connexion. Veuillez réessayer plus tard.',
+    errorMessage:
+      'Trop de tentatives de connexion. Veuillez réessayer plus tard.',
   },
 } as const;

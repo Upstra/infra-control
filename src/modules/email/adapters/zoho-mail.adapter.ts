@@ -37,7 +37,8 @@ export class ZohoMailAdapter implements IMailService {
   }
 
   private validateAndGetLogoUrl(): string {
-    const defaultLogoUrl = 'https://github.com/Upstra/.github/blob/dcd1f2dc99276f0fd22eea7b8dd7f35902c562cc/PA2025%20Upstra%20Logo.png?raw=true';
+    const defaultLogoUrl =
+      'https://github.com/Upstra/.github/blob/dcd1f2dc99276f0fd22eea7b8dd7f35902c562cc/PA2025%20Upstra%20Logo.png?raw=true';
     const configuredLogoUrl = process.env.MAIL_LOGO_URL;
 
     if (!configuredLogoUrl) {
@@ -46,12 +47,14 @@ export class ZohoMailAdapter implements IMailService {
 
     try {
       const url = new URL(configuredLogoUrl);
-      
+
       if (url.protocol !== 'https:') {
-        this.logger.warn(`Logo URL is not HTTPS: ${configuredLogoUrl}, using default`);
+        this.logger.warn(
+          `Logo URL is not HTTPS: ${configuredLogoUrl}, using default`,
+        );
         return defaultLogoUrl;
       }
-      
+
       return configuredLogoUrl;
     } catch (error) {
       this.logger.warn(`Invalid logo URL: ${configuredLogoUrl}, using default`);

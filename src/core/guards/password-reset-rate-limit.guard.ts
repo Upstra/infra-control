@@ -11,12 +11,12 @@ export class PasswordResetRateLimitGuard implements CanActivate {
   private generatePasswordResetKey(req: any): string {
     const ip = req.ip ?? req.socket?.remoteAddress ?? 'unknown';
     const email = sanitizeRateLimitKey(req.body?.email ?? '');
-    
+
     // Use both IP and email to prevent abuse while allowing legitimate use
     if (email && email !== 'anonymous') {
       return `password-reset:${sanitizeRateLimitKey(ip)}:${email}`;
     }
-    
+
     return `password-reset:${sanitizeRateLimitKey(ip)}`;
   }
 
@@ -39,17 +39,18 @@ export class PasswordResetRateLimitGuard implements CanActivate {
     windowMs: parseEnvInt(
       process.env.RATE_LIMIT_PASSWORD_RESET_WINDOW_MS,
       3600000, // 1 hour default
-      60000,   // 1 minute minimum
-      86400000 // 24 hours maximum
+      60000, // 1 minute minimum
+      86400000, // 24 hours maximum
     ),
     max: parseEnvInt(
       process.env.RATE_LIMIT_PASSWORD_RESET_MAX,
       3, // 3 attempts default
       1, // 1 attempt minimum
-      10 // 10 attempts maximum
+      10, // 10 attempts maximum
     ),
     message: {
-      error: 'Trop de tentatives de réinitialisation de mot de passe. Veuillez réessayer dans une heure.',
+      error:
+        'Trop de tentatives de réinitialisation de mot de passe. Veuillez réessayer dans une heure.',
       statusCode: 429,
     },
   });

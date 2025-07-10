@@ -6,6 +6,8 @@ import { RegisterDto } from '@/modules/auth/application/dto/register.dto';
 import { User } from '../../domain/entities/user.entity';
 import { UserExceptions } from '../../domain/exceptions/user.exception';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
+import { IUserPreferencesRepository } from '@/modules/user-preferences/domain/interfaces/user-preferences.repository.interface';
+import { UserPreference } from '@/modules/user-preferences/domain/entities/user-preference.entity';
 
 /**
  * Registers a new user account with provided profile and credentials.
@@ -30,6 +32,8 @@ export class RegisterUserUseCase {
     private readonly repo: UserRepositoryInterface,
     private readonly domain: UserDomainService,
     private readonly ensureDefaultRoleUseCase: EnsureDefaultRoleUseCase,
+    @Inject('IUserPreferencesRepository')
+    private readonly userPreferencesRepository?: IUserPreferencesRepository,
     private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
@@ -59,6 +63,12 @@ export class RegisterUserUseCase {
       dto.lastName,
     );
     const saved = await this.repo.save(user);
+
+    if (this.userPreferencesRepository) {
+      const defaultPreferences = UserPreference.createDefault(saved.id);
+      await this.userPreferencesRepository.create(defaultPreferences);
+    }
+
     await this.logHistory?.execute('user', saved.id, 'CREATE', saved.id);
     return saved;
   }

@@ -104,6 +104,9 @@ export class PermissionVmRepository
 
   async deleteByRoleId(roleId: string): Promise<void> {
     const result = await this.delete({ roleId });
-    console.log(`Deleted all VM permissions for role ${roleId}, result:`, result);
+    console.log(
+      `Deleted all VM permissions for role ${roleId}, result:`,
+      result,
+    );
   }
 }

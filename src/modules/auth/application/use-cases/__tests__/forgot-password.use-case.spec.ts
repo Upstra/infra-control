@@ -151,7 +151,11 @@ describe('ForgotPasswordUseCase', () => {
 
     it('should generate a valid reset token', async () => {
       // Ensure user has no existing token
-      const userWithoutToken = { ...mockUser, resetPasswordToken: null, resetPasswordExpiry: null };
+      const userWithoutToken = {
+        ...mockUser,
+        resetPasswordToken: null,
+        resetPasswordExpiry: null,
+      };
       userRepository.findOneByField.mockResolvedValue(userWithoutToken as User);
       userRepository.save.mockImplementation(async (user) => user as User);
 
@@ -167,7 +171,11 @@ describe('ForgotPasswordUseCase', () => {
     it('should set expiry time to 1 hour from now', async () => {
       const before = new Date();
       // Ensure user has no existing token
-      const userWithoutToken = { ...mockUser, resetPasswordToken: null, resetPasswordExpiry: null };
+      const userWithoutToken = {
+        ...mockUser,
+        resetPasswordToken: null,
+        resetPasswordExpiry: null,
+      };
       userRepository.findOneByField.mockResolvedValue(userWithoutToken as User);
       userRepository.save.mockImplementation(async (user) => user as User);
 
@@ -193,7 +201,11 @@ describe('ForgotPasswordUseCase', () => {
       process.env.FRONTEND_URL = 'https://test.example.com';
 
       // Ensure user has no existing token
-      const userWithoutToken = { ...mockUser, resetPasswordToken: null, resetPasswordExpiry: null };
+      const userWithoutToken = {
+        ...mockUser,
+        resetPasswordToken: null,
+        resetPasswordExpiry: null,
+      };
       userRepository.findOneByField.mockResolvedValue(userWithoutToken as User);
       userRepository.save.mockResolvedValue(userWithoutToken as User);
 
@@ -216,13 +228,13 @@ describe('ForgotPasswordUseCase', () => {
     it('should not generate new token if existing token is still valid', async () => {
       const validExpiry = new Date();
       validExpiry.setMinutes(validExpiry.getMinutes() + 30); // 30 minutes in future
-      
+
       const userWithValidToken = {
         ...mockUser,
         resetPasswordToken: 'existing-valid-token',
         resetPasswordExpiry: validExpiry,
       } as User;
-      
+
       userRepository.findOneByField.mockResolvedValue(userWithValidToken);
       userRepository.save.mockResolvedValue(userWithValidToken);
 
@@ -247,13 +259,13 @@ describe('ForgotPasswordUseCase', () => {
     it('should generate new token if existing token is expired', async () => {
       const expiredTime = new Date();
       expiredTime.setHours(expiredTime.getHours() - 2); // 2 hours ago
-      
+
       const userWithExpiredToken = {
         ...mockUser,
         resetPasswordToken: 'expired-token',
         resetPasswordExpiry: expiredTime,
       } as User;
-      
+
       userRepository.findOneByField.mockResolvedValue(userWithExpiredToken);
       userRepository.save.mockResolvedValue(userWithExpiredToken);
 
@@ -270,7 +282,11 @@ describe('ForgotPasswordUseCase', () => {
 
     it('should log password reset attempts', async () => {
       // Ensure user has no existing token
-      const userWithoutToken = { ...mockUser, resetPasswordToken: null, resetPasswordExpiry: null };
+      const userWithoutToken = {
+        ...mockUser,
+        resetPasswordToken: null,
+        resetPasswordExpiry: null,
+      };
       userRepository.findOneByField.mockResolvedValue(userWithoutToken as User);
       userRepository.save.mockResolvedValue(userWithoutToken as User);
 

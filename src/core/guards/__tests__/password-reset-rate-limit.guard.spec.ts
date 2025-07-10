@@ -115,12 +115,14 @@ describe('PasswordResetRateLimitGuard', () => {
       await guard.canActivate(mockExecutionContext);
 
       expect(mockResponse.setHeader).toHaveBeenCalled();
-      
+
       // Check that rate limit headers are set
       const headers = mockResponse.setHeader.mock.calls;
       const limitHeader = headers.find((call) => call[0] === 'RateLimit-Limit');
-      const remainingHeader = headers.find((call) => call[0] === 'RateLimit-Remaining');
-      
+      const remainingHeader = headers.find(
+        (call) => call[0] === 'RateLimit-Remaining',
+      );
+
       expect(limitHeader).toBeDefined();
       expect(remainingHeader).toBeDefined();
       expect(limitHeader[1]).toBeDefined();

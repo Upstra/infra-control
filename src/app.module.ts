@@ -27,6 +27,7 @@ import { HealthModule } from './modules/health/health.module';
 import { PriorityModule } from './modules/priorities/priority.module';
 import { PrometheusModule } from './modules/prometheus/prometheus.module';
 import { EmailModule } from './modules/email/email.module';
+import { UserPreferencesModule } from './modules/user-preferences/user-preferences.module';
 
 @Module({
   controllers: [],
@@ -57,6 +58,7 @@ import { EmailModule } from './modules/email/email.module';
     PriorityModule,
     PrometheusModule,
     EmailModule,
+    UserPreferencesModule,
   ],
   providers: [Logger],
 })
