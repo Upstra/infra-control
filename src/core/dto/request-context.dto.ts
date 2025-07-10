@@ -20,6 +20,7 @@ export class RequestContextDto {
   @IsUUID()
   correlationId?: string;
 
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   sessionId?: string;
