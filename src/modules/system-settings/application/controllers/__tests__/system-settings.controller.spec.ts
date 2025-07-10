@@ -162,10 +162,10 @@ describe('SystemSettingsController', () => {
 
       jest.spyOn(updateSystemSettingsUseCase, 'execute').mockResolvedValue(mockSettings);
 
-      const result = await controller.updateSettings(updateDto, mockUser);
+      const result = await controller.updateSettings(updateDto, mockUser, { ip: '127.0.0.1', get: () => 'test-agent' } as any);
 
       expect(result).toEqual(mockSettings);
-      expect(updateSystemSettingsUseCase.execute).toHaveBeenCalledWith(updateDto, mockUser.userId);
+      expect(updateSystemSettingsUseCase.execute).toHaveBeenCalledWith(updateDto, mockUser.userId, '127.0.0.1', 'test-agent');
     });
   });
 
@@ -175,10 +175,10 @@ describe('SystemSettingsController', () => {
 
       jest.spyOn(resetSettingsCategoryUseCase, 'execute').mockResolvedValue(mockSettings);
 
-      const result = await controller.resetCategory(category, mockUser);
+      const result = await controller.resetCategory(category, mockUser, { ip: '127.0.0.1', get: () => 'test-agent' } as any);
 
       expect(result).toEqual(mockSettings);
-      expect(resetSettingsCategoryUseCase.execute).toHaveBeenCalledWith(category, mockUser.userId);
+      expect(resetSettingsCategoryUseCase.execute).toHaveBeenCalledWith(category, mockUser.userId, '127.0.0.1', 'test-agent');
     });
   });
 
@@ -223,10 +223,10 @@ describe('SystemSettingsController', () => {
 
       jest.spyOn(importSettingsUseCase, 'execute').mockResolvedValue(mockSettings);
 
-      const result = await controller.importSettings(importDto, mockUser);
+      const result = await controller.importSettings(importDto, mockUser, { ip: '127.0.0.1', get: () => 'test-agent' } as any);
 
       expect(result).toEqual(mockSettings);
-      expect(importSettingsUseCase.execute).toHaveBeenCalledWith(importDto, mockUser.userId);
+      expect(importSettingsUseCase.execute).toHaveBeenCalledWith(importDto, mockUser.userId, '127.0.0.1', 'test-agent');
     });
   });
 });

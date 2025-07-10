@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SystemSettings, SystemSettingsData } from '../entities/system-settings.entity';
 import { ISystemSettingsRepository } from '../interfaces/system-settings-repository.interface';
 import { DefaultSettingsService } from './default-settings.service';
 import { SystemSettingsNotFoundException } from '../exceptions/system-settings.exceptions';
+import { LogHistoryUseCase } from '../../../history/application/use-cases/log-history.use-case';
 
 @Injectable()
 export class SystemSettingsService {
@@ -15,6 +16,8 @@ export class SystemSettingsService {
     private readonly repository: ISystemSettingsRepository,
     private readonly defaultSettingsService: DefaultSettingsService,
     private readonly eventEmitter: EventEmitter2,
+    @Inject(LogHistoryUseCase)
+    private readonly logHistoryUseCase: LogHistoryUseCase,
   ) {}
 
   async getSettings(): Promise<SystemSettings> {
@@ -40,8 +43,11 @@ export class SystemSettingsService {
   async updateSettings(
     updates: Partial<SystemSettingsData>,
     userId: string,
+    ipAddress?: string,
+    userAgent?: string,
   ): Promise<SystemSettings> {
     const settings = await this.getSettings();
+    const oldSettings = JSON.parse(JSON.stringify(settings.settings));
     
     settings.settings = this.deepMerge(settings.settings, updates);
     settings.updatedById = userId;
@@ -49,6 +55,18 @@ export class SystemSettingsService {
     const updatedSettings = await this.repository.updateSettings(settings);
     
     this.invalidateCache();
+    
+    await this.logHistoryUseCase.executeStructured({
+      entity: 'system_settings',
+      entityId: 'singleton',
+      action: 'UPDATE',
+      userId,
+      oldValue: oldSettings,
+      newValue: updatedSettings.settings,
+      metadata: { updatedFields: Object.keys(updates) },
+      ipAddress,
+      userAgent,
+    });
     
     this.eventEmitter.emit('system-settings.updated', {
       settings: updatedSettings,
@@ -62,8 +80,11 @@ export class SystemSettingsService {
   async resetCategory(
     category: keyof SystemSettingsData,
     userId: string,
+    ipAddress?: string,
+    userAgent?: string,
   ): Promise<SystemSettings> {
     const settings = await this.getSettings();
+    const oldCategory = JSON.parse(JSON.stringify(settings.settings[category]));
     const defaultCategory = this.defaultSettingsService.getDefaultCategory(category);
     
     settings.settings[category] = defaultCategory;
@@ -72,6 +93,18 @@ export class SystemSettingsService {
     const updatedSettings = await this.repository.updateSettings(settings);
     
     this.invalidateCache();
+    
+    await this.logHistoryUseCase.executeStructured({
+      entity: 'system_settings',
+      entityId: 'singleton',
+      action: 'RESET',
+      userId,
+      oldValue: { [category]: oldCategory },
+      newValue: { [category]: defaultCategory },
+      metadata: { resetCategory: category },
+      ipAddress,
+      userAgent,
+    });
     
     this.eventEmitter.emit('system-settings.category-reset', {
       category,

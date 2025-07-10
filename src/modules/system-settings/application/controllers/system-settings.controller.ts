@@ -8,7 +8,9 @@ import {
   Patch,
   Post,
   UseGuards,
+  Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -35,6 +37,7 @@ import {
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { RequireRole } from '@/core/decorators/role.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { ImportSettingsData } from '../use-cases/import-settings.use-case';
 
 @ApiTags('Admin Settings')
 @ApiBearerAuth()
@@ -72,10 +75,13 @@ export class SystemSettingsController {
   async updateSettings(
     @Body() updateDto: UpdateSystemSettingsDto,
     @CurrentUser() payload: JwtPayload,
+    @Req() req: Request,
   ): Promise<SystemSettingsResponseDto> {
     return await this.updateSystemSettingsUseCase.execute(
       updateDto,
       payload.userId,
+      req.ip,
+      req.get('user-agent'),
     );
   }
 
@@ -93,10 +99,13 @@ export class SystemSettingsController {
   async resetCategory(
     @Param('category') category: string,
     @CurrentUser() payload: JwtPayload,
+    @Req() req: Request,
   ): Promise<SystemSettingsResponseDto> {
     return await this.resetSettingsCategoryUseCase.execute(
       category,
       payload.userId,
+      req.ip,
+      req.get('user-agent'),
     );
   }
 
@@ -132,7 +141,13 @@ export class SystemSettingsController {
   async importSettings(
     @Body() importDto: ImportSettingsDto,
     @CurrentUser() payload: JwtPayload,
+    @Req() req: Request,
   ): Promise<SystemSettingsResponseDto> {
-    return await this.importSettingsUseCase.execute(importDto, payload.userId);
+    return await this.importSettingsUseCase.execute(
+      importDto as ImportSettingsData, 
+      payload.userId,
+      req.ip,
+      req.get('user-agent'),
+    );
   }
 }

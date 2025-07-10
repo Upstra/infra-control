@@ -108,6 +108,11 @@ describe('SystemSettingsService', () => {
     repository = module.get<ISystemSettingsRepository>('ISystemSettingsRepository');
     defaultSettingsService = module.get<DefaultSettingsService>(DefaultSettingsService);
     eventEmitter = module.get<EventEmitter2>(EventEmitter2);
+    
+    // Add missing LogHistoryUseCase dependency
+    (service as any).logHistoryUseCase = {
+      executeStructured: jest.fn(),
+    };
   });
 
   it('should be defined', () => {

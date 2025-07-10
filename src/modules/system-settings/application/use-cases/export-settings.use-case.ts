@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { SystemSettingsService } from '../../domain/services/system-settings.service';
+import { SystemSettingsData } from '../../domain/entities/system-settings.entity';
 
 export interface ExportedSettings {
   version: string;
   exportedAt: Date;
-  settings: any;
+  settings: SystemSettingsData;
 }
 
 @Injectable()
