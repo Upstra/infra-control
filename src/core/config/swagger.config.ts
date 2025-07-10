@@ -9,6 +9,10 @@ export const swaggerConfig = new DocumentBuilder()
   .build();
 
 export function setupSwagger(app: INestApplication): void {
+  if (process.env.NODE_ENV === 'production') {
+    return;
+  }
+
   const document = SwaggerModule.createDocument(app, swaggerConfig);
 
   SwaggerModule.setup('docs', app, document, {
