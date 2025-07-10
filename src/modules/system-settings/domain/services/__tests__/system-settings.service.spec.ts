@@ -154,7 +154,19 @@ describe('SystemSettingsService', () => {
 
   describe('updateSettings', () => {
     it('should update settings successfully', async () => {
-      const updates = { system: { maintenanceMode: true } };
+      const updates: Partial<SystemSettingsData> = { 
+        system: { 
+          maintenanceMode: true,
+          maintenanceMessage: '',
+          maxUploadSize: 10,
+          allowedFileTypes: ['jpg', 'png', 'pdf', 'docx'],
+          api: {
+            enabled: true,
+            rateLimit: 100,
+          },
+          enableWebSockets: true,
+        } 
+      };
       const userId = 'user123';
       const updatedSettings = { 
         ...mockSettings, 
@@ -183,11 +195,21 @@ describe('SystemSettingsService', () => {
     });
 
     it('should deep merge settings updates', async () => {
-      const updates = {
+      const updates: Partial<SystemSettingsData> = {
         security: {
+          registrationEnabled: true,
+          requireEmailVerification: false,
+          defaultUserRole: 'user',
+          sessionTimeout: 3600,
+          maxLoginAttempts: 5,
           passwordPolicy: {
             minLength: 12,
+            requireUppercase: true,
+            requireLowercase: true,
+            requireNumbers: true,
+            requireSpecialChars: false,
           },
+          allowGuestAccess: false,
         },
       };
       const userId = 'user123';
