@@ -6,7 +6,7 @@ import { LogHistoryUseCase } from '../../../history/application/use-cases/log-hi
 
 export interface ImportSettingsData {
   version: string;
-  exportedAt: Date;
+  exportedAt: string;
   settings: SystemSettingsData;
 }
 

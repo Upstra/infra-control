@@ -119,10 +119,11 @@ describe('ExportSettingsUseCase', () => {
       const result = await useCase.execute();
 
       const afterExport = new Date();
-      expect(result.exportedAt.getTime()).toBeGreaterThanOrEqual(
+      const exportedDate = new Date(result.exportedAt);
+      expect(exportedDate.getTime()).toBeGreaterThanOrEqual(
         beforeExport.getTime(),
       );
-      expect(result.exportedAt.getTime()).toBeLessThanOrEqual(
+      expect(exportedDate.getTime()).toBeLessThanOrEqual(
         afterExport.getTime(),
       );
     });

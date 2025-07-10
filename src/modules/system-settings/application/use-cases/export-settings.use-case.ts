@@ -4,7 +4,7 @@ import { SystemSettingsData } from '../../domain/entities/system-settings.entity
 
 export interface ExportedSettings {
   version: string;
-  exportedAt: Date;
+  exportedAt: string;
   settings: SystemSettingsData;
 }
 
@@ -17,7 +17,7 @@ export class ExportSettingsUseCase {
 
     return {
       version: '1.0',
-      exportedAt: new Date(),
+      exportedAt: new Date().toISOString(),
       settings: settings.settings,
     };
   }

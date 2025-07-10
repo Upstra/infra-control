@@ -18,7 +18,7 @@ export class ImportSettingsDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsDateString()
-  exportedAt: Date;
+  exportedAt: string;
 
   @ApiProperty()
   @IsNotEmpty()
