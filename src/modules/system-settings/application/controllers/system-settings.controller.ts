@@ -9,6 +9,7 @@ import {
   Post,
   UseGuards,
   Req,
+  UseFilters,
 } from '@nestjs/common';
 import { Request } from 'express';
 import {
@@ -38,12 +39,14 @@ import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guar
 import { RequireRole } from '@/core/decorators/role.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { ImportSettingsData } from '../use-cases/import-settings.use-case';
+import { SystemSettingsExceptionFilter } from '../filters/system-settings-exception.filter';
 
 @ApiTags('Admin Settings')
 @ApiBearerAuth()
 @Controller('admin/settings')
 @UseGuards(JwtAuthGuard, RoleGuard)
 @RequireRole({ isAdmin: true })
+@UseFilters(SystemSettingsExceptionFilter)
 export class SystemSettingsController {
   constructor(
     private readonly getSystemSettingsUseCase: GetSystemSettingsUseCase,
@@ -61,6 +64,10 @@ export class SystemSettingsController {
     description: 'System settings retrieved successfully',
     type: SystemSettingsResponseDto,
   })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'System settings not found',
+  })
   async getSettings(): Promise<SystemSettingsResponseDto> {
     return await this.getSystemSettingsUseCase.execute();
   }
@@ -71,6 +78,10 @@ export class SystemSettingsController {
     status: HttpStatus.OK,
     description: 'System settings updated successfully',
     type: SystemSettingsResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid settings data',
   })
   async updateSettings(
     @Body() updateDto: UpdateSystemSettingsDto,
@@ -96,6 +107,10 @@ export class SystemSettingsController {
     description: 'Settings category reset successfully',
     type: SystemSettingsResponseDto,
   })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid settings category',
+  })
   async resetCategory(
     @Param('category') category: string,
     @CurrentUser() payload: JwtPayload,
@@ -115,6 +130,10 @@ export class SystemSettingsController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Test email sent successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Email configuration error',
   })
   async testEmail(@Body() testEmailDto: TestEmailDto): Promise<void> {
     await this.testEmailConfigurationUseCase.execute(testEmailDto.to);
@@ -137,6 +156,10 @@ export class SystemSettingsController {
     status: HttpStatus.OK,
     description: 'Settings imported successfully',
     type: SystemSettingsResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Settings import failed',
   })
   async importSettings(
     @Body() importDto: ImportSettingsDto,

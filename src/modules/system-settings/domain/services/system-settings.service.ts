@@ -1,6 +1,9 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { SystemSettings, SystemSettingsData } from '../entities/system-settings.entity';
+import {
+  SystemSettings,
+  SystemSettingsData,
+} from '../entities/system-settings.entity';
 import { ISystemSettingsRepository } from '../interfaces/system-settings-repository.interface';
 import { DefaultSettingsService } from './default-settings.service';
 import { SystemSettingsNotFoundException } from '../exceptions/system-settings.exceptions';
@@ -26,7 +29,7 @@ export class SystemSettingsService {
     }
 
     let settings = await this.repository.findSettings();
-    
+
     if (!settings) {
       settings = new SystemSettings();
       settings.id = 'singleton';
@@ -48,14 +51,14 @@ export class SystemSettingsService {
   ): Promise<SystemSettings> {
     const settings = await this.getSettings();
     const oldSettings = JSON.parse(JSON.stringify(settings.settings));
-    
+
     settings.settings = this.deepMerge(settings.settings, updates);
     settings.updatedById = userId;
-    
+
     const updatedSettings = await this.repository.updateSettings(settings);
-    
+
     this.invalidateCache();
-    
+
     await this.logHistoryUseCase.executeStructured({
       entity: 'system_settings',
       entityId: 'singleton',
@@ -67,7 +70,7 @@ export class SystemSettingsService {
       ipAddress,
       userAgent,
     });
-    
+
     this.eventEmitter.emit('system-settings.updated', {
       settings: updatedSettings,
       changes: updates,
@@ -85,15 +88,16 @@ export class SystemSettingsService {
   ): Promise<SystemSettings> {
     const settings = await this.getSettings();
     const oldCategory = JSON.parse(JSON.stringify(settings.settings[category]));
-    const defaultCategory = this.defaultSettingsService.getDefaultCategory(category);
-    
+    const defaultCategory =
+      this.defaultSettingsService.getDefaultCategory(category);
+
     settings.settings[category] = defaultCategory;
     settings.updatedById = userId;
-    
+
     const updatedSettings = await this.repository.updateSettings(settings);
-    
+
     this.invalidateCache();
-    
+
     await this.logHistoryUseCase.executeStructured({
       entity: 'system_settings',
       entityId: 'singleton',
@@ -105,7 +109,7 @@ export class SystemSettingsService {
       ipAddress,
       userAgent,
     });
-    
+
     this.eventEmitter.emit('system-settings.category-reset', {
       category,
       userId,
@@ -121,9 +125,9 @@ export class SystemSettingsService {
 
   private deepMerge(target: any, source: any): any {
     const output = { ...target };
-    
+
     if (this.isObject(target) && this.isObject(source)) {
-      Object.keys(source).forEach(key => {
+      Object.keys(source).forEach((key) => {
         if (this.isObject(source[key])) {
           if (!(key in target)) {
             Object.assign(output, { [key]: source[key] });
@@ -135,7 +139,7 @@ export class SystemSettingsService {
         }
       });
     }
-    
+
     return output;
   }
 

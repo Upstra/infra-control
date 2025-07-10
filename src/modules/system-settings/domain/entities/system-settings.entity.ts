@@ -106,7 +106,7 @@ export class SystemSettings {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @Column({ name: 'updated_by', type: 'varchar', length: 36, nullable: true })
+  @Column({ name: 'updated_by', type: 'uuid', nullable: true })
   updatedById: string | null;
 
   @ManyToOne(() => User, { nullable: true })
