@@ -3,7 +3,10 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SystemSettingsService } from '../system-settings.service';
 import { DefaultSettingsService } from '../default-settings.service';
 import { ISystemSettingsRepository } from '../../interfaces/system-settings-repository.interface';
-import { SystemSettings } from '../../entities/system-settings.entity';
+import {
+  SystemSettings,
+  SystemSettingsData,
+} from '../../entities/system-settings.entity';
 
 describe('SystemSettingsService', () => {
   let service: SystemSettingsService;
@@ -91,7 +94,9 @@ describe('SystemSettingsService', () => {
         {
           provide: DefaultSettingsService,
           useValue: {
-            getDefaultSettings: jest.fn().mockReturnValue(mockSettings.settings),
+            getDefaultSettings: jest
+              .fn()
+              .mockReturnValue(mockSettings.settings),
             getDefaultCategory: jest.fn(),
           },
         },
@@ -105,10 +110,14 @@ describe('SystemSettingsService', () => {
     }).compile();
 
     service = module.get<SystemSettingsService>(SystemSettingsService);
-    repository = module.get<ISystemSettingsRepository>('ISystemSettingsRepository');
-    defaultSettingsService = module.get<DefaultSettingsService>(DefaultSettingsService);
+    repository = module.get<ISystemSettingsRepository>(
+      'ISystemSettingsRepository',
+    );
+    defaultSettingsService = module.get<DefaultSettingsService>(
+      DefaultSettingsService,
+    );
     eventEmitter = module.get<EventEmitter2>(EventEmitter2);
-    
+
     // Add missing LogHistoryUseCase dependency
     (service as any).logHistoryUseCase = {
       executeStructured: jest.fn(),
@@ -122,7 +131,7 @@ describe('SystemSettingsService', () => {
   describe('getSettings', () => {
     it('should return cached settings if available', async () => {
       jest.spyOn(repository, 'findSettings').mockResolvedValue(mockSettings);
-      
+
       await service.getSettings();
       const result = await service.getSettings();
 
@@ -143,7 +152,7 @@ describe('SystemSettingsService', () => {
 
     it('should refresh cache when expired', async () => {
       jest.spyOn(repository, 'findSettings').mockResolvedValue(mockSettings);
-      
+
       await service.getSettings();
       service.invalidateCache();
       await service.getSettings();
@@ -154,8 +163,8 @@ describe('SystemSettingsService', () => {
 
   describe('updateSettings', () => {
     it('should update settings successfully', async () => {
-      const updates: Partial<SystemSettingsData> = { 
-        system: { 
+      const updates: Partial<SystemSettingsData> = {
+        system: {
           maintenanceMode: true,
           maintenanceMessage: '',
           maxUploadSize: 10,
@@ -165,13 +174,13 @@ describe('SystemSettingsService', () => {
             rateLimit: 100,
           },
           enableWebSockets: true,
-        } 
+        },
       };
       const userId = 'user123';
-      const updatedSettings = { 
-        ...mockSettings, 
-        settings: { 
-          ...mockSettings.settings, 
+      const updatedSettings = {
+        ...mockSettings,
+        settings: {
+          ...mockSettings.settings,
           system: {
             ...mockSettings.settings.system,
             maintenanceMode: true,
@@ -180,18 +189,25 @@ describe('SystemSettingsService', () => {
       };
 
       jest.spyOn(repository, 'findSettings').mockResolvedValue(mockSettings);
-      jest.spyOn(repository, 'updateSettings').mockResolvedValue(updatedSettings);
+      jest
+        .spyOn(repository, 'updateSettings')
+        .mockResolvedValue(updatedSettings);
 
       const result = await service.updateSettings(updates, userId);
 
       expect(result).toEqual(updatedSettings);
       expect(repository.updateSettings).toHaveBeenCalled();
-      expect((service as any).logHistoryUseCase.executeStructured).toHaveBeenCalled();
-      expect(eventEmitter.emit).toHaveBeenCalledWith('system-settings.updated', {
-        settings: updatedSettings,
-        changes: updates,
-        userId,
-      });
+      expect(
+        (service as any).logHistoryUseCase.executeStructured,
+      ).toHaveBeenCalled();
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'system-settings.updated',
+        {
+          settings: updatedSettings,
+          changes: updates,
+          userId,
+        },
+      );
     });
 
     it('should deep merge settings updates', async () => {
@@ -215,13 +231,18 @@ describe('SystemSettingsService', () => {
       const userId = 'user123';
 
       jest.spyOn(repository, 'findSettings').mockResolvedValue(mockSettings);
-      jest.spyOn(repository, 'updateSettings').mockImplementation(async (settings) => settings);
+      jest
+        .spyOn(repository, 'updateSettings')
+        .mockImplementation(async (settings) => settings);
 
       await service.updateSettings(updates, userId);
 
-      const savedSettings = (repository.updateSettings as jest.Mock).mock.calls[0][0];
+      const savedSettings = (repository.updateSettings as jest.Mock).mock
+        .calls[0][0];
       expect(savedSettings.settings.security.passwordPolicy.minLength).toBe(12);
-      expect(savedSettings.settings.security.passwordPolicy.requireUppercase).toBe(true);
+      expect(
+        savedSettings.settings.security.passwordPolicy.requireUppercase,
+      ).toBe(true);
     });
 
     it('should invalidate cache after update', async () => {
@@ -258,24 +279,36 @@ describe('SystemSettingsService', () => {
       };
 
       jest.spyOn(repository, 'findSettings').mockResolvedValue(mockSettings);
-      jest.spyOn(defaultSettingsService, 'getDefaultCategory').mockReturnValue(defaultSecurity);
-      jest.spyOn(repository, 'updateSettings').mockImplementation(async (settings) => settings);
+      jest
+        .spyOn(defaultSettingsService, 'getDefaultCategory')
+        .mockReturnValue(defaultSecurity);
+      jest
+        .spyOn(repository, 'updateSettings')
+        .mockImplementation(async (settings) => settings);
 
       await service.resetCategory(category as any, userId);
 
-      const savedSettings = (repository.updateSettings as jest.Mock).mock.calls[0][0];
+      const savedSettings = (repository.updateSettings as jest.Mock).mock
+        .calls[0][0];
       expect(savedSettings.settings.security).toEqual(defaultSecurity);
-      expect((service as any).logHistoryUseCase.executeStructured).toHaveBeenCalled();
-      expect(eventEmitter.emit).toHaveBeenCalledWith('system-settings.category-reset', {
-        category,
-        userId,
-      });
+      expect(
+        (service as any).logHistoryUseCase.executeStructured,
+      ).toHaveBeenCalled();
+      expect(eventEmitter.emit).toHaveBeenCalledWith(
+        'system-settings.category-reset',
+        {
+          category,
+          userId,
+        },
+      );
     });
 
     it('should invalidate cache after reset', async () => {
       jest.spyOn(repository, 'findSettings').mockResolvedValue(mockSettings);
       jest.spyOn(repository, 'updateSettings').mockResolvedValue(mockSettings);
-      jest.spyOn(defaultSettingsService, 'getDefaultCategory').mockReturnValue({});
+      jest
+        .spyOn(defaultSettingsService, 'getDefaultCategory')
+        .mockReturnValue({});
 
       await service.resetCategory('security', 'user123');
 
@@ -289,7 +322,7 @@ describe('SystemSettingsService', () => {
   describe('invalidateCache', () => {
     it('should clear cache', async () => {
       jest.spyOn(repository, 'findSettings').mockResolvedValue(mockSettings);
-      
+
       await service.getSettings();
       service.invalidateCache();
 
