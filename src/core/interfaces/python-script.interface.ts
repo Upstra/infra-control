@@ -23,14 +23,15 @@ export interface VmwareCredentials {
 export interface VmInfo {
   moid: string;
   name: string;
-  power_state: 'poweredOn' | 'poweredOff' | 'suspended';
-  guest_os: string;
-  cpu_count: number;
-  memory_mb: number;
-  host: string;
-  datastore: string;
-  ip_address?: string;
-  tools_status?: string;
+  ip: string;
+  guestOs: string;
+  guestFamily: string;
+  version: string;
+  createDate: string;
+  numCoresPerSocket: number;
+  numCPU: number;
+  esxiHostName: string;
+  esxiHostMoid: string;
 }
 
 export interface MigrationResult {
@@ -43,7 +44,8 @@ export interface MigrationResult {
 }
 
 export interface PythonScriptError {
-  error: string;
-  code?: string;
-  details?: any;
+  error: {
+    message: string;
+    httpCode: number;
+  };
 }
