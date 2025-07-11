@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ExtendedJwtPayload } from '../../domain/interfaces/extended-jwt-payload.interface';
 import { TokenService } from '../services/token.service';
+import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 
 /**
  * Validates a refresh token and issues new authentication tokens.
@@ -25,11 +26,22 @@ export class RenewTokenUseCase {
   constructor(
     private readonly jwtService: JwtService,
     private readonly tokenService: TokenService,
+    private readonly userRepository: UserRepositoryInterface,
   ) {}
 
-  execute(refreshToken: string) {
+  async execute(refreshToken: string) {
     try {
       const payload = this.jwtService.verify<ExtendedJwtPayload>(refreshToken);
+
+      let isActive = payload.isActive;
+
+      if (isActive === undefined) {
+        const user = await this.userRepository.findOneById(payload.userId);
+        if (!user) {
+          throw new UnauthorizedException('User not found');
+        }
+        isActive = user.isActive;
+      }
 
       const tokens = this.tokenService.generateTokens({
         userId: payload.userId,
@@ -37,11 +49,14 @@ export class RenewTokenUseCase {
         isTwoFactorEnabled: payload.isTwoFactorEnabled,
         role: payload.role,
         roles: payload.roles,
-        isActive: payload.isActive,
+        isActive,
       });
 
       return tokens;
-    } catch {
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
   }

@@ -116,10 +116,13 @@ export class AuthController {
       'Renvoie un nouvel access token à partir du refresh token (dans cookie httpOnly)',
   })
   @ApiResponse({ status: 200, type: LoginResponseDto })
-  refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const refreshToken = req.cookies['refreshToken'];
     const { accessToken, refreshToken: newRefreshToken } =
-      this.renewTokenUseCase.execute(refreshToken);
+      await this.renewTokenUseCase.execute(refreshToken);
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
