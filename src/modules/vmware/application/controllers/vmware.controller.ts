@@ -24,6 +24,7 @@ import {
   GetVmMetricsUseCase,
   ControlVmPowerUseCase,
   MigrateVmUseCase,
+  GetHostMetricsUseCase,
 } from '../use-cases';
 import { VmPowerActionDto, VmMigrateDto } from '../dto';
 
@@ -37,6 +38,7 @@ export class VmwareController {
     private readonly getVmMetricsUseCase: GetVmMetricsUseCase,
     private readonly controlVmPowerUseCase: ControlVmPowerUseCase,
     private readonly migrateVmUseCase: MigrateVmUseCase,
+    private readonly getHostMetricsUseCase: GetHostMetricsUseCase,
   ) {}
 
   @Get(':serverId/vms')
@@ -157,5 +159,31 @@ export class VmwareController {
     @Body() dto: VmMigrateDto,
   ) {
     return this.migrateVmUseCase.execute(serverId, moid, dto.destinationMoid);
+  }
+
+  @Get(':serverId/metrics')
+  @UseGuards(ResourcePermissionGuard)
+  @RequireResourcePermission({
+    resourceType: 'server',
+    requiredBit: PermissionBit.READ,
+    resourceIdSource: 'params',
+    resourceIdField: 'serverId',
+  })
+  @ApiOperation({ summary: 'Get ESXi host metrics' })
+  @ApiParam({ name: 'serverId', description: 'Server ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Host metrics retrieved successfully',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient permissions',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Server not found',
+  })
+  async getHostMetrics(@Param('serverId') serverId: string) {
+    return this.getHostMetricsUseCase.execute(serverId);
   }
 }

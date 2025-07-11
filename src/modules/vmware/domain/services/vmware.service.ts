@@ -194,6 +194,7 @@ export class VmwareService implements IVmwareService {
       model: result.model ?? 'Unknown',
       vendor: result.vendor ?? 'Unknown',
       biosVendor: result.biosVendor ?? 'Unknown',
+      firewall: result.firewall ?? 'ruleset_data',
       maxHostRunningVms: result.maxHostRunningVms ?? 0,
       maxHostSupportedVcpus: result.maxHostSupportedVcpus ?? 0,
       maxMemMBPerFtVm: result.maxMemMBPerFtVm ?? 0,

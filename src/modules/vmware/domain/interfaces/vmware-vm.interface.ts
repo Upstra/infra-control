@@ -50,6 +50,7 @@ export interface VmwareHost {
   model: string;
   vendor: string;
   biosVendor: string;
+  firewall: string;
   maxHostRunningVms: number;
   maxHostSupportedVcpus: number;
   maxMemMBPerFtVm: number;
