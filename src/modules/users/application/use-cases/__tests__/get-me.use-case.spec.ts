@@ -1,6 +1,6 @@
 import { GetMeUseCase } from '../get-me.use-case';
 import { GetUserByIdUseCase } from '../get-user-by-id.use-case';
-import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { UserResponseDto } from '../../dto/user.response.dto';
 import {
   UserExceptions,

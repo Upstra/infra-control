@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PermissionServerController } from '../permission.server.controller';
 
 import { createMockPermissionServerDto } from '@/modules/permissions/__mocks__/permissions.mock';
-import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { UpdatePermissionServerDto } from '../../dto/permission.server.dto';
 import {
   CreatePermissionServerUseCase,

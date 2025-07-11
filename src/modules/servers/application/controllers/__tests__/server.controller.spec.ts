@@ -12,7 +12,7 @@ import {
   CheckServerPermissionUseCase,
 } from '@/modules/servers/application/use-cases';
 import { createMockServerDto } from '@/modules/servers/__mocks__/servers.mock';
-import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
+
 import { PermissionGuard } from '@/core/guards/permission.guard';
 import { RoleGuard } from '@/core/guards/role.guard';
 import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
@@ -20,6 +20,7 @@ import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guar
 import { GetUserWithRoleUseCase } from '@/modules/users/application/use-cases';
 import { Reflector } from '@nestjs/core';
 import { ServerListResponseDto } from '../../dto/server.list.response.dto';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 
 describe('ServerController', () => {
   let controller: ServerController;
@@ -331,7 +332,10 @@ describe('ServerController', () => {
 
   describe('Guard Integration Tests', () => {
     it('should handle guard permission denials gracefully', async () => {
-      const user = createMockJwtPayload({ userId: 'user-uuid', email: 'blocked@example.com' });
+      const user = createMockJwtPayload({
+        userId: 'user-uuid',
+        email: 'blocked@example.com',
+      });
 
       getUserServersUseCase.execute.mockRejectedValue(new Error('Forbidden'));
 

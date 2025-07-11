@@ -18,9 +18,9 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
-import { IloPermissionGuard } from '../../infrastructure/guards/ilo-permission.guard';
-import { IloPermission } from '../../infrastructure/decorators/ilo-permission.decorator';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
+import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
+import { RequireResourcePermission } from '@/core/decorators/ressource-permission.decorator';
 import { ControlServerPowerUseCase } from '../use-cases/control-server-power.use-case';
 import { GetServerStatusUseCase } from '../use-cases/get-server-status.use-case';
 import {
@@ -34,19 +34,25 @@ import {
 
 @ApiTags('iLO')
 @ApiBearerAuth()
-@Controller('api/ilo')
-@UseGuards(JwtAuthGuard, IloPermissionGuard)
+@Controller('api/ilo/servers')
+@UseGuards(JwtAuthGuard)
 export class IloPowerController {
   constructor(
     private readonly controlServerPowerUseCase: ControlServerPowerUseCase,
     private readonly getServerStatusUseCase: GetServerStatusUseCase,
   ) {}
 
-  @Post('servers/:ip/power')
-  @IloPermission(PermissionBit.WRITE)
+  @Post(':serverId/power')
+  @UseGuards(ResourcePermissionGuard)
+  @RequireResourcePermission({
+    resourceType: 'server',
+    requiredBit: PermissionBit.WRITE,
+    resourceIdSource: 'params',
+    resourceIdField: 'serverId',
+  })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Control physical server power state' })
-  @ApiParam({ name: 'ip', description: 'Server iLO IP address' })
+  @ApiParam({ name: 'serverId', description: 'Server ID' })
   @ApiResponse({
     status: 200,
     description: 'Power action completed successfully',
@@ -62,21 +68,25 @@ export class IloPowerController {
   })
   @ApiResponse({
     status: 404,
-    description: 'Server with this iLO IP not found',
+    description: 'Server not found',
   })
   async controlServerPower(
-    @Param('ip') ip: string,
+    @Param('serverId') serverId: string,
     @Body() dto: IloPowerActionDto,
   ): Promise<IloPowerResponseDto> {
-    return this.controlServerPowerUseCase.execute(ip, dto);
+    return this.controlServerPowerUseCase.execute(serverId, dto.action);
   }
 
-  @Get('servers/:ip/status')
-  @IloPermission(PermissionBit.READ)
+  @Get(':serverId/status')
+  @UseGuards(ResourcePermissionGuard)
+  @RequireResourcePermission({
+    resourceType: 'server',
+    requiredBit: PermissionBit.READ,
+    resourceIdSource: 'params',
+    resourceIdField: 'serverId',
+  })
   @ApiOperation({ summary: 'Get physical server power status' })
-  @ApiParam({ name: 'ip', description: 'Server iLO IP address' })
-  @ApiQuery({ name: 'user', description: 'iLO username', required: true })
-  @ApiQuery({ name: 'password', description: 'iLO password', required: true })
+  @ApiParam({ name: 'serverId', description: 'Server ID' })
   @ApiResponse({
     status: 200,
     description: 'Server status retrieved successfully',
@@ -92,14 +102,11 @@ export class IloPowerController {
   })
   @ApiResponse({
     status: 404,
-    description: 'Server with this iLO IP not found',
+    description: 'Server not found',
   })
   async getServerStatus(
-    @Param('ip') ip: string,
-    @Query('user') user: string,
-    @Query('password') password: string,
+    @Param('serverId') serverId: string,
   ): Promise<IloStatusResponseDto> {
-    const credentials: IloCredentialsDto = { user, password };
-    return this.getServerStatusUseCase.execute(ip, credentials);
+    return this.getServerStatusUseCase.execute(serverId);
   }
 }

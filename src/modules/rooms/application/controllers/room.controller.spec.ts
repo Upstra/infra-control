@@ -12,7 +12,7 @@ import {
   mockRoomCreationDto,
   mockRoomResponseDto,
 } from '@/modules/rooms/__mocks__';
-import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 
 describe('RoomController', () => {
   let controller: RoomController;

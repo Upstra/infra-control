@@ -10,7 +10,7 @@ import {
   createMockUps,
   createMockUpsDto,
 } from '@/modules/ups/__mocks__/ups.mock';
-import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { UpsResponseDto } from '../../dto/ups.response.dto';
 import { RoleGuard } from '@/core/guards/role.guard';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';

@@ -17,7 +17,7 @@ import { RoleUpdateDto } from '../../dto/role.update.dto';
 import { RoleGuard } from '@/core/guards';
 import { createMockRole } from '@/modules/roles/__mocks__/role.mock';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
-import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
 
 describe('RoleController', () => {

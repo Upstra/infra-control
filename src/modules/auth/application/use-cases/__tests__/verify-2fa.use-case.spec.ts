@@ -2,7 +2,7 @@ import { Verify2FAUseCase } from '../verify-2fa.use-case';
 import { JwtService } from '@nestjs/jwt';
 import { TokenService } from '../../services/token.service';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
-import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
 import { TwoFAInvalidCodeException } from '@/modules/auth/domain/exceptions/twofa.exception';
 import { TwoFADto } from '../../dto/twofa.dto';

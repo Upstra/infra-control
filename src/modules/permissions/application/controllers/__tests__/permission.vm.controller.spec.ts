@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PermissionVmController } from '../permission.vm.controller';
-import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import {
   CreatePermissionVmUseCase,
   CreateBatchPermissionVmUseCase,

@@ -8,7 +8,7 @@ import {
   createMockServerCreationDto,
 } from '@/modules/servers/__mocks__/servers.mock';
 import { createMockIloResponseDto } from '@/modules/ilos/__mocks__/ilo.mock';
-import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { GroupRepository } from '@/modules/groups/infrastructure/repositories/group.repository';
 import { UpsRepositoryInterface } from '@/modules/ups/domain/interfaces/ups.repository.interface';
 
