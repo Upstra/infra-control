@@ -86,8 +86,8 @@ export class Vm extends BaseEntity {
   @Column({ type: 'varchar', nullable: true })
   login?: string;
 
-  @ApiProperty()
-  @Column({ type: 'varchar', nullable: true })
+  @ApiProperty({ writeOnly: true })
+  @Column({ type: 'varchar', nullable: true, select: false })
   password?: string;
 
   @ApiProperty()

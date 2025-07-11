@@ -52,8 +52,8 @@ export class Server extends BaseEntity {
   @Column({ type: 'varchar' })
   login!: string;
 
-  @ApiProperty()
-  @Column({ type: 'varchar' })
+  @ApiProperty({ writeOnly: true })
+  @Column({ type: 'varchar', select: false })
   password!: string;
 
   @ApiProperty()
