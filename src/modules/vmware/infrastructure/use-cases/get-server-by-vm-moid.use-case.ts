@@ -34,12 +34,12 @@ export class GetServerByVmMoidUseCase {
     }
 
     const server = await this.serverRepository.findOne({
-      where: { ip: connection.ip },
+      where: { ip: connection.host },
     });
 
     if (!server) {
       throw new NotFoundException(
-        `Server with IP ${connection.ip} not found in database`,
+        `Server with IP ${connection.host} not found in database`,
       );
     }
 
@@ -51,7 +51,7 @@ export class GetServerByVmMoidUseCase {
   ): Promise<VmInfo[]> {
     const args = [
       '--ip',
-      connection.ip,
+      connection.host,
       '--user',
       connection.user,
       '--password',
@@ -63,7 +63,7 @@ export class GetServerByVmMoidUseCase {
     }
 
     try {
-      const result = await this.pythonExecutor.execute('list_vm.py', args);
+      const result = await this.pythonExecutor.executePython('list_vm.py', args);
       
       if (!Array.isArray(result)) {
         throw new Error('Invalid response format from list_vm.py');

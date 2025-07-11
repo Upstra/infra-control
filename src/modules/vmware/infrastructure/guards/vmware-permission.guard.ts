@@ -10,6 +10,7 @@ import { CheckServerPermissionUseCase } from '@/modules/servers/application/use-
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 import { User } from '@/modules/users/domain/entities/user.entity';
 import { GetServerByVmMoidUseCase } from '../use-cases/get-server-by-vm-moid.use-case';
+import { VmwareConnectionDto } from '@/modules/vmware/application/dto';
 
 interface VmwarePermissionMetadata {
   requiredBit: PermissionBit;
@@ -88,17 +89,12 @@ export class VmwarePermissionGuard implements CanActivate {
     return request.params?.moid || request.body?.moid || null;
   }
 
-  private extractConnectionParams(request: any): {
-    ip: string;
-    user: string;
-    password: string;
-    port?: number;
-  } {
+  private extractConnectionParams(request: any): VmwareConnectionDto {
     const query = request.query || {};
     const body = request.body || {};
 
     return {
-      ip: query.ip || body.ip,
+      host: query.host || body.host || query.ip || body.ip,
       user: query.user || body.user,
       password: query.password || body.password,
       port: query.port || body.port,
