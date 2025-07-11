@@ -2,14 +2,11 @@ import {
   Injectable,
   CanActivate,
   ExecutionContext,
-  NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Repository, In, IsNull } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Server } from '@/modules/servers/domain/entities/server.entity';
-import { PermissionServer } from '@/modules/permissions/domain/entities/permission.server.entity';
+import { GetServerByIloIpUseCase } from '@/modules/servers/application/use-cases/get-server-by-ilo-ip.use-case';
+import { CheckServerPermissionUseCase } from '@/modules/servers/application/use-cases/check-server-permission.use-case';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 import { User } from '@/modules/users/domain/entities/user.entity';
 
@@ -23,10 +20,8 @@ export const ILO_PERMISSION_KEY = 'ilo_permission';
 export class IloPermissionGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    @InjectRepository(Server)
-    private serverRepository: Repository<Server>,
-    @InjectRepository(PermissionServer)
-    private permissionServerRepository: Repository<PermissionServer>,
+    private readonly getServerByIloIpUseCase: GetServerByIloIpUseCase,
+    private readonly checkServerPermissionUseCase: CheckServerPermissionUseCase,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -56,34 +51,27 @@ export class IloPermissionGuard implements CanActivate {
       throw new ForbiddenException('IP address is required');
     }
 
-    const server = await this.serverRepository.findOne({
-      where: { ilo: { ip: iloIp } },
-      relations: ['ilo'],
-    });
-
-    if (!server) {
-      throw new NotFoundException('Server with this iLO IP not found');
-    }
-
-    const userRoleIds = user.roles.map((role) => role.id);
-
-    const permissions = await this.permissionServerRepository.find({
-      where: [
-        { role: { id: In(userRoleIds) }, server: { id: server.id } },
-        { role: { id: In(userRoleIds) }, server: IsNull() },
-      ],
-    });
-
-    const hasPermission = permissions.some(
-      (permission) => (permission.bitmask & metadata.requiredBit) !== 0,
-    );
-
-    if (!hasPermission) {
-      throw new ForbiddenException(
-        'You do not have permission to perform this action on this server',
+    try {
+      const server = await this.getServerByIloIpUseCase.execute(iloIp);
+      
+      const hasPermission = await this.checkServerPermissionUseCase.execute(
+        user.id,
+        server.id,
+        metadata.requiredBit,
       );
-    }
 
-    return true;
+      if (!hasPermission) {
+        throw new ForbiddenException(
+          'You do not have permission to perform this action on this server',
+        );
+      }
+
+      return true;
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
+      throw error;
+    }
   }
 }

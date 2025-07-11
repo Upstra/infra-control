@@ -210,4 +210,16 @@ export class ServerTypeormRepository
       throw new ServerRetrievalException(`Error counting servers by state`);
     }
   }
+
+  async findByIloIp(iloIp: string): Promise<Server | null> {
+    try {
+      return await this.findOne({
+        where: { ilo: { ip: iloIp } },
+        relations: ['ilo'],
+      });
+    } catch (error) {
+      this.logger.error(`Error finding server by iLO IP ${iloIp}:`, error);
+      throw new ServerRetrievalException(`Error finding server by iLO IP`);
+    }
+  }
 }

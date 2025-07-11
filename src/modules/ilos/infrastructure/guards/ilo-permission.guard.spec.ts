@@ -1,11 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExecutionContext, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Repository } from 'typeorm';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { IloPermissionGuard } from './ilo-permission.guard';
+import { GetServerByIloIpUseCase } from '@/modules/servers/application/use-cases/get-server-by-ilo-ip.use-case';
+import { CheckServerPermissionUseCase } from '@/modules/servers/application/use-cases/check-server-permission.use-case';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
-import { PermissionServer } from '@/modules/permissions/domain/entities/permission.server.entity';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 import { User } from '@/modules/users/domain/entities/user.entity';
 import { Role } from '@/modules/roles/domain/entities/role.entity';
@@ -14,19 +13,19 @@ import { Ilo } from '@/modules/ilos/domain/entities/ilo.entity';
 describe('IloPermissionGuard', () => {
   let guard: IloPermissionGuard;
   let reflector: Reflector;
-  let serverRepository: Repository<Server>;
-  let permissionServerRepository: Repository<PermissionServer>;
+  let getServerByIloIpUseCase: GetServerByIloIpUseCase;
+  let checkServerPermissionUseCase: CheckServerPermissionUseCase;
 
   const mockReflector = {
     get: jest.fn(),
   };
 
-  const mockServerRepository = {
-    findOne: jest.fn(),
+  const mockGetServerByIloIpUseCase = {
+    execute: jest.fn(),
   };
 
-  const mockPermissionServerRepository = {
-    find: jest.fn(),
+  const mockCheckServerPermissionUseCase = {
+    execute: jest.fn(),
   };
 
   const mockExecutionContext = {
@@ -44,21 +43,21 @@ describe('IloPermissionGuard', () => {
           useValue: mockReflector,
         },
         {
-          provide: getRepositoryToken(Server),
-          useValue: mockServerRepository,
+          provide: GetServerByIloIpUseCase,
+          useValue: mockGetServerByIloIpUseCase,
         },
         {
-          provide: getRepositoryToken(PermissionServer),
-          useValue: mockPermissionServerRepository,
+          provide: CheckServerPermissionUseCase,
+          useValue: mockCheckServerPermissionUseCase,
         },
       ],
     }).compile();
 
     guard = module.get<IloPermissionGuard>(IloPermissionGuard);
     reflector = module.get<Reflector>(Reflector);
-    serverRepository = module.get<Repository<Server>>(getRepositoryToken(Server));
-    permissionServerRepository = module.get<Repository<PermissionServer>>(
-      getRepositoryToken(PermissionServer),
+    getServerByIloIpUseCase = module.get<GetServerByIloIpUseCase>(GetServerByIloIpUseCase);
+    checkServerPermissionUseCase = module.get<CheckServerPermissionUseCase>(
+      CheckServerPermissionUseCase,
     );
 
     jest.clearAllMocks();
@@ -102,7 +101,7 @@ describe('IloPermissionGuard', () => {
       const result = await guard.canActivate(mockExecutionContext);
 
       expect(result).toBe(true);
-      expect(mockServerRepository.findOne).not.toHaveBeenCalled();
+      expect(mockGetServerByIloIpUseCase.execute).not.toHaveBeenCalled();
     });
 
     it('should throw ForbiddenException if IP address is not provided', async () => {
@@ -129,10 +128,12 @@ describe('IloPermissionGuard', () => {
         user,
         params: { ip: '192.168.1.100' },
       });
-      mockServerRepository.findOne.mockResolvedValue(null);
+      mockGetServerByIloIpUseCase.execute.mockRejectedValue(
+        new NotFoundException('Server with iLO IP 192.168.1.100 not found'),
+      );
 
       await expect(guard.canActivate(mockExecutionContext)).rejects.toThrow(
-        new NotFoundException('Server with this iLO IP not found'),
+        NotFoundException,
       );
     });
 
@@ -141,6 +142,7 @@ describe('IloPermissionGuard', () => {
       role.id = 'role-1';
 
       const user = new User();
+      user.id = 'user-1';
       user.roles = [role];
 
       const ilo = new Ilo();
@@ -150,26 +152,23 @@ describe('IloPermissionGuard', () => {
       server.id = 'server-1';
       server.ilo = ilo;
 
-      const permission = new PermissionServer();
-      permission.roleId = role.id;
-      permission.serverId = server.id;
-      permission.bitmask = PermissionBit.READ;
-
       mockReflector.get.mockReturnValue({ requiredBit: PermissionBit.READ });
       (mockExecutionContext.switchToHttp().getRequest as jest.Mock).mockReturnValue({
         user,
         params: { ip: '192.168.1.100' },
       });
-      mockServerRepository.findOne.mockResolvedValue(server);
-      mockPermissionServerRepository.find.mockResolvedValue([permission]);
+      mockGetServerByIloIpUseCase.execute.mockResolvedValue(server);
+      mockCheckServerPermissionUseCase.execute.mockResolvedValue(true);
 
       const result = await guard.canActivate(mockExecutionContext);
 
       expect(result).toBe(true);
-      expect(mockServerRepository.findOne).toHaveBeenCalledWith({
-        where: { ilo: { ip: '192.168.1.100' } },
-        relations: ['ilo'],
-      });
+      expect(mockGetServerByIloIpUseCase.execute).toHaveBeenCalledWith('192.168.1.100');
+      expect(mockCheckServerPermissionUseCase.execute).toHaveBeenCalledWith(
+        'user-1',
+        'server-1',
+        PermissionBit.READ,
+      );
     });
 
     it('should return true if user has required permission for all servers', async () => {
@@ -177,6 +176,7 @@ describe('IloPermissionGuard', () => {
       role.id = 'role-1';
 
       const user = new User();
+      user.id = 'user-1';
       user.roles = [role];
 
       const ilo = new Ilo();
@@ -186,18 +186,13 @@ describe('IloPermissionGuard', () => {
       server.id = 'server-1';
       server.ilo = ilo;
 
-      const permission = new PermissionServer();
-      permission.roleId = role.id;
-      permission.serverId = null;
-      permission.bitmask = PermissionBit.WRITE;
-
       mockReflector.get.mockReturnValue({ requiredBit: PermissionBit.WRITE });
       (mockExecutionContext.switchToHttp().getRequest as jest.Mock).mockReturnValue({
         user,
         params: { ip: '192.168.1.100' },
       });
-      mockServerRepository.findOne.mockResolvedValue(server);
-      mockPermissionServerRepository.find.mockResolvedValue([permission]);
+      mockGetServerByIloIpUseCase.execute.mockResolvedValue(server);
+      mockCheckServerPermissionUseCase.execute.mockResolvedValue(true);
 
       const result = await guard.canActivate(mockExecutionContext);
 
@@ -209,6 +204,7 @@ describe('IloPermissionGuard', () => {
       role.id = 'role-1';
 
       const user = new User();
+      user.id = 'user-1';
       user.roles = [role];
 
       const ilo = new Ilo();
@@ -218,18 +214,13 @@ describe('IloPermissionGuard', () => {
       server.id = 'server-1';
       server.ilo = ilo;
 
-      const permission = new PermissionServer();
-      permission.roleId = role.id;
-      permission.serverId = server.id;
-      permission.bitmask = PermissionBit.READ;
-
       mockReflector.get.mockReturnValue({ requiredBit: PermissionBit.WRITE });
       (mockExecutionContext.switchToHttp().getRequest as jest.Mock).mockReturnValue({
         user,
         params: { ip: '192.168.1.100' },
       });
-      mockServerRepository.findOne.mockResolvedValue(server);
-      mockPermissionServerRepository.find.mockResolvedValue([permission]);
+      mockGetServerByIloIpUseCase.execute.mockResolvedValue(server);
+      mockCheckServerPermissionUseCase.execute.mockResolvedValue(false);
 
       await expect(guard.canActivate(mockExecutionContext)).rejects.toThrow(
         new ForbiddenException(
@@ -246,7 +237,7 @@ describe('IloPermissionGuard', () => {
       role2.id = 'role-2';
 
       const user = new User();
-      user.roles = [];
+      user.id = 'user-1';
       user.roles = [role1, role2];
 
       const ilo = new Ilo();
@@ -256,18 +247,13 @@ describe('IloPermissionGuard', () => {
       server.id = 'server-1';
       server.ilo = ilo;
 
-      const permission = new PermissionServer();
-      permission.roleId = role2.id;
-      permission.serverId = server.id;
-      permission.bitmask = PermissionBit.WRITE;
-
       mockReflector.get.mockReturnValue({ requiredBit: PermissionBit.WRITE });
       (mockExecutionContext.switchToHttp().getRequest as jest.Mock).mockReturnValue({
         user,
         params: { ip: '192.168.1.100' },
       });
-      mockServerRepository.findOne.mockResolvedValue(server);
-      mockPermissionServerRepository.find.mockResolvedValue([permission]);
+      mockGetServerByIloIpUseCase.execute.mockResolvedValue(server);
+      mockCheckServerPermissionUseCase.execute.mockResolvedValue(true);
 
       const result = await guard.canActivate(mockExecutionContext);
 
