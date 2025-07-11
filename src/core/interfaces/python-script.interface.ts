@@ -43,8 +43,8 @@ export interface MigrationResult {
   duration_seconds?: number;
 }
 
-export interface PythonScriptError {
-  error: {
+export interface PythonScriptResult {
+  result: {
     message: string;
     httpCode: number;
   };
