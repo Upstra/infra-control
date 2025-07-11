@@ -30,6 +30,7 @@ import { EmailModule } from './modules/email/email.module';
 import { UserPreferencesModule } from './modules/user-preferences/user-preferences.module';
 import { SystemSettingsModule } from './modules/system-settings/system-settings.module';
 import { PythonExecutorModule } from './core/services/python-executor';
+import { VmwareModule } from './modules/vmware/vmware.module';
 
 @Module({
   controllers: [],
@@ -50,6 +51,7 @@ import { PythonExecutorModule } from './core/services/python-executor';
     ServerModule,
     UserModule,
     VmModule,
+    VmwareModule,
     RedisModule,
     PresenceModule,
     SetupModule,
