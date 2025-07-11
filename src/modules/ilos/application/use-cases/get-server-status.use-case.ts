@@ -16,29 +16,30 @@ export class GetServerStatusUseCase {
   async execute(serverId: string): Promise<IloStatusResponseDto> {
     const server = await this.serverRepository.findOne({
       where: { id: serverId },
+      relations: ['ilo'],
     });
 
     if (!server) {
       throw new NotFoundException(`Server with ID ${serverId} not found`);
     }
 
-    if (!server.ipIlo) {
-      throw new NotFoundException(`Server ${serverId} does not have an iLO IP configured`);
+    if (!server.ilo) {
+      throw new NotFoundException(`Server ${serverId} does not have an iLO configured`);
     }
 
     const credentials = {
-      user: server.login,
-      password: server.password,
+      user: server.ilo.login,
+      password: server.ilo.password,
     };
 
     const status = await this.iloPowerService.getServerStatus(
-      server.ipIlo,
+      server.ilo.ip,
       credentials,
     );
 
     return {
       status,
-      ip: server.ipIlo,
+      ip: server.ilo.ip,
     };
   }
 }

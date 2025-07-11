@@ -12,9 +12,13 @@ describe('GetServerStatusUseCase', () => {
   const mockServer = {
     id: 'server-1',
     ip: '192.168.1.10',
-    ipIlo: '192.168.1.100',
-    login: 'admin',
-    password: 'password123',
+    ilo: {
+      id: 'ilo-1',
+      ip: '192.168.1.100',
+      login: 'admin',
+      password: 'password123',
+      name: 'iLO Server 1',
+    },
   };
 
   beforeEach(() => {
@@ -49,6 +53,7 @@ describe('GetServerStatusUseCase', () => {
     });
     expect(mockServerRepository.findOne).toHaveBeenCalledWith({
       where: { id: 'server-1' },
+      relations: ['ilo'],
     });
     expect(mockIloPowerService.getServerStatus).toHaveBeenCalledWith(
       '192.168.1.100',
@@ -92,16 +97,17 @@ describe('GetServerStatusUseCase', () => {
 
     expect(mockServerRepository.findOne).toHaveBeenCalledWith({
       where: { id: 'server-999' },
+      relations: ['ilo'],
     });
     expect(mockIloPowerService.getServerStatus).not.toHaveBeenCalled();
   });
 
-  it('should throw error when server has no iLO IP', async () => {
-    const serverWithoutIlo = { ...mockServer, ipIlo: null };
+  it('should throw error when server has no iLO configured', async () => {
+    const serverWithoutIlo = { ...mockServer, ilo: null };
     mockServerRepository.findOne.mockResolvedValue(serverWithoutIlo);
 
     await expect(useCase.execute('server-1')).rejects.toThrow(
-      new NotFoundException('Server server-1 does not have an iLO IP configured'),
+      new NotFoundException('Server server-1 does not have an iLO configured'),
     );
 
     expect(mockIloPowerService.getServerStatus).not.toHaveBeenCalled();

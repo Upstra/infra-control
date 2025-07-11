@@ -20,23 +20,24 @@ export class ControlServerPowerUseCase {
   ): Promise<IloPowerResponseDto> {
     const server = await this.serverRepository.findOne({
       where: { id: serverId },
+      relations: ['ilo'],
     });
 
     if (!server) {
       throw new NotFoundException(`Server with ID ${serverId} not found`);
     }
 
-    if (!server.ipIlo) {
-      throw new NotFoundException(`Server ${serverId} does not have an iLO IP configured`);
+    if (!server.ilo) {
+      throw new NotFoundException(`Server ${serverId} does not have an iLO configured`);
     }
 
     const credentials = {
-      user: server.login,
-      password: server.password,
+      user: server.ilo.login,
+      password: server.ilo.password,
     };
 
     const result = await this.iloPowerService.controlServerPower(
-      server.ipIlo,
+      server.ilo.ip,
       action,
       credentials,
     );
