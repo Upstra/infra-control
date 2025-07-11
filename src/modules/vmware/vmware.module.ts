@@ -9,8 +9,6 @@ import { GetVmMetricsUseCase } from './application/use-cases/get-vm-metrics.use-
 import { ControlVmPowerUseCase } from './application/use-cases/control-vm-power.use-case';
 import { MigrateVmUseCase } from './application/use-cases/migrate-vm.use-case';
 import { GetHostMetricsUseCase } from './application/use-cases/get-host-metrics.use-case';
-import { VmwarePermissionGuard } from './infrastructure/guards/vmware-permission.guard';
-import { GetServerByVmMoidUseCase } from './infrastructure/use-cases/get-server-by-vm-moid.use-case';
 import { ServerModule } from '@/modules/servers/server.module';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
 import { PermissionModule } from '@/modules/permissions/permission.module';
@@ -26,13 +24,11 @@ import { PermissionModule } from '@/modules/permissions/permission.module';
   controllers: [VmwareController],
   providers: [
     VmwareService,
-    VmwarePermissionGuard,
     ListVmsUseCase,
     GetVmMetricsUseCase,
     ControlVmPowerUseCase,
     MigrateVmUseCase,
     GetHostMetricsUseCase,
-    GetServerByVmMoidUseCase,
   ],
   exports: [VmwareService],
 })

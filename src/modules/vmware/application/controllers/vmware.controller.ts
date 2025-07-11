@@ -157,7 +157,7 @@ export class VmwareController {
     @Param('moid') moid: string,
     @Body() dto: VmMigrateDto,
   ) {
-    return this.migrateVmUseCase.execute(serverId, moid, dto.destinationHost);
+    return this.migrateVmUseCase.execute(serverId, moid, dto.destinationMoid);
   }
 
 }
