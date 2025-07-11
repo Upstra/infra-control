@@ -57,7 +57,9 @@ describe('GetServerStatusUseCase', () => {
       status: IloServerStatus.ON,
       ip: '192.168.1.100',
     });
-    expect(mockGetServerWithIloUseCase.execute).toHaveBeenCalledWith('server-1');
+    expect(mockGetServerWithIloUseCase.execute).toHaveBeenCalledWith(
+      'server-1',
+    );
     expect(mockIloPowerService.getServerStatus).toHaveBeenCalledWith(
       '192.168.1.100',
       {
@@ -102,7 +104,9 @@ describe('GetServerStatusUseCase', () => {
       new NotFoundException('Server with ID server-999 not found'),
     );
 
-    expect(mockGetServerWithIloUseCase.execute).toHaveBeenCalledWith('server-999');
+    expect(mockGetServerWithIloUseCase.execute).toHaveBeenCalledWith(
+      'server-999',
+    );
     expect(mockIloPowerService.getServerStatus).not.toHaveBeenCalled();
   });
 

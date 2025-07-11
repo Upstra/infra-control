@@ -5,6 +5,8 @@ import {
   IsString,
   IsUUID,
   IsOptional,
+  IsDateString,
+  IsInt,
 } from 'class-validator';
 import { Vm } from '../../domain/entities/vm.entity';
 
@@ -18,6 +20,11 @@ export class VmResponseDto {
   @IsNotEmpty()
   @IsString()
   readonly name: string;
+
+  @ApiProperty({ nullable: true })
+  @IsOptional()
+  @IsString()
+  readonly moid?: string;
 
   @ApiProperty()
   @IsNotEmpty()
@@ -34,20 +41,60 @@ export class VmResponseDto {
   @IsNumber()
   readonly grace_period_off: number;
 
-  @ApiProperty()
-  @IsNotEmpty()
+  @ApiProperty({ nullable: true })
+  @IsOptional()
   @IsString()
-  readonly os: string;
+  readonly os?: string;
 
-  @ApiProperty()
-  @IsNotEmpty()
+  @ApiProperty({ nullable: true })
+  @IsOptional()
   @IsString()
-  readonly adminUrl: string;
+  readonly guestOs?: string;
 
-  @ApiProperty()
-  @IsNotEmpty()
+  @ApiProperty({ nullable: true })
+  @IsOptional()
   @IsString()
-  readonly ip: string;
+  readonly guestFamily?: string;
+
+  @ApiProperty({ nullable: true })
+  @IsOptional()
+  @IsString()
+  readonly version?: string;
+
+  @ApiProperty({ nullable: true })
+  @IsOptional()
+  @IsDateString()
+  readonly createDate?: string;
+
+  @ApiProperty({ nullable: true })
+  @IsOptional()
+  @IsInt()
+  readonly numCoresPerSocket?: number;
+
+  @ApiProperty({ nullable: true })
+  @IsOptional()
+  @IsInt()
+  readonly numCPU?: number;
+
+  @ApiProperty({ nullable: true })
+  @IsOptional()
+  @IsString()
+  readonly esxiHostName?: string;
+
+  @ApiProperty({ nullable: true })
+  @IsOptional()
+  @IsString()
+  readonly esxiHostMoid?: string;
+
+  @ApiProperty({ nullable: true })
+  @IsOptional()
+  @IsString()
+  readonly adminUrl?: string;
+
+  @ApiProperty({ nullable: true })
+  @IsOptional()
+  @IsString()
+  readonly ip?: string;
 
   @ApiProperty()
   @IsNotEmpty()
@@ -67,10 +114,19 @@ export class VmResponseDto {
   constructor(vm: Vm) {
     this.id = vm.id;
     this.name = vm.name;
+    this.moid = vm.moid;
     this.state = vm.state;
     this.grace_period_on = vm.grace_period_on;
     this.grace_period_off = vm.grace_period_off;
     this.os = vm.os;
+    this.guestOs = vm.guestOs;
+    this.guestFamily = vm.guestFamily;
+    this.version = vm.version;
+    this.createDate = vm.createDate?.toISOString();
+    this.numCoresPerSocket = vm.numCoresPerSocket;
+    this.numCPU = vm.numCPU;
+    this.esxiHostName = vm.esxiHostName;
+    this.esxiHostMoid = vm.esxiHostMoid;
     this.adminUrl = vm.adminUrl;
     this.ip = vm.ip;
     this.priority = vm.priority;

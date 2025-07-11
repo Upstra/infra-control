@@ -11,13 +11,15 @@ export class GetServerWithIloUseCase {
 
   async execute(id: string): Promise<Server> {
     const server = await this.serverRepository.findServerById(id);
-    
+
     if (!server) {
       throw new NotFoundException(`Server with ID ${id} not found`);
     }
 
     if (!server.ilo) {
-      throw new NotFoundException(`Server ${id} does not have an iLO configured`);
+      throw new NotFoundException(
+        `Server ${id} does not have an iLO configured`,
+      );
     }
 
     return server;

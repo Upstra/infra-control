@@ -1,11 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsNumber, IsString, IsUUID } from 'class-validator';
+import { IsOptional, IsNumber, IsString, IsUUID, IsDateString, IsInt } from 'class-validator';
 
 export class VmUpdateDto {
   @ApiProperty()
   @IsOptional()
   @IsString()
   readonly name?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  readonly moid?: string;
 
   @ApiProperty()
   @IsOptional()
@@ -26,6 +31,46 @@ export class VmUpdateDto {
   @IsOptional()
   @IsString()
   readonly os?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  readonly guestOs?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  readonly guestFamily?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  readonly version?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsDateString()
+  readonly createDate?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsInt()
+  readonly numCoresPerSocket?: number;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsInt()
+  readonly numCPU?: number;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  readonly esxiHostName?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  readonly esxiHostMoid?: string;
 
   @ApiProperty()
   @IsOptional()

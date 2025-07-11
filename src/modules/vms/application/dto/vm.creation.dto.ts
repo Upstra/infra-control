@@ -5,6 +5,8 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  IsDateString,
+  IsInt,
 } from 'class-validator';
 
 export class VmCreationDto {
@@ -28,30 +30,75 @@ export class VmCreationDto {
   @IsNumber()
   readonly grace_period_off!: number;
 
-  @ApiProperty()
-  @IsNotEmpty()
+  @ApiProperty({ required: false })
+  @IsOptional()
   @IsString()
-  readonly os!: string;
+  readonly moid?: string;
 
-  @ApiProperty()
-  @IsNotEmpty()
+  @ApiProperty({ required: false })
+  @IsOptional()
   @IsString()
-  readonly adminUrl!: string;
+  readonly os?: string;
 
-  @ApiProperty()
-  @IsNotEmpty()
+  @ApiProperty({ required: false })
+  @IsOptional()
   @IsString()
-  readonly ip!: string;
+  readonly guestOs?: string;
 
-  @ApiProperty()
-  @IsNotEmpty()
+  @ApiProperty({ required: false })
+  @IsOptional()
   @IsString()
-  readonly login!: string;
+  readonly guestFamily?: string;
 
-  @ApiProperty()
-  @IsNotEmpty()
+  @ApiProperty({ required: false })
+  @IsOptional()
   @IsString()
-  readonly password!: string;
+  readonly version?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsDateString()
+  readonly createDate?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsInt()
+  readonly numCoresPerSocket?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsInt()
+  readonly numCPU?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  readonly esxiHostName?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  readonly esxiHostMoid?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  readonly adminUrl?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  readonly ip?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  readonly login?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  readonly password?: string;
 
   @ApiProperty()
   @IsNotEmpty()

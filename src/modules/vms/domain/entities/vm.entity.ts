@@ -23,6 +23,10 @@ export class Vm extends BaseEntity {
   name!: string;
 
   @ApiProperty()
+  @Column({ type: 'varchar', nullable: true })
+  moid?: string;
+
+  @ApiProperty()
   @Column({ type: 'varchar' })
   state: string;
 
@@ -35,25 +39,56 @@ export class Vm extends BaseEntity {
   grace_period_off: number;
 
   @ApiProperty()
-  @Column({ type: 'varchar' })
-  os!: string;
+  @Column({ type: 'varchar', nullable: true })
+  os?: string;
 
   @ApiProperty()
-  @Column({ type: 'varchar' })
-  adminUrl: string;
+  @Column({ type: 'varchar', nullable: true })
+  guestOs?: string;
 
   @ApiProperty()
-  @ApiProperty()
-  @Column({ type: 'varchar', unique: true })
-  ip!: string;
+  @Column({ type: 'varchar', nullable: true })
+  guestFamily?: string;
 
   @ApiProperty()
-  @Column({ type: 'varchar' })
-  login!: string;
+  @Column({ type: 'varchar', nullable: true })
+  version?: string;
 
   @ApiProperty()
-  @Column({ type: 'varchar' })
-  password!: string;
+  @Column({ type: 'timestamp', nullable: true })
+  createDate?: Date;
+
+  @ApiProperty()
+  @Column({ type: 'int', nullable: true })
+  numCoresPerSocket?: number;
+
+  @ApiProperty()
+  @Column({ type: 'int', nullable: true })
+  numCPU?: number;
+
+  @ApiProperty()
+  @Column({ type: 'varchar', nullable: true })
+  esxiHostName?: string;
+
+  @ApiProperty()
+  @Column({ type: 'varchar', nullable: true })
+  esxiHostMoid?: string;
+
+  @ApiProperty()
+  @Column({ type: 'varchar', nullable: true })
+  adminUrl?: string;
+
+  @ApiProperty()
+  @Column({ type: 'varchar', nullable: true })
+  ip?: string;
+
+  @ApiProperty()
+  @Column({ type: 'varchar', nullable: true })
+  login?: string;
+
+  @ApiProperty()
+  @Column({ type: 'varchar', nullable: true })
+  password?: string;
 
   @ApiProperty()
   @Column()

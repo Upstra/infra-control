@@ -67,12 +67,16 @@ describe('GetServerWithIloUseCase', () => {
     });
 
     it('should return server with iLO when found', async () => {
-      mockServerRepository.findServerById.mockResolvedValue(mockServerWithIlo as Server);
+      mockServerRepository.findServerById.mockResolvedValue(
+        mockServerWithIlo as Server,
+      );
 
       const result = await useCase.execute('server-1');
 
       expect(result).toEqual(mockServerWithIlo);
-      expect(mockServerRepository.findServerById).toHaveBeenCalledWith('server-1');
+      expect(mockServerRepository.findServerById).toHaveBeenCalledWith(
+        'server-1',
+      );
       expect(mockServerRepository.findServerById).toHaveBeenCalledTimes(1);
     });
 
@@ -85,18 +89,26 @@ describe('GetServerWithIloUseCase', () => {
         new NotFoundException('Server with ID server-999 not found'),
       );
 
-      expect(mockServerRepository.findServerById).toHaveBeenCalledWith('server-999');
+      expect(mockServerRepository.findServerById).toHaveBeenCalledWith(
+        'server-999',
+      );
       expect(mockServerRepository.findServerById).toHaveBeenCalledTimes(1);
     });
 
     it('should throw NotFoundException when server has no iLO', async () => {
-      mockServerRepository.findServerById.mockResolvedValue(mockServerWithoutIlo as Server);
-
-      await expect(useCase.execute('server-2')).rejects.toThrow(
-        new NotFoundException('Server server-2 does not have an iLO configured'),
+      mockServerRepository.findServerById.mockResolvedValue(
+        mockServerWithoutIlo as Server,
       );
 
-      expect(mockServerRepository.findServerById).toHaveBeenCalledWith('server-2');
+      await expect(useCase.execute('server-2')).rejects.toThrow(
+        new NotFoundException(
+          'Server server-2 does not have an iLO configured',
+        ),
+      );
+
+      expect(mockServerRepository.findServerById).toHaveBeenCalledWith(
+        'server-2',
+      );
       expect(mockServerRepository.findServerById).toHaveBeenCalledTimes(1);
     });
 
@@ -106,7 +118,9 @@ describe('GetServerWithIloUseCase', () => {
 
       await expect(useCase.execute('server-1')).rejects.toThrow(dbError);
 
-      expect(mockServerRepository.findServerById).toHaveBeenCalledWith('server-1');
+      expect(mockServerRepository.findServerById).toHaveBeenCalledWith(
+        'server-1',
+      );
       expect(mockServerRepository.findServerById).toHaveBeenCalledTimes(1);
     });
 
@@ -117,7 +131,9 @@ describe('GetServerWithIloUseCase', () => {
         new NotFoundException('Server with ID server-null not found'),
       );
 
-      expect(mockServerRepository.findServerById).toHaveBeenCalledWith('server-null');
+      expect(mockServerRepository.findServerById).toHaveBeenCalledWith(
+        'server-null',
+      );
       expect(mockServerRepository.findServerById).toHaveBeenCalledTimes(1);
     });
 
@@ -128,7 +144,9 @@ describe('GetServerWithIloUseCase', () => {
         new NotFoundException('Server with ID server-undefined not found'),
       );
 
-      expect(mockServerRepository.findServerById).toHaveBeenCalledWith('server-undefined');
+      expect(mockServerRepository.findServerById).toHaveBeenCalledWith(
+        'server-undefined',
+      );
       expect(mockServerRepository.findServerById).toHaveBeenCalledTimes(1);
     });
 
@@ -151,13 +169,17 @@ describe('GetServerWithIloUseCase', () => {
         ilo: { id: 'ilo-partial' } as Ilo,
       };
 
-      mockServerRepository.findServerById.mockResolvedValue(serverWithPartialIlo as Server);
+      mockServerRepository.findServerById.mockResolvedValue(
+        serverWithPartialIlo as Server,
+      );
 
       const result = await useCase.execute('server-partial');
 
       expect(result).toEqual(serverWithPartialIlo);
       expect(result.ilo).toBeDefined();
-      expect(mockServerRepository.findServerById).toHaveBeenCalledWith('server-partial');
+      expect(mockServerRepository.findServerById).toHaveBeenCalledWith(
+        'server-partial',
+      );
     });
   });
 
@@ -172,7 +194,9 @@ describe('GetServerWithIloUseCase', () => {
   describe('edge cases', () => {
     it('should handle very long server id', async () => {
       const longId = 'a'.repeat(1000);
-      mockServerRepository.findServerById.mockResolvedValue(mockServerWithIlo as Server);
+      mockServerRepository.findServerById.mockResolvedValue(
+        mockServerWithIlo as Server,
+      );
 
       const result = await useCase.execute(longId);
 
@@ -182,19 +206,25 @@ describe('GetServerWithIloUseCase', () => {
 
     it('should handle special characters in server id', async () => {
       const specialId = 'server-@#$%-123';
-      mockServerRepository.findServerById.mockResolvedValue(mockServerWithIlo as Server);
+      mockServerRepository.findServerById.mockResolvedValue(
+        mockServerWithIlo as Server,
+      );
 
       const result = await useCase.execute(specialId);
 
       expect(result).toEqual(mockServerWithIlo);
-      expect(mockServerRepository.findServerById).toHaveBeenCalledWith(specialId);
+      expect(mockServerRepository.findServerById).toHaveBeenCalledWith(
+        specialId,
+      );
     });
 
     it('should handle concurrent calls', async () => {
-      mockServerRepository.findServerById.mockResolvedValue(mockServerWithIlo as Server);
+      mockServerRepository.findServerById.mockResolvedValue(
+        mockServerWithIlo as Server,
+      );
 
-      const promises = Array.from({ length: 5 }, (_, i) => 
-        useCase.execute(`server-${i}`)
+      const promises = Array.from({ length: 5 }, (_, i) =>
+        useCase.execute(`server-${i}`),
       );
 
       const results = await Promise.all(promises);

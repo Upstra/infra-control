@@ -65,7 +65,9 @@ describe('ControlServerPowerUseCase', () => {
       message: 'Server started successfully',
       currentStatus: IloServerStatus.ON,
     });
-    expect(mockGetServerWithIloUseCase.execute).toHaveBeenCalledWith('server-1');
+    expect(mockGetServerWithIloUseCase.execute).toHaveBeenCalledWith(
+      'server-1',
+    );
     expect(mockIloPowerService.controlServerPower).toHaveBeenCalledWith(
       '192.168.1.100',
       IloPowerAction.START,
@@ -114,7 +116,9 @@ describe('ControlServerPowerUseCase', () => {
       new NotFoundException('Server with ID server-999 not found'),
     );
 
-    expect(mockGetServerWithIloUseCase.execute).toHaveBeenCalledWith('server-999');
+    expect(mockGetServerWithIloUseCase.execute).toHaveBeenCalledWith(
+      'server-999',
+    );
     expect(mockIloPowerService.controlServerPower).not.toHaveBeenCalled();
   });
 
