@@ -69,8 +69,6 @@ describe('VmwareService', () => {
         'admin',
         '--password',
         'password123',
-        '--port',
-        '443',
       ]);
     });
 
@@ -93,6 +91,28 @@ describe('VmwareService', () => {
       const result = await service.listVMs(mockConnection);
 
       expect(result).toEqual([]);
+    });
+
+    it('should include port argument when port is not 443', async () => {
+      const customPortConnection = {
+        ...mockConnection,
+        port: 8443,
+      };
+
+      pythonExecutor.executePython.mockResolvedValue({ vms: [] });
+
+      await service.listVMs(customPortConnection);
+
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.py', [
+        '--ip',
+        '192.168.1.10',
+        '--user',
+        'admin',
+        '--password',
+        'password123',
+        '--port',
+        '8443',
+      ]);
     });
   });
 
@@ -128,8 +148,6 @@ describe('VmwareService', () => {
           'admin',
           '--password',
           'password123',
-          '--port',
-          '443',
         ],
       );
     });
@@ -171,8 +189,6 @@ describe('VmwareService', () => {
         'admin',
         '--password',
         'password123',
-        '--port',
-        '443',
       ]);
     });
 
@@ -201,8 +217,6 @@ describe('VmwareService', () => {
         'admin',
         '--password',
         'password123',
-        '--port',
-        '443',
       ]);
     });
 
@@ -250,8 +264,6 @@ describe('VmwareService', () => {
           'admin',
           '--password',
           'password123',
-          '--port',
-          '443',
         ],
       );
     });
@@ -294,8 +306,6 @@ describe('VmwareService', () => {
           'admin',
           '--password',
           'password123',
-          '--port',
-          '443',
         ],
       );
     });

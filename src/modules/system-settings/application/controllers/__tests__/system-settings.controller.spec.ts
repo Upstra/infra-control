@@ -7,6 +7,7 @@ import { TestEmailConfigurationUseCase } from '../../use-cases/test-email-config
 import { ExportSettingsUseCase } from '../../use-cases/export-settings.use-case';
 import { ImportSettingsUseCase } from '../../use-cases/import-settings.use-case';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { UpdateSystemSettingsDto } from '../../dto/update-system-settings.dto';
 import { TestEmailDto } from '../../dto/test-email.dto';
 import { ImportSettingsDto } from '../../dto/import-settings.dto';
@@ -20,10 +21,10 @@ describe('SystemSettingsController', () => {
   let exportSettingsUseCase: ExportSettingsUseCase;
   let importSettingsUseCase: ImportSettingsUseCase;
 
-  const mockUser: JwtPayload = {
+  const mockUser: JwtPayload = createMockJwtPayload({
     userId: 'user123',
     email: 'test@example.com',
-  };
+  });
 
   const mockSettings = {
     security: {
