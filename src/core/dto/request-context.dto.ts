@@ -1,21 +1,26 @@
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsUUID } from 'class-validator';
 
 /**
  * Request context DTO for capturing audit and security information
  */
 export class RequestContextDto {
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   ipAddress?: string;
 
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   userAgent?: string;
 
+  @ApiPropertyOptional()
   @IsOptional()
   @IsUUID()
   correlationId?: string;
 
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   sessionId?: string;

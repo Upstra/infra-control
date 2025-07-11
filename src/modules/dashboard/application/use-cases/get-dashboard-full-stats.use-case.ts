@@ -8,9 +8,13 @@ import { VmRepositoryInterface } from '@/modules/vms/domain/interfaces/vm.reposi
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 import { PresenceService } from '@/modules/presence/application/services/presence.service';
 import { StatisticsPort } from '../ports/statistics.port';
+import { RedisSafeService } from '@/modules/redis/application/services/redis-safe.service';
 
 @Injectable()
 export class GetDashboardFullStatsUseCase {
+  private readonly CACHE_KEY = 'dashboard:full-stats';
+  private readonly CACHE_TTL = 60; // 60 seconds
+
   /**
    * Instantiate the use case with all required dependencies.
    *
@@ -19,6 +23,7 @@ export class GetDashboardFullStatsUseCase {
    * @param serverPort - Repository for retrieving servers
    * @param vmPort - Repository for retrieving virtual machines
    * @param setupProgressRepo - Repository handling setup progress records
+   * @param redisService - Redis service for caching
    */
   constructor(
     @Inject('StatisticsPort')
@@ -30,6 +35,7 @@ export class GetDashboardFullStatsUseCase {
     private readonly vmPort: VmRepositoryInterface,
     @Inject('SetupProgressRepositoryInterface')
     private readonly setupProgressRepo: SetupProgressRepositoryInterface,
+    private readonly redisService: RedisSafeService,
   ) {}
 
   /**
@@ -39,21 +45,32 @@ export class GetDashboardFullStatsUseCase {
    * @returns `FullDashboardStatsDto` containing counts and setup progress
    */
   async execute(): Promise<FullDashboardStatsDto> {
-    const stats = await this.statisticsPort.getStatistics();
-    const onlineUsers = await this.presencePort.getConnectedUserCount();
+    const cached = await this.redisService.safeGet(this.CACHE_KEY);
+    if (cached) {
+      return JSON.parse(cached);
+    }
 
-    const servers = await this.serverPort.findAll();
-    const vms = await this.vmPort.findAll();
+    const [
+      stats,
+      onlineUsers,
+      serversUp,
+      serversDown,
+      vmsUp,
+      vmsDown,
+      progressRecords,
+    ] = await Promise.all([
+      this.statisticsPort.getStatistics(),
+      this.presencePort.getConnectedUserCount(),
+      this.serverPort.countByState('UP'),
+      this.serverPort.countByState('DOWN'),
+      this.vmPort.countByState('UP'),
+      this.vmPort.countByState('DOWN'),
+      this.setupProgressRepo.findAll(),
+    ]);
 
-    const serversUp = servers.filter(({ state }) => state === 'UP').length;
-    const serversDown = servers.length - serversUp;
-    const vmsUp = vms.filter(({ state }) => state === 'UP').length;
-    const vmsDown = vms.length - vmsUp;
-
-    const progressRecords = await this.setupProgressRepo.findAll();
     const progressPercentage = this.computeProgress(progressRecords);
 
-    return {
+    const result: FullDashboardStatsDto = {
       ...stats,
       serversUp,
       serversDown,
@@ -65,6 +82,14 @@ export class GetDashboardFullStatsUseCase {
       setupProgress: progressPercentage,
       onlineUsers,
     };
+
+    await this.redisService.safeSet(
+      this.CACHE_KEY,
+      JSON.stringify(result),
+    );
+    await this.redisService.safeExpire(this.CACHE_KEY, this.CACHE_TTL);
+
+    return result;
   }
 
   /**
