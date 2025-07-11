@@ -29,7 +29,7 @@ import { VmPowerActionDto, VmMigrateDto } from '../dto';
 
 @ApiTags('VMware')
 @ApiBearerAuth()
-@Controller('api/vmware/servers')
+@Controller('vmware/servers')
 @UseGuards(JwtAuthGuard)
 export class VmwareController {
   constructor(

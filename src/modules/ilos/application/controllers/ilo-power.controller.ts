@@ -29,7 +29,7 @@ import {
 
 @ApiTags('iLO')
 @ApiBearerAuth()
-@Controller('api/ilo/servers')
+@Controller('ilo/servers')
 @UseGuards(JwtAuthGuard)
 export class IloPowerController {
   constructor(
