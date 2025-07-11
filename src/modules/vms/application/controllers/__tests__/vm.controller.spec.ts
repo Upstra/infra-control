@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { VmController } from '../vm.controller';
+import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
 import {
   CreateVmUseCase,
   DeleteVmUseCase,
@@ -256,10 +257,7 @@ describe('VmController', () => {
   });
 
   describe('checkPermission', () => {
-    const mockPayload = {
-      userId: 'user-123',
-      email: 'test@example.com',
-    };
+    const mockPayload = createMockJwtPayload();
 
     it('should check if user has permission on a VM', async () => {
       const dto = {

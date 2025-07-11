@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PermissionServerController } from '../permission.server.controller';
 
 import { createMockPermissionServerDto } from '@/modules/permissions/__mocks__/permissions.mock';
+import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
 import { UpdatePermissionServerDto } from '../../dto/permission.server.dto';
 import {
   CreatePermissionServerUseCase,
@@ -16,7 +17,6 @@ import {
   BatchPermissionServerDto,
   BatchPermissionServerResponseDto,
 } from '../../dto/batch-permission.server.dto';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 describe('PermissionServerController', () => {
   let controller: PermissionServerController;
@@ -27,7 +27,7 @@ describe('PermissionServerController', () => {
   let updatePermissionUsecase: any;
   let deletePermissionUsecase: any;
   let getUserServerPermissionsUseCase: any;
-  let mockUser: JwtPayload;
+  let mockUser: ReturnType<typeof createMockJwtPayload>;
 
   beforeEach(async () => {
     createPermissionUsecase = { execute: jest.fn() };
@@ -73,10 +73,7 @@ describe('PermissionServerController', () => {
       PermissionServerController,
     );
 
-    mockUser = {
-      userId: 'test-user-id',
-      email: 'test@example.com',
-    } as JwtPayload;
+    mockUser = createMockJwtPayload();
   });
   it('should be defined', () => {
     expect(controller).toBeDefined();
@@ -185,7 +182,7 @@ describe('PermissionServerController', () => {
   it('should call getUserPermissionsMe with current user', async () => {
     const expected = [createMockPermissionServerDto()];
     getUserServerPermissionsUseCase.execute.mockResolvedValue(expected);
-    const currentUser = { userId: 'user-123', email: 'test@example.com' };
+    const currentUser = createMockJwtPayload();
     const res = await controller.getUserPermissionsMe(currentUser);
     expect(res).toEqual(expected);
     expect(getUserServerPermissionsUseCase.execute).toHaveBeenCalledWith(

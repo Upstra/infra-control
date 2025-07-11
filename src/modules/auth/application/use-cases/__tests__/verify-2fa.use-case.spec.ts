@@ -2,9 +2,9 @@ import { Verify2FAUseCase } from '../verify-2fa.use-case';
 import { JwtService } from '@nestjs/jwt';
 import { TokenService } from '../../services/token.service';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
+import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
 import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
 import { TwoFAInvalidCodeException } from '@/modules/auth/domain/exceptions/twofa.exception';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { TwoFADto } from '../../dto/twofa.dto';
 import * as speakeasy from 'speakeasy';
 import {
@@ -21,10 +21,7 @@ describe('Verify2FAUseCase', () => {
   let jwtService: jest.Mocked<JwtService>;
   let tokenService: jest.Mocked<TokenService>;
 
-  const userPayload: JwtPayload = {
-    userId: 'user-123',
-    email: 'john.doe@example.com',
-  };
+  const userPayload = createMockJwtPayload();
 
   const dto: TwoFADto = {
     code: '123456',

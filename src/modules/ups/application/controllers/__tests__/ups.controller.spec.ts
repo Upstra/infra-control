@@ -10,8 +10,8 @@ import {
   createMockUps,
   createMockUpsDto,
 } from '@/modules/ups/__mocks__/ups.mock';
+import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
 import { UpsResponseDto } from '../../dto/ups.response.dto';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { RoleGuard } from '@/core/guards/role.guard';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 
@@ -24,10 +24,7 @@ describe('UpsController', () => {
   let updateUseCase: jest.Mocked<UpdateUpsUseCase>;
   let deleteUseCase: jest.Mocked<DeleteUpsUseCase>;
 
-  const mockPayload: JwtPayload = {
-    userId: 'user-123',
-    email: 'john.doe@example.com',
-  };
+  const mockPayload = createMockJwtPayload();
 
   beforeEach(async () => {
     const mockJwtGuard = { canActivate: jest.fn().mockReturnValue(true) };

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { VmController } from '../vm.controller';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
 import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { RoleGuard } from '@/core/guards/role.guard';
@@ -27,15 +27,9 @@ describe('VmController - Admin Bypass Tests', () => {
   let updateVmPriorityUseCase: jest.Mocked<UpdateVmPriorityUseCase>;
   let createVmUseCase: jest.Mocked<CreateVmUseCase>;
 
-  const mockAdminUser: JwtPayload = {
-    userId: 'admin-123',
-    email: 'admin@example.com',
-  };
+  const mockAdminUser = createMockJwtPayload({ userId: 'admin-123' });
 
-  const _mockNormalUser: JwtPayload = {
-    userId: 'user-123',
-    email: 'user@example.com',
-  };
+  const _mockNormalUser = createMockJwtPayload();
 
   const _mockRequest: any = {
     ip: '127.0.0.1',

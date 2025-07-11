@@ -1,6 +1,6 @@
 import { Disable2FAUseCase } from '../disable-2fa.use-case';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
 import {
   UserExceptions,
   UserNotFoundException,
@@ -17,10 +17,7 @@ describe('Disable2FAUseCase', () => {
   let getUserByEmailUseCase: jest.Mocked<GetUserByEmailUseCase>;
   let updateUserFieldsUseCase: jest.Mocked<UpdateUserFieldsUseCase>;
 
-  const mockPayload: JwtPayload = {
-    userId: 'user-123',
-    email: 'john.doe@example.com',
-  };
+  const mockPayload = createMockJwtPayload();
 
   beforeEach(() => {
     getUserByEmailUseCase = {

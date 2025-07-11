@@ -6,9 +6,9 @@ import {
   GetUserByEmailUseCase,
   UpdateUserFieldsUseCase,
 } from '@/modules/users/application/use-cases';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { TwoFARecoveryDto } from '../../dto/twofa.dto';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
+import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
 
 import * as bcrypt from 'bcryptjs';
 
@@ -21,10 +21,7 @@ describe('Verify2FARecoveryUseCase', () => {
   let jwtService: jest.Mocked<JwtService>;
   let tokenService: jest.Mocked<TokenService>;
 
-  const userPayload: JwtPayload = {
-    userId: 'user-123',
-    email: 'john.doe@example.com',
-  };
+  const userPayload = createMockJwtPayload();
 
   const dto: TwoFARecoveryDto = {
     recoveryCode: 'VALID-CODE',

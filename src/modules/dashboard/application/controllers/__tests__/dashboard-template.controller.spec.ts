@@ -4,7 +4,7 @@ import {
   ListTemplatesUseCase,
   CreateLayoutFromTemplateUseCase,
 } from '../../use-cases/templates';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
 import { WidgetType } from '../../../domain/entities/dashboard-widget.entity';
 import {
   DashboardTemplateListResponseDto,
@@ -17,10 +17,7 @@ describe('DashboardTemplateController', () => {
   let listTemplatesUseCase: jest.Mocked<ListTemplatesUseCase>;
   let createLayoutFromTemplateUseCase: jest.Mocked<CreateLayoutFromTemplateUseCase>;
 
-  const mockUser: JwtPayload = {
-    userId: 'test-user-id',
-    email: 'test@example.com',
-  };
+  const mockUser = createMockJwtPayload();
 
   const mockTemplates: DashboardTemplateListResponseDto = {
     templates: [

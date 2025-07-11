@@ -17,6 +17,7 @@ import { RoleUpdateDto } from '../../dto/role.update.dto';
 import { RoleGuard } from '@/core/guards';
 import { createMockRole } from '@/modules/roles/__mocks__/role.mock';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
+import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
 import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
 
 describe('RoleController', () => {
@@ -223,10 +224,7 @@ describe('RoleController', () => {
       const user = new UserResponseDto(createMockUser({ id: 'u1' }));
       updateUserRoleUseCase.execute.mockResolvedValue(user);
 
-      const mockCurrentUser = {
-        userId: 'admin-123',
-        email: 'admin@example.com',
-      };
+      const mockCurrentUser = createMockJwtPayload({ userId: 'admin-123' });
       const mockReq = {
         ip: '127.0.0.1',
         get: jest.fn().mockReturnValue('Test-Agent'),
@@ -248,10 +246,7 @@ describe('RoleController', () => {
 
     it('should propagate errors', async () => {
       updateUserRoleUseCase.execute.mockRejectedValue(new Error('fail'));
-      const mockCurrentUser = {
-        userId: 'admin-123',
-        email: 'admin@example.com',
-      };
+      const mockCurrentUser = createMockJwtPayload({ userId: 'admin-123' });
       const mockReq = {
         ip: '127.0.0.1',
         get: jest.fn().mockReturnValue('Test-Agent'),
@@ -269,10 +264,7 @@ describe('RoleController', () => {
     it('should handle multiple roles assignment', async () => {
       const user = new UserResponseDto(createMockUser({ id: 'u1' }));
       updateUserRolesUseCase.execute.mockResolvedValue(user);
-      const mockCurrentUser = {
-        userId: 'admin-123',
-        email: 'admin@example.com',
-      };
+      const mockCurrentUser = createMockJwtPayload({ userId: 'admin-123' });
       const mockReq = {
         ip: '127.0.0.1',
         get: jest.fn().mockReturnValue('Test-Agent'),
@@ -299,10 +291,7 @@ describe('RoleController', () => {
     it('should handle single role toggle', async () => {
       const user = new UserResponseDto(createMockUser({ id: 'u1' }));
       updateUserRoleUseCase.execute.mockResolvedValue(user);
-      const mockCurrentUser = {
-        userId: 'admin-123',
-        email: 'admin@example.com',
-      };
+      const mockCurrentUser = createMockJwtPayload({ userId: 'admin-123' });
       const mockReq = {
         ip: '127.0.0.1',
         get: jest.fn().mockReturnValue('Test-Agent'),

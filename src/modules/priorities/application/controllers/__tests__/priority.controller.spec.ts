@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PriorityController } from '../priority.controller';
+import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
 import {
   GetServerPrioritiesUseCase,
   GetVmPrioritiesUseCase,
@@ -14,7 +15,6 @@ import {
   SwapServerResponseDto,
   SwapVmResponseDto,
 } from '../../dto';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 describe('PriorityController', () => {
   let controller: PriorityController;
@@ -23,11 +23,8 @@ describe('PriorityController', () => {
   let swapServerPriorities: jest.Mocked<SwapServerPrioritiesUseCase>;
   let swapVmPriorities: jest.Mocked<SwapVmPrioritiesUseCase>;
 
-  const mockUserId = 'user-123';
-  const mockUser: JwtPayload = {
-    userId: mockUserId,
-    email: 'test@example.com',
-  };
+  const mockUser = createMockJwtPayload();
+  const mockUserId = mockUser.userId;
 
   const mockServerPriorities: ServerPriorityResponseDto[] = [
     {
@@ -116,10 +113,7 @@ describe('PriorityController', () => {
     });
 
     it('should handle request with no user', async () => {
-      const userWithoutId: JwtPayload = {
-        userId: undefined as any,
-        email: 'test@example.com',
-      };
+      const userWithoutId = createMockJwtPayload({ userId: undefined });
 
       getServerPriorities.execute.mockResolvedValue([]);
 
@@ -158,10 +152,7 @@ describe('PriorityController', () => {
     });
 
     it('should handle request with no user', async () => {
-      const userWithoutId: JwtPayload = {
-        userId: undefined as any,
-        email: 'test@example.com',
-      };
+      const userWithoutId = createMockJwtPayload({ userId: undefined });
 
       getVmPriorities.execute.mockResolvedValue([]);
 
@@ -217,10 +208,7 @@ describe('PriorityController', () => {
     });
 
     it('should handle request with no user', async () => {
-      const userWithoutId: JwtPayload = {
-        userId: undefined as any,
-        email: 'test@example.com',
-      };
+      const userWithoutId = createMockJwtPayload({ userId: undefined });
 
       swapServerPriorities.execute.mockResolvedValue(mockSwapResponse);
 
@@ -284,10 +272,7 @@ describe('PriorityController', () => {
     });
 
     it('should handle request with no user', async () => {
-      const userWithoutId: JwtPayload = {
-        userId: undefined as any,
-        email: 'test@example.com',
-      };
+      const userWithoutId = createMockJwtPayload({ userId: undefined });
 
       swapVmPriorities.execute.mockResolvedValue(mockSwapResponse);
 

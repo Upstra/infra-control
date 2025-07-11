@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PermissionVmController } from '../permission.vm.controller';
+import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
 import {
   CreatePermissionVmUseCase,
   CreateBatchPermissionVmUseCase,
@@ -17,7 +18,6 @@ import {
   BatchPermissionVmDto,
   BatchPermissionVmResponseDto,
 } from '../../dto/batch-permission.vm.dto';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 describe('PermissionVmController', () => {
   let controller: PermissionVmController;
@@ -28,7 +28,7 @@ describe('PermissionVmController', () => {
   let getByRoleUseCaseMock: jest.Mocked<GetPermissionsVmByRoleUseCase>;
   let deleteUseCaseMock: jest.Mocked<DeletePermissionVmUseCase>;
   let getUserPermissionsUseCaseMock: jest.Mocked<GetUserVmPermissionsUseCase>;
-  let mockUser: JwtPayload;
+  let mockUser: ReturnType<typeof createMockJwtPayload>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -88,12 +88,7 @@ describe('PermissionVmController', () => {
     deleteUseCaseMock = module.get(DeletePermissionVmUseCase);
     getUserPermissionsUseCaseMock = module.get(GetUserVmPermissionsUseCase);
 
-    mockUser = {
-      userId: 'test-user-id',
-      email: 'test@example.com',
-      isAdmin: false,
-      roles: [],
-    } as JwtPayload;
+    mockUser = createMockJwtPayload();
   });
 
   it('should be defined', () => {
@@ -255,10 +250,7 @@ describe('PermissionVmController', () => {
 
   describe('getUserPermissionsMe', () => {
     it('should return current user permissions', async () => {
-      const user: JwtPayload = {
-        userId: 'user-id',
-        email: 'testuser@example.com',
-      };
+      const user = createMockJwtPayload({ userId: 'user-id' });
       const expectedResult = [
         new PermissionVmDto({
           vmId: 'vm-1',

@@ -8,6 +8,7 @@ import {
   createMockServerCreationDto,
 } from '@/modules/servers/__mocks__/servers.mock';
 import { createMockIloResponseDto } from '@/modules/ilos/__mocks__/ilo.mock';
+import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
 import { GroupRepository } from '@/modules/groups/infrastructure/repositories/group.repository';
 import { UpsRepositoryInterface } from '@/modules/ups/domain/interfaces/ups.repository.interface';
 
@@ -16,7 +17,6 @@ import { mockRoom } from '@/modules/rooms/__mocks__/room.mock';
 import { createMockGroup } from '@/modules/groups/__mocks__/group.mock';
 import { RoomNotFoundException } from '@/modules/rooms/domain/exceptions/room.exception';
 import { GroupNotFoundException } from '@/modules/groups/domain/exceptions/group.exception';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
@@ -37,10 +37,7 @@ describe('CreateServerUseCase', () => {
   let permissionRepo: jest.Mocked<PermissionServerRepositoryInterface>;
   let logHistory: jest.Mocked<LogHistoryUseCase>;
 
-  const mockPayload: JwtPayload = {
-    userId: 'user-123',
-    email: 'john.doe@example.com',
-  };
+  const mockPayload = createMockJwtPayload();
 
   beforeEach(() => {
     repo = {

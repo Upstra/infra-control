@@ -12,7 +12,7 @@ import {
   mockRoomCreationDto,
   mockRoomResponseDto,
 } from '@/modules/rooms/__mocks__';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
 
 describe('RoomController', () => {
   let controller: RoomController;
@@ -26,10 +26,7 @@ describe('RoomController', () => {
 
   const mockRoomResponse = mockRoomResponseDto();
 
-  const mockPayload: JwtPayload = {
-    userId: 'user-123',
-    email: 'john.doe@example.com',
-  };
+  const mockPayload = createMockJwtPayload();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -75,7 +72,7 @@ describe('RoomController', () => {
   it('should return a room by ID when getRoomById is called', async () => {
     getRoomByIdUseCase.execute.mockResolvedValue(mockRoomResponse);
 
-    const req: any = { userId: 'u1', email: 'e@test.com' };
+    const req = createMockJwtPayload({ userId: 'u1' });
 
     const result = await controller.getRoomById('uuid-test', req);
 
