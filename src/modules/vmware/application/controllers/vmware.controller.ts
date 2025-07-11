@@ -17,9 +17,11 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
-//import { Permissions } from '@/core/decorators/permission.decorator';
+import { VmwarePermissionGuard } from '../../infrastructure/guards/vmware-permission.guard';
+import { VmwarePermission } from '../../infrastructure/decorators/vmware-permission.decorator';
+import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
+import { Permission } from '@/core/decorators/permission.decorator';
 import { PermissionGuard } from '@/core/guards/permission.guard';
-//import { Permission } from '@/modules/permissions/domain/enums/permission.enum';
 import {
   ListVmsUseCase,
   GetVmMetricsUseCase,
@@ -32,7 +34,7 @@ import { VmwareConnectionDto, VmPowerActionDto, VmMigrateDto } from '../dto';
 @ApiTags('VMware')
 @ApiBearerAuth()
 @Controller('api/vmware')
-@UseGuards(JwtAuthGuard, PermissionGuard)
+@UseGuards(JwtAuthGuard)
 export class VmwareController {
   constructor(
     private readonly listVmsUseCase: ListVmsUseCase,
@@ -43,7 +45,8 @@ export class VmwareController {
   ) {}
 
   @Get('vms')
-  @Permissions(Permission.VM_READ)
+  @UseGuards(PermissionGuard)
+  @Permission('server', PermissionBit.READ)
   @ApiOperation({ summary: 'List all virtual machines from vCenter/ESXi' })
   @ApiResponse({
     status: 200,
@@ -53,17 +56,26 @@ export class VmwareController {
     status: 401,
     description: 'Invalid VMware credentials',
   })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient permissions',
+  })
   async listVMs(@Query() connection: VmwareConnectionDto) {
     return this.listVmsUseCase.execute(connection);
   }
 
   @Get('vms/:moid/metrics')
-  @Permissions(Permission.VM_READ)
+  @UseGuards(VmwarePermissionGuard)
+  @VmwarePermission(PermissionBit.READ)
   @ApiOperation({ summary: 'Get metrics for a specific VM' })
   @ApiParam({ name: 'moid', description: 'VM Managed Object ID' })
   @ApiResponse({
     status: 200,
     description: 'VM metrics retrieved successfully',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient permissions on the parent server',
   })
   @ApiResponse({
     status: 404,
@@ -77,13 +89,18 @@ export class VmwareController {
   }
 
   @Post('vms/:moid/power')
-  @Permissions(Permission.VM_UPDATE)
+  @UseGuards(VmwarePermissionGuard)
+  @VmwarePermission(PermissionBit.WRITE)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Control VM power state' })
   @ApiParam({ name: 'moid', description: 'VM Managed Object ID' })
   @ApiResponse({
     status: 200,
     description: 'Power action completed successfully',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient permissions on the parent server',
   })
   @ApiResponse({
     status: 404,
@@ -97,13 +114,18 @@ export class VmwareController {
   }
 
   @Post('vms/:moid/migrate')
-  @Permissions(Permission.VM_UPDATE)
+  @UseGuards(VmwarePermissionGuard)
+  @VmwarePermission(PermissionBit.WRITE)
   @HttpCode(HttpStatus.ACCEPTED)
   @ApiOperation({ summary: 'Migrate VM to another ESXi host' })
   @ApiParam({ name: 'moid', description: 'VM Managed Object ID' })
   @ApiResponse({
     status: 202,
     description: 'Migration initiated successfully',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient permissions on the parent server',
   })
   @ApiResponse({
     status: 404,
@@ -114,12 +136,17 @@ export class VmwareController {
   }
 
   @Get('hosts/:moid/metrics')
-  @Permissions(Permission.SERVER_READ)
+  @UseGuards(PermissionGuard)
+  @Permission('server', PermissionBit.READ)
   @ApiOperation({ summary: 'Get metrics for an ESXi host' })
   @ApiParam({ name: 'moid', description: 'Host Managed Object ID' })
   @ApiResponse({
     status: 200,
     description: 'Host metrics retrieved successfully',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient permissions',
   })
   @ApiResponse({
     status: 404,
