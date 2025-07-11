@@ -4,7 +4,7 @@ import {
   GetPreferencesUseCase,
   UpdatePreferencesUseCase,
 } from '../../use-cases/preferences';
-import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import {
   DashboardPreferenceResponseDto,
   UpdateDashboardPreferenceDto,

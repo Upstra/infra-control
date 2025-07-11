@@ -1,9 +1,7 @@
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { PythonExecutorService } from '@/core/services/python-executor';
-import {
-  IloCredentialsDto,
-  IloPowerAction,
-} from '../../application/dto/ilo-power-action.dto';
+import { IloPowerAction } from '../../application/dto/ilo-power-action.dto';
+import { IloCredentialsDto } from '../../application/dto/ilo-credentials.dto';
 import { IloServerStatus } from '../../application/dto/ilo-status.dto';
 
 export interface IloPowerResult {

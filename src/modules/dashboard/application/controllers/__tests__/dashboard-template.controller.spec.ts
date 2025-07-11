@@ -4,7 +4,7 @@ import {
   ListTemplatesUseCase,
   CreateLayoutFromTemplateUseCase,
 } from '../../use-cases/templates';
-import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { WidgetType } from '../../../domain/entities/dashboard-widget.entity';
 import {
   DashboardTemplateListResponseDto,

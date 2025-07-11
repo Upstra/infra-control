@@ -1,6 +1,6 @@
 import { Disable2FAUseCase } from '../disable-2fa.use-case';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
-import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import {
   UserExceptions,
   UserNotFoundException,

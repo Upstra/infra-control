@@ -1,11 +1,11 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PythonExecutorModule } from '@/core/services/python-executor';
+import { Server } from '@/modules/servers/domain/entities/server.entity';
 import { Ilo } from './domain/entities/ilo.entity';
 import { IloTypeormRepository } from './infrastructure/repositories/ilo.typeorm.repository';
 import { IloDomainService } from './domain/services/ilo.domain.service';
 import { IloPowerService } from './domain/services/ilo-power.service';
-import { IloPermissionGuard } from './infrastructure/guards/ilo-permission.guard';
 
 import { GetIloByIdUseCase } from './application/use-cases/get-ilo-by-id.use-case';
 import { CreateIloUseCase } from './application/use-cases/create-ilo.use-case';
@@ -19,7 +19,7 @@ import { ServerModule } from '../servers/server.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Ilo]),
+    TypeOrmModule.forFeature([Ilo, Server]),
     PythonExecutorModule,
     forwardRef(() => ServerModule),
   ],
@@ -27,7 +27,6 @@ import { ServerModule } from '../servers/server.module';
   providers: [
     IloDomainService,
     IloPowerService,
-    IloPermissionGuard,
     GetIloByIdUseCase,
     CreateIloUseCase,
     UpdateIloUseCase,

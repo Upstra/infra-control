@@ -8,7 +8,7 @@ import {
   ListLayoutsUseCase,
   SetDefaultLayoutUseCase,
 } from '../../use-cases/layouts';
-import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import {
   CreateDashboardLayoutDto,
   UpdateDashboardLayoutDto,

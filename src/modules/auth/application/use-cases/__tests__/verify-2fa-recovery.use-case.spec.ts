@@ -8,7 +8,7 @@ import {
 } from '@/modules/users/application/use-cases';
 import { TwoFARecoveryDto } from '../../dto/twofa.dto';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
-import { createMockJwtPayload } from '@/modules/auth/__mocks__/jwt-payload.mock';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 
 import * as bcrypt from 'bcryptjs';
 
