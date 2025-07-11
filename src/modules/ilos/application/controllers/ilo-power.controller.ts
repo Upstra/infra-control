@@ -18,18 +18,24 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
-import { Permissions } from '@/core/decorators/permission.decorator';
-import { PermissionGuard } from '@/core/guards/permission.guard';
-import { Permission } from '@/modules/permissions/domain/enums/permission.enum';
+import { IloPermissionGuard } from '../../infrastructure/guards/ilo-permission.guard';
+import { IloPermission } from '../../infrastructure/decorators/ilo-permission.decorator';
+import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 import { ControlServerPowerUseCase } from '../use-cases/control-server-power.use-case';
 import { GetServerStatusUseCase } from '../use-cases/get-server-status.use-case';
-import { IloPowerActionDto, IloCredentialsDto } from '../dto/ilo-power-action.dto';
-import { IloPowerResponseDto, IloStatusResponseDto } from '../dto/ilo-status.dto';
+import {
+  IloPowerActionDto,
+  IloCredentialsDto,
+} from '../dto/ilo-power-action.dto';
+import {
+  IloPowerResponseDto,
+  IloStatusResponseDto,
+} from '../dto/ilo-status.dto';
 
 @ApiTags('iLO')
 @ApiBearerAuth()
 @Controller('api/ilo')
-@UseGuards(JwtAuthGuard, PermissionGuard)
+@UseGuards(JwtAuthGuard, IloPermissionGuard)
 export class IloPowerController {
   constructor(
     private readonly controlServerPowerUseCase: ControlServerPowerUseCase,
@@ -37,7 +43,7 @@ export class IloPowerController {
   ) {}
 
   @Post('servers/:ip/power')
-  @Permissions(Permission.SERVER_UPDATE)
+  @IloPermission(PermissionBit.WRITE)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Control physical server power state' })
   @ApiParam({ name: 'ip', description: 'Server iLO IP address' })
@@ -50,6 +56,14 @@ export class IloPowerController {
     status: 401,
     description: 'Invalid iLO credentials',
   })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient permissions to control this server',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Server with this iLO IP not found',
+  })
   async controlServerPower(
     @Param('ip') ip: string,
     @Body() dto: IloPowerActionDto,
@@ -58,7 +72,7 @@ export class IloPowerController {
   }
 
   @Get('servers/:ip/status')
-  @Permissions(Permission.SERVER_READ)
+  @IloPermission(PermissionBit.READ)
   @ApiOperation({ summary: 'Get physical server power status' })
   @ApiParam({ name: 'ip', description: 'Server iLO IP address' })
   @ApiQuery({ name: 'user', description: 'iLO username', required: true })
@@ -71,6 +85,14 @@ export class IloPowerController {
   @ApiResponse({
     status: 401,
     description: 'Invalid iLO credentials',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient permissions to read this server status',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Server with this iLO IP not found',
   })
   async getServerStatus(
     @Param('ip') ip: string,
