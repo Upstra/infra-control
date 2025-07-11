@@ -2,10 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { IloPowerService } from '../ilo-power.service';
 import { PythonExecutorService } from '@/core/services/python-executor';
-import {
-  IloCredentialsDto,
-  IloPowerAction,
-} from '../../../application/dto/ilo-power-action.dto';
+import { IloPowerAction } from '../../../application/dto/ilo-power-action.dto';
+import { IloCredentialsDto } from '../../../application/dto/ilo-credentials.dto';
 import { IloServerStatus } from '../../../application/dto/ilo-status.dto';
 
 describe('IloPowerService', () => {
