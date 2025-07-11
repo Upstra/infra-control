@@ -71,8 +71,15 @@ describe('VmwareController', () => {
           {
             moid: 'vm-123',
             name: 'Test VM',
-            powerState: 'poweredOn' as const,
-            guestOS: 'Ubuntu Linux (64-bit)',
+            ip: '192.168.1.100',
+            guestOs: 'Ubuntu Linux (64-bit)',
+            guestFamily: 'linuxGuest',
+            version: 'vmx-15',
+            createDate: '2023-01-01T00:00:00.000Z',
+            numCoresPerSocket: 2,
+            numCPU: 4,
+            esxiHostName: 'ESXi-Host-01',
+            esxiHostMoid: 'host-123',
           },
         ],
       };
@@ -89,16 +96,21 @@ describe('VmwareController', () => {
   describe('getVMMetrics', () => {
     it('should return VM metrics', async () => {
       const mockMetrics = {
-        vmName: 'Test VM',
-        powerState: 'poweredOn',
-        cpuUsageMhz: 1500,
-        memoryUsageMB: 4096,
-        storageUsageGB: 50.5,
+        powerState: 'poweredOn' as const,
+        guestState: 'running' as const,
+        connectionState: 'connected' as const,
+        guestHeartbeatStatus: 'green' as const,
+        overallStatus: 'green' as const,
+        maxCpuUsage: 2400,
+        maxMemoryUsage: 8192,
+        bootTime: '2023-01-01T00:00:00.000Z',
+        isMigrating: false,
+        overallCpuUsage: 1500,
+        guestMemoryUsage: 4096,
         uptimeSeconds: 86400,
-        guestOS: 'Ubuntu Linux (64-bit)',
-        toolsStatus: 'toolsOk',
-        numCpu: 4,
-        memoryMB: 8192,
+        swappedMemory: 0,
+        usedStorage: 53687091200,
+        totalStorage: 107374182400,
       };
 
       getVmMetricsUseCase.execute.mockResolvedValue(mockMetrics);

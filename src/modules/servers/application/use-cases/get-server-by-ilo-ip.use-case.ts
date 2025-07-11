@@ -1,5 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Inject } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ServerRepositoryInterface } from '../../domain/interfaces/server.repository.interface';
 import { Server } from '../../domain/entities/server.entity';
 
