@@ -5,32 +5,6 @@ import { ExtendedJwtPayload } from '../../../domain/interfaces/extended-jwt-payl
 import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 
-const createMockUser = (overrides: any = {}) =>
-  ({
-    id: 'user-1',
-    username: 'testuser',
-    email: 'test@example.com',
-    password: 'hashedpassword',
-    firstName: 'Test',
-    lastName: 'User',
-    isActive: true,
-    isTwoFactorEnabled: false,
-    twoFactorSecret: null,
-    roles: [],
-    isVerified: true,
-    resetPasswordToken: null,
-    resetPasswordExpiry: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    hasId: () => true,
-    save: jest.fn(),
-    remove: jest.fn(),
-    softRemove: jest.fn(),
-    recover: jest.fn(),
-    reload: jest.fn(),
-    ...overrides,
-  }) as any;
-
 describe('RenewTokenUseCase', () => {
   let useCase: RenewTokenUseCase;
   let jwtService: jest.Mocked<JwtService>;
@@ -47,7 +21,7 @@ describe('RenewTokenUseCase', () => {
     } as any;
 
     userRepository = {
-      findOneById: jest.fn(),
+      getUserActiveStatus: jest.fn(),
     } as any;
 
     useCase = new RenewTokenUseCase(jwtService, tokenService, userRepository);
@@ -76,7 +50,7 @@ describe('RenewTokenUseCase', () => {
     const result = await useCase.execute(refreshToken);
 
     expect(jwtService.verify).toHaveBeenCalledWith(refreshToken);
-    expect(userRepository.findOneById).not.toHaveBeenCalled();
+    expect(userRepository.getUserActiveStatus).not.toHaveBeenCalled();
     expect(tokenService.generateTokens).toHaveBeenCalledWith({
       userId: payload.userId,
       email: payload.email,
@@ -106,8 +80,8 @@ describe('RenewTokenUseCase', () => {
 
     jwtService.verify.mockReturnValue(payload);
 
-    const mockUser = createMockUser({ id: 'user-1', isActive: true });
-    userRepository.findOneById.mockResolvedValue(mockUser);
+    const mockUserStatus = { isActive: true };
+    userRepository.getUserActiveStatus.mockResolvedValue(mockUserStatus);
 
     tokenService.generateTokens.mockReturnValue({
       accessToken: 'new.access.token',
@@ -116,14 +90,14 @@ describe('RenewTokenUseCase', () => {
 
     const result = await useCase.execute(refreshToken);
 
-    expect(userRepository.findOneById).toHaveBeenCalledWith('user-1');
+    expect(userRepository.getUserActiveStatus).toHaveBeenCalledWith('user-1');
     expect(tokenService.generateTokens).toHaveBeenCalledWith({
       userId: payload.userId,
       email: payload.email,
       isTwoFactorEnabled: payload.isTwoFactorEnabled,
       role: payload.role,
       roles: payload.roles,
-      isActive: mockUser.isActive,
+      isActive: mockUserStatus.isActive,
     });
     expect(result).toEqual({
       accessToken: 'new.access.token',
@@ -155,7 +129,7 @@ describe('RenewTokenUseCase', () => {
     };
 
     jwtService.verify.mockReturnValue(payload);
-    userRepository.findOneById.mockResolvedValue(null);
+    userRepository.getUserActiveStatus.mockResolvedValue(null);
 
     await expect(useCase.execute(refreshToken)).rejects.toThrow(
       'User not found',

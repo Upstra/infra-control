@@ -213,4 +213,16 @@ export class UserTypeormRepository
       where: { id, deletedAt: IsNull() } as any,
     });
   }
+
+  async getUserActiveStatus(
+    userId: string,
+  ): Promise<{ isActive: boolean } | null> {
+    const result = await this.createQueryBuilder('user')
+      .select('user.isActive')
+      .where('user.id = :userId', { userId })
+      .andWhere('user.deletedAt IS NULL')
+      .getOne();
+
+    return result ? { isActive: result.isActive } : null;
+  }
 }

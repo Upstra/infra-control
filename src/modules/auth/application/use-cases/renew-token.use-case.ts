@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ExtendedJwtPayload } from '../../domain/interfaces/extended-jwt-payload.interface';
 import { TokenService } from '../services/token.service';
@@ -26,6 +26,7 @@ export class RenewTokenUseCase {
   constructor(
     private readonly jwtService: JwtService,
     private readonly tokenService: TokenService,
+    @Inject('UserRepositoryInterface')
     private readonly userRepository: UserRepositoryInterface,
   ) {}
 
@@ -36,11 +37,13 @@ export class RenewTokenUseCase {
       let isActive = payload.isActive;
 
       if (isActive === undefined) {
-        const user = await this.userRepository.findOneById(payload.userId);
-        if (!user) {
+        const userStatus = await this.userRepository.getUserActiveStatus(
+          payload.userId,
+        );
+        if (!userStatus) {
           throw new UnauthorizedException('User not found');
         }
-        isActive = user.isActive;
+        isActive = userStatus.isActive;
       }
 
       const tokens = this.tokenService.generateTokens({
