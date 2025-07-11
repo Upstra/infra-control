@@ -17,9 +17,9 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
-import { Permissions } from '@/core/decorators/permission.decorator';
+//import { Permissions } from '@/core/decorators/permission.decorator';
 import { PermissionGuard } from '@/core/guards/permission.guard';
-import { Permission } from '@/modules/permissions/domain/enums/permission.enum';
+//import { Permission } from '@/modules/permissions/domain/enums/permission.enum';
 import {
   ListVmsUseCase,
   GetVmMetricsUseCase,
@@ -27,11 +27,7 @@ import {
   MigrateVmUseCase,
   GetHostMetricsUseCase,
 } from '../use-cases';
-import {
-  VmwareConnectionDto,
-  VmPowerActionDto,
-  VmMigrateDto,
-} from '../dto';
+import { VmwareConnectionDto, VmPowerActionDto, VmMigrateDto } from '../dto';
 
 @ApiTags('VMware')
 @ApiBearerAuth()
@@ -113,10 +109,7 @@ export class VmwareController {
     status: 404,
     description: 'VM or destination host not found',
   })
-  async migrateVM(
-    @Param('moid') moid: string,
-    @Body() dto: VmMigrateDto,
-  ) {
+  async migrateVM(@Param('moid') moid: string, @Body() dto: VmMigrateDto) {
     return this.migrateVmUseCase.execute(moid, dto);
   }
 
