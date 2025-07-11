@@ -14,9 +14,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any): Promise<AuthenticatedUserDto> {
+  async validate(payload: any): Promise<AuthenticatedUserDto | null> {
     if (!payload) {
-      throw new Error("Cannot read properties of null (reading 'userId')");
+      return null;
     }
 
     const role = Array.isArray(payload.roles) ? payload.roles[0] : payload.role;
