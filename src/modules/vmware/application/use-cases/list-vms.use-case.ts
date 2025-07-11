@@ -26,7 +26,7 @@ export class ListVmsUseCase {
       host: server.ip,
       user: server.login,
       password: server.password,
-      port: 443, // Default VMware port
+      port: 443,
     };
 
     const vms = await this.vmwareService.listVMs(connection);

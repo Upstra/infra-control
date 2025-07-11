@@ -15,11 +15,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any): Promise<AuthenticatedUserDto> {
+    if (!payload) {
+      throw new Error("Cannot read properties of null (reading 'userId')");
+    }
+
+    const role = Array.isArray(payload.roles) ? payload.roles[0] : payload.role;
+    
     return {
       userId: payload.userId,
       email: payload.email,
       isTwoFactorEnabled: payload.isTwoFactorEnabled,
-      role: payload.roles?.[0] || payload.role,
+      role: role,
       isActive: payload.isActive,
     };
   }
