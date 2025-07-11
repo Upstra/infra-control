@@ -48,7 +48,7 @@ describe('ControlServerPowerUseCase', () => {
       currentStatus: IloServerStatus.ON,
     };
 
-    mockServerRepository.findOne.mockResolvedValue(mockServer);
+    mockGetServerByIdUseCase.execute.mockResolvedValue(mockServerDto as any);
     mockIloPowerService.controlServerPower.mockResolvedValue(mockResult);
 
     const result = await useCase.execute('server-1', IloPowerAction.START);
@@ -79,7 +79,7 @@ describe('ControlServerPowerUseCase', () => {
       currentStatus: IloServerStatus.OFF,
     };
 
-    mockServerRepository.findOne.mockResolvedValue(mockServer);
+    mockGetServerByIdUseCase.execute.mockResolvedValue(mockServerDto as any);
     mockIloPowerService.controlServerPower.mockResolvedValue(mockResult);
 
     const result = await useCase.execute('server-1', IloPowerAction.STOP);
@@ -130,7 +130,7 @@ describe('ControlServerPowerUseCase', () => {
 
   it('should handle power control failure', async () => {
     const error = new Error('Failed to control server power');
-    mockServerRepository.findOne.mockResolvedValue(mockServer);
+    mockGetServerByIdUseCase.execute.mockResolvedValue(mockServerDto as any);
     mockIloPowerService.controlServerPower.mockRejectedValue(error);
 
     await expect(
