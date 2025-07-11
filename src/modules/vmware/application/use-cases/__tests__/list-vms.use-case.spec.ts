@@ -1,5 +1,4 @@
 import { ListVmsUseCase } from '../list-vms.use-case';
-import { VmwareService } from '@/modules/vmware/domain/services/vmware.service';
 import { Repository } from 'typeorm';
 
 describe('ListVmsUseCase', () => {
@@ -27,10 +26,7 @@ describe('ListVmsUseCase', () => {
       findOne: jest.fn(),
     } as unknown as jest.Mocked<Repository<any>>;
 
-    useCase = new ListVmsUseCase(
-      mockVmwareService,
-      mockServerRepository,
-    );
+    useCase = new ListVmsUseCase(mockVmwareService, mockServerRepository);
   });
 
   it('should be defined', () => {

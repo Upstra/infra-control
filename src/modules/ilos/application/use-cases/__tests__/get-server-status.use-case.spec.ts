@@ -1,5 +1,4 @@
 import { GetServerStatusUseCase } from '../get-server-status.use-case';
-import { IloPowerService } from '@/modules/ilos/domain/services/ilo-power.service';
 import { IloServerStatus } from '../../dto/ilo-status.dto';
 import { Repository } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
@@ -78,7 +77,9 @@ describe('GetServerStatusUseCase', () => {
 
   it('should return ERROR status', async () => {
     mockServerRepository.findOne.mockResolvedValue(mockServer);
-    mockIloPowerService.getServerStatus.mockResolvedValue(IloServerStatus.ERROR);
+    mockIloPowerService.getServerStatus.mockResolvedValue(
+      IloServerStatus.ERROR,
+    );
 
     const result = await useCase.execute('server-1');
 

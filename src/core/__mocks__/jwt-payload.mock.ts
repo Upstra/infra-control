@@ -1,7 +1,9 @@
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { RoleDto } from '@/modules/roles/application/dto/role.dto';
 
-export const createMockJwtPayload = (overrides?: Partial<JwtPayload>): JwtPayload => {
+export const createMockJwtPayload = (
+  overrides?: Partial<JwtPayload>,
+): JwtPayload => {
   const mockRole: RoleDto = {
     id: 'role-1',
     name: 'user',

@@ -1,5 +1,4 @@
 import { ControlVmPowerUseCase } from '../control-vm-power.use-case';
-import { VmwareService } from '@/modules/vmware/domain/services/vmware.service';
 import { VmPowerAction } from '../../dto';
 import { Repository } from 'typeorm';
 

@@ -20,7 +20,10 @@ describe('GetMeUseCase', () => {
   });
 
   it('should return user from getUserByIdUseCase', async () => {
-    const user = createMockJwtPayload({ userId: 'id123', email: 'john@doe.com' });
+    const user = createMockJwtPayload({
+      userId: 'id123',
+      email: 'john@doe.com',
+    });
     const expectedUser = {
       id: 'id123',
       username: 'john',
@@ -35,7 +38,10 @@ describe('GetMeUseCase', () => {
   });
 
   it('should propagate error from getUserByIdUseCase', async () => {
-    const user = createMockJwtPayload({ userId: 'id123', email: 'john@doe.com' });
+    const user = createMockJwtPayload({
+      userId: 'id123',
+      email: 'john@doe.com',
+    });
     getUserByIdUseCase.execute.mockRejectedValue(
       UserExceptions.notFound('id123'),
     );
@@ -47,7 +53,10 @@ describe('GetMeUseCase', () => {
   });
 
   it('should throw if userId is undefined', async () => {
-    const user = createMockJwtPayload({ userId: undefined, email: 'john@doe.com' });
+    const user = createMockJwtPayload({
+      userId: undefined,
+      email: 'john@doe.com',
+    });
     getUserByIdUseCase.execute.mockRejectedValue(
       UserExceptions.notFound('undefined'),
     );

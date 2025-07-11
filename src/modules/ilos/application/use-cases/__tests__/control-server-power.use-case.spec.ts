@@ -1,5 +1,4 @@
 import { ControlServerPowerUseCase } from '../control-server-power.use-case';
-import { IloPowerService } from '@/modules/ilos/domain/services/ilo-power.service';
 import { IloPowerAction } from '../../dto/ilo-power-action.dto';
 import { IloServerStatus } from '../../dto/ilo-status.dto';
 import { Repository } from 'typeorm';
@@ -103,7 +102,9 @@ describe('ControlServerPowerUseCase', () => {
   it('should throw error when server is not found', async () => {
     mockServerRepository.findOne.mockResolvedValue(null);
 
-    await expect(useCase.execute('server-999', IloPowerAction.START)).rejects.toThrow(
+    await expect(
+      useCase.execute('server-999', IloPowerAction.START),
+    ).rejects.toThrow(
       new NotFoundException('Server with ID server-999 not found'),
     );
 
@@ -118,7 +119,9 @@ describe('ControlServerPowerUseCase', () => {
     const serverWithoutIlo = { ...mockServer, ilo: null };
     mockServerRepository.findOne.mockResolvedValue(serverWithoutIlo);
 
-    await expect(useCase.execute('server-1', IloPowerAction.START)).rejects.toThrow(
+    await expect(
+      useCase.execute('server-1', IloPowerAction.START),
+    ).rejects.toThrow(
       new NotFoundException('Server server-1 does not have an iLO configured'),
     );
 
@@ -130,7 +133,9 @@ describe('ControlServerPowerUseCase', () => {
     mockServerRepository.findOne.mockResolvedValue(mockServer);
     mockIloPowerService.controlServerPower.mockRejectedValue(error);
 
-    await expect(useCase.execute('server-1', IloPowerAction.START)).rejects.toThrow(error);
+    await expect(
+      useCase.execute('server-1', IloPowerAction.START),
+    ).rejects.toThrow(error);
 
     expect(mockIloPowerService.controlServerPower).toHaveBeenCalledWith(
       '192.168.1.100',

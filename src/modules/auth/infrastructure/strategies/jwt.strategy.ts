@@ -20,7 +20,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     const role = Array.isArray(payload.roles) ? payload.roles[0] : payload.role;
-    
+
     return {
       userId: payload.userId,
       email: payload.email,

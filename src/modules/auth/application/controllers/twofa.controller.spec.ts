@@ -10,7 +10,7 @@ import {
 } from '../dto/twofa.dto';
 import { TwoFAController } from './twofa.controller';
 import { Verify2FARecoveryUseCase } from '../use-cases/verify-2fa-recovery.use-case';
-import { createMockJwtPayload } from '@/core/test-utils/jwt-payload.helper';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 
 describe('TwoFAController', () => {
   let controller: TwoFAController;
@@ -41,17 +41,22 @@ describe('TwoFAController', () => {
   });
 
   it('should call login use case with dto', async () => {
-    await controller.get2FAStatus(createMockJwtPayload({
-      email: 'john@example.com',
-      userId: 'id123',
-    }));
+    await controller.get2FAStatus(
+      createMockJwtPayload({
+        email: 'john@example.com',
+        userId: 'id123',
+      }),
+    );
     expect(get2FAStatusUseCase.execute).toHaveBeenCalledWith(
       'john@example.com',
     );
   });
 
   it('should call get2FAStatus with user email', async () => {
-    const mockUser = createMockJwtPayload({ email: 'john@example.com', userId: 'id123' });
+    const mockUser = createMockJwtPayload({
+      email: 'john@example.com',
+      userId: 'id123',
+    });
     await controller.verify(mockUser, { code: '123456' });
     expect(get2FAStatusUseCase.execute).toHaveBeenCalledWith(
       'john@example.com',
@@ -59,7 +64,10 @@ describe('TwoFAController', () => {
   });
 
   it('should disable 2FA', async () => {
-    const mockUser = createMockJwtPayload({ email: 'john@example.com', userId: 'id123' });
+    const mockUser = createMockJwtPayload({
+      email: 'john@example.com',
+      userId: 'id123',
+    });
     await expect(controller.disable(mockUser)).resolves.toEqual(
       expect.objectContaining({
         isDisabled: true,
@@ -69,21 +77,30 @@ describe('TwoFAController', () => {
   });
 
   it('should call verify 2FA with payload and dto', async () => {
-    const user = createMockJwtPayload({ email: 'john@example.com', userId: 'id123' });
+    const user = createMockJwtPayload({
+      email: 'john@example.com',
+      userId: 'id123',
+    });
     const dto: TwoFADto = { code: '123456' };
     await controller.verify(user, dto);
     expect(verify2FAUseCase.execute).toHaveBeenCalledWith(user, dto);
   });
 
   it('should call disable 2FA with only user payload', async () => {
-    const user = createMockJwtPayload({ email: 'john@example.com', userId: 'id123' });
+    const user = createMockJwtPayload({
+      email: 'john@example.com',
+      userId: 'id123',
+    });
     await controller.disable(user);
     expect(disable2FAUseCase.execute).toHaveBeenCalledWith(user);
   });
 
   describe('recover', () => {
     it('should call verify2FARecoveryUseCase with user and dto', async () => {
-      const user = createMockJwtPayload({ email: 'john@example.com', userId: 'id123' });
+      const user = createMockJwtPayload({
+        email: 'john@example.com',
+        userId: 'id123',
+      });
       const dto: TwoFARecoveryDto = { recoveryCode: 'RECOV123' };
       verify2FARecoveryUseCase.execute.mockResolvedValue({ success: true });
 
@@ -93,7 +110,10 @@ describe('TwoFAController', () => {
     });
 
     it('should return error if recovery code is invalid', async () => {
-      const user = createMockJwtPayload({ email: 'john@example.com', userId: 'id123' });
+      const user = createMockJwtPayload({
+        email: 'john@example.com',
+        userId: 'id123',
+      });
       const dto: TwoFARecoveryDto = { recoveryCode: 'BADCODE' };
       const error = new Error('Invalid recovery code');
       verify2FARecoveryUseCase.execute.mockRejectedValue(error);
@@ -104,7 +124,10 @@ describe('TwoFAController', () => {
     });
 
     it('should propagate exception if thrown by use case', async () => {
-      const user = createMockJwtPayload({ email: 'john@example.com', userId: 'id123' });
+      const user = createMockJwtPayload({
+        email: 'john@example.com',
+        userId: 'id123',
+      });
       const dto: TwoFARecoveryDto = { recoveryCode: 'FAIL' };
       verify2FARecoveryUseCase.execute.mockRejectedValue(
         new Error('Unexpected error'),
@@ -117,7 +140,10 @@ describe('TwoFAController', () => {
 
   describe('generate', () => {
     it('should call generate2FAUseCase with user email and return result', async () => {
-      const user = createMockJwtPayload({ email: 'john@example.com', userId: 'id123' });
+      const user = createMockJwtPayload({
+        email: 'john@example.com',
+        userId: 'id123',
+      });
       const fakeQr = { qr: 'some-qr-code', secret: 'SECRET' };
       generate2FAUseCase.execute.mockResolvedValue(fakeQr);
 
@@ -129,7 +155,10 @@ describe('TwoFAController', () => {
     });
 
     it('should throw if generate2FAUseCase throws', async () => {
-      const user = createMockJwtPayload({ email: 'john@example.com', userId: 'id123' });
+      const user = createMockJwtPayload({
+        email: 'john@example.com',
+        userId: 'id123',
+      });
       generate2FAUseCase.execute.mockRejectedValue(new Error('Failed QR gen'));
 
       await expect(controller.generate(user)).rejects.toThrow('Failed QR gen');

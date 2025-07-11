@@ -24,7 +24,9 @@ export class GetServerStatusUseCase {
     }
 
     if (!server.ilo) {
-      throw new NotFoundException(`Server ${serverId} does not have an iLO configured`);
+      throw new NotFoundException(
+        `Server ${serverId} does not have an iLO configured`,
+      );
     }
 
     const credentials = {

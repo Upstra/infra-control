@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Param,
-  Query,
   Body,
   HttpCode,
   HttpStatus,
@@ -15,7 +14,6 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiParam,
-  ApiQuery,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
@@ -23,10 +21,7 @@ import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guar
 import { RequireResourcePermission } from '@/core/decorators/ressource-permission.decorator';
 import { ControlServerPowerUseCase } from '../use-cases/control-server-power.use-case';
 import { GetServerStatusUseCase } from '../use-cases/get-server-status.use-case';
-import {
-  IloPowerActionDto,
-  IloCredentialsDto,
-} from '../dto/ilo-power-action.dto';
+import { IloPowerActionDto } from '../dto/ilo-power-action.dto';
 import {
   IloPowerResponseDto,
   IloStatusResponseDto,
