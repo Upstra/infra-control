@@ -40,8 +40,9 @@ export class PythonExecutorService {
     const timeout = options.timeout ?? this.defaultTimeout;
     const scriptPath = `${this.scriptsBasePath}/${scriptName}`;
 
+    const maskedArgs = this.maskSensitiveArgs(args);
     this.logger.log(
-      `Executing Python script: ${scriptPath} with args: ${args.join(' ')}`,
+      `Executing Python script: ${scriptPath} with args: ${maskedArgs.join(' ')}`,
     );
 
     return new Promise((resolve, reject) => {
@@ -137,5 +138,18 @@ export class PythonExecutorService {
     } catch {
       return false;
     }
+  }
+
+  private maskSensitiveArgs(args: string[]): string[] {
+    const sensitiveKeys = ['--password', '--pass', '--pwd', '--secret', '--key', '--token'];
+    const maskedArgs = [...args];
+    
+    for (let i = 0; i < maskedArgs.length; i++) {
+      if (sensitiveKeys.includes(maskedArgs[i].toLowerCase()) && i + 1 < maskedArgs.length) {
+        maskedArgs[i + 1] = '[REDACTED]';
+      }
+    }
+    
+    return maskedArgs;
   }
 }

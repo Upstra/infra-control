@@ -267,6 +267,53 @@ describe('VmwareService', () => {
         ],
       );
     });
+
+    it('should handle invalid host target error', async () => {
+      const error = new Error('Host not found');
+      pythonExecutor.executePython.mockRejectedValue(error);
+
+      await expect(
+        service.migrateVM('vm-123', 'invalid-host', mockConnection),
+      ).rejects.toThrow(
+        new HttpException('Resource not found', HttpStatus.NOT_FOUND),
+      );
+    });
+
+    it('should handle insufficient resources error', async () => {
+      const error = new Error('Insufficient resources on destination host');
+      pythonExecutor.executePython.mockRejectedValue(error);
+
+      await expect(
+        service.migrateVM('vm-123', 'host-456', mockConnection),
+      ).rejects.toThrow(
+        new HttpException(
+          'Insufficient resources on destination host',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+      );
+    });
+
+    it('should handle network issues during migration', async () => {
+      const error = new Error('Connection timeout during migration');
+      pythonExecutor.executePython.mockRejectedValue(error);
+
+      await expect(
+        service.migrateVM('vm-123', 'host-456', mockConnection),
+      ).rejects.toThrow(
+        new HttpException('Operation timeout', HttpStatus.REQUEST_TIMEOUT),
+      );
+    });
+
+    it('should handle authentication error during migration', async () => {
+      const error = new Error('Authentication failed');
+      pythonExecutor.executePython.mockRejectedValue(error);
+
+      await expect(
+        service.migrateVM('vm-123', 'host-456', mockConnection),
+      ).rejects.toThrow(
+        new HttpException('Invalid VMware credentials', HttpStatus.UNAUTHORIZED),
+      );
+    });
   });
 
   describe('getHostMetrics', () => {

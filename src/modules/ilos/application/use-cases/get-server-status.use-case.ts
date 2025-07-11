@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { GetServerWithIloUseCase } from '@/modules/servers/application/use-cases/get-server-with-ilo.use-case';
 import { IloPowerService } from '@/modules/ilos/domain/services/ilo-power.service';
 import { IloStatusResponseDto } from '../dto/ilo-status.dto';
@@ -11,6 +11,10 @@ export class GetServerStatusUseCase {
   ) {}
 
   async execute(serverId: string): Promise<IloStatusResponseDto> {
+    if (!serverId || typeof serverId !== 'string' || serverId.trim() === '') {
+      throw new BadRequestException('Server ID must be a valid non-empty string');
+    }
+
     const server = await this.getServerWithIloUseCase.execute(serverId);
 
     const credentials = {
