@@ -15,6 +15,11 @@ export class ResetUserPreferencesUseCase {
 
     if (!preferences) {
       preferences = UserPreference.createDefault(userId);
+      try {
+        return await this.userPreferencesRepository.create(preferences);
+      } catch {
+        throw UserPreferencesExceptions.failedToReset();
+      }
     } else {
       const defaultPreferences = UserPreference.createDefault(userId);
       preferences.locale = defaultPreferences.locale;
@@ -24,12 +29,12 @@ export class ResetUserPreferencesUseCase {
       preferences.display = defaultPreferences.display;
       preferences.integrations = defaultPreferences.integrations;
       preferences.performance = defaultPreferences.performance;
-    }
-
-    try {
-      return await this.userPreferencesRepository.update(preferences);
-    } catch {
-      throw UserPreferencesExceptions.failedToReset();
+      
+      try {
+        return await this.userPreferencesRepository.update(preferences);
+      } catch {
+        throw UserPreferencesExceptions.failedToReset();
+      }
     }
   }
 }

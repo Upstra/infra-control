@@ -57,7 +57,9 @@ export class ZohoMailAdapter implements IMailService {
 
       return configuredLogoUrl;
     } catch (error) {
-      this.logger.warn(`Invalid logo URL: ${configuredLogoUrl}, using default`);
+      this.logger.warn(
+        `Invalid logo URL: ${configuredLogoUrl}, using default: ${error.message}`,
+      );
       return defaultLogoUrl;
     }
   }

@@ -2,7 +2,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNumber, IsOptional, IsEnum, IsDateString } from 'class-validator';
 import { Type } from 'class-transformer';
 
-// Activity Feed DTOs
 export class ActivityActorDto {
   @ApiProperty()
   id: string;
@@ -111,7 +110,6 @@ export class AlertsResponseDto {
   summary: AlertsSummaryDto;
 }
 
-// Resource Usage DTOs
 export class ResourceHistoryPointDto {
   @ApiProperty()
   timestamp: Date;
@@ -162,7 +160,6 @@ export class ResourceUsageResponseDto {
   network: NetworkMetricDto;
 }
 
-// User Presence DTOs
 export class OnlineUserDto {
   @ApiProperty()
   id: string;
@@ -248,7 +245,6 @@ export class SystemHealthResponseDto {
   lastCheck: Date;
 }
 
-// UPS Status DTOs
 export class UpsStatusDto {
   @ApiProperty()
   id: string;
@@ -312,7 +308,6 @@ export class UpsStatusResponseDto {
   summary: UpsStatusSummaryDto;
 }
 
-// Widget Data Query DTOs
 export class WidgetDataQueryDto {
   @ApiPropertyOptional()
   @IsOptional()

@@ -1,6 +1,6 @@
 import { DataSource, Repository } from 'typeorm';
 import { PermissionVm } from '../../domain/entities/permission.vm.entity';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PermissionNotFoundException } from '../../domain/exceptions/permission.exception';
 import { FindOneByFieldOptions } from '@/core/utils/index';
 import { PermissionVmRepositoryInterface } from '../interfaces/permission.vm.repository.interface';
@@ -10,6 +10,8 @@ export class PermissionVmRepository
   extends Repository<PermissionVm>
   implements PermissionVmRepositoryInterface
 {
+  private readonly logger = new Logger(PermissionVmRepository.name);
+
   constructor(private readonly dataSource: DataSource) {
     super(PermissionVm, dataSource.createEntityManager());
   }
@@ -99,14 +101,13 @@ export class PermissionVmRepository
 
   async deleteById(id: string): Promise<void> {
     const result = await this.delete({ id });
-    console.log(`Deleted permission with id ${id}, result:`, result);
+    this.logger.log(`Deleted permission with id ${id}, result: ${JSON.stringify(result)}`);
   }
 
   async deleteByRoleId(roleId: string): Promise<void> {
     const result = await this.delete({ roleId });
-    console.log(
-      `Deleted all VM permissions for role ${roleId}, result:`,
-      result,
+    this.logger.log(
+      `Deleted all VM permissions for role ${roleId}, result: ${JSON.stringify(result)}`,
     );
   }
 }

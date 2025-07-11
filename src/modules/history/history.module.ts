@@ -26,6 +26,7 @@ import { UserModule } from '../users/user.module';
     GetHistoryListUseCase,
     GetHistoryEntityTypesUseCase,
     GetHistoryActionTypesUseCase,
+    AuditModule,
   ],
 })
 export class HistoryModule {}

@@ -24,7 +24,7 @@ export class ServerCreationDto {
 
   @ApiProperty({
     description: 'État actuel du serveur',
-    example: 'active',
+    example: 'UP',
     required: true,
   })
   @IsNotEmpty()

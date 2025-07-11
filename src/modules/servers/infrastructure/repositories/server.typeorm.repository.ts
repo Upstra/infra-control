@@ -199,4 +199,15 @@ export class ServerTypeormRepository
       throw new ServerRetrievalException(`Error updating server with id ${id}`);
     }
   }
+
+  async countByState(state: 'UP' | 'DOWN'): Promise<number> {
+    try {
+      return await this.count({
+        where: { state },
+      });
+    } catch (error) {
+      this.logger.error(`Error counting servers with state ${state}:`, error);
+      throw new ServerRetrievalException(`Error counting servers by state`);
+    }
+  }
 }
