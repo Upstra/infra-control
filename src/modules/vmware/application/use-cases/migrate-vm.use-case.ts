@@ -38,6 +38,10 @@ export class MigrateVmUseCase {
       port: 443,
     };
 
-    return await this.vmwareService.migrateVM(vmMoid, destinationMoid, connection);
+    return await this.vmwareService.migrateVM(
+      vmMoid,
+      destinationMoid,
+      connection,
+    );
   }
 }

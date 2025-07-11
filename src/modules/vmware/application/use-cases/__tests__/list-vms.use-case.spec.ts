@@ -1,81 +1,110 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { ListVmsUseCase } from '../list-vms.use-case';
 import { VmwareService } from '@/modules/vmware/domain/services/vmware.service';
-import { VmwareConnectionDto } from '@/modules/vmware/application/dto';
-import { VmwareVm } from '@/modules/vmware/domain/interfaces';
+import { Repository } from 'typeorm';
 
 describe('ListVmsUseCase', () => {
   let useCase: ListVmsUseCase;
-  let vmwareService: jest.Mocked<VmwareService>;
+  let mockVmwareService: any;
+  let mockServerRepository: jest.Mocked<Repository<any>>;
 
-  const mockConnection: VmwareConnectionDto = {
-    host: '192.168.1.10',
-    user: 'admin',
+  const mockServer = {
+    id: 'server-1',
+    ip: '192.168.1.10',
+    login: 'admin',
     password: 'password123',
   };
 
-  const mockVms: VmwareVm[] = [
-    {
-      moid: 'vm-123',
-      name: 'Test VM 1',
-      powerState: 'poweredOn',
-      guestOS: 'Ubuntu Linux (64-bit)',
-      ipAddress: '192.168.1.100',
-    },
-    {
-      moid: 'vm-124',
-      name: 'Test VM 2',
-      powerState: 'poweredOff',
-      guestOS: 'Windows Server 2019',
-      ipAddress: '192.168.1.101',
-    },
-  ];
+  beforeEach(() => {
+    mockVmwareService = {
+      listVMs: jest.fn(),
+      getVMMetrics: jest.fn(),
+      controlVMPower: jest.fn(),
+      migrateVM: jest.fn(),
+      getHostMetrics: jest.fn(),
+    };
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ListVmsUseCase,
-        {
-          provide: VmwareService,
-          useValue: {
-            listVMs: jest.fn(),
-          },
-        },
-      ],
-    }).compile();
+    mockServerRepository = {
+      findOne: jest.fn(),
+    } as unknown as jest.Mocked<Repository<any>>;
 
-    useCase = module.get<ListVmsUseCase>(ListVmsUseCase);
-    vmwareService = module.get(VmwareService);
+    useCase = new ListVmsUseCase(
+      mockVmwareService,
+      mockServerRepository,
+    );
   });
 
   it('should be defined', () => {
     expect(useCase).toBeDefined();
   });
 
-  it('should return list of VMs', async () => {
-    vmwareService.listVMs.mockResolvedValue(mockVms);
+  it('should list VMs from the specified server', async () => {
+    const mockVMs = [
+      {
+        moid: 'vm-123',
+        name: 'Test VM 1',
+        powerState: 'poweredOn' as const,
+        guestOS: 'Ubuntu Linux (64-bit)',
+      },
+      {
+        moid: 'vm-456',
+        name: 'Test VM 2',
+        powerState: 'poweredOff' as const,
+        guestOS: 'Windows Server 2019',
+      },
+    ];
 
-    const result = await useCase.execute(mockConnection);
+    mockServerRepository.findOne.mockResolvedValue(mockServer);
+    mockVmwareService.listVMs.mockResolvedValue(mockVMs);
 
-    expect(result).toEqual({ vms: mockVms });
-    expect(vmwareService.listVMs).toHaveBeenCalledWith(mockConnection);
-    expect(vmwareService.listVMs).toHaveBeenCalledTimes(1);
+    const result = await useCase.execute('server-1');
+
+    expect(result).toEqual({ vms: mockVMs });
+    expect(mockServerRepository.findOne).toHaveBeenCalledWith({
+      where: { id: 'server-1' },
+    });
+    expect(mockVmwareService.listVMs).toHaveBeenCalledWith({
+      host: mockServer.ip,
+      user: mockServer.login,
+      password: mockServer.password,
+      port: 443,
+    });
   });
 
-  it('should return empty list when no VMs', async () => {
-    vmwareService.listVMs.mockResolvedValue([]);
+  it('should return empty array when no VMs exist', async () => {
+    mockServerRepository.findOne.mockResolvedValue(mockServer);
+    mockVmwareService.listVMs.mockResolvedValue([]);
 
-    const result = await useCase.execute(mockConnection);
+    const result = await useCase.execute('server-1');
 
     expect(result).toEqual({ vms: [] });
-    expect(vmwareService.listVMs).toHaveBeenCalledWith(mockConnection);
+    expect(mockVmwareService.listVMs).toHaveBeenCalled();
   });
 
-  it('should propagate errors from service', async () => {
-    const error = new Error('Connection failed');
-    vmwareService.listVMs.mockRejectedValue(error);
+  it('should throw error when server is not found', async () => {
+    mockServerRepository.findOne.mockResolvedValue(null);
 
-    await expect(useCase.execute(mockConnection)).rejects.toThrow(error);
-    expect(vmwareService.listVMs).toHaveBeenCalledWith(mockConnection);
+    await expect(useCase.execute('server-999')).rejects.toThrow(
+      'Server with ID server-999 not found',
+    );
+
+    expect(mockServerRepository.findOne).toHaveBeenCalledWith({
+      where: { id: 'server-999' },
+    });
+    expect(mockVmwareService.listVMs).not.toHaveBeenCalled();
+  });
+
+  it('should handle VMware service errors', async () => {
+    const error = new Error('Failed to connect to VMware server');
+    mockServerRepository.findOne.mockResolvedValue(mockServer);
+    mockVmwareService.listVMs.mockRejectedValue(error);
+
+    await expect(useCase.execute('server-1')).rejects.toThrow(error);
+
+    expect(mockVmwareService.listVMs).toHaveBeenCalledWith({
+      host: mockServer.ip,
+      user: mockServer.login,
+      password: mockServer.password,
+      port: 443,
+    });
   });
 });

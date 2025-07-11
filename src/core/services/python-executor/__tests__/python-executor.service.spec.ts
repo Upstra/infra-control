@@ -121,7 +121,9 @@ describe('PythonExecutorService', () => {
         mockProcess.emit('error', new Error(errorMessage));
       }, 10);
 
-      await expect(executionPromise).rejects.toThrow(`Failed to execute Python script: ${errorMessage}`);
+      await expect(executionPromise).rejects.toThrow(
+        `Failed to execute Python script: ${errorMessage}`,
+      );
     });
 
     it.skip('should handle timeout', async () => {
@@ -132,7 +134,9 @@ describe('PythonExecutorService', () => {
       const scriptName = 'test_script.py';
       const customEnv = { CUSTOM_VAR: 'custom_value' };
 
-      const executionPromise = service.executePython(scriptName, [], { env: customEnv });
+      const executionPromise = service.executePython(scriptName, [], {
+        env: customEnv,
+      });
 
       setTimeout(() => {
         mockProcess.stdout.emit('data', 'success');
@@ -174,7 +178,7 @@ describe('PythonExecutorService', () => {
       service.executePython(scriptName, [], { timeout });
 
       jest.advanceTimersByTime(timeout + 1);
-      
+
       mockProcess.killed = false;
       jest.advanceTimersByTime(5001);
 
@@ -193,12 +197,16 @@ describe('PythonExecutorService', () => {
       const result = await service.validateScriptExists('test_script.py');
 
       expect(result).toBe(true);
-      expect(fs.promises.access).toHaveBeenCalledWith('/home/upstra/ups_manager/test_script.py');
+      expect(fs.promises.access).toHaveBeenCalledWith(
+        '/home/upstra/ups_manager/test_script.py',
+      );
     });
 
     it('should return false when script does not exist', async () => {
       const fs = await import('fs');
-      (fs.promises.access as jest.Mock).mockRejectedValue(new Error('File not found'));
+      (fs.promises.access as jest.Mock).mockRejectedValue(
+        new Error('File not found'),
+      );
 
       const result = await service.validateScriptExists('nonexistent.py');
 
@@ -209,7 +217,7 @@ describe('PythonExecutorService', () => {
   describe('configuration', () => {
     it('should use default values when config is not provided', async () => {
       const mockConfigGet = jest.fn().mockReturnValue(undefined);
-      
+
       const module: TestingModule = await Test.createTestingModule({
         providers: [
           PythonExecutorService,
@@ -222,8 +230,10 @@ describe('PythonExecutorService', () => {
         ],
       }).compile();
 
-      const serviceWithDefaults = module.get<PythonExecutorService>(PythonExecutorService);
-      
+      const serviceWithDefaults = module.get<PythonExecutorService>(
+        PythonExecutorService,
+      );
+
       const executionPromise = serviceWithDefaults.executePython('test.py');
 
       setTimeout(() => {

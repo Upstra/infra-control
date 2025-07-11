@@ -1,10 +1,10 @@
-import { 
-  ExceptionFilter, 
-  Catch, 
-  ArgumentsHost, 
+import {
+  ExceptionFilter,
+  Catch,
+  ArgumentsHost,
   HttpException,
   HttpStatus,
-  Logger
+  Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
 
@@ -16,20 +16,24 @@ export class PythonErrorInterceptor implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest();
-    
+
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
-    
+
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       message = exception.message;
     } else if (exception.message) {
-      if (exception.message.includes('Authentication failed') || 
-          exception.message.includes('401')) {
+      if (
+        exception.message.includes('Authentication failed') ||
+        exception.message.includes('401')
+      ) {
         status = HttpStatus.UNAUTHORIZED;
         message = 'Invalid credentials';
-      } else if (exception.message.includes('not found') || 
-                 exception.message.includes('404')) {
+      } else if (
+        exception.message.includes('not found') ||
+        exception.message.includes('404')
+      ) {
         status = HttpStatus.NOT_FOUND;
         message = 'Resource not found';
       } else if (exception.message.includes('timeout')) {
@@ -46,9 +50,9 @@ export class PythonErrorInterceptor implements ExceptionFilter {
     this.logger.error(
       `Python script error: ${message}`,
       exception.stack,
-      `${request.method} ${request.url}`
+      `${request.method} ${request.url}`,
     );
-    
+
     response.status(status).json({
       statusCode: status,
       message: message,

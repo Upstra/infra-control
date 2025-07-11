@@ -18,7 +18,10 @@ export class VmwareService implements IVmwareService {
     const args = this.buildConnectionArgs(connection);
 
     try {
-      const result = await this.pythonExecutor.executePython('list_vm.py', args);
+      const result = await this.pythonExecutor.executePython(
+        'list_vm.py',
+        args,
+      );
       return this.parseVmList(result);
     } catch (error) {
       this.logger.error('Failed to list VMs:', error);
@@ -26,11 +29,17 @@ export class VmwareService implements IVmwareService {
     }
   }
 
-  async getVMMetrics(moid: string, connection: VmwareConnectionDto): Promise<VmwareVmMetrics> {
+  async getVMMetrics(
+    moid: string,
+    connection: VmwareConnectionDto,
+  ): Promise<VmwareVmMetrics> {
     const args = ['--moid', moid, ...this.buildConnectionArgs(connection)];
 
     try {
-      const result = await this.pythonExecutor.executePython('vm_metrics.py', args);
+      const result = await this.pythonExecutor.executePython(
+        'vm_metrics.py',
+        args,
+      );
       return this.parseVmMetrics(result);
     } catch (error) {
       this.logger.error(`Failed to get metrics for VM ${moid}:`, error);
@@ -50,7 +59,9 @@ export class VmwareService implements IVmwareService {
       const result = await this.pythonExecutor.executePython(scriptName, args);
       return {
         success: true,
-        message: result.message ?? `VM ${action === 'on' ? 'started' : 'stopped'} successfully`,
+        message:
+          result.message ??
+          `VM ${action === 'on' ? 'started' : 'stopped'} successfully`,
         newState: action === 'on' ? 'poweredOn' : 'poweredOff',
       };
     } catch (error) {
@@ -65,13 +76,18 @@ export class VmwareService implements IVmwareService {
     connection: VmwareConnectionDto,
   ): Promise<{ success: boolean; message: string; newHost: string }> {
     const args = [
-      '--vmMoId', vmMoid,
-      '--distMoId', destinationMoid,
+      '--vmMoId',
+      vmMoid,
+      '--distMoId',
+      destinationMoid,
       ...this.buildConnectionArgs(connection),
     ];
 
     try {
-      const result = await this.pythonExecutor.executePython('migrate_vm.py', args);
+      const result = await this.pythonExecutor.executePython(
+        'migrate_vm.py',
+        args,
+      );
       return {
         success: true,
         message: result.message ?? 'VM migrated successfully',
@@ -83,11 +99,17 @@ export class VmwareService implements IVmwareService {
     }
   }
 
-  async getHostMetrics(moid: string, connection: VmwareConnectionDto): Promise<VmwareHost> {
+  async getHostMetrics(
+    moid: string,
+    connection: VmwareConnectionDto,
+  ): Promise<VmwareHost> {
     const args = ['--moid', moid, ...this.buildConnectionArgs(connection)];
 
     try {
-      const result = await this.pythonExecutor.executePython('server_metrics.py', args);
+      const result = await this.pythonExecutor.executePython(
+        'server_metrics.py',
+        args,
+      );
       return this.parseHostMetrics(result);
     } catch (error) {
       this.logger.error(`Failed to get metrics for host ${moid}:`, error);
@@ -97,9 +119,12 @@ export class VmwareService implements IVmwareService {
 
   private buildConnectionArgs(connection: VmwareConnectionDto): string[] {
     const args = [
-      '--ip', connection.host,
-      '--user', connection.user,
-      '--password', connection.password,
+      '--ip',
+      connection.host,
+      '--user',
+      connection.user,
+      '--password',
+      connection.password,
     ];
 
     if (connection.port && connection.port !== 443) {
@@ -169,7 +194,10 @@ export class VmwareService implements IVmwareService {
     const message = error.message ?? defaultMessage;
 
     if (message.includes('Authentication failed') || message.includes('401')) {
-      return new HttpException('Invalid VMware credentials', HttpStatus.UNAUTHORIZED);
+      return new HttpException(
+        'Invalid VMware credentials',
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     if (message.includes('not found') || message.includes('404')) {

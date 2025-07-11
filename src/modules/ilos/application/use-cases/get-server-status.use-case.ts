@@ -7,7 +7,10 @@ import { IloStatusResponseDto } from '../dto/ilo-status.dto';
 export class GetServerStatusUseCase {
   constructor(private readonly iloPowerService: IloPowerService) {}
 
-  async execute(ip: string, credentials: IloCredentialsDto): Promise<IloStatusResponseDto> {
+  async execute(
+    ip: string,
+    credentials: IloCredentialsDto,
+  ): Promise<IloStatusResponseDto> {
     const status = await this.iloPowerService.getServerStatus(ip, credentials);
 
     return {

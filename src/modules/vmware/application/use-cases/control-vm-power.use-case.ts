@@ -39,6 +39,19 @@ export class ControlVmPowerUseCase {
       port: 443,
     };
 
-    return await this.vmwareService.controlVMPower(moid, action, connection);
+    let vmAction: 'on' | 'off';
+    switch (action) {
+      case VmPowerAction.POWER_ON:
+        vmAction = 'on';
+        break;
+      case VmPowerAction.POWER_OFF:
+      case VmPowerAction.RESET:
+      case VmPowerAction.SUSPEND:
+        vmAction = 'off';
+        break;
+      default:
+        vmAction = 'off';
+    }
+    return await this.vmwareService.controlVMPower(moid, vmAction, connection);
   }
 }

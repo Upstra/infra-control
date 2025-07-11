@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Param,
-  Query,
   Body,
   HttpCode,
   HttpStatus,
@@ -159,5 +158,4 @@ export class VmwareController {
   ) {
     return this.migrateVmUseCase.execute(serverId, moid, dto.destinationMoid);
   }
-
 }

@@ -1,94 +1,135 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { ControlVmPowerUseCase } from '../control-vm-power.use-case';
 import { VmwareService } from '@/modules/vmware/domain/services/vmware.service';
-import { VmPowerActionDto, VmPowerAction } from '@/modules/vmware/application/dto';
+import { VmPowerAction } from '../../dto';
+import { Repository } from 'typeorm';
 
 describe('ControlVmPowerUseCase', () => {
   let useCase: ControlVmPowerUseCase;
-  let vmwareService: jest.Mocked<VmwareService>;
+  let mockVmwareService: any;
+  let mockServerRepository: jest.Mocked<Repository<any>>;
 
-  const mockPowerActionDto: VmPowerActionDto = {
-    action: VmPowerAction.ON,
-    connection: {
-      host: '192.168.1.10',
-      user: 'admin',
-      password: 'password123',
-    },
+  const mockServer = {
+    id: 'server-1',
+    ip: '192.168.1.10',
+    login: 'admin',
+    password: 'password123',
   };
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ControlVmPowerUseCase,
-        {
-          provide: VmwareService,
-          useValue: {
-            controlVMPower: jest.fn(),
-          },
-        },
-      ],
-    }).compile();
+  beforeEach(() => {
+    mockVmwareService = {
+      listVMs: jest.fn(),
+      getVMMetrics: jest.fn(),
+      controlVMPower: jest.fn(),
+      migrateVM: jest.fn(),
+      getHostMetrics: jest.fn(),
+    };
 
-    useCase = module.get<ControlVmPowerUseCase>(ControlVmPowerUseCase);
-    vmwareService = module.get(VmwareService);
+    mockServerRepository = {
+      findOne: jest.fn(),
+    } as unknown as jest.Mocked<Repository<any>>;
+
+    useCase = new ControlVmPowerUseCase(
+      mockVmwareService,
+      mockServerRepository,
+    );
   });
 
   it('should be defined', () => {
     expect(useCase).toBeDefined();
   });
 
-  it('should power on VM successfully', async () => {
+  it('should successfully power on a VM', async () => {
     const mockResult = {
       success: true,
       message: 'VM powered on successfully',
       newState: 'poweredOn',
     };
 
-    vmwareService.controlVMPower.mockResolvedValue(mockResult);
+    mockServerRepository.findOne.mockResolvedValue(mockServer);
+    mockVmwareService.controlVMPower.mockResolvedValue(mockResult);
 
-    const result = await useCase.execute('vm-123', mockPowerActionDto);
+    const result = await useCase.execute(
+      'server-1',
+      'vm-123',
+      VmPowerAction.POWER_ON,
+    );
 
     expect(result).toEqual(mockResult);
-    expect(vmwareService.controlVMPower).toHaveBeenCalledWith(
+    expect(mockServerRepository.findOne).toHaveBeenCalledWith({
+      where: { id: 'server-1' },
+    });
+    expect(mockVmwareService.controlVMPower).toHaveBeenCalledWith(
       'vm-123',
-      'on',
-      mockPowerActionDto.connection,
+      VmPowerAction.POWER_ON,
+      {
+        host: mockServer.ip,
+        user: mockServer.login,
+        password: mockServer.password,
+        port: 443,
+      },
     );
   });
 
-  it('should power off VM successfully', async () => {
-    const powerOffDto: VmPowerActionDto = {
-      ...mockPowerActionDto,
-      action: VmPowerAction.OFF,
-    };
-
+  it('should power off a VM', async () => {
     const mockResult = {
       success: true,
       message: 'VM powered off successfully',
       newState: 'poweredOff',
     };
 
-    vmwareService.controlVMPower.mockResolvedValue(mockResult);
+    mockServerRepository.findOne.mockResolvedValue(mockServer);
+    mockVmwareService.controlVMPower.mockResolvedValue(mockResult);
 
-    const result = await useCase.execute('vm-123', powerOffDto);
+    const result = await useCase.execute(
+      'server-1',
+      'vm-123',
+      VmPowerAction.POWER_OFF,
+    );
 
     expect(result).toEqual(mockResult);
-    expect(vmwareService.controlVMPower).toHaveBeenCalledWith(
+    expect(mockVmwareService.controlVMPower).toHaveBeenCalledWith(
       'vm-123',
-      'off',
-      powerOffDto.connection,
+      VmPowerAction.POWER_OFF,
+      {
+        host: mockServer.ip,
+        user: mockServer.login,
+        password: mockServer.password,
+        port: 443,
+      },
     );
   });
 
-  it('should propagate errors from service', async () => {
-    const error = new Error('VM not found');
-    vmwareService.controlVMPower.mockRejectedValue(error);
+  it('should throw error when server is not found', async () => {
+    mockServerRepository.findOne.mockResolvedValue(null);
 
-    await expect(useCase.execute('vm-999', mockPowerActionDto)).rejects.toThrow(error);
-    expect(vmwareService.controlVMPower).toHaveBeenCalledWith(
-      'vm-999',
-      'on',
-      mockPowerActionDto.connection,
+    await expect(
+      useCase.execute('server-999', 'vm-123', VmPowerAction.POWER_ON),
+    ).rejects.toThrow('Server with ID server-999 not found');
+
+    expect(mockServerRepository.findOne).toHaveBeenCalledWith({
+      where: { id: 'server-999' },
+    });
+    expect(mockVmwareService.controlVMPower).not.toHaveBeenCalled();
+  });
+
+  it('should handle VM power control failure', async () => {
+    const error = new Error('Failed to control VM power');
+    mockServerRepository.findOne.mockResolvedValue(mockServer);
+    mockVmwareService.controlVMPower.mockRejectedValue(error);
+
+    await expect(
+      useCase.execute('server-1', 'vm-123', VmPowerAction.RESET),
+    ).rejects.toThrow(error);
+
+    expect(mockVmwareService.controlVMPower).toHaveBeenCalledWith(
+      'vm-123',
+      'off',
+      {
+        host: mockServer.ip,
+        user: mockServer.login,
+        password: mockServer.password,
+        port: 443,
+      },
     );
   });
 });

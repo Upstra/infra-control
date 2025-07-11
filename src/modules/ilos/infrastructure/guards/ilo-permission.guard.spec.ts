@@ -1,5 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ExecutionContext, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  ExecutionContext,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { IloPermissionGuard } from './ilo-permission.guard';
 import { GetServerByIloIpUseCase } from '@/modules/servers/application/use-cases/get-server-by-ilo-ip.use-case';
@@ -55,7 +59,9 @@ describe('IloPermissionGuard', () => {
 
     guard = module.get<IloPermissionGuard>(IloPermissionGuard);
     reflector = module.get<Reflector>(Reflector);
-    getServerByIloIpUseCase = module.get<GetServerByIloIpUseCase>(GetServerByIloIpUseCase);
+    getServerByIloIpUseCase = module.get<GetServerByIloIpUseCase>(
+      GetServerByIloIpUseCase,
+    );
     checkServerPermissionUseCase = module.get<CheckServerPermissionUseCase>(
       CheckServerPermissionUseCase,
     );
@@ -75,7 +81,9 @@ describe('IloPermissionGuard', () => {
 
     it('should return false if no user is found in request', async () => {
       mockReflector.get.mockReturnValue({ requiredBit: PermissionBit.READ });
-      (mockExecutionContext.switchToHttp().getRequest as jest.Mock).mockReturnValue({
+      (
+        mockExecutionContext.switchToHttp().getRequest as jest.Mock
+      ).mockReturnValue({
         user: null,
         params: { ip: '192.168.1.100' },
       });
@@ -88,12 +96,14 @@ describe('IloPermissionGuard', () => {
     it('should return true if user is admin', async () => {
       const adminRole = new Role();
       adminRole.isAdmin = true;
-      
+
       const adminUser = new User();
       adminUser.roles = [adminRole];
 
       mockReflector.get.mockReturnValue({ requiredBit: PermissionBit.READ });
-      (mockExecutionContext.switchToHttp().getRequest as jest.Mock).mockReturnValue({
+      (
+        mockExecutionContext.switchToHttp().getRequest as jest.Mock
+      ).mockReturnValue({
         user: adminUser,
         params: { ip: '192.168.1.100' },
       });
@@ -109,7 +119,9 @@ describe('IloPermissionGuard', () => {
       user.roles = [];
 
       mockReflector.get.mockReturnValue({ requiredBit: PermissionBit.READ });
-      (mockExecutionContext.switchToHttp().getRequest as jest.Mock).mockReturnValue({
+      (
+        mockExecutionContext.switchToHttp().getRequest as jest.Mock
+      ).mockReturnValue({
         user,
         params: {},
       });
@@ -124,7 +136,9 @@ describe('IloPermissionGuard', () => {
       user.roles = [];
 
       mockReflector.get.mockReturnValue({ requiredBit: PermissionBit.READ });
-      (mockExecutionContext.switchToHttp().getRequest as jest.Mock).mockReturnValue({
+      (
+        mockExecutionContext.switchToHttp().getRequest as jest.Mock
+      ).mockReturnValue({
         user,
         params: { ip: '192.168.1.100' },
       });
@@ -153,7 +167,9 @@ describe('IloPermissionGuard', () => {
       server.ilo = ilo;
 
       mockReflector.get.mockReturnValue({ requiredBit: PermissionBit.READ });
-      (mockExecutionContext.switchToHttp().getRequest as jest.Mock).mockReturnValue({
+      (
+        mockExecutionContext.switchToHttp().getRequest as jest.Mock
+      ).mockReturnValue({
         user,
         params: { ip: '192.168.1.100' },
       });
@@ -163,7 +179,9 @@ describe('IloPermissionGuard', () => {
       const result = await guard.canActivate(mockExecutionContext);
 
       expect(result).toBe(true);
-      expect(mockGetServerByIloIpUseCase.execute).toHaveBeenCalledWith('192.168.1.100');
+      expect(mockGetServerByIloIpUseCase.execute).toHaveBeenCalledWith(
+        '192.168.1.100',
+      );
       expect(mockCheckServerPermissionUseCase.execute).toHaveBeenCalledWith(
         'user-1',
         'server-1',
@@ -187,7 +205,9 @@ describe('IloPermissionGuard', () => {
       server.ilo = ilo;
 
       mockReflector.get.mockReturnValue({ requiredBit: PermissionBit.WRITE });
-      (mockExecutionContext.switchToHttp().getRequest as jest.Mock).mockReturnValue({
+      (
+        mockExecutionContext.switchToHttp().getRequest as jest.Mock
+      ).mockReturnValue({
         user,
         params: { ip: '192.168.1.100' },
       });
@@ -215,7 +235,9 @@ describe('IloPermissionGuard', () => {
       server.ilo = ilo;
 
       mockReflector.get.mockReturnValue({ requiredBit: PermissionBit.WRITE });
-      (mockExecutionContext.switchToHttp().getRequest as jest.Mock).mockReturnValue({
+      (
+        mockExecutionContext.switchToHttp().getRequest as jest.Mock
+      ).mockReturnValue({
         user,
         params: { ip: '192.168.1.100' },
       });
@@ -248,7 +270,9 @@ describe('IloPermissionGuard', () => {
       server.ilo = ilo;
 
       mockReflector.get.mockReturnValue({ requiredBit: PermissionBit.WRITE });
-      (mockExecutionContext.switchToHttp().getRequest as jest.Mock).mockReturnValue({
+      (
+        mockExecutionContext.switchToHttp().getRequest as jest.Mock
+      ).mockReturnValue({
         user,
         params: { ip: '192.168.1.100' },
       });

@@ -22,9 +22,13 @@ export class PythonExecutorService {
   private readonly defaultTimeout: number;
 
   constructor(private readonly configService: ConfigService) {
-    this.pythonPath = this.configService.get<string>('PYTHON_PATH') ?? 'python3';
-    this.scriptsBasePath = this.configService.get<string>('PYTHON_SCRIPTS_PATH') ?? '/home/upstra/ups_manager';
-    this.defaultTimeout = this.configService.get<number>('PYTHON_EXECUTION_TIMEOUT') ?? 300000;
+    this.pythonPath =
+      this.configService.get<string>('PYTHON_PATH') ?? 'python3';
+    this.scriptsBasePath =
+      this.configService.get<string>('PYTHON_SCRIPTS_PATH') ??
+      '/home/upstra/ups_manager';
+    this.defaultTimeout =
+      this.configService.get<number>('PYTHON_EXECUTION_TIMEOUT') ?? 300000;
   }
 
   async executePython(
@@ -36,7 +40,9 @@ export class PythonExecutorService {
     const timeout = options.timeout ?? this.defaultTimeout;
     const scriptPath = `${this.scriptsBasePath}/${scriptName}`;
 
-    this.logger.log(`Executing Python script: ${scriptPath} with args: ${args.join(' ')}`);
+    this.logger.log(
+      `Executing Python script: ${scriptPath} with args: ${args.join(' ')}`,
+    );
 
     return new Promise((resolve, reject) => {
       const pythonProcess = spawn(this.pythonPath, [scriptPath, ...args], {
@@ -77,20 +83,28 @@ export class PythonExecutorService {
         const duration = Date.now() - startTime;
 
         if (processKilled) {
-          this.logger.error(`Script ${scriptName} timed out after ${timeout}ms`);
+          this.logger.error(
+            `Script ${scriptName} timed out after ${timeout}ms`,
+          );
           reject(new Error(`Script execution timeout after ${timeout}ms`));
           return;
         }
 
         if (code !== 0) {
-          this.logger.error(`Script ${scriptName} failed with code ${code}: ${stderr}`);
-          reject(new Error(stderr || `Script execution failed with code ${code}`));
+          this.logger.error(
+            `Script ${scriptName} failed with code ${code}: ${stderr}`,
+          );
+          reject(
+            new Error(stderr || `Script execution failed with code ${code}`),
+          );
           return;
         }
 
         try {
           const result = this.parseOutput(stdout);
-          this.logger.log(`Script ${scriptName} completed successfully in ${duration}ms`);
+          this.logger.log(
+            `Script ${scriptName} completed successfully in ${duration}ms`,
+          );
           resolve(result);
         } catch (error) {
           this.logger.error(`Failed to parse script output: ${error.message}`);
@@ -102,7 +116,7 @@ export class PythonExecutorService {
 
   private parseOutput(output: string): any {
     const trimmedOutput = output.trim();
-    
+
     if (!trimmedOutput) {
       return null;
     }

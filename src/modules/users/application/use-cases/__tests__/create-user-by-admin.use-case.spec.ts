@@ -11,7 +11,6 @@ import { Role } from '@/modules/roles/domain/entities/role.entity';
 import { UserExceptions } from '../../../domain/exceptions/user.exception';
 import { EmailEventType } from '@/modules/email/domain/events/email.events';
 import { IUserPreferencesRepository } from '@/modules/user-preferences/domain/interfaces/user-preferences.repository.interface';
-import { UserPreference } from '@/modules/user-preferences/domain/entities/user-preference.entity';
 
 describe('CreateUserByAdminUseCase', () => {
   let useCase: CreateUserByAdminUseCase;
@@ -92,7 +91,7 @@ describe('CreateUserByAdminUseCase', () => {
     logHistoryUseCase = module.get(LogHistoryUseCase);
     eventEmitter = module.get(EventEmitter2);
     userPreferencesRepository = module.get('IUserPreferencesRepository');
-    
+
     jest.clearAllMocks();
   });
 

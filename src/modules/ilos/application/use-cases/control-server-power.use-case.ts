@@ -7,7 +7,10 @@ import { IloPowerResponseDto } from '../dto/ilo-status.dto';
 export class ControlServerPowerUseCase {
   constructor(private readonly iloPowerService: IloPowerService) {}
 
-  async execute(ip: string, dto: IloPowerActionDto): Promise<IloPowerResponseDto> {
+  async execute(
+    ip: string,
+    dto: IloPowerActionDto,
+  ): Promise<IloPowerResponseDto> {
     const result = await this.iloPowerService.controlServerPower(
       ip,
       dto.action,

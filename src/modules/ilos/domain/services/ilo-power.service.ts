@@ -1,6 +1,9 @@
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { PythonExecutorService } from '@/core/services/python-executor';
-import { IloCredentialsDto, IloPowerAction } from '../../application/dto/ilo-power-action.dto';
+import {
+  IloCredentialsDto,
+  IloPowerAction,
+} from '../../application/dto/ilo-power-action.dto';
 import { IloServerStatus } from '../../application/dto/ilo-status.dto';
 
 export interface IloPowerResult {
@@ -15,11 +18,17 @@ export class IloPowerService {
 
   constructor(private readonly pythonExecutor: PythonExecutorService) {}
 
-  async getServerStatus(ip: string, credentials: IloCredentialsDto): Promise<IloServerStatus> {
+  async getServerStatus(
+    ip: string,
+    credentials: IloCredentialsDto,
+  ): Promise<IloServerStatus> {
     const args = this.buildIloArgs(ip, credentials);
 
     try {
-      const result = await this.pythonExecutor.executePython('ilo.py', [...args, '--status']);
+      const result = await this.pythonExecutor.executePython('ilo.py', [
+        ...args,
+        '--status',
+      ]);
       return this.parseStatus(result);
     } catch (error) {
       this.logger.error(`Failed to get status for server ${ip}:`, error);
@@ -36,11 +45,16 @@ export class IloPowerService {
     const actionArg = action === IloPowerAction.START ? '--start' : '--stop';
 
     try {
-      const result = await this.pythonExecutor.executePython('ilo.py', [...args, actionArg]);
-      
+      const result = await this.pythonExecutor.executePython('ilo.py', [
+        ...args,
+        actionArg,
+      ]);
+
       return {
         success: true,
-        message: result.message ?? `Server ${action === IloPowerAction.START ? 'started' : 'stopped'} successfully`,
+        message:
+          result.message ??
+          `Server ${action === IloPowerAction.START ? 'started' : 'stopped'} successfully`,
         currentStatus: this.parseStatus(result),
       };
     } catch (error) {
@@ -51,9 +65,12 @@ export class IloPowerService {
 
   private buildIloArgs(ip: string, credentials: IloCredentialsDto): string[] {
     return [
-      '--ip', ip,
-      '--user', credentials.user,
-      '--password', credentials.password,
+      '--ip',
+      ip,
+      '--user',
+      credentials.user,
+      '--password',
+      credentials.password,
     ];
   }
 
@@ -80,7 +97,10 @@ export class IloPowerService {
     const message = error.message ?? defaultMessage;
 
     if (message.includes('Authentication failed') || message.includes('401')) {
-      return new HttpException('Invalid iLO credentials', HttpStatus.UNAUTHORIZED);
+      return new HttpException(
+        'Invalid iLO credentials',
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     if (message.includes('not found') || message.includes('404')) {

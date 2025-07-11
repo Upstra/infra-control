@@ -1,7 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
 import { VmTypeormRepository } from '../vm.typeorm.repository';
-import { Vm } from '../../../domain/entities/vm.entity';
 import { VmRetrievalException } from '../../../domain/exceptions/vm.exception';
 import { EntityManager } from 'typeorm';
 
@@ -66,5 +65,4 @@ describe('VmTypeormRepository', () => {
       );
     });
   });
-
 });

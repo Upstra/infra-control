@@ -53,7 +53,7 @@ export class IloPermissionGuard implements CanActivate {
 
     try {
       const server = await this.getServerByIloIpUseCase.execute(iloIp);
-      
+
       const hasPermission = await this.checkServerPermissionUseCase.execute(
         user.id,
         server.id,

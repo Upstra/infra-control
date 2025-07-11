@@ -2,7 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { IloPowerService } from '../ilo-power.service';
 import { PythonExecutorService } from '@/core/services/python-executor';
-import { IloCredentialsDto, IloPowerAction } from '../../../application/dto/ilo-power-action.dto';
+import {
+  IloCredentialsDto,
+  IloPowerAction,
+} from '../../../application/dto/ilo-power-action.dto';
 import { IloServerStatus } from '../../../application/dto/ilo-status.dto';
 
 describe('IloPowerService', () => {
@@ -39,19 +42,30 @@ describe('IloPowerService', () => {
     it('should return server ON status', async () => {
       pythonExecutor.executePython.mockResolvedValue('ON');
 
-      const result = await service.getServerStatus('192.168.1.100', mockCredentials);
+      const result = await service.getServerStatus(
+        '192.168.1.100',
+        mockCredentials,
+      );
 
       expect(result).toBe(IloServerStatus.ON);
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'ilo.py',
-        ['--ip', '192.168.1.100', '--user', 'admin', '--password', 'ilopass123', '--status'],
-      );
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('ilo.py', [
+        '--ip',
+        '192.168.1.100',
+        '--user',
+        'admin',
+        '--password',
+        'ilopass123',
+        '--status',
+      ]);
     });
 
     it('should return server OFF status', async () => {
       pythonExecutor.executePython.mockResolvedValue('OFF');
 
-      const result = await service.getServerStatus('192.168.1.100', mockCredentials);
+      const result = await service.getServerStatus(
+        '192.168.1.100',
+        mockCredentials,
+      );
 
       expect(result).toBe(IloServerStatus.OFF);
     });
@@ -59,7 +73,10 @@ describe('IloPowerService', () => {
     it('should return ERROR status for unknown response', async () => {
       pythonExecutor.executePython.mockResolvedValue('UNKNOWN');
 
-      const result = await service.getServerStatus('192.168.1.100', mockCredentials);
+      const result = await service.getServerStatus(
+        '192.168.1.100',
+        mockCredentials,
+      );
 
       expect(result).toBe(IloServerStatus.ERROR);
     });
@@ -67,7 +84,10 @@ describe('IloPowerService', () => {
     it('should handle status in object format', async () => {
       pythonExecutor.executePython.mockResolvedValue({ status: 'PoweredOn' });
 
-      const result = await service.getServerStatus('192.168.1.100', mockCredentials);
+      const result = await service.getServerStatus(
+        '192.168.1.100',
+        mockCredentials,
+      );
 
       expect(result).toBe(IloServerStatus.ON);
     });
@@ -77,7 +97,9 @@ describe('IloPowerService', () => {
         new Error('Authentication failed'),
       );
 
-      await expect(service.getServerStatus('192.168.1.100', mockCredentials)).rejects.toThrow(
+      await expect(
+        service.getServerStatus('192.168.1.100', mockCredentials),
+      ).rejects.toThrow(
         new HttpException('Invalid iLO credentials', HttpStatus.UNAUTHORIZED),
       );
     });
@@ -101,10 +123,15 @@ describe('IloPowerService', () => {
         message: 'Server started successfully',
         currentStatus: IloServerStatus.ON,
       });
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'ilo.py',
-        ['--ip', '192.168.1.100', '--user', 'admin', '--password', 'ilopass123', '--start'],
-      );
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('ilo.py', [
+        '--ip',
+        '192.168.1.100',
+        '--user',
+        'admin',
+        '--password',
+        'ilopass123',
+        '--start',
+      ]);
     });
 
     it('should stop server successfully', async () => {
@@ -124,10 +151,15 @@ describe('IloPowerService', () => {
         message: 'Server stopped successfully',
         currentStatus: IloServerStatus.OFF,
       });
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'ilo.py',
-        ['--ip', '192.168.1.100', '--user', 'admin', '--password', 'ilopass123', '--stop'],
-      );
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('ilo.py', [
+        '--ip',
+        '192.168.1.100',
+        '--user',
+        'admin',
+        '--password',
+        'ilopass123',
+        '--stop',
+      ]);
     });
 
     it('should use default message when not provided', async () => {
@@ -148,7 +180,11 @@ describe('IloPowerService', () => {
       );
 
       await expect(
-        service.controlServerPower('192.168.1.100', IloPowerAction.START, mockCredentials),
+        service.controlServerPower(
+          '192.168.1.100',
+          IloPowerAction.START,
+          mockCredentials,
+        ),
       ).rejects.toThrow(
         new HttpException('Server not found', HttpStatus.NOT_FOUND),
       );
@@ -160,7 +196,11 @@ describe('IloPowerService', () => {
       );
 
       await expect(
-        service.controlServerPower('192.168.1.100', IloPowerAction.START, mockCredentials),
+        service.controlServerPower(
+          '192.168.1.100',
+          IloPowerAction.START,
+          mockCredentials,
+        ),
       ).rejects.toThrow(
         new HttpException('Operation timeout', HttpStatus.REQUEST_TIMEOUT),
       );
@@ -172,7 +212,11 @@ describe('IloPowerService', () => {
       );
 
       await expect(
-        service.controlServerPower('192.168.1.100', IloPowerAction.START, mockCredentials),
+        service.controlServerPower(
+          '192.168.1.100',
+          IloPowerAction.START,
+          mockCredentials,
+        ),
       ).rejects.toThrow(
         new HttpException('Unknown error', HttpStatus.INTERNAL_SERVER_ERROR),
       );

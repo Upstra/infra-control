@@ -2,8 +2,10 @@ import { IsEnum } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum VmPowerAction {
-  ON = 'on',
-  OFF = 'off',
+  POWER_ON = 'on',
+  POWER_OFF = 'off',
+  RESET = 'reset',
+  SUSPEND = 'suspend',
 }
 
 export class VmPowerActionDto {

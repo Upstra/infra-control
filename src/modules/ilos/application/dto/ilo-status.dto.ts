@@ -21,6 +21,9 @@ export class IloPowerResponseDto {
   @ApiProperty({ description: 'Operation message' })
   message: string;
 
-  @ApiProperty({ enum: IloServerStatus, description: 'Current server status after operation' })
+  @ApiProperty({
+    enum: IloServerStatus,
+    description: 'Current server status after operation',
+  })
   currentStatus: IloServerStatus;
 }

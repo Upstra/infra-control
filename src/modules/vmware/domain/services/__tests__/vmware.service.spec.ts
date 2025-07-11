@@ -62,10 +62,16 @@ describe('VmwareService', () => {
         guestOS: 'Ubuntu Linux (64-bit)',
         ipAddress: '192.168.1.100',
       });
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'list_vm.py',
-        ['--ip', '192.168.1.10', '--user', 'admin', '--password', 'password123', '--port', '443'],
-      );
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.py', [
+        '--ip',
+        '192.168.1.10',
+        '--user',
+        'admin',
+        '--password',
+        'password123',
+        '--port',
+        '443',
+      ]);
     });
 
     it('should handle authentication errors', async () => {
@@ -74,7 +80,10 @@ describe('VmwareService', () => {
       );
 
       await expect(service.listVMs(mockConnection)).rejects.toThrow(
-        new HttpException('Invalid VMware credentials', HttpStatus.UNAUTHORIZED),
+        new HttpException(
+          'Invalid VMware credentials',
+          HttpStatus.UNAUTHORIZED,
+        ),
       );
     });
 
@@ -110,16 +119,27 @@ describe('VmwareService', () => {
       expect(result).toEqual(mockMetrics);
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(
         'vm_metrics.py',
-        ['--moid', 'vm-123', '--ip', '192.168.1.10', '--user', 'admin', '--password', 'password123', '--port', '443'],
+        [
+          '--moid',
+          'vm-123',
+          '--ip',
+          '192.168.1.10',
+          '--user',
+          'admin',
+          '--password',
+          'password123',
+          '--port',
+          '443',
+        ],
       );
     });
 
     it('should handle VM not found error', async () => {
-      pythonExecutor.executePython.mockRejectedValue(
-        new Error('VM not found'),
-      );
+      pythonExecutor.executePython.mockRejectedValue(new Error('VM not found'));
 
-      await expect(service.getVMMetrics('vm-999', mockConnection)).rejects.toThrow(
+      await expect(
+        service.getVMMetrics('vm-999', mockConnection),
+      ).rejects.toThrow(
         new HttpException('Resource not found', HttpStatus.NOT_FOUND),
       );
     });
@@ -131,17 +151,29 @@ describe('VmwareService', () => {
         message: 'VM powered on successfully',
       });
 
-      const result = await service.controlVMPower('vm-123', 'on', mockConnection);
+      const result = await service.controlVMPower(
+        'vm-123',
+        'on',
+        mockConnection,
+      );
 
       expect(result).toEqual({
         success: true,
         message: 'VM powered on successfully',
         newState: 'poweredOn',
       });
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'turn_on.py',
-        ['--moid', 'vm-123', '--ip', '192.168.1.10', '--user', 'admin', '--password', 'password123', '--port', '443'],
-      );
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('turn_on.py', [
+        '--moid',
+        'vm-123',
+        '--ip',
+        '192.168.1.10',
+        '--user',
+        'admin',
+        '--password',
+        'password123',
+        '--port',
+        '443',
+      ]);
     });
 
     it('should power off VM successfully', async () => {
@@ -149,17 +181,29 @@ describe('VmwareService', () => {
         message: 'VM powered off successfully',
       });
 
-      const result = await service.controlVMPower('vm-123', 'off', mockConnection);
+      const result = await service.controlVMPower(
+        'vm-123',
+        'off',
+        mockConnection,
+      );
 
       expect(result).toEqual({
         success: true,
         message: 'VM powered off successfully',
         newState: 'poweredOff',
       });
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'turn_off.py',
-        ['--moid', 'vm-123', '--ip', '192.168.1.10', '--user', 'admin', '--password', 'password123', '--port', '443'],
-      );
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('turn_off.py', [
+        '--moid',
+        'vm-123',
+        '--ip',
+        '192.168.1.10',
+        '--user',
+        'admin',
+        '--password',
+        'password123',
+        '--port',
+        '443',
+      ]);
     });
 
     it('should handle timeout error', async () => {
@@ -167,7 +211,9 @@ describe('VmwareService', () => {
         new Error('Operation timeout'),
       );
 
-      await expect(service.controlVMPower('vm-123', 'on', mockConnection)).rejects.toThrow(
+      await expect(
+        service.controlVMPower('vm-123', 'on', mockConnection),
+      ).rejects.toThrow(
         new HttpException('Operation timeout', HttpStatus.REQUEST_TIMEOUT),
       );
     });
@@ -180,7 +226,11 @@ describe('VmwareService', () => {
         newHost: 'host-456',
       });
 
-      const result = await service.migrateVM('vm-123', 'host-456', mockConnection);
+      const result = await service.migrateVM(
+        'vm-123',
+        'host-456',
+        mockConnection,
+      );
 
       expect(result).toEqual({
         success: true,
@@ -189,7 +239,20 @@ describe('VmwareService', () => {
       });
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(
         'migrate_vm.py',
-        ['--vmMoId', 'vm-123', '--distMoId', 'host-456', '--ip', '192.168.1.10', '--user', 'admin', '--password', 'password123', '--port', '443'],
+        [
+          '--vmMoId',
+          'vm-123',
+          '--distMoId',
+          'host-456',
+          '--ip',
+          '192.168.1.10',
+          '--user',
+          'admin',
+          '--password',
+          'password123',
+          '--port',
+          '443',
+        ],
       );
     });
   });
@@ -222,7 +285,18 @@ describe('VmwareService', () => {
       expect(result).toEqual(mockHostMetrics);
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(
         'server_metrics.py',
-        ['--moid', 'host-123', '--ip', '192.168.1.10', '--user', 'admin', '--password', 'password123', '--port', '443'],
+        [
+          '--moid',
+          'host-123',
+          '--ip',
+          '192.168.1.10',
+          '--user',
+          'admin',
+          '--password',
+          'password123',
+          '--port',
+          '443',
+        ],
       );
     });
   });
@@ -236,10 +310,14 @@ describe('VmwareService', () => {
 
       await service.listVMs(connectionWithoutPort);
 
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'list_vm.py',
-        ['--ip', '192.168.1.10', '--user', 'admin', '--password', 'password123'],
-      );
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.py', [
+        '--ip',
+        '192.168.1.10',
+        '--user',
+        'admin',
+        '--password',
+        'password123',
+      ]);
     });
 
     it('should include port when not default', async () => {
@@ -249,10 +327,16 @@ describe('VmwareService', () => {
 
       await service.listVMs(connectionWithCustomPort);
 
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'list_vm.py',
-        ['--ip', '192.168.1.10', '--user', 'admin', '--password', 'password123', '--port', '8443'],
-      );
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.py', [
+        '--ip',
+        '192.168.1.10',
+        '--user',
+        'admin',
+        '--password',
+        'password123',
+        '--port',
+        '8443',
+      ]);
     });
   });
 });
