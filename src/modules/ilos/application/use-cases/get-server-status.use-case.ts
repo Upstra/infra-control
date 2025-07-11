@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { GetServerByIdUseCase } from '@/modules/servers/application/use-cases/get-server-by-id.use-case';
+import { Injectable } from '@nestjs/common';
+import { GetServerWithIloUseCase } from '@/modules/servers/application/use-cases/get-server-with-ilo.use-case';
 import { IloPowerService } from '@/modules/ilos/domain/services/ilo-power.service';
 import { IloStatusResponseDto } from '../dto/ilo-status.dto';
 
@@ -7,31 +7,25 @@ import { IloStatusResponseDto } from '../dto/ilo-status.dto';
 export class GetServerStatusUseCase {
   constructor(
     private readonly iloPowerService: IloPowerService,
-    private readonly getServerByIdUseCase: GetServerByIdUseCase,
+    private readonly getServerWithIloUseCase: GetServerWithIloUseCase,
   ) {}
 
   async execute(serverId: string): Promise<IloStatusResponseDto> {
-    const serverDto = await this.getServerByIdUseCase.execute(serverId);
-
-    if (!serverDto.ilo) {
-      throw new NotFoundException(
-        `Server ${serverId} does not have an iLO configured`,
-      );
-    }
+    const server = await this.getServerWithIloUseCase.execute(serverId);
 
     const credentials = {
-      user: serverDto.ilo.login,
-      password: serverDto.ilo.password,
+      user: server.ilo.login,
+      password: server.ilo.password,
     };
 
     const status = await this.iloPowerService.getServerStatus(
-      serverDto.ilo.ip,
+      server.ilo.ip,
       credentials,
     );
 
     return {
       status,
-      ip: serverDto.ilo.ip,
+      ip: server.ilo.ip,
     };
   }
 }

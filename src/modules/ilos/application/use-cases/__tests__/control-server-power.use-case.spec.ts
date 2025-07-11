@@ -1,13 +1,13 @@
 import { ControlServerPowerUseCase } from '../control-server-power.use-case';
 import { IloPowerAction } from '../../dto/ilo-power-action.dto';
 import { IloServerStatus } from '../../dto/ilo-status.dto';
-import { Repository } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
+import { GetServerWithIloUseCase } from '@/modules/servers/application/use-cases/get-server-with-ilo.use-case';
 
 describe('ControlServerPowerUseCase', () => {
   let useCase: ControlServerPowerUseCase;
   let mockIloPowerService: any;
-  let mockServerRepository: jest.Mocked<Repository<any>>;
+  let mockGetServerWithIloUseCase: jest.Mocked<GetServerWithIloUseCase>;
 
   const mockServer = {
     id: 'server-1',
@@ -19,6 +19,13 @@ describe('ControlServerPowerUseCase', () => {
       password: 'password123',
       name: 'iLO Server 1',
     },
+    name: 'Test Server',
+    grace_period_on: 300,
+    grace_period_off: 300,
+    type: 'physical',
+    priority: 1,
+    state: 'UP',
+    roomId: 'room-1',
   };
 
   beforeEach(() => {
@@ -27,13 +34,13 @@ describe('ControlServerPowerUseCase', () => {
       getServerStatus: jest.fn(),
     };
 
-    mockServerRepository = {
-      findOne: jest.fn(),
-    } as unknown as jest.Mocked<Repository<any>>;
+    mockGetServerWithIloUseCase = {
+      execute: jest.fn(),
+    } as unknown as jest.Mocked<GetServerWithIloUseCase>;
 
     useCase = new ControlServerPowerUseCase(
       mockIloPowerService,
-      mockServerRepository,
+      mockGetServerWithIloUseCase,
     );
   });
 
@@ -48,7 +55,7 @@ describe('ControlServerPowerUseCase', () => {
       currentStatus: IloServerStatus.ON,
     };
 
-    mockGetServerByIdUseCase.execute.mockResolvedValue(mockServerDto as any);
+    mockGetServerWithIloUseCase.execute.mockResolvedValue(mockServer as any);
     mockIloPowerService.controlServerPower.mockResolvedValue(mockResult);
 
     const result = await useCase.execute('server-1', IloPowerAction.START);
@@ -58,10 +65,7 @@ describe('ControlServerPowerUseCase', () => {
       message: 'Server started successfully',
       currentStatus: IloServerStatus.ON,
     });
-    expect(mockServerRepository.findOne).toHaveBeenCalledWith({
-      where: { id: 'server-1' },
-      relations: ['ilo'],
-    });
+    expect(mockGetServerWithIloUseCase.execute).toHaveBeenCalledWith('server-1');
     expect(mockIloPowerService.controlServerPower).toHaveBeenCalledWith(
       '192.168.1.100',
       IloPowerAction.START,
@@ -79,7 +83,7 @@ describe('ControlServerPowerUseCase', () => {
       currentStatus: IloServerStatus.OFF,
     };
 
-    mockGetServerByIdUseCase.execute.mockResolvedValue(mockServerDto as any);
+    mockGetServerWithIloUseCase.execute.mockResolvedValue(mockServer as any);
     mockIloPowerService.controlServerPower.mockResolvedValue(mockResult);
 
     const result = await useCase.execute('server-1', IloPowerAction.STOP);
@@ -100,7 +104,9 @@ describe('ControlServerPowerUseCase', () => {
   });
 
   it('should throw error when server is not found', async () => {
-    mockServerRepository.findOne.mockResolvedValue(null);
+    mockGetServerWithIloUseCase.execute.mockRejectedValue(
+      new NotFoundException('Server with ID server-999 not found'),
+    );
 
     await expect(
       useCase.execute('server-999', IloPowerAction.START),
@@ -108,16 +114,14 @@ describe('ControlServerPowerUseCase', () => {
       new NotFoundException('Server with ID server-999 not found'),
     );
 
-    expect(mockServerRepository.findOne).toHaveBeenCalledWith({
-      where: { id: 'server-999' },
-      relations: ['ilo'],
-    });
+    expect(mockGetServerWithIloUseCase.execute).toHaveBeenCalledWith('server-999');
     expect(mockIloPowerService.controlServerPower).not.toHaveBeenCalled();
   });
 
   it('should throw error when server has no iLO configured', async () => {
-    const serverWithoutIlo = { ...mockServer, ilo: null };
-    mockServerRepository.findOne.mockResolvedValue(serverWithoutIlo);
+    mockGetServerWithIloUseCase.execute.mockRejectedValue(
+      new NotFoundException('Server server-1 does not have an iLO configured'),
+    );
 
     await expect(
       useCase.execute('server-1', IloPowerAction.START),
@@ -130,7 +134,7 @@ describe('ControlServerPowerUseCase', () => {
 
   it('should handle power control failure', async () => {
     const error = new Error('Failed to control server power');
-    mockGetServerByIdUseCase.execute.mockResolvedValue(mockServerDto as any);
+    mockGetServerWithIloUseCase.execute.mockResolvedValue(mockServer as any);
     mockIloPowerService.controlServerPower.mockRejectedValue(error);
 
     await expect(

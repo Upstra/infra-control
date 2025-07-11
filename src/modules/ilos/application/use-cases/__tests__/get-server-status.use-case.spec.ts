@@ -1,14 +1,14 @@
 import { GetServerStatusUseCase } from '../get-server-status.use-case';
 import { IloServerStatus } from '../../dto/ilo-status.dto';
 import { NotFoundException } from '@nestjs/common';
-import { GetServerByIdUseCase } from '@/modules/servers/application/use-cases/get-server-by-id.use-case';
+import { GetServerWithIloUseCase } from '@/modules/servers/application/use-cases/get-server-with-ilo.use-case';
 
 describe('GetServerStatusUseCase', () => {
   let useCase: GetServerStatusUseCase;
   let mockIloPowerService: any;
-  let mockGetServerByIdUseCase: jest.Mocked<GetServerByIdUseCase>;
+  let mockGetServerWithIloUseCase: jest.Mocked<GetServerWithIloUseCase>;
 
-  const mockServerDto = {
+  const mockServer = {
     id: 'server-1',
     ip: '192.168.1.10',
     ilo: {
@@ -33,13 +33,13 @@ describe('GetServerStatusUseCase', () => {
       getServerStatus: jest.fn(),
     };
 
-    mockGetServerByIdUseCase = {
+    mockGetServerWithIloUseCase = {
       execute: jest.fn(),
-    } as unknown as jest.Mocked<GetServerByIdUseCase>;
+    } as unknown as jest.Mocked<GetServerWithIloUseCase>;
 
     useCase = new GetServerStatusUseCase(
       mockIloPowerService,
-      mockGetServerByIdUseCase,
+      mockGetServerWithIloUseCase,
     );
   });
 
@@ -48,7 +48,7 @@ describe('GetServerStatusUseCase', () => {
   });
 
   it('should get server status successfully', async () => {
-    mockGetServerByIdUseCase.execute.mockResolvedValue(mockServerDto as any);
+    mockGetServerWithIloUseCase.execute.mockResolvedValue(mockServer as any);
     mockIloPowerService.getServerStatus.mockResolvedValue(IloServerStatus.ON);
 
     const result = await useCase.execute('server-1');
@@ -57,7 +57,7 @@ describe('GetServerStatusUseCase', () => {
       status: IloServerStatus.ON,
       ip: '192.168.1.100',
     });
-    expect(mockGetServerByIdUseCase.execute).toHaveBeenCalledWith('server-1');
+    expect(mockGetServerWithIloUseCase.execute).toHaveBeenCalledWith('server-1');
     expect(mockIloPowerService.getServerStatus).toHaveBeenCalledWith(
       '192.168.1.100',
       {
@@ -68,7 +68,7 @@ describe('GetServerStatusUseCase', () => {
   });
 
   it('should return OFF status', async () => {
-    mockGetServerByIdUseCase.execute.mockResolvedValue(mockServerDto as any);
+    mockGetServerWithIloUseCase.execute.mockResolvedValue(mockServer as any);
     mockIloPowerService.getServerStatus.mockResolvedValue(IloServerStatus.OFF);
 
     const result = await useCase.execute('server-1');
@@ -80,7 +80,7 @@ describe('GetServerStatusUseCase', () => {
   });
 
   it('should return ERROR status', async () => {
-    mockGetServerByIdUseCase.execute.mockResolvedValue(mockServerDto as any);
+    mockGetServerWithIloUseCase.execute.mockResolvedValue(mockServer as any);
     mockIloPowerService.getServerStatus.mockResolvedValue(
       IloServerStatus.ERROR,
     );
@@ -94,7 +94,7 @@ describe('GetServerStatusUseCase', () => {
   });
 
   it('should throw error when server is not found', async () => {
-    mockGetServerByIdUseCase.execute.mockRejectedValue(
+    mockGetServerWithIloUseCase.execute.mockRejectedValue(
       new NotFoundException('Server with ID server-999 not found'),
     );
 
@@ -102,13 +102,14 @@ describe('GetServerStatusUseCase', () => {
       new NotFoundException('Server with ID server-999 not found'),
     );
 
-    expect(mockGetServerByIdUseCase.execute).toHaveBeenCalledWith('server-999');
+    expect(mockGetServerWithIloUseCase.execute).toHaveBeenCalledWith('server-999');
     expect(mockIloPowerService.getServerStatus).not.toHaveBeenCalled();
   });
 
   it('should throw error when server has no iLO configured', async () => {
-    const serverWithoutIlo = { ...mockServerDto, ilo: null };
-    mockGetServerByIdUseCase.execute.mockResolvedValue(serverWithoutIlo as any);
+    mockGetServerWithIloUseCase.execute.mockRejectedValue(
+      new NotFoundException('Server server-1 does not have an iLO configured'),
+    );
 
     await expect(useCase.execute('server-1')).rejects.toThrow(
       new NotFoundException('Server server-1 does not have an iLO configured'),
@@ -119,7 +120,7 @@ describe('GetServerStatusUseCase', () => {
 
   it('should handle iLO service errors', async () => {
     const error = new Error('Failed to connect to iLO');
-    mockGetServerByIdUseCase.execute.mockResolvedValue(mockServerDto as any);
+    mockGetServerWithIloUseCase.execute.mockResolvedValue(mockServer as any);
     mockIloPowerService.getServerStatus.mockRejectedValue(error);
 
     await expect(useCase.execute('server-1')).rejects.toThrow(error);
