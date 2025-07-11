@@ -60,6 +60,7 @@ export const mockVmwareHost: VmwareHost = {
   model: 'Intel Xeon E5-2680',
   vendor: 'Intel',
   biosVendor: 'Dell Inc.',
+  firewall: 'ruleset_data',
   maxHostRunningVms: 1024,
   maxHostSupportedVcpus: 768,
   maxMemMBPerFtVm: 32768,

@@ -106,6 +106,10 @@ export class Server extends BaseEntity {
   @Column({ nullable: true })
   iloId?: string;
 
+  @ApiProperty({ required: false })
+  @Column({ nullable: true })
+  vmwareHostMoid?: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
