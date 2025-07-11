@@ -13,6 +13,7 @@ import { VmwarePermissionGuard } from './infrastructure/guards/vmware-permission
 import { GetServerByVmMoidUseCase } from './infrastructure/use-cases/get-server-by-vm-moid.use-case';
 import { ServerModule } from '@/modules/servers/server.module';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
+import { PermissionModule } from '@/modules/permissions/permission.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { Server } from '@/modules/servers/domain/entities/server.entity';
     PythonExecutorModule,
     TypeOrmModule.forFeature([Server]),
     forwardRef(() => ServerModule),
+    PermissionModule,
   ],
   controllers: [VmwareController],
   providers: [
