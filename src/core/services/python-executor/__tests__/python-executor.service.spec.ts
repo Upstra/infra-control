@@ -13,7 +13,7 @@ jest.mock('fs', () => ({
 
 describe('PythonExecutorService', () => {
   let service: PythonExecutorService;
-  let configService: ConfigService;
+  let _configService: ConfigService;
   let mockProcess: any;
 
   beforeEach(async () => {
@@ -49,7 +49,7 @@ describe('PythonExecutorService', () => {
     }).compile();
 
     service = module.get<PythonExecutorService>(PythonExecutorService);
-    configService = module.get<ConfigService>(ConfigService);
+    _configService = module.get<ConfigService>(ConfigService);
   });
 
   afterEach(() => {

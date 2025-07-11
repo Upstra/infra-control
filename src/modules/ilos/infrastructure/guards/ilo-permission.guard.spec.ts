@@ -16,9 +16,9 @@ import { Ilo } from '@/modules/ilos/domain/entities/ilo.entity';
 
 describe('IloPermissionGuard', () => {
   let guard: IloPermissionGuard;
-  let reflector: Reflector;
-  let getServerByIloIpUseCase: GetServerByIloIpUseCase;
-  let checkServerPermissionUseCase: CheckServerPermissionUseCase;
+  let _reflector: Reflector;
+  let _getServerByIloIpUseCase: GetServerByIloIpUseCase;
+  let _checkServerPermissionUseCase: CheckServerPermissionUseCase;
 
   const mockReflector = {
     get: jest.fn(),
@@ -58,11 +58,11 @@ describe('IloPermissionGuard', () => {
     }).compile();
 
     guard = module.get<IloPermissionGuard>(IloPermissionGuard);
-    reflector = module.get<Reflector>(Reflector);
-    getServerByIloIpUseCase = module.get<GetServerByIloIpUseCase>(
+    _reflector = module.get<Reflector>(Reflector);
+    _getServerByIloIpUseCase = module.get<GetServerByIloIpUseCase>(
       GetServerByIloIpUseCase,
     );
-    checkServerPermissionUseCase = module.get<CheckServerPermissionUseCase>(
+    _checkServerPermissionUseCase = module.get<CheckServerPermissionUseCase>(
       CheckServerPermissionUseCase,
     );
 
