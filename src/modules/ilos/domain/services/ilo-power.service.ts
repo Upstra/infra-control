@@ -20,18 +20,10 @@ export class IloPowerService {
     ip: string,
     credentials: IloCredentialsDto,
   ): Promise<IloServerStatus> {
-    const args = this.buildIloArgs(ip, credentials);
-
-    try {
-      const result = await this.pythonExecutor.executePython('ilo.py', [
-        ...args,
-        '--status',
-      ]);
-      return this.parseStatus(result);
-    } catch (error) {
-      this.logger.error(`Failed to get status for server ${ip}:`, error);
-      throw this.handleIloError(error, 'Failed to retrieve server status');
-    }
+    this.logger.warn(
+      'getServerStatus is deprecated - status should be retrieved from server metrics',
+    );
+    return IloServerStatus.ERROR;
   }
 
   async controlServerPower(
@@ -40,20 +32,21 @@ export class IloPowerService {
     credentials: IloCredentialsDto,
   ): Promise<IloPowerResult> {
     const args = this.buildIloArgs(ip, credentials);
-    const actionArg = action === IloPowerAction.START ? '--start' : '--stop';
+    const scriptName =
+      action === IloPowerAction.START ? 'server_start.py' : 'server_stop.py';
 
     try {
-      const result = await this.pythonExecutor.executePython('ilo.py', [
-        ...args,
-        actionArg,
-      ]);
+      const result = await this.pythonExecutor.executePython(scriptName, args);
 
       return {
         success: true,
         message:
-          result.message ??
+          result.result?.message ??
           `Server ${action === IloPowerAction.START ? 'started' : 'stopped'} successfully`,
-        currentStatus: this.parseStatus(result),
+        currentStatus:
+          action === IloPowerAction.START
+            ? IloServerStatus.ON
+            : IloServerStatus.OFF,
       };
     } catch (error) {
       this.logger.error(`Failed to ${action} server ${ip}:`, error);
@@ -93,16 +86,21 @@ export class IloPowerService {
 
   private handleIloError(error: any, defaultMessage: string): HttpException {
     const message = error.message ?? defaultMessage;
+    const httpCode = error.result?.httpCode ?? error.httpCode;
 
-    if (message.includes('Authentication failed') || message.includes('401')) {
+    if (httpCode === 401 || message.includes('Authentication failed')) {
       return new HttpException(
         'Invalid iLO credentials',
         HttpStatus.UNAUTHORIZED,
       );
     }
 
-    if (message.includes('not found') || message.includes('404')) {
+    if (httpCode === 404 || message.includes('not found')) {
       return new HttpException('Server not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (httpCode === 403) {
+      return new HttpException('Action forbidden', HttpStatus.FORBIDDEN);
     }
 
     if (message.includes('timeout')) {
