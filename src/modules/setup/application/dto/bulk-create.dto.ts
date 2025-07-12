@@ -8,7 +8,6 @@ import {
   IsString,
   IsUUID,
   ValidateNested,
-  IsEnum,
   IsIP,
 } from 'class-validator';
 
