@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { spawn } from 'child_process';
+import { isIP } from 'net';
 import {
   ValidationRequestDto,
   ValidationResponseDto,
@@ -14,7 +14,6 @@ import { RoomRepositoryInterface } from '../../../rooms/domain/interfaces/room.r
 import { UpsRepositoryInterface } from '../../../ups/domain/interfaces/ups.repository.interface';
 import { ServerRepositoryInterface } from '../../../servers/domain/interfaces/server.repository.interface';
 
-const execAsync = promisify(exec);
 
 @Injectable()
 export class BulkValidationUseCase {
@@ -305,16 +304,43 @@ export class BulkValidationUseCase {
   }
 
   private async pingHost(ip: string): Promise<boolean> {
-    try {
-      const command =
-        process.platform === 'win32'
-          ? `ping -n 1 -w 5000 ${ip}`
-          : `ping -c 1 -W 5 ${ip}`;
-
-      await execAsync(command);
-      return true;
-    } catch {
+    if (!isIP(ip)) {
+      this.logger.warn(`Invalid IP address format: ${ip}`);
       return false;
     }
+
+    return new Promise((resolve) => {
+      const isWindows = process.platform === 'win32';
+      const args = isWindows
+        ? ['-n', '1', '-w', '5000', ip]
+        : ['-c', '1', '-W', '5', ip];
+
+      const child = spawn('ping', args, {
+        stdio: ['ignore', 'pipe', 'pipe'],
+        timeout: 10000,
+      });
+
+      let resolved = false;
+
+      const handleResult = (success: boolean) => {
+        if (!resolved) {
+          resolved = true;
+          resolve(success);
+        }
+      };
+
+      child.on('exit', (code) => {
+        handleResult(code === 0);
+      });
+
+      child.on('error', () => {
+        handleResult(false);
+      });
+
+      child.on('timeout', () => {
+        child.kill();
+        handleResult(false);
+      });
+    });
   }
 }
