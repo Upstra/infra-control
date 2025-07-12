@@ -25,29 +25,6 @@ export class BulkRoomDto {
   name: string;
 
   @ApiProperty({
-    description: 'Room location',
-    example: 'Building A',
-  })
-  @IsString()
-  @IsNotEmpty()
-  location: string;
-
-  @ApiProperty({
-    description: 'Room capacity',
-    example: 20,
-  })
-  @IsNumber()
-  capacity: number;
-
-  @ApiProperty({
-    description: 'Cooling type',
-    enum: ['air', 'liquid', 'free', 'hybrid'],
-    example: 'air',
-  })
-  @IsEnum(['air', 'liquid', 'free', 'hybrid'])
-  coolingType: 'air' | 'liquid' | 'free' | 'hybrid';
-
-  @ApiProperty({
     description: 'Temporary ID from frontend for relationship mapping',
     example: 'temp_room_1',
     required: false,
@@ -70,29 +47,6 @@ export class BulkUpsDto {
   name: string;
 
   @ApiProperty({
-    description: 'UPS brand',
-    example: 'APC',
-  })
-  @IsString()
-  @IsNotEmpty()
-  brand: string;
-
-  @ApiProperty({
-    description: 'UPS model',
-    example: 'Smart-UPS 3000',
-  })
-  @IsString()
-  @IsNotEmpty()
-  model: string;
-
-  @ApiProperty({
-    description: 'UPS capacity in VA',
-    example: 3000,
-  })
-  @IsNumber()
-  capacity: number;
-
-  @ApiProperty({
     description: 'Room ID (can be temporary ID from frontend)',
     example: 'temp_room_1',
     required: false,
@@ -109,41 +63,6 @@ export class BulkUpsDto {
   @IsIP()
   @IsOptional()
   ip?: string;
-
-  @ApiProperty({
-    description: 'UPS login',
-    example: 'admin',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  login?: string;
-
-  @ApiProperty({
-    description: 'UPS password',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  password?: string;
-
-  @ApiProperty({
-    description: 'Grace period when turning on (seconds)',
-    example: 30,
-    required: false,
-  })
-  @IsNumber()
-  @IsOptional()
-  gracePeriodOn?: number;
-
-  @ApiProperty({
-    description: 'Grace period when turning off (seconds)',
-    example: 30,
-    required: false,
-  })
-  @IsNumber()
-  @IsOptional()
-  gracePeriodOff?: number;
 
   @ApiProperty({
     description: 'Temporary ID from frontend for relationship mapping',
