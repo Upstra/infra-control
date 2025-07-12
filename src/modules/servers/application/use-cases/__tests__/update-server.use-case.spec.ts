@@ -49,7 +49,10 @@ describe('UpdateServerUseCase', () => {
     expect(repo.updateServer).toHaveBeenCalledWith(existing.id, {
       name: 'Updated',
     });
-    expect(updateIlo.execute).toHaveBeenCalledWith({ ...dto.ilo, id: updated.iloId });
+    expect(updateIlo.execute).toHaveBeenCalledWith({
+      ...dto.ilo,
+      id: updated.iloId,
+    });
     expect(result.name).toBe('Updated');
     expect(result.ilo.name).toBe('ILO-2');
   });

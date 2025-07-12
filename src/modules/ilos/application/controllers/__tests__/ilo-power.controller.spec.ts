@@ -67,9 +67,15 @@ describe('IloPowerController', () => {
 
       controlServerPowerUseCase.execute.mockResolvedValue(expectedResult);
 
-      const result = await controller.controlServerPower(serverId, powerActionDto);
+      const result = await controller.controlServerPower(
+        serverId,
+        powerActionDto,
+      );
 
-      expect(controlServerPowerUseCase.execute).toHaveBeenCalledWith(serverId, IloPowerAction.START);
+      expect(controlServerPowerUseCase.execute).toHaveBeenCalledWith(
+        serverId,
+        IloPowerAction.START,
+      );
       expect(result).toEqual(expectedResult);
     });
 
@@ -77,10 +83,12 @@ describe('IloPowerController', () => {
       const serverId = 'server-123';
       const powerActionDto = { action: IloPowerAction.STOP };
 
-      controlServerPowerUseCase.execute.mockRejectedValue(new Error('iLO connection failed'));
+      controlServerPowerUseCase.execute.mockRejectedValue(
+        new Error('iLO connection failed'),
+      );
 
       await expect(
-        controller.controlServerPower(serverId, powerActionDto)
+        controller.controlServerPower(serverId, powerActionDto),
       ).rejects.toThrow('iLO connection failed');
     });
   });
@@ -104,11 +112,13 @@ describe('IloPowerController', () => {
     it('should handle status check failure', async () => {
       const serverId = 'server-123';
 
-      getServerStatusUseCase.execute.mockRejectedValue(new Error('Server not found'));
+      getServerStatusUseCase.execute.mockRejectedValue(
+        new Error('Server not found'),
+      );
 
-      await expect(
-        controller.getServerStatus(serverId)
-      ).rejects.toThrow('Server not found');
+      await expect(controller.getServerStatus(serverId)).rejects.toThrow(
+        'Server not found',
+      );
     });
   });
 
@@ -129,7 +139,11 @@ describe('IloPowerController', () => {
 
       const result = await controller.pingIlo(serverId, pingDto);
 
-      expect(pingIloUseCase.execute).toHaveBeenCalledWith(serverId, pingDto.host, pingDto.timeout);
+      expect(pingIloUseCase.execute).toHaveBeenCalledWith(
+        serverId,
+        pingDto.host,
+        pingDto.timeout,
+      );
       expect(result).toEqual(expectedResult);
     });
 
@@ -148,7 +162,11 @@ describe('IloPowerController', () => {
 
       const result = await controller.pingIlo(serverId, pingDto);
 
-      expect(pingIloUseCase.execute).toHaveBeenCalledWith(serverId, pingDto.host, undefined);
+      expect(pingIloUseCase.execute).toHaveBeenCalledWith(
+        serverId,
+        pingDto.host,
+        undefined,
+      );
       expect(result).toEqual(expectedResult);
     });
 
@@ -167,7 +185,11 @@ describe('IloPowerController', () => {
 
       const result = await controller.pingIlo(serverId, pingDto);
 
-      expect(pingIloUseCase.execute).toHaveBeenCalledWith(serverId, pingDto.host, undefined);
+      expect(pingIloUseCase.execute).toHaveBeenCalledWith(
+        serverId,
+        pingDto.host,
+        undefined,
+      );
       expect(result).toEqual(expectedResult);
     });
   });

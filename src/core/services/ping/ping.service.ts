@@ -15,14 +15,14 @@ export class PingService {
 
   async ping(host: string, timeout?: number): Promise<PingResult> {
     const pingTimeout = timeout ?? this.defaultTimeout;
-    
+
     this.logger.log(`Pinging host: ${host}`);
 
     return new Promise((resolve) => {
       const startTime = Date.now();
       const isWindows = process.platform === 'win32';
       const pingCommand = isWindows ? 'ping' : 'ping';
-      const pingArgs = isWindows 
+      const pingArgs = isWindows
         ? ['-n', '1', '-w', Math.floor(pingTimeout).toString(), host]
         : ['-c', '1', '-W', Math.floor(pingTimeout / 1000).toString(), host];
 
@@ -64,14 +64,18 @@ export class PingService {
 
         if (code === 0) {
           const extractedTime = this.extractResponseTime(stdout, isWindows);
-          this.logger.log(`Host ${host} is accessible (${extractedTime ?? responseTime}ms)`);
+          this.logger.log(
+            `Host ${host} is accessible (${extractedTime ?? responseTime}ms)`,
+          );
           resolve({
             accessible: true,
             responseTime: extractedTime ?? responseTime,
             host,
           });
         } else {
-          this.logger.warn(`Host ${host} is not accessible: ${stderr || 'Unknown error'}`);
+          this.logger.warn(
+            `Host ${host} is not accessible: ${stderr || 'Unknown error'}`,
+          );
           resolve({
             accessible: false,
             error: stderr || `Ping failed with exit code ${code}`,
@@ -82,7 +86,10 @@ export class PingService {
     });
   }
 
-  private extractResponseTime(output: string, isWindows: boolean): number | null {
+  private extractResponseTime(
+    output: string,
+    isWindows: boolean,
+  ): number | null {
     try {
       if (isWindows) {
         const match = output.match(/time[<>=](\d+)ms/i);
@@ -98,8 +105,8 @@ export class PingService {
 
   async batchPing(hosts: string[], timeout?: number): Promise<PingResult[]> {
     this.logger.log(`Batch pinging ${hosts.length} hosts`);
-    
-    const promises = hosts.map(host => this.ping(host, timeout));
+
+    const promises = hosts.map((host) => this.ping(host, timeout));
     return Promise.all(promises);
   }
 }

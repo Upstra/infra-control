@@ -64,9 +64,10 @@ export class UpdateServerUseCase {
     const updated = await this.serverRepository.updateServer(id, updateData);
     await this.logHistory?.execute('server', updated.id, 'UPDATE', userId);
 
-    const ilo = dto.ilo && updated.iloId
-      ? await this.updateIloUsecase.execute({ ...dto.ilo, id: updated.iloId })
-      : updated.ilo;
+    const ilo =
+      dto.ilo && updated.iloId
+        ? await this.updateIloUsecase.execute({ ...dto.ilo, id: updated.iloId })
+        : updated.ilo;
     return new ServerResponseDto(updated, ilo);
   }
 }

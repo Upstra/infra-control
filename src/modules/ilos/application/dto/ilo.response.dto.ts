@@ -21,16 +21,10 @@ export class IloResponseDto {
   @IsString()
   readonly ip!: string;
 
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  readonly password!: string;
-
   constructor(ilo: Ilo) {
     this.id = ilo.id;
     this.name = ilo.name;
     this.ip = ilo.ip;
     this.login = ilo.login;
-    this.password = ilo.password;
   }
 }

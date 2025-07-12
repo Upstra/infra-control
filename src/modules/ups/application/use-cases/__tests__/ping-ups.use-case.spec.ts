@@ -41,7 +41,7 @@ describe('PingUpsUseCase', () => {
       const upsId = 'ups-123';
       const host = '192.168.1.200';
       const mockUps = {
-        ip: host
+        ip: host,
       };
       const expectedResult = {
         accessible: true,
@@ -64,7 +64,7 @@ describe('PingUpsUseCase', () => {
       const host = '192.168.1.200';
       const timeout = 15000;
       const mockUps = {
-        ip: host
+        ip: host,
       };
       const expectedResult = {
         accessible: true,
@@ -86,7 +86,7 @@ describe('PingUpsUseCase', () => {
       const upsId = 'ups-123';
       const host = 'unreachable-ups';
       const mockUps = {
-        ip: host
+        ip: host,
       };
       const expectedResult = {
         accessible: false,

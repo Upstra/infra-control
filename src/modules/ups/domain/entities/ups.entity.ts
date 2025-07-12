@@ -21,7 +21,6 @@ export class Ups extends BaseEntity {
   @Column({ type: 'varchar', unique: true })
   ip!: string;
 
-
   @OneToMany(() => Server, (server) => server.ups)
   servers: Server[];
 

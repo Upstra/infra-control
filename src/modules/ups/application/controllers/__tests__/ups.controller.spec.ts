@@ -178,7 +178,11 @@ describe('UpsController', () => {
 
       const result = await controller.pingUps(upsId, pingDto, mockPayload);
 
-      expect(pingUpsUseCase.execute).toHaveBeenCalledWith(upsId, pingDto.host, pingDto.timeout);
+      expect(pingUpsUseCase.execute).toHaveBeenCalledWith(
+        upsId,
+        pingDto.host,
+        pingDto.timeout,
+      );
       expect(result).toEqual(expectedResult);
     });
 
@@ -197,7 +201,11 @@ describe('UpsController', () => {
 
       const result = await controller.pingUps(upsId, pingDto, mockPayload);
 
-      expect(pingUpsUseCase.execute).toHaveBeenCalledWith(upsId, pingDto.host, undefined);
+      expect(pingUpsUseCase.execute).toHaveBeenCalledWith(
+        upsId,
+        pingDto.host,
+        undefined,
+      );
       expect(result).toEqual(expectedResult);
     });
 
@@ -216,7 +224,11 @@ describe('UpsController', () => {
 
       const result = await controller.pingUps(upsId, pingDto, mockPayload);
 
-      expect(pingUpsUseCase.execute).toHaveBeenCalledWith(upsId, pingDto.host, undefined);
+      expect(pingUpsUseCase.execute).toHaveBeenCalledWith(
+        upsId,
+        pingDto.host,
+        undefined,
+      );
       expect(result).toEqual(expectedResult);
     });
 
@@ -226,7 +238,9 @@ describe('UpsController', () => {
 
       pingUpsUseCase.execute.mockRejectedValue(new Error('Network error'));
 
-      await expect(controller.pingUps(upsId, pingDto, mockPayload)).rejects.toThrow('Network error');
+      await expect(
+        controller.pingUps(upsId, pingDto, mockPayload),
+      ).rejects.toThrow('Network error');
     });
   });
 });

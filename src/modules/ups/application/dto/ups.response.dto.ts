@@ -18,7 +18,6 @@ export class UpsResponseDto {
   @IsString()
   readonly ip: string;
 
-
   @ApiProperty()
   @IsNotEmpty()
   @IsUUID()

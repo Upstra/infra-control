@@ -45,11 +45,11 @@ export class IloDomainService {
     ilo.name = dto.name ?? ilo.name;
     ilo.ip = dto.ip ?? ilo.ip;
     ilo.login = dto.login ?? ilo.login;
-    
+
     if (dto.password !== undefined && dto.password !== null) {
       ilo.password = dto.password;
     }
-    
+
     return ilo;
   }
 }

@@ -41,7 +41,7 @@ describe('PingIloUseCase', () => {
       const serverId = 'server-123';
       const host = '192.168.1.100';
       const mockServer = {
-        ilo: { ip: host }
+        ilo: { ip: host },
       };
       const expectedResult = {
         accessible: true,
@@ -64,7 +64,7 @@ describe('PingIloUseCase', () => {
       const host = '192.168.1.100';
       const timeout = 8000;
       const mockServer = {
-        ilo: { ip: host }
+        ilo: { ip: host },
       };
       const expectedResult = {
         accessible: true,
@@ -86,7 +86,7 @@ describe('PingIloUseCase', () => {
       const serverId = 'server-123';
       const host = 'unreachable-ilo';
       const mockServer = {
-        ilo: { ip: host }
+        ilo: { ip: host },
       };
       const expectedResult = {
         accessible: false,

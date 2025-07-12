@@ -32,7 +32,9 @@ export class UpdateIloUseCase {
   ) {}
 
   async execute(iloDto: IloUpdateDto): Promise<IloResponseDto> {
-    const iloExists = await this.iloRepository.findIloByIdWithCredentials(iloDto.id);
+    const iloExists = await this.iloRepository.findIloByIdWithCredentials(
+      iloDto.id,
+    );
     const entity = this.iloDomain.updateIloEntityFromDto(iloExists, iloDto);
     const updated = await this.iloRepository.updateIlo(entity);
     return new IloResponseDto(updated);

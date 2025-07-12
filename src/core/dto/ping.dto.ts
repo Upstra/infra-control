@@ -7,11 +7,11 @@ export class PingRequestDto {
   @IsString()
   host?: string;
 
-  @ApiPropertyOptional({ 
-    description: 'Timeout in milliseconds', 
+  @ApiPropertyOptional({
+    description: 'Timeout in milliseconds',
     default: 5000,
     minimum: 1000,
-    maximum: 30000
+    maximum: 30000,
   })
   @IsOptional()
   @IsNumber()

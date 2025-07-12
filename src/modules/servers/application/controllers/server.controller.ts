@@ -369,7 +369,8 @@ export class ServerController {
   })
   @ApiOperation({
     summary: 'Ping server connectivity',
-    description: 'Pings the server to check if it is accessible over the network. Required before listing resources.',
+    description:
+      'Pings the server to check if it is accessible over the network. Required before listing resources.',
   })
   @ApiBody({
     type: PingRequestDto,

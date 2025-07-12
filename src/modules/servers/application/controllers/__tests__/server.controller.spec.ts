@@ -434,7 +434,11 @@ describe('ServerController', () => {
 
       const result = await controller.pingServer(serverId, pingDto, user);
 
-      expect(pingServerUseCase.execute).toHaveBeenCalledWith(serverId, pingDto.host, pingDto.timeout);
+      expect(pingServerUseCase.execute).toHaveBeenCalledWith(
+        serverId,
+        pingDto.host,
+        pingDto.timeout,
+      );
       expect(result).toEqual(expectedResult);
     });
 
@@ -454,7 +458,11 @@ describe('ServerController', () => {
 
       const result = await controller.pingServer(serverId, pingDto, user);
 
-      expect(pingServerUseCase.execute).toHaveBeenCalledWith(serverId, pingDto.host, undefined);
+      expect(pingServerUseCase.execute).toHaveBeenCalledWith(
+        serverId,
+        pingDto.host,
+        undefined,
+      );
       expect(result).toEqual(expectedResult);
     });
 
@@ -474,7 +482,11 @@ describe('ServerController', () => {
 
       const result = await controller.pingServer(serverId, pingDto, user);
 
-      expect(pingServerUseCase.execute).toHaveBeenCalledWith(serverId, pingDto.host, undefined);
+      expect(pingServerUseCase.execute).toHaveBeenCalledWith(
+        serverId,
+        pingDto.host,
+        undefined,
+      );
       expect(result).toEqual(expectedResult);
     });
   });

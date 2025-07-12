@@ -41,7 +41,7 @@ describe('PingServerUseCase', () => {
       const serverId = 'server-123';
       const host = '192.168.1.10';
       const mockServer = {
-        ip: host
+        ip: host,
       };
       const expectedResult = {
         accessible: true,
@@ -64,7 +64,7 @@ describe('PingServerUseCase', () => {
       const host = '192.168.1.10';
       const timeout = 10000;
       const mockServer = {
-        ip: host
+        ip: host,
       };
       const expectedResult = {
         accessible: true,
@@ -86,7 +86,7 @@ describe('PingServerUseCase', () => {
       const serverId = 'server-123';
       const host = 'unreachable-host';
       const mockServer = {
-        ip: host
+        ip: host,
       };
       const expectedResult = {
         accessible: false,

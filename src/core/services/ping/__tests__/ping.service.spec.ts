@@ -95,8 +95,9 @@ describe('PingService', () => {
 
       // Simulate timeout
       setTimeout(() => {
-        const timeoutCallback = mockProcess.on.mock.calls
-          .find(call => call[0] === 'close')?.[1];
+        const timeoutCallback = mockProcess.on.mock.calls.find(
+          (call) => call[0] === 'close',
+        )?.[1];
         if (timeoutCallback) {
           timeoutCallback(0);
         }

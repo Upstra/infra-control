@@ -19,15 +19,17 @@ export class PingIloUseCase {
     }
 
     const server = await this.getServerWithIloUseCase.execute(serverId);
-    
-    this.logger.log(`Pinging iLO for server ${serverId} at host ${server.ilo.ip}`);
-    
-    const result = await this.pingService.ping(server.ilo.ip, timeout);
-    
+
     this.logger.log(
-      `Ping result for server ${serverId} iLO: ${result.accessible ? 'accessible' : 'not accessible'}`
+      `Pinging iLO for server ${serverId} at host ${server.ilo.ip}`,
     );
-    
+
+    const result = await this.pingService.ping(server.ilo.ip, timeout);
+
+    this.logger.log(
+      `Ping result for server ${serverId} iLO: ${result.accessible ? 'accessible' : 'not accessible'}`,
+    );
+
     return result;
   }
 }
