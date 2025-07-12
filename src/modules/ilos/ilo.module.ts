@@ -1,6 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
 import { PythonExecutorModule } from '@/core/services/python-executor';
 import { Ilo } from './domain/entities/ilo.entity';
 import { IloTypeormRepository } from './infrastructure/repositories/ilo.typeorm.repository';
@@ -21,7 +20,6 @@ import { VmwareModule } from '../vmware/vmware.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Ilo]),
-    ConfigModule,
     PythonExecutorModule,
     forwardRef(() => ServerModule),
     forwardRef(() => VmwareModule),

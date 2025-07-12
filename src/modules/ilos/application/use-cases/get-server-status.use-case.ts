@@ -1,7 +1,6 @@
-import { Injectable, BadRequestException, Inject } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { GetServerWithIloUseCase } from '@/modules/servers/application/use-cases/get-server-with-ilo.use-case';
 import { VmwareService } from '@/modules/vmware/domain/services/vmware.service';
-import { ConfigService } from '@nestjs/config';
 import { IloStatusResponseDto, IloServerStatus } from '../dto/ilo-status.dto';
 import { VmwareConnectionDto } from '@/modules/vmware/application/dto';
 
@@ -10,7 +9,6 @@ export class GetServerStatusUseCase {
   constructor(
     private readonly vmwareService: VmwareService,
     private readonly getServerWithIloUseCase: GetServerWithIloUseCase,
-    private readonly configService: ConfigService,
   ) {}
 
   async execute(serverId: string): Promise<IloStatusResponseDto> {
@@ -29,10 +27,10 @@ export class GetServerStatusUseCase {
     }
 
     const vCenterConnection: VmwareConnectionDto = {
-      host: this.configService.get<string>('VCENTER_HOST') || '',
-      user: this.configService.get<string>('VCENTER_USER') || '',
-      password: this.configService.get<string>('VCENTER_PASSWORD') || '',
-      port: this.configService.get<number>('VCENTER_PORT') || 443,
+      host: server.ip,
+      user: server.login,
+      password: server.password,
+      port: 443,
     };
 
     const metrics = await this.vmwareService.getServerMetrics(

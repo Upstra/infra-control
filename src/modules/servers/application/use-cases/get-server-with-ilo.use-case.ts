@@ -10,7 +10,7 @@ export class GetServerWithIloUseCase {
   ) {}
 
   async execute(id: string): Promise<Server> {
-    const server = await this.serverRepository.findServerById(id);
+    const server = await this.serverRepository.findServerByIdWithCredentials(id);
 
     if (!server) {
       throw new NotFoundException(`Server with ID ${id} not found`);

@@ -3,17 +3,17 @@ import { IloServerStatus } from '../../dto/ilo-status.dto';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { GetServerWithIloUseCase } from '@/modules/servers/application/use-cases/get-server-with-ilo.use-case';
 import { VmwareService } from '@/modules/vmware/domain/services/vmware.service';
-import { ConfigService } from '@nestjs/config';
 
 describe('GetServerStatusUseCase', () => {
   let useCase: GetServerStatusUseCase;
   let mockVmwareService: jest.Mocked<VmwareService>;
   let mockGetServerWithIloUseCase: jest.Mocked<GetServerWithIloUseCase>;
-  let mockConfigService: jest.Mocked<ConfigService>;
 
   const mockServer = {
     id: 'server-1',
-    ip: '192.168.1.10',
+    ip: '192.168.1.5',
+    login: 'vcenter-user',
+    password: 'vcenter-pass',
     ilo: {
       id: 'ilo-1',
       ip: '192.168.1.100',
@@ -40,24 +40,9 @@ describe('GetServerStatusUseCase', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<GetServerWithIloUseCase>;
 
-    mockConfigService = {
-      get: jest.fn(),
-    } as unknown as jest.Mocked<ConfigService>;
-
-    mockConfigService.get.mockImplementation((key: string) => {
-      const config: Record<string, any> = {
-        VCENTER_HOST: '192.168.1.5',
-        VCENTER_USER: 'vcenter-user',
-        VCENTER_PASSWORD: 'vcenter-pass',
-        VCENTER_PORT: 443,
-      };
-      return config[key];
-    });
-
     useCase = new GetServerStatusUseCase(
       mockVmwareService,
       mockGetServerWithIloUseCase,
-      mockConfigService,
     );
   });
 

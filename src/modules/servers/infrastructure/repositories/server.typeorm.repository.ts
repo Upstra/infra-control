@@ -132,6 +132,30 @@ export class ServerTypeormRepository
     }
   }
 
+  async findServerByIdWithCredentials(id: string): Promise<Server> {
+    try {
+      const server = await this.createQueryBuilder('server')
+        .leftJoinAndSelect('server.ilo', 'ilo')
+        .leftJoinAndSelect('server.group', 'group')
+        .leftJoinAndSelect('server.room', 'room')
+        .leftJoinAndSelect('server.ups', 'ups')
+        .leftJoinAndSelect('server.vms', 'vms')
+        .addSelect('server.password')
+        .where('server.id = :id', { id })
+        .getOne();
+        
+      if (!server) {
+        throw new ServerNotFoundException(id);
+      }
+      return server;
+    } catch (error) {
+      this.logger.error(`Error retrieving server with credentials for id ${id}:`, error);
+      throw new ServerRetrievalException(
+        `Error retrieving server with credentials for id ${id}`,
+      );
+    }
+  }
+
   async deleteServer(id: string): Promise<void> {
     await this.findServerById(id);
     try {
