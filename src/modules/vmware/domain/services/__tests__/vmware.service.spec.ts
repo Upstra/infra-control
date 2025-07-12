@@ -345,7 +345,10 @@ describe('VmwareService', () => {
       await expect(
         service.migrateVM('vm-123', 'host-456', mockConnection),
       ).rejects.toThrow(
-        new HttpException('Invalid VMware credentials', HttpStatus.UNAUTHORIZED),
+        new HttpException(
+          'Invalid VMware credentials',
+          HttpStatus.UNAUTHORIZED,
+        ),
       );
     });
 

@@ -93,24 +93,21 @@ describe('GetHostMetricsUseCase', () => {
       expect(serverRepository.findOne).toHaveBeenCalledWith({
         where: { id: 'server-1' },
       });
-      expect(vmwareService.getHostMetrics).toHaveBeenCalledWith(
-        'host-123',
-        {
-          host: '192.168.1.100',
-          user: 'admin',
-          password: 'password',
-          port: 443,
-        }
-      );
+      expect(vmwareService.getHostMetrics).toHaveBeenCalledWith('host-123', {
+        host: '192.168.1.100',
+        user: 'admin',
+        password: 'password',
+        port: 443,
+      });
       expect(result).toEqual(mockHostMetrics);
     });
 
     it('should throw NotFoundException if server does not exist', async () => {
       serverRepository.findOne.mockResolvedValue(null);
 
-      await expect(
-        useCase.execute('server-1')
-      ).rejects.toThrow(NotFoundException);
+      await expect(useCase.execute('server-1')).rejects.toThrow(
+        NotFoundException,
+      );
 
       expect(serverRepository.findOne).toHaveBeenCalledWith({
         where: { id: 'server-1' },
@@ -119,7 +116,10 @@ describe('GetHostMetricsUseCase', () => {
     });
 
     it('should use default host moid if vmwareHostMoid is null', async () => {
-      const serverWithoutMoid = { ...mockServer, vmwareHostMoid: null } as Server;
+      const serverWithoutMoid = {
+        ...mockServer,
+        vmwareHostMoid: null,
+      } as Server;
       serverRepository.findOne.mockResolvedValue(serverWithoutMoid);
       vmwareService.getHostMetrics.mockResolvedValue(mockHostMetrics);
 
@@ -127,7 +127,7 @@ describe('GetHostMetricsUseCase', () => {
 
       expect(vmwareService.getHostMetrics).toHaveBeenCalledWith(
         'host-default',
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -137,33 +137,32 @@ describe('GetHostMetricsUseCase', () => {
 
       await useCase.execute('server-1');
 
-      expect(vmwareService.getHostMetrics).toHaveBeenCalledWith(
-        'host-123',
-        {
-          host: mockServer.ip,
-          user: mockServer.login,
-          password: mockServer.password,
-          port: 443,
-        }
-      );
+      expect(vmwareService.getHostMetrics).toHaveBeenCalledWith('host-123', {
+        host: mockServer.ip,
+        user: mockServer.login,
+        password: mockServer.password,
+        port: 443,
+      });
     });
 
     it('should handle vmware service errors', async () => {
       serverRepository.findOne.mockResolvedValue(mockServer);
-      vmwareService.getHostMetrics.mockRejectedValue(new Error('VMware connection failed'));
+      vmwareService.getHostMetrics.mockRejectedValue(
+        new Error('VMware connection failed'),
+      );
 
-      await expect(
-        useCase.execute('server-1')
-      ).rejects.toThrow('VMware connection failed');
+      await expect(useCase.execute('server-1')).rejects.toThrow(
+        'VMware connection failed',
+      );
     });
 
     it('should throw NotFoundException with correct message', async () => {
       const serverId = 'non-existent';
       serverRepository.findOne.mockResolvedValue(null);
 
-      await expect(
-        useCase.execute(serverId)
-      ).rejects.toThrow(`Server with ID ${serverId} not found`);
+      await expect(useCase.execute(serverId)).rejects.toThrow(
+        `Server with ID ${serverId} not found`,
+      );
     });
 
     it('should handle different host metrics values', async () => {

@@ -3,7 +3,6 @@ import { NotFoundException } from '@nestjs/common';
 import { GetServerByIloIpUseCase } from './get-server-by-ilo-ip.use-case';
 import { ServerRepositoryInterface } from '../../domain/interfaces/server.repository.interface';
 import { Server } from '../../domain/entities/server.entity';
-import { Ilo } from '../../../ilos/domain/entities/ilo.entity';
 
 describe('GetServerByIloIpUseCase', () => {
   let useCase: GetServerByIloIpUseCase;
@@ -80,7 +79,7 @@ describe('GetServerByIloIpUseCase', () => {
 
       await expect(useCase.execute(ip)).rejects.toThrow(NotFoundException);
       await expect(useCase.execute(ip)).rejects.toThrow(
-        `Server with iLO IP ${ip} not found`
+        `Server with iLO IP ${ip} not found`,
       );
     });
 
@@ -113,11 +112,11 @@ describe('GetServerByIloIpUseCase', () => {
     it('should handle repository errors', async () => {
       const ip = '192.168.1.100';
       serverRepository.findByIloIp.mockRejectedValue(
-        new Error('Database connection failed')
+        new Error('Database connection failed'),
       );
 
       await expect(useCase.execute(ip)).rejects.toThrow(
-        'Database connection failed'
+        'Database connection failed',
       );
     });
 

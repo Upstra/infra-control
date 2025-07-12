@@ -7,11 +7,7 @@ import {
   MigrateVmUseCase,
   GetHostMetricsUseCase,
 } from '../../use-cases';
-import {
-  VmPowerActionDto,
-  VmPowerAction,
-  VmMigrateDto,
-} from '../../dto';
+import { VmPowerActionDto, VmPowerAction, VmMigrateDto } from '../../dto';
 import { VmwareVm, VmwareHost } from '../../../domain/interfaces';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
@@ -130,7 +126,10 @@ describe('VmwareController', () => {
       const result = await controller.getVMMetrics('server-1', 'vm-123');
 
       expect(result).toEqual(mockMetrics);
-      expect(getVmMetricsUseCase.execute).toHaveBeenCalledWith('server-1', 'vm-123');
+      expect(getVmMetricsUseCase.execute).toHaveBeenCalledWith(
+        'server-1',
+        'vm-123',
+      );
     });
   });
 
@@ -148,14 +147,14 @@ describe('VmwareController', () => {
 
       controlVmPowerUseCase.execute.mockResolvedValue(mockResult);
 
-      const result = await controller.controlVMPower(
-        'server-1',
-        'vm-123',
-        dto,
-      );
+      const result = await controller.controlVMPower('server-1', 'vm-123', dto);
 
       expect(result).toEqual(mockResult);
-      expect(controlVmPowerUseCase.execute).toHaveBeenCalledWith('server-1', 'vm-123', 'on');
+      expect(controlVmPowerUseCase.execute).toHaveBeenCalledWith(
+        'server-1',
+        'vm-123',
+        'on',
+      );
     });
   });
 
@@ -173,14 +172,14 @@ describe('VmwareController', () => {
 
       migrateVmUseCase.execute.mockResolvedValue(mockResult);
 
-      const result = await controller.migrateVM(
-        'server-1',
-        'vm-123',
-        dto,
-      );
+      const result = await controller.migrateVM('server-1', 'vm-123', dto);
 
       expect(result).toEqual(mockResult);
-      expect(migrateVmUseCase.execute).toHaveBeenCalledWith('server-1', 'vm-123', 'host-456');
+      expect(migrateVmUseCase.execute).toHaveBeenCalledWith(
+        'server-1',
+        'vm-123',
+        'host-456',
+      );
     });
   });
 
@@ -234,9 +233,9 @@ describe('VmwareController', () => {
         new Error('VMware connection failed'),
       );
 
-      await expect(
-        controller.getHostMetrics('server-1'),
-      ).rejects.toThrow('VMware connection failed');
+      await expect(controller.getHostMetrics('server-1')).rejects.toThrow(
+        'VMware connection failed',
+      );
     });
   });
 });

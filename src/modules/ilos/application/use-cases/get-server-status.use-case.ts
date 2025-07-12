@@ -12,7 +12,9 @@ export class GetServerStatusUseCase {
 
   async execute(serverId: string): Promise<IloStatusResponseDto> {
     if (!serverId || typeof serverId !== 'string' || serverId.trim() === '') {
-      throw new BadRequestException('Server ID must be a valid non-empty string');
+      throw new BadRequestException(
+        'Server ID must be a valid non-empty string',
+      );
     }
 
     const server = await this.getServerWithIloUseCase.execute(serverId);

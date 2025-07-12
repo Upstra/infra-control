@@ -141,15 +141,25 @@ export class PythonExecutorService {
   }
 
   private maskSensitiveArgs(args: string[]): string[] {
-    const sensitiveKeys = ['--password', '--pass', '--pwd', '--secret', '--key', '--token'];
+    const sensitiveKeys = [
+      '--password',
+      '--pass',
+      '--pwd',
+      '--secret',
+      '--key',
+      '--token',
+    ];
     const maskedArgs = [...args];
-    
+
     for (let i = 0; i < maskedArgs.length; i++) {
-      if (sensitiveKeys.includes(maskedArgs[i].toLowerCase()) && i + 1 < maskedArgs.length) {
+      if (
+        sensitiveKeys.includes(maskedArgs[i].toLowerCase()) &&
+        i + 1 < maskedArgs.length
+      ) {
         maskedArgs[i + 1] = '[REDACTED]';
       }
     }
-    
+
     return maskedArgs;
   }
 }

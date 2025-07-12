@@ -58,7 +58,11 @@ export class VmwareService implements IVmwareService {
     moid: string,
     action: 'on' | 'off',
     connection: VmwareConnectionDto,
-  ): Promise<{ success: boolean; message: string; newState: VmwarePowerState }> {
+  ): Promise<{
+    success: boolean;
+    message: string;
+    newState: VmwarePowerState;
+  }> {
     const scriptName = action === 'on' ? 'vm_start.py' : 'vm_stop.py';
     const args = ['--moid', moid, ...this.buildConnectionArgs(connection)];
 
@@ -69,7 +73,9 @@ export class VmwareService implements IVmwareService {
         message:
           result.result?.message ??
           `VM ${action === 'on' ? 'started' : 'stopped'} successfully`,
-        newState: (action === 'on' ? 'poweredOn' : 'poweredOff') as VmwarePowerState,
+        newState: (action === 'on'
+          ? 'poweredOn'
+          : 'poweredOff') as VmwarePowerState,
       };
     } catch (error) {
       this.logger.error(`Failed to ${action} VM ${moid}:`, error);
@@ -200,8 +206,10 @@ export class VmwareService implements IVmwareService {
     return {
       powerState: (result.powerState ?? 'poweredOff') as VmwarePowerState,
       guestState: (result.guestState ?? 'unknown') as VmwareGuestState,
-      connectionState: (result.connectionState ?? 'disconnected') as VmwareConnectionState,
-      guestHeartbeatStatus: (result.guestHeartbeatStatus ?? 'gray') as VmwareHealthStatus,
+      connectionState: (result.connectionState ??
+        'disconnected') as VmwareConnectionState,
+      guestHeartbeatStatus: (result.guestHeartbeatStatus ??
+        'gray') as VmwareHealthStatus,
       overallStatus: (result.overallStatus ?? 'gray') as VmwareHealthStatus,
       maxCpuUsage: result.maxCpuUsage ?? 0,
       maxMemoryUsage: result.maxMemoryUsage ?? 0,

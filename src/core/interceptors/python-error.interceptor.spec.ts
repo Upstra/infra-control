@@ -40,7 +40,7 @@ describe('PythonErrorInterceptor', () => {
   describe('catch', () => {
     it('should handle HttpException', () => {
       const exception = new HttpException('Test error', HttpStatus.BAD_REQUEST);
-      
+
       interceptor.catch(exception, mockHost);
 
       expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
@@ -54,10 +54,12 @@ describe('PythonErrorInterceptor', () => {
 
     it('should handle generic exceptions', () => {
       const exception = new Error('Generic error');
-      
+
       interceptor.catch(exception, mockHost);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
+      expect(mockResponse.status).toHaveBeenCalledWith(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
       expect(mockResponse.json).toHaveBeenCalledWith({
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
         message: 'Generic error',
@@ -76,10 +78,12 @@ describe('PythonErrorInterceptor', () => {
 
         testCases.forEach((message) => {
           const exception = new Error(message);
-          
+
           interceptor.catch(exception, mockHost);
 
-          expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.UNAUTHORIZED);
+          expect(mockResponse.status).toHaveBeenCalledWith(
+            HttpStatus.UNAUTHORIZED,
+          );
           expect(mockResponse.json).toHaveBeenCalledWith({
             statusCode: HttpStatus.UNAUTHORIZED,
             message: 'Invalid credentials',
@@ -98,10 +102,12 @@ describe('PythonErrorInterceptor', () => {
 
         testCases.forEach((message) => {
           const exception = new Error(message);
-          
+
           interceptor.catch(exception, mockHost);
 
-          expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
+          expect(mockResponse.status).toHaveBeenCalledWith(
+            HttpStatus.NOT_FOUND,
+          );
           expect(mockResponse.json).toHaveBeenCalledWith({
             statusCode: HttpStatus.NOT_FOUND,
             message: 'Resource not found',
@@ -120,10 +126,12 @@ describe('PythonErrorInterceptor', () => {
 
         testCases.forEach((message) => {
           const exception = new Error(message);
-          
+
           interceptor.catch(exception, mockHost);
 
-          expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.REQUEST_TIMEOUT);
+          expect(mockResponse.status).toHaveBeenCalledWith(
+            HttpStatus.REQUEST_TIMEOUT,
+          );
           expect(mockResponse.json).toHaveBeenCalledWith({
             statusCode: HttpStatus.REQUEST_TIMEOUT,
             message: 'Operation timeout',
@@ -136,10 +144,12 @@ describe('PythonErrorInterceptor', () => {
       it('should handle script execution errors', () => {
         const message = 'Script execution failed: Invalid parameters';
         const exception = new Error(message);
-        
+
         interceptor.catch(exception, mockHost);
 
-        expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+        expect(mockResponse.status).toHaveBeenCalledWith(
+          HttpStatus.BAD_REQUEST,
+        );
         expect(mockResponse.json).toHaveBeenCalledWith({
           statusCode: HttpStatus.BAD_REQUEST,
           message: message,
@@ -151,7 +161,7 @@ describe('PythonErrorInterceptor', () => {
       it('should handle script not found as 404', () => {
         const message = 'Script execution failed: Python script not found';
         const exception = new Error(message);
-        
+
         interceptor.catch(exception, mockHost);
 
         expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
@@ -166,10 +176,12 @@ describe('PythonErrorInterceptor', () => {
 
     it('should handle exceptions without message', () => {
       const exception = {};
-      
+
       interceptor.catch(exception, mockHost);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
+      expect(mockResponse.status).toHaveBeenCalledWith(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
       expect(mockResponse.json).toHaveBeenCalledWith({
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
         message: 'Internal server error',
@@ -179,9 +191,11 @@ describe('PythonErrorInterceptor', () => {
     });
 
     it('should log errors', () => {
-      const loggerSpy = jest.spyOn(interceptor['logger'], 'error').mockImplementation();
+      const loggerSpy = jest
+        .spyOn(interceptor['logger'], 'error')
+        .mockImplementation();
       const exception = new Error('Test error');
-      
+
       interceptor.catch(exception, mockHost);
 
       expect(loggerSpy).toHaveBeenCalledWith(
@@ -205,7 +219,7 @@ describe('PythonErrorInterceptor', () => {
       });
 
       const exception = new Error('Test error');
-      
+
       interceptor.catch(exception, mockHost);
 
       expect(mockResponse.json).toHaveBeenCalledWith({

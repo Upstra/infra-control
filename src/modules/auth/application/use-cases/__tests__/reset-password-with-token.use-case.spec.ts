@@ -159,7 +159,7 @@ describe('ResetPasswordWithTokenUseCase', () => {
       await expect(useCase.execute(token, newPassword)).rejects.toThrow(
         new UnauthorizedException('Token de réinitialisation invalide'),
       );
-      
+
       expect(userDomainService.hashPassword).not.toHaveBeenCalled();
       expect(userRepository.save).not.toHaveBeenCalled();
       expect(eventEmitter.emit).not.toHaveBeenCalled();
@@ -258,7 +258,7 @@ describe('ResetPasswordWithTokenUseCase', () => {
         isTwoFactorEnabled: false,
         twoFactorSecret: '',
       });
-      
+
       userRepository.findOneByField.mockResolvedValue(userWithToken);
       userDomainService.hashPassword.mockResolvedValue(hashedPassword);
 
@@ -291,7 +291,7 @@ describe('ResetPasswordWithTokenUseCase', () => {
         isTwoFactorEnabled: false,
         twoFactorSecret: '',
       });
-      
+
       userRepository.findOneByField.mockResolvedValue(userWithToken);
       userDomainService.hashPassword.mockResolvedValue(hashedPassword);
       userRepository.save.mockRejectedValue(new Error('Database error'));

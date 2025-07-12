@@ -68,14 +68,17 @@ describe('IloPowerService', () => {
         message: 'Server has been successfully started',
         currentStatus: IloServerStatus.ON,
       });
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith('server_start.py', [
-        '--ip',
-        '192.168.1.100',
-        '--user',
-        'admin',
-        '--password',
-        'ilopass123',
-      ]);
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
+        'server_start.py',
+        [
+          '--ip',
+          '192.168.1.100',
+          '--user',
+          'admin',
+          '--password',
+          'ilopass123',
+        ],
+      );
     });
 
     it('should stop server successfully', async () => {
@@ -97,14 +100,17 @@ describe('IloPowerService', () => {
         message: 'Server has been successfully stopped',
         currentStatus: IloServerStatus.OFF,
       });
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith('server_stop.py', [
-        '--ip',
-        '192.168.1.100',
-        '--user',
-        'admin',
-        '--password',
-        'ilopass123',
-      ]);
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
+        'server_stop.py',
+        [
+          '--ip',
+          '192.168.1.100',
+          '--user',
+          'admin',
+          '--password',
+          'ilopass123',
+        ],
+      );
     });
 
     it('should use default message when not provided', async () => {
@@ -169,7 +175,10 @@ describe('IloPowerService', () => {
 
     it('should handle error with new JSON format', async () => {
       const error: any = new Error('Action forbidden');
-      error.result = { httpCode: 403, message: 'Server is in maintenance mode' };
+      error.result = {
+        httpCode: 403,
+        message: 'Server is in maintenance mode',
+      };
       pythonExecutor.executePython.mockRejectedValue(error);
 
       await expect(

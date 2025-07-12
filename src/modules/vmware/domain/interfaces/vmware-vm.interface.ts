@@ -1,6 +1,10 @@
 export type VmwarePowerState = 'poweredOn' | 'poweredOff' | 'suspended';
 export type VmwareServerPowerState = 'poweredOn' | 'poweredOff' | 'standBy';
-export type VmwareGuestState = 'running' | 'notRunning' | 'shuttingDown' | 'unknown';
+export type VmwareGuestState =
+  | 'running'
+  | 'notRunning'
+  | 'shuttingDown'
+  | 'unknown';
 export type VmwareConnectionState = 'connected' | 'disconnected' | 'orphaned';
 export type VmwareHealthStatus = 'green' | 'yellow' | 'red' | 'gray';
 

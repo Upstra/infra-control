@@ -27,29 +27,37 @@ describe('IloPermission Decorator', () => {
 
   it('should set metadata with single permission', () => {
     const mockSetMetadata = SetMetadata as jest.Mock;
-    
+
     const decorator = IloPermission(PermissionBit.READ);
-    
-    expect(mockSetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, { requiredBit: PermissionBit.READ });
+
+    expect(mockSetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, {
+      requiredBit: PermissionBit.READ,
+    });
   });
 
   it('should set metadata with write permission', () => {
     const mockSetMetadata = SetMetadata as jest.Mock;
-    
+
     const decorator = IloPermission(PermissionBit.WRITE);
-    
-    expect(mockSetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, { requiredBit: PermissionBit.WRITE });
+
+    expect(mockSetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, {
+      requiredBit: PermissionBit.WRITE,
+    });
   });
 
   it('should apply the decorator to a method', () => {
     const mockSetMetadata = SetMetadata as jest.Mock;
-    mockSetMetadata.mockReturnValue((target: any, propertyKey: string, descriptor: any) => {
-      if (!target.metadata) {
-        target.metadata = {};
-      }
-      target.metadata[ILO_PERMISSION_KEY] = { requiredBit: PermissionBit.READ };
-      return descriptor;
-    });
+    mockSetMetadata.mockReturnValue(
+      (target: any, propertyKey: string, descriptor: any) => {
+        if (!target.metadata) {
+          target.metadata = {};
+        }
+        target.metadata[ILO_PERMISSION_KEY] = {
+          requiredBit: PermissionBit.READ,
+        };
+        return descriptor;
+      },
+    );
 
     class TestController {
       @IloPermission(PermissionBit.READ)
@@ -58,7 +66,9 @@ describe('IloPermission Decorator', () => {
       }
     }
 
-    expect(mockSetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, { requiredBit: PermissionBit.READ });
+    expect(mockSetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, {
+      requiredBit: PermissionBit.READ,
+    });
   });
 
   it('should apply the decorator to a class', () => {
@@ -67,7 +77,9 @@ describe('IloPermission Decorator', () => {
       if (!target.metadata) {
         target.metadata = {};
       }
-      target.metadata[ILO_PERMISSION_KEY] = { requiredBit: PermissionBit.WRITE };
+      target.metadata[ILO_PERMISSION_KEY] = {
+        requiredBit: PermissionBit.WRITE,
+      };
       return target;
     });
 
@@ -78,6 +90,8 @@ describe('IloPermission Decorator', () => {
       }
     }
 
-    expect(mockSetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, { requiredBit: PermissionBit.WRITE });
+    expect(mockSetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, {
+      requiredBit: PermissionBit.WRITE,
+    });
   });
 });

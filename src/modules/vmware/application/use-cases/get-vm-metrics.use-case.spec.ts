@@ -75,24 +75,21 @@ describe('GetVmMetricsUseCase', () => {
       expect(serverRepository.findOne).toHaveBeenCalledWith({
         where: { id: 'server-1' },
       });
-      expect(vmwareService.getVMMetrics).toHaveBeenCalledWith(
-        'vm-123',
-        {
-          host: '192.168.1.100',
-          user: 'admin',
-          password: 'password',
-          port: 443,
-        }
-      );
+      expect(vmwareService.getVMMetrics).toHaveBeenCalledWith('vm-123', {
+        host: '192.168.1.100',
+        user: 'admin',
+        password: 'password',
+        port: 443,
+      });
       expect(result).toEqual(mockVmMetrics);
     });
 
     it('should throw NotFoundException if server does not exist', async () => {
       serverRepository.findOne.mockResolvedValue(null);
 
-      await expect(
-        useCase.execute('server-1', 'vm-123')
-      ).rejects.toThrow(NotFoundException);
+      await expect(useCase.execute('server-1', 'vm-123')).rejects.toThrow(
+        NotFoundException,
+      );
 
       expect(serverRepository.findOne).toHaveBeenCalledWith({
         where: { id: 'server-1' },
@@ -126,33 +123,32 @@ describe('GetVmMetricsUseCase', () => {
 
       await useCase.execute('server-1', 'vm-123');
 
-      expect(vmwareService.getVMMetrics).toHaveBeenCalledWith(
-        'vm-123',
-        {
-          host: mockServer.ip,
-          user: mockServer.login,
-          password: mockServer.password,
-          port: 443,
-        }
-      );
+      expect(vmwareService.getVMMetrics).toHaveBeenCalledWith('vm-123', {
+        host: mockServer.ip,
+        user: mockServer.login,
+        password: mockServer.password,
+        port: 443,
+      });
     });
 
     it('should handle vmware service errors', async () => {
       serverRepository.findOne.mockResolvedValue(mockServer);
-      vmwareService.getVMMetrics.mockRejectedValue(new Error('VMware connection failed'));
+      vmwareService.getVMMetrics.mockRejectedValue(
+        new Error('VMware connection failed'),
+      );
 
-      await expect(
-        useCase.execute('server-1', 'vm-123')
-      ).rejects.toThrow('VMware connection failed');
+      await expect(useCase.execute('server-1', 'vm-123')).rejects.toThrow(
+        'VMware connection failed',
+      );
     });
 
     it('should throw NotFoundException with correct message', async () => {
       const serverId = 'non-existent';
       serverRepository.findOne.mockResolvedValue(null);
 
-      await expect(
-        useCase.execute(serverId, 'vm-123')
-      ).rejects.toThrow(`Server with ID ${serverId} not found`);
+      await expect(useCase.execute(serverId, 'vm-123')).rejects.toThrow(
+        `Server with ID ${serverId} not found`,
+      );
     });
 
     it('should handle VMs with missing tools', async () => {

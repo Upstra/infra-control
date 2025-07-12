@@ -29,6 +29,9 @@ export class GetHostMetricsUseCase {
       port: 443,
     };
 
-    return await this.vmwareService.getHostMetrics(server.vmwareHostMoid ?? 'host-default', connection);
+    return await this.vmwareService.getHostMetrics(
+      server.vmwareHostMoid ?? 'host-default',
+      connection,
+    );
   }
 }

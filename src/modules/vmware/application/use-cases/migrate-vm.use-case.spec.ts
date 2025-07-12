@@ -62,16 +62,12 @@ describe('MigrateVmUseCase', () => {
       expect(serverRepository.findOne).toHaveBeenCalledWith({
         where: { id: 'server-1' },
       });
-      expect(vmwareService.migrateVM).toHaveBeenCalledWith(
-        'vm-123',
-        'host-2',
-        {
-          host: '192.168.1.100',
-          user: 'admin',
-          password: 'password',
-          port: 443,
-        }
-      );
+      expect(vmwareService.migrateVM).toHaveBeenCalledWith('vm-123', 'host-2', {
+        host: '192.168.1.100',
+        user: 'admin',
+        password: 'password',
+        port: 443,
+      });
       expect(result).toEqual(mockMigrationResult);
       expect(result.success).toBe(true);
     });
@@ -80,7 +76,7 @@ describe('MigrateVmUseCase', () => {
       serverRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        useCase.execute('server-1', 'vm-123', 'host-2')
+        useCase.execute('server-1', 'vm-123', 'host-2'),
       ).rejects.toThrow(NotFoundException);
 
       expect(serverRepository.findOne).toHaveBeenCalledWith({
@@ -112,16 +108,12 @@ describe('MigrateVmUseCase', () => {
 
       await useCase.execute('server-1', 'vm-123', 'host-2');
 
-      expect(vmwareService.migrateVM).toHaveBeenCalledWith(
-        'vm-123',
-        'host-2',
-        {
-          host: mockServer.ip,
-          user: mockServer.login,
-          password: mockServer.password,
-          port: 443,
-        }
-      );
+      expect(vmwareService.migrateVM).toHaveBeenCalledWith('vm-123', 'host-2', {
+        host: mockServer.ip,
+        user: mockServer.login,
+        password: mockServer.password,
+        port: 443,
+      });
     });
 
     it('should handle vmware service errors', async () => {
@@ -129,7 +121,7 @@ describe('MigrateVmUseCase', () => {
       vmwareService.migrateVM.mockRejectedValue(new Error('VMware API error'));
 
       await expect(
-        useCase.execute('server-1', 'vm-123', 'host-2')
+        useCase.execute('server-1', 'vm-123', 'host-2'),
       ).rejects.toThrow('VMware API error');
     });
 
@@ -138,7 +130,7 @@ describe('MigrateVmUseCase', () => {
       serverRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        useCase.execute(serverId, 'vm-123', 'host-2')
+        useCase.execute(serverId, 'vm-123', 'host-2'),
       ).rejects.toThrow(`Server with ID ${serverId} not found`);
     });
 
@@ -154,7 +146,7 @@ describe('MigrateVmUseCase', () => {
       expect(vmwareService.migrateVM).toHaveBeenCalledWith(
         vmMoid,
         destinationMoid,
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 

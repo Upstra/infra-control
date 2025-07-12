@@ -7,11 +7,11 @@ export class IloCredentialsDto {
   @IsString()
   user: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'iLO password',
     writeOnly: true,
   })
   @IsString()
-  @Transform(({ value }) => '[REDACTED]', { toPlainOnly: true })
+  @Transform(() => '[REDACTED]', { toPlainOnly: true })
   password: string;
 }
