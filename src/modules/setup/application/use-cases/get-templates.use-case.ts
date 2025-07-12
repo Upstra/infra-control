@@ -104,14 +104,14 @@ export class GetTemplatesUseCase {
 
   async execute(): Promise<TemplateListResponseDto> {
     const customTemplates = await this.templateRepository.findAll();
-    
+
     const customTemplateDtos: TemplateResponseDto[] = customTemplates.map(
       (template) => ({
         id: template.id,
         name: template.name,
         description: template.description,
         type: template.type,
-        configuration: template.configuration,
+        configuration: template.configuration as any,
         createdAt: template.createdAt,
         createdBy: template.createdBy,
       }),

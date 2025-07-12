@@ -31,7 +31,10 @@ export class BulkCreateUseCase {
     private readonly completeSetupStepUseCase: CompleteSetupStepUseCase,
   ) {}
 
-  async execute(dto: BulkCreateRequestDto, userId?: string): Promise<BulkCreateResponseDto> {
+  async execute(
+    dto: BulkCreateRequestDto,
+    userId?: string,
+  ): Promise<BulkCreateResponseDto> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();

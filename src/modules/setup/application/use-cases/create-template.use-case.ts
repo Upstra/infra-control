@@ -25,7 +25,7 @@ export class CreateTemplateUseCase {
     template.name = dto.name;
     template.description = dto.description;
     template.type = TemplateType.CUSTOM;
-    template.configuration = dto.configuration;
+    template.configuration = dto.configuration as any;
     template.createdBy = currentUser.email;
 
     const savedTemplate = await this.templateRepository.save(template);
@@ -39,7 +39,7 @@ export class CreateTemplateUseCase {
       name: savedTemplate.name,
       description: savedTemplate.description,
       type: savedTemplate.type,
-      configuration: savedTemplate.configuration,
+      configuration: savedTemplate.configuration as any,
       createdAt: savedTemplate.createdAt,
       createdBy: savedTemplate.createdBy,
     };

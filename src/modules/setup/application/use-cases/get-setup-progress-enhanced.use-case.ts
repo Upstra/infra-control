@@ -68,10 +68,10 @@ export class GetSetupProgressEnhancedUseCase {
       progressRecords.length > 0
         ? new Date(
             Math.max(
-              ...progressRecords.map((r) => 
-                r.completedAt instanceof Date 
-                  ? r.completedAt.getTime() 
-                  : new Date(r.completedAt).getTime()
+              ...progressRecords.map((r) =>
+                r.completedAt instanceof Date
+                  ? r.completedAt.getTime()
+                  : new Date(r.completedAt).getTime(),
               ),
             ),
           )

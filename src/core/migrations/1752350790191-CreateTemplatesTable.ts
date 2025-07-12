@@ -1,13 +1,13 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class CreateTemplatesTable1752350790191 implements MigrationInterface {
-    name = 'CreateTemplatesTable1752350790191'
+  name = 'CreateTemplatesTable1752350790191';
 
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
             CREATE TYPE "public"."templates_type_enum" AS ENUM('predefined', 'custom')
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "templates" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
                 "name" character varying(255) NOT NULL,
@@ -21,11 +21,10 @@ export class CreateTemplatesTable1752350790191 implements MigrationInterface {
                 CONSTRAINT "PK_templates_id" PRIMARY KEY ("id")
             )
         `);
-    }
+  }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`DROP TABLE "templates"`);
-        await queryRunner.query(`DROP TYPE "public"."templates_type_enum"`);
-    }
-
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`DROP TABLE "templates"`);
+    await queryRunner.query(`DROP TYPE "public"."templates_type_enum"`);
+  }
 }

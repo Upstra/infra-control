@@ -66,7 +66,9 @@ describe('BulkCreateUseCase', () => {
     }).compile();
 
     useCase = module.get<BulkCreateUseCase>(BulkCreateUseCase);
-    completeSetupStepUseCase = module.get<CompleteSetupStepUseCase>(CompleteSetupStepUseCase);
+    completeSetupStepUseCase = module.get<CompleteSetupStepUseCase>(
+      CompleteSetupStepUseCase,
+    );
   });
 
   describe('execute', () => {
@@ -130,7 +132,10 @@ describe('BulkCreateUseCase', () => {
       expect(result.idMapping.rooms['temp_room_2']).toBe('room-uuid-2');
       expect(result.idMapping.ups['temp_ups_1']).toBe('ups-uuid-1');
 
-      expect(completeSetupStepUseCase.execute).toHaveBeenCalledWith(SetupStep.REVIEW, undefined);
+      expect(completeSetupStepUseCase.execute).toHaveBeenCalledWith(
+        SetupStep.REVIEW,
+        undefined,
+      );
     });
 
     it('should create server with ILO', async () => {

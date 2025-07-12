@@ -14,7 +14,6 @@ import { RoomRepositoryInterface } from '../../../rooms/domain/interfaces/room.r
 import { UpsRepositoryInterface } from '../../../ups/domain/interfaces/ups.repository.interface';
 import { ServerRepositoryInterface } from '../../../servers/domain/interfaces/server.repository.interface';
 
-
 @Injectable()
 export class BulkValidationUseCase {
   private readonly logger = new Logger(BulkValidationUseCase.name);
