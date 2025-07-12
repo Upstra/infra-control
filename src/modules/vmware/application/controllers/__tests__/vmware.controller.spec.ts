@@ -7,9 +7,11 @@ import {
   MigrateVmUseCase,
   GetHostMetricsUseCase,
 } from '../../use-cases';
-import { VmPowerActionDto, VmPowerAction, VmMigrateDto } from '../../dto';
-import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
-import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
+import {
+  VmPowerActionDto,
+  VmMigrateDto,
+} from '../../dto';
+import { VmwareVm, VmwareHost } from '../../../domain/interfaces';
 
 describe('VmwareController', () => {
   let controller: VmwareController;
@@ -18,12 +20,6 @@ describe('VmwareController', () => {
   let controlVmPowerUseCase: jest.Mocked<ControlVmPowerUseCase>;
   let migrateVmUseCase: jest.Mocked<MigrateVmUseCase>;
   let getHostMetricsUseCase: jest.Mocked<GetHostMetricsUseCase>;
-
-  const mockUser = {
-    id: 1,
-    username: 'testuser',
-    email: 'test@example.com',
-  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -60,12 +56,7 @@ describe('VmwareController', () => {
           },
         },
       ],
-    })
-      .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: jest.fn().mockReturnValue(true) })
-      .overrideGuard(ResourcePermissionGuard)
-      .useValue({ canActivate: jest.fn().mockReturnValue(true) })
-      .compile();
+    }).compile();
 
     controller = module.get<VmwareController>(VmwareController);
     listVmsUseCase = module.get(ListVmsUseCase);
@@ -81,33 +72,28 @@ describe('VmwareController', () => {
 
   describe('listVMs', () => {
     it('should return list of VMs', async () => {
-      const mockResult = {
-        vms: [
-          {
-            moid: 'vm-123',
-            name: 'Test VM',
-            ip: '192.168.1.100',
-            guestOs: 'Ubuntu Linux (64-bit)',
-            guestFamily: 'linuxGuest',
-            version: 'vmx-15',
-            createDate: '2023-01-01T00:00:00.000Z',
-            numCoresPerSocket: 2,
-            numCPU: 4,
-            esxiHostName: 'ESXi-Host-01',
-            esxiHostMoid: 'host-123',
-          },
-        ],
-      };
+      const mockVms: VmwareVm[] = [
+        {
+          moid: 'vm-123',
+          name: 'Test VM',
+          ip: '192.168.1.10',
+          guestOs: 'Ubuntu Linux (64-bit)',
+          guestFamily: 'linuxGuest',
+          version: 'vmx-19',
+          createDate: '2023-01-01T00:00:00.000Z',
+          numCoresPerSocket: 2,
+          numCPU: 4,
+          esxiHostName: 'esxi-host-1',
+          esxiHostMoid: 'host-10',
+        },
+      ];
 
-      listVmsUseCase.execute.mockResolvedValue(mockResult);
+      listVmsUseCase.execute.mockResolvedValue(mockVms);
 
-      const result = await controller.listVMs('server-1', mockUser);
+      const result = await controller.listVMs('server-1');
 
-      expect(result).toEqual(mockResult);
-      expect(listVmsUseCase.execute).toHaveBeenCalledWith({
-        serverId: 'server-1',
-        user: mockUser,
-      });
+      expect(result).toEqual(mockVms);
+      expect(listVmsUseCase.execute).toHaveBeenCalledWith('server-1');
     });
   });
 
@@ -133,21 +119,17 @@ describe('VmwareController', () => {
 
       getVmMetricsUseCase.execute.mockResolvedValue(mockMetrics);
 
-      const result = await controller.getVMMetrics('server-1', 'vm-123', mockUser);
+      const result = await controller.getVMMetrics('server-1', 'vm-123');
 
       expect(result).toEqual(mockMetrics);
-      expect(getVmMetricsUseCase.execute).toHaveBeenCalledWith({
-        serverId: 'server-1',
-        vmName: 'vm-123',
-        user: mockUser,
-      });
+      expect(getVmMetricsUseCase.execute).toHaveBeenCalledWith('server-1', 'vm-123');
     });
   });
 
   describe('controlVMPower', () => {
     it('should control VM power state', async () => {
-      const powerActionDto: VmPowerActionDto = {
-        action: VmPowerAction.POWER_ON,
+      const dto: VmPowerActionDto = {
+        action: 'on',
       };
 
       const mockResult = {
@@ -161,30 +143,24 @@ describe('VmwareController', () => {
       const result = await controller.controlVMPower(
         'server-1',
         'vm-123',
-        powerActionDto,
-        mockUser,
+        dto,
       );
 
       expect(result).toEqual(mockResult);
-      expect(controlVmPowerUseCase.execute).toHaveBeenCalledWith({
-        serverId: 'server-1',
-        vmName: 'vm-123',
-        action: VmPowerAction.POWER_ON,
-        user: mockUser,
-      });
+      expect(controlVmPowerUseCase.execute).toHaveBeenCalledWith('server-1', 'vm-123', 'on');
     });
   });
 
   describe('migrateVM', () => {
     it('should migrate VM to another host', async () => {
-      const migrateDto: VmMigrateDto = {
+      const dto: VmMigrateDto = {
         destinationMoid: 'host-456',
       };
 
       const mockResult = {
         success: true,
-        message: 'VM migrated successfully',
-        newHost: 'host-456',
+        message: 'VM migration initiated',
+        newHost: 'esxi-host-2',
       };
 
       migrateVmUseCase.execute.mockResolvedValue(mockResult);
@@ -192,54 +168,67 @@ describe('VmwareController', () => {
       const result = await controller.migrateVM(
         'server-1',
         'vm-123',
-        migrateDto,
-        mockUser,
+        dto,
       );
 
       expect(result).toEqual(mockResult);
-      expect(migrateVmUseCase.execute).toHaveBeenCalledWith({
-        serverId: 'server-1',
-        vmName: 'vm-123',
-        targetHost: 'host-456',
-        user: mockUser,
-      });
+      expect(migrateVmUseCase.execute).toHaveBeenCalledWith('server-1', 'vm-123', 'host-456');
     });
   });
 
   describe('getHostMetrics', () => {
     it('should return host metrics', async () => {
-      const mockMetrics = {
-        host_name: 'esxi-host-1',
-        cpu_usage_percent: 45.5,
-        memory_usage_percent: 62.3,
-        memory_total_gb: 128,
-        memory_used_gb: 79.7,
-        storage_total_gb: 2048,
-        storage_used_gb: 1024,
-        vm_count: 15,
-        power_state: 'PoweredOn',
-        connection_state: 'connected',
-        uptime_days: 30,
+      const mockMetrics: VmwareHost = {
+        name: 'esxi-host-1',
+        ip: '192.168.1.100',
+        powerState: 'poweredOn',
+        vCenterIp: '192.168.1.10',
+        overallStatus: 'green',
+        cpuCores: 24,
+        ramTotal: 131072,
+        rebootRequired: false,
+        cpuUsageMHz: 12000,
+        ramUsageMB: 65536,
+        uptime: 864000,
+        boottime: '2023-01-01T00:00:00.000Z',
+        cluster: 'Production-Cluster',
+        cpuHz: 2400000000,
+        numCpuCores: 12,
+        numCpuThreads: 24,
+        model: 'ProLiant DL380 Gen10',
+        vendor: 'HPE',
+        biosVendor: 'HPE',
+        firewall: 'enabled',
+        maxHostRunningVms: 1024,
+        maxHostSupportedVcpus: 4096,
+        maxMemMBPerFtVm: 131072,
+        maxNumDisksSVMotion: 248,
+        maxRegisteredVMs: 2048,
+        maxRunningVMs: 1024,
+        maxSupportedVcpus: 4096,
+        maxSupportedVmMemory: 6128640,
+        maxVcpusPerFtVm: 8,
+        quickBootSupported: true,
+        rebootSupported: true,
+        shutdownSupported: true,
       };
 
       getHostMetricsUseCase.execute.mockResolvedValue(mockMetrics);
 
-      const result = await controller.getHostMetrics('server-1', mockUser);
+      const result = await controller.getHostMetrics('server-1');
 
       expect(result).toEqual(mockMetrics);
-      expect(getHostMetricsUseCase.execute).toHaveBeenCalledWith({
-        serverId: 'server-1',
-        user: mockUser,
-      });
+      expect(getHostMetricsUseCase.execute).toHaveBeenCalledWith('server-1');
     });
 
-    it('should handle errors when getting host metrics', async () => {
-      const error = new Error('Host not configured');
-      getHostMetricsUseCase.execute.mockRejectedValue(error);
+    it('should handle getHostMetrics errors', async () => {
+      getHostMetricsUseCase.execute.mockRejectedValue(
+        new Error('VMware connection failed'),
+      );
 
       await expect(
-        controller.getHostMetrics('server-1', mockUser),
-      ).rejects.toThrow(error);
+        controller.getHostMetrics('server-1'),
+      ).rejects.toThrow('VMware connection failed');
     });
   });
 });

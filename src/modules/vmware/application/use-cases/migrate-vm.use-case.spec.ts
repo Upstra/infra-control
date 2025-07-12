@@ -1,27 +1,27 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
-import { MigrateVmUseCase } from './migrate-vm.use-case';
-import { IVmwareService } from '../../domain/interfaces/vmware.service.interface';
-import { IServerRepository } from '../../../servers/domain/interfaces/server.repository.interface';
+import { MigrateVmUseCase, VmMigrationResult } from './migrate-vm.use-case';
+import { VmwareService } from '../../domain/services/vmware.service';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { Server } from '../../../servers/domain/entities/server.entity';
-import { User } from '../../../users/domain/entities/user.entity';
-import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
-import { createMockServer } from '@/modules/servers/__mocks__/servers.mock';
+import { Repository } from 'typeorm';
 
 describe('MigrateVmUseCase', () => {
   let useCase: MigrateVmUseCase;
-  let vmwareService: jest.Mocked<IVmwareService>;
-  let serverRepository: jest.Mocked<IServerRepository>;
+  let vmwareService: jest.Mocked<VmwareService>;
+  let serverRepository: jest.Mocked<Repository<Server>>;
 
-  const mockUser = createMockUser();
-  const mockServer = createMockServer({
+  const mockServer = {
     id: 'server-1',
-  });
+    ip: '192.168.1.100',
+    login: 'admin',
+    password: 'password',
+  } as Server;
 
-  const mockMigrationResult = {
+  const mockMigrationResult: VmMigrationResult = {
     success: true,
-    message: 'VM migration initiated successfully',
-    taskId: 'task-123',
+    message: 'VM successfully migrated',
+    newHost: 'esxi-host-2',
   };
 
   beforeEach(async () => {
@@ -29,13 +29,13 @@ describe('MigrateVmUseCase', () => {
       providers: [
         MigrateVmUseCase,
         {
-          provide: 'IVmwareService',
+          provide: VmwareService,
           useValue: {
-            migrateVm: jest.fn(),
+            migrateVM: jest.fn(),
           },
         },
         {
-          provide: 'IServerRepository',
+          provide: getRepositoryToken(Server),
           useValue: {
             findOne: jest.fn(),
           },
@@ -44,218 +44,134 @@ describe('MigrateVmUseCase', () => {
     }).compile();
 
     useCase = module.get<MigrateVmUseCase>(MigrateVmUseCase);
-    vmwareService = module.get('IVmwareService');
-    serverRepository = module.get('IServerRepository');
+    vmwareService = module.get(VmwareService);
+    serverRepository = module.get(getRepositoryToken(Server));
   });
 
-  describe('constructor', () => {
-    it('should be defined', () => {
-      expect(useCase).toBeDefined();
-    });
-
-    it('should have dependencies injected', () => {
-      expect(vmwareService).toBeDefined();
-      expect(serverRepository).toBeDefined();
-    });
+  it('should be defined', () => {
+    expect(useCase).toBeDefined();
   });
 
   describe('execute', () => {
-    const vmName = 'test-vm';
-    const targetHost = 'target-host-123';
-
-    it('should migrate VM successfully', async () => {
+    it('should successfully migrate a VM', async () => {
       serverRepository.findOne.mockResolvedValue(mockServer);
-      vmwareService.migrateVm.mockResolvedValue(mockMigrationResult);
+      vmwareService.migrateVM.mockResolvedValue(mockMigrationResult);
 
-      const result = await useCase.execute({
-        serverId: 'server-1',
-        vmName,
-        targetHost,
-        user: mockUser,
-      });
+      const result = await useCase.execute('server-1', 'vm-123', 'host-2');
 
       expect(serverRepository.findOne).toHaveBeenCalledWith({
         where: { id: 'server-1' },
       });
-      expect(vmwareService.migrateVm).toHaveBeenCalledWith(
-        mockServer,
-        vmName,
-        targetHost,
-        mockUser,
+      expect(vmwareService.migrateVM).toHaveBeenCalledWith(
+        'vm-123',
+        'host-2',
+        {
+          host: '192.168.1.100',
+          user: 'admin',
+          password: 'password',
+          port: 443,
+        }
       );
       expect(result).toEqual(mockMigrationResult);
+      expect(result.success).toBe(true);
     });
 
-    it('should throw NotFoundException when server is not found', async () => {
+    it('should throw NotFoundException if server does not exist', async () => {
       serverRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        useCase.execute({
-          serverId: 'server-1',
-          vmName,
-          targetHost,
-          user: mockUser,
-        }),
-      ).rejects.toThrow(new NotFoundException('Server not found'));
+        useCase.execute('server-1', 'vm-123', 'host-2')
+      ).rejects.toThrow(NotFoundException);
 
       expect(serverRepository.findOne).toHaveBeenCalledWith({
         where: { id: 'server-1' },
       });
-      expect(vmwareService.migrateVm).not.toHaveBeenCalled();
+      expect(vmwareService.migrateVM).not.toHaveBeenCalled();
     });
 
-    it('should handle different VM names', async () => {
-      const testVmNames = [
-        'simple-vm',
-        'vm-with-numbers-123',
-        'VM_WITH_UNDERSCORES',
-        'vm.with.dots',
-        'vm-with-very-long-name-that-might-be-common',
-      ];
+    it('should handle migration failure', async () => {
+      const failureResult: VmMigrationResult = {
+        success: false,
+        message: 'Migration failed: Insufficient resources on target host',
+        newHost: '',
+      };
 
-      for (const vmName of testVmNames) {
-        serverRepository.findOne.mockResolvedValue(mockServer);
-        vmwareService.migrateVm.mockResolvedValue(mockMigrationResult);
-
-        await useCase.execute({
-          serverId: 'server-1',
-          vmName,
-          targetHost,
-          user: mockUser,
-        });
-
-        expect(vmwareService.migrateVm).toHaveBeenCalledWith(
-          mockServer,
-          vmName,
-          targetHost,
-          mockUser,
-        );
-      }
-    });
-
-    it('should handle different target hosts', async () => {
-      const testTargetHosts = [
-        'host-1',
-        'domain-c123.host-456',
-        'esxi-host.example.com',
-        'host_with_underscores',
-      ];
-
-      for (const targetHost of testTargetHosts) {
-        serverRepository.findOne.mockResolvedValue(mockServer);
-        vmwareService.migrateVm.mockResolvedValue(mockMigrationResult);
-
-        await useCase.execute({
-          serverId: 'server-1',
-          vmName,
-          targetHost,
-          user: mockUser,
-        });
-
-        expect(vmwareService.migrateVm).toHaveBeenCalledWith(
-          mockServer,
-          vmName,
-          targetHost,
-          mockUser,
-        );
-      }
-    });
-
-    it('should propagate service errors', async () => {
-      const serviceError = new Error('Migration failed: Target host not available');
       serverRepository.findOne.mockResolvedValue(mockServer);
-      vmwareService.migrateVm.mockRejectedValue(serviceError);
+      vmwareService.migrateVM.mockResolvedValue(failureResult);
 
-      await expect(
-        useCase.execute({
-          serverId: 'server-1',
-          vmName,
-          targetHost,
-          user: mockUser,
-        }),
-      ).rejects.toThrow(serviceError);
+      const result = await useCase.execute('server-1', 'vm-123', 'host-2');
 
-      expect(serverRepository.findOne).toHaveBeenCalledWith({
-        where: { id: 'server-1' },
-      });
-      expect(vmwareService.migrateVm).toHaveBeenCalledWith(
-        mockServer,
-        vmName,
-        targetHost,
-        mockUser,
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('Migration failed');
+      expect(result.newHost).toBe('');
+    });
+
+    it('should pass correct connection parameters', async () => {
+      serverRepository.findOne.mockResolvedValue(mockServer);
+      vmwareService.migrateVM.mockResolvedValue(mockMigrationResult);
+
+      await useCase.execute('server-1', 'vm-123', 'host-2');
+
+      expect(vmwareService.migrateVM).toHaveBeenCalledWith(
+        'vm-123',
+        'host-2',
+        {
+          host: mockServer.ip,
+          user: mockServer.login,
+          password: mockServer.password,
+          port: 443,
+        }
       );
     });
 
-    it('should handle repository errors', async () => {
-      const repoError = new Error('Database connection failed');
-      serverRepository.findOne.mockRejectedValue(repoError);
+    it('should handle vmware service errors', async () => {
+      serverRepository.findOne.mockResolvedValue(mockServer);
+      vmwareService.migrateVM.mockRejectedValue(new Error('VMware API error'));
 
       await expect(
-        useCase.execute({
-          serverId: 'server-1',
-          vmName,
-          targetHost,
-          user: mockUser,
-        }),
-      ).rejects.toThrow(repoError);
-
-      expect(vmwareService.migrateVm).not.toHaveBeenCalled();
+        useCase.execute('server-1', 'vm-123', 'host-2')
+      ).rejects.toThrow('VMware API error');
     });
 
-    it('should work with different server IDs', async () => {
-      const testServerIds = ['server-1', 'server-42', 'server-999'];
+    it('should throw NotFoundException with correct message', async () => {
+      const serverId = 'non-existent';
+      serverRepository.findOne.mockResolvedValue(null);
 
-      for (const serverId of testServerIds) {
-        serverRepository.findOne.mockResolvedValue(
-          createMockServer({ id: serverId }),
-        );
-        vmwareService.migrateVm.mockResolvedValue(mockMigrationResult);
-
-        await useCase.execute({
-          serverId,
-          vmName,
-          targetHost,
-          user: mockUser,
-        });
-
-        expect(serverRepository.findOne).toHaveBeenCalledWith({
-          where: { id: serverId },
-        });
-      }
+      await expect(
+        useCase.execute(serverId, 'vm-123', 'host-2')
+      ).rejects.toThrow(`Server with ID ${serverId} not found`);
     });
 
-    it('should handle different migration results', async () => {
-      const testResults = [
-        {
-          success: true,
-          message: 'Migration completed',
-          taskId: 'task-abc',
-        },
-        {
-          success: false,
-          message: 'Migration queued',
-          taskId: 'task-xyz',
-        },
-        {
-          success: true,
-          message: 'VM already on target host',
-          taskId: null,
-        },
-      ];
+    it('should handle different VM and host MOIDs', async () => {
+      serverRepository.findOne.mockResolvedValue(mockServer);
+      vmwareService.migrateVM.mockResolvedValue(mockMigrationResult);
 
-      for (const expectedResult of testResults) {
-        serverRepository.findOne.mockResolvedValue(mockServer);
-        vmwareService.migrateVm.mockResolvedValue(expectedResult);
+      const vmMoid = 'vm-456';
+      const destinationMoid = 'host-789';
 
-        const result = await useCase.execute({
-          serverId: 'server-1',
-          vmName,
-          targetHost,
-          user: mockUser,
-        });
+      await useCase.execute('server-1', vmMoid, destinationMoid);
 
-        expect(result).toEqual(expectedResult);
-      }
+      expect(vmwareService.migrateVM).toHaveBeenCalledWith(
+        vmMoid,
+        destinationMoid,
+        expect.any(Object)
+      );
+    });
+
+    it('should handle migration with different success messages', async () => {
+      const customResult: VmMigrationResult = {
+        success: true,
+        message: 'VM migrated with warnings: Non-critical issues detected',
+        newHost: 'esxi-host-3',
+      };
+
+      serverRepository.findOne.mockResolvedValue(mockServer);
+      vmwareService.migrateVM.mockResolvedValue(customResult);
+
+      const result = await useCase.execute('server-1', 'vm-123', 'host-3');
+
+      expect(result).toEqual(customResult);
+      expect(result.message).toContain('warnings');
     });
   });
 });

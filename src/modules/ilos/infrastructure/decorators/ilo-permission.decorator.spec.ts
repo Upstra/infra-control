@@ -1,6 +1,7 @@
 import { SetMetadata } from '@nestjs/common';
 import { IloPermission } from './ilo-permission.decorator';
-import { IloPermissionType } from '../../domain/enums/ilo-permissions.enum';
+import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
+import { ILO_PERMISSION_KEY } from '../guards/ilo-permission.guard';
 
 jest.mock('@nestjs/common', () => ({
   SetMetadata: jest.fn().mockImplementation((key, value) => {
@@ -22,18 +23,17 @@ describe('IloPermission Decorator', () => {
   it('should set metadata with single permission', () => {
     const mockSetMetadata = SetMetadata as jest.Mock;
     
-    const decorator = IloPermission(IloPermissionType.VIEW_ILO_STATUS);
+    const decorator = IloPermission(PermissionBit.READ);
     
-    expect(mockSetMetadata).toHaveBeenCalledWith('iloPermission', IloPermissionType.VIEW_ILO_STATUS);
+    expect(mockSetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, { requiredBit: PermissionBit.READ });
   });
 
-  it('should set metadata with combined permissions', () => {
+  it('should set metadata with write permission', () => {
     const mockSetMetadata = SetMetadata as jest.Mock;
     
-    const combinedPermission = IloPermissionType.VIEW_ILO_STATUS | IloPermissionType.CONTROL_ILO_POWER;
-    const decorator = IloPermission(combinedPermission);
+    const decorator = IloPermission(PermissionBit.WRITE);
     
-    expect(mockSetMetadata).toHaveBeenCalledWith('iloPermission', combinedPermission);
+    expect(mockSetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, { requiredBit: PermissionBit.WRITE });
   });
 
   it('should apply the decorator to a method', () => {
@@ -42,18 +42,18 @@ describe('IloPermission Decorator', () => {
       if (!target.metadata) {
         target.metadata = {};
       }
-      target.metadata['iloPermission'] = IloPermissionType.VIEW_ILO_STATUS;
+      target.metadata[ILO_PERMISSION_KEY] = { requiredBit: PermissionBit.READ };
       return descriptor;
     });
 
     class TestController {
-      @IloPermission(IloPermissionType.VIEW_ILO_STATUS)
+      @IloPermission(PermissionBit.READ)
       testMethod() {
         return 'test';
       }
     }
 
-    expect(mockSetMetadata).toHaveBeenCalledWith('iloPermission', IloPermissionType.VIEW_ILO_STATUS);
+    expect(mockSetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, { requiredBit: PermissionBit.READ });
   });
 
   it('should apply the decorator to a class', () => {
@@ -62,17 +62,17 @@ describe('IloPermission Decorator', () => {
       if (!target.metadata) {
         target.metadata = {};
       }
-      target.metadata['iloPermission'] = IloPermissionType.CONTROL_ILO_POWER;
+      target.metadata[ILO_PERMISSION_KEY] = { requiredBit: PermissionBit.WRITE };
       return target;
     });
 
-    @IloPermission(IloPermissionType.CONTROL_ILO_POWER)
+    @IloPermission(PermissionBit.WRITE)
     class TestController {
       testMethod() {
         return 'test';
       }
     }
 
-    expect(mockSetMetadata).toHaveBeenCalledWith('iloPermission', IloPermissionType.CONTROL_ILO_POWER);
+    expect(mockSetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, { requiredBit: PermissionBit.WRITE });
   });
 });

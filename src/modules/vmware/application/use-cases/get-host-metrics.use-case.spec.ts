@@ -1,37 +1,58 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { GetHostMetricsUseCase } from './get-host-metrics.use-case';
-import { IVmwareService } from '../../domain/interfaces/vmware.service.interface';
-import { IServerRepository } from '../../../servers/domain/interfaces/server.repository.interface';
+import { VmwareService } from '../../domain/services/vmware.service';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { Server } from '../../../servers/domain/entities/server.entity';
-import { HostMetrics } from '../../domain/interfaces/host-metrics.interface';
-import { User } from '../../../users/domain/entities/user.entity';
-import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
-import { createMockServer } from '@/modules/servers/__mocks__/servers.mock';
+import { Repository } from 'typeorm';
+import { VmwareHost } from '../../domain/interfaces/vmware-vm.interface';
 
 describe('GetHostMetricsUseCase', () => {
   let useCase: GetHostMetricsUseCase;
-  let vmwareService: jest.Mocked<IVmwareService>;
-  let serverRepository: jest.Mocked<IServerRepository>;
+  let vmwareService: jest.Mocked<VmwareService>;
+  let serverRepository: jest.Mocked<Repository<Server>>;
 
-  const mockUser = createMockUser();
-  const mockServer = createMockServer({
+  const mockServer = {
     id: 'server-1',
+    ip: '192.168.1.100',
+    login: 'admin',
+    password: 'password',
     vmwareHostMoid: 'host-123',
-  });
+  } as Server;
 
-  const mockHostMetrics: HostMetrics = {
-    host_name: 'esxi-host-1',
-    cpu_usage_percent: 45.5,
-    memory_usage_percent: 62.3,
-    memory_total_gb: 128,
-    memory_used_gb: 79.7,
-    storage_total_gb: 2048,
-    storage_used_gb: 1024,
-    vm_count: 15,
-    power_state: 'PoweredOn',
-    connection_state: 'connected',
-    uptime_days: 30,
+  const mockHostMetrics: VmwareHost = {
+    name: 'esxi-host-1',
+    ip: '192.168.1.100',
+    powerState: 'poweredOn',
+    vCenterIp: '192.168.1.10',
+    overallStatus: 'green',
+    cpuCores: 24,
+    ramTotal: 131072,
+    rebootRequired: false,
+    cpuUsageMHz: 12000,
+    ramUsageMB: 65536,
+    uptime: 2592000,
+    boottime: '2025-01-01T00:00:00Z',
+    cluster: 'Production-Cluster',
+    cpuHz: 2400000000,
+    numCpuCores: 12,
+    numCpuThreads: 24,
+    model: 'ProLiant DL380 Gen10',
+    vendor: 'HPE',
+    biosVendor: 'HPE',
+    firewall: 'enabled',
+    maxHostRunningVms: 1024,
+    maxHostSupportedVcpus: 4096,
+    maxMemMBPerFtVm: 131072,
+    maxNumDisksSVMotion: 248,
+    maxRegisteredVMs: 2048,
+    maxRunningVMs: 1024,
+    maxSupportedVcpus: 4096,
+    maxSupportedVmMemory: 6128640,
+    maxVcpusPerFtVm: 8,
+    quickBootSupported: true,
+    rebootSupported: true,
+    shutdownSupported: true,
   };
 
   beforeEach(async () => {
@@ -39,13 +60,13 @@ describe('GetHostMetricsUseCase', () => {
       providers: [
         GetHostMetricsUseCase,
         {
-          provide: 'IVmwareService',
+          provide: VmwareService,
           useValue: {
             getHostMetrics: jest.fn(),
           },
         },
         {
-          provide: 'IServerRepository',
+          provide: getRepositoryToken(Server),
           useValue: {
             findOne: jest.fn(),
           },
@@ -54,51 +75,42 @@ describe('GetHostMetricsUseCase', () => {
     }).compile();
 
     useCase = module.get<GetHostMetricsUseCase>(GetHostMetricsUseCase);
-    vmwareService = module.get('IVmwareService');
-    serverRepository = module.get('IServerRepository');
+    vmwareService = module.get(VmwareService);
+    serverRepository = module.get(getRepositoryToken(Server));
   });
 
-  describe('constructor', () => {
-    it('should be defined', () => {
-      expect(useCase).toBeDefined();
-    });
-
-    it('should have dependencies injected', () => {
-      expect(vmwareService).toBeDefined();
-      expect(serverRepository).toBeDefined();
-    });
+  it('should be defined', () => {
+    expect(useCase).toBeDefined();
   });
 
   describe('execute', () => {
-    it('should return host metrics successfully', async () => {
+    it('should return host metrics for a valid server', async () => {
       serverRepository.findOne.mockResolvedValue(mockServer);
       vmwareService.getHostMetrics.mockResolvedValue(mockHostMetrics);
 
-      const result = await useCase.execute({
-        serverId: 'server-1',
-        user: mockUser,
-      });
+      const result = await useCase.execute('server-1');
 
       expect(serverRepository.findOne).toHaveBeenCalledWith({
         where: { id: 'server-1' },
       });
       expect(vmwareService.getHostMetrics).toHaveBeenCalledWith(
-        mockServer,
         'host-123',
-        mockUser,
+        {
+          host: '192.168.1.100',
+          user: 'admin',
+          password: 'password',
+          port: 443,
+        }
       );
       expect(result).toEqual(mockHostMetrics);
     });
 
-    it('should throw NotFoundException when server is not found', async () => {
+    it('should throw NotFoundException if server does not exist', async () => {
       serverRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        useCase.execute({
-          serverId: 'server-1',
-          user: mockUser,
-        }),
-      ).rejects.toThrow(new NotFoundException('Server not found'));
+        useCase.execute('server-1')
+      ).rejects.toThrow(NotFoundException);
 
       expect(serverRepository.findOne).toHaveBeenCalledWith({
         where: { id: 'server-1' },
@@ -106,98 +118,69 @@ describe('GetHostMetricsUseCase', () => {
       expect(vmwareService.getHostMetrics).not.toHaveBeenCalled();
     });
 
-    it('should throw NotFoundException when server has no vmwareHostMoid', async () => {
-      const serverWithoutMoid = { ...mockServer, vmwareHostMoid: null };
+    it('should use default host moid if vmwareHostMoid is null', async () => {
+      const serverWithoutMoid = { ...mockServer, vmwareHostMoid: null } as Server;
       serverRepository.findOne.mockResolvedValue(serverWithoutMoid);
+      vmwareService.getHostMetrics.mockResolvedValue(mockHostMetrics);
 
-      await expect(
-        useCase.execute({
-          serverId: 'server-1',
-          user: mockUser,
-        }),
-      ).rejects.toThrow(
-        new NotFoundException('Server is not configured as a VMware host'),
+      await useCase.execute('server-1');
+
+      expect(vmwareService.getHostMetrics).toHaveBeenCalledWith(
+        'host-default',
+        expect.any(Object)
       );
-
-      expect(vmwareService.getHostMetrics).not.toHaveBeenCalled();
     });
 
-    it('should throw NotFoundException when server has undefined vmwareHostMoid', async () => {
-      const serverWithUndefinedMoid = { ...mockServer, vmwareHostMoid: undefined };
-      serverRepository.findOne.mockResolvedValue(serverWithUndefinedMoid);
-
-      await expect(
-        useCase.execute({
-          serverId: 'server-1',
-          user: mockUser,
-        }),
-      ).rejects.toThrow(
-        new NotFoundException('Server is not configured as a VMware host'),
-      );
-
-      expect(vmwareService.getHostMetrics).not.toHaveBeenCalled();
-    });
-
-    it('should throw NotFoundException when server has empty string vmwareHostMoid', async () => {
-      const serverWithEmptyMoid = { ...mockServer, vmwareHostMoid: '' };
-      serverRepository.findOne.mockResolvedValue(serverWithEmptyMoid);
-
-      await expect(
-        useCase.execute({
-          serverId: 'server-1',
-          user: mockUser,
-        }),
-      ).rejects.toThrow(
-        new NotFoundException('Server is not configured as a VMware host'),
-      );
-
-      expect(vmwareService.getHostMetrics).not.toHaveBeenCalled();
-    });
-
-    it('should propagate service errors', async () => {
-      const serviceError = new Error('VMware API connection failed');
+    it('should pass correct connection parameters', async () => {
       serverRepository.findOne.mockResolvedValue(mockServer);
-      vmwareService.getHostMetrics.mockRejectedValue(serviceError);
+      vmwareService.getHostMetrics.mockResolvedValue(mockHostMetrics);
+
+      await useCase.execute('server-1');
+
+      expect(vmwareService.getHostMetrics).toHaveBeenCalledWith(
+        'host-123',
+        {
+          host: mockServer.ip,
+          user: mockServer.login,
+          password: mockServer.password,
+          port: 443,
+        }
+      );
+    });
+
+    it('should handle vmware service errors', async () => {
+      serverRepository.findOne.mockResolvedValue(mockServer);
+      vmwareService.getHostMetrics.mockRejectedValue(new Error('VMware connection failed'));
 
       await expect(
-        useCase.execute({
-          serverId: 'server-1',
-          user: mockUser,
-        }),
-      ).rejects.toThrow(serviceError);
+        useCase.execute('server-1')
+      ).rejects.toThrow('VMware connection failed');
     });
 
-    it('should handle different server IDs', async () => {
-      const testCases = ['server-1', 'server-100', 'server-999'];
+    it('should throw NotFoundException with correct message', async () => {
+      const serverId = 'non-existent';
+      serverRepository.findOne.mockResolvedValue(null);
 
-      for (const serverId of testCases) {
-        serverRepository.findOne.mockResolvedValue(createMockServer({ id: serverId, vmwareHostMoid: 'host-123' }));
-        vmwareService.getHostMetrics.mockResolvedValue(mockHostMetrics);
-
-        await useCase.execute({ serverId, user: mockUser });
-
-        expect(serverRepository.findOne).toHaveBeenCalledWith({
-          where: { id: serverId },
-        });
-      }
+      await expect(
+        useCase.execute(serverId)
+      ).rejects.toThrow(`Server with ID ${serverId} not found`);
     });
 
-    it('should handle different host MOIDs', async () => {
-      const testMoids = ['host-1', 'host-abc-123', 'domain-c123.host-456'];
+    it('should handle different host metrics values', async () => {
+      const differentMetrics: VmwareHost = {
+        ...mockHostMetrics,
+        cpuUsageMHz: 22800,
+        ramUsageMB: 111411,
+        powerState: 'standBy',
+        overallStatus: 'yellow',
+      };
 
-      for (const moid of testMoids) {
-        const serverWithMoid = { ...mockServer, vmwareHostMoid: moid };
-        serverRepository.findOne.mockResolvedValue(serverWithMoid);
-        vmwareService.getHostMetrics.mockResolvedValue(mockHostMetrics);
+      serverRepository.findOne.mockResolvedValue(mockServer);
+      vmwareService.getHostMetrics.mockResolvedValue(differentMetrics);
 
-        await useCase.execute({ serverId: 1, user: mockUser });
+      const result = await useCase.execute('server-1');
 
-        expect(vmwareService.getHostMetrics).toHaveBeenCalledWith(
-          serverWithMoid,
-          moid,
-          mockUser,
-        );
-      }
+      expect(result).toEqual(differentMetrics);
     });
   });
 });
