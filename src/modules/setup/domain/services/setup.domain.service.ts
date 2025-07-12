@@ -99,7 +99,7 @@ export class SetupDomainService {
    * @param upsCount - Number of UPS
    * @param serverCount - Number of servers
    *
-   * @returns {string | null} - Next required step: 'welcome', 'rooms',
+   * @returns {string | null} - Next required step: 'welcome', 'planning', 'rooms',
    *   'ups', 'servers', or 'relationships'. Returns `null` if setup is complete.
    */
   private determineNextStep(
@@ -110,6 +110,8 @@ export class SetupDomainService {
     hasSearchedForVms: boolean,
   ): string | null {
     if (userCount === 0) return 'welcome';
+    // After welcome, always go to planning step
+    if (roomCount === 0 && upsCount === 0 && serverCount === 0) return 'planning';
     if (roomCount === 0) return 'rooms';
     if (upsCount === 0) return 'ups';
     if (serverCount === 0) return 'servers';
