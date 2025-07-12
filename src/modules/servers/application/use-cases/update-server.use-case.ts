@@ -53,9 +53,10 @@ export class UpdateServerUseCase {
     }
 
     const updateData: Partial<Server> = {};
+    const excludedKeys = ['ilo'];
 
     Object.keys(dto).forEach((key) => {
-      if (dto[key] !== undefined) {
+      if (dto[key] !== undefined && !excludedKeys.includes(key)) {
         updateData[key] = dto[key];
       }
     });
@@ -63,9 +64,10 @@ export class UpdateServerUseCase {
     const updated = await this.serverRepository.updateServer(id, updateData);
     await this.logHistory?.execute('server', updated.id, 'UPDATE', userId);
 
-    const ilo = dto.ilo
-      ? await this.updateIloUsecase.execute(id, dto.ilo)
-      : updated.ilo;
+    const ilo =
+      dto.ilo && updated.iloId
+        ? await this.updateIloUsecase.execute({ ...dto.ilo, id: updated.iloId })
+        : updated.ilo;
     return new ServerResponseDto(updated, ilo);
   }
 }

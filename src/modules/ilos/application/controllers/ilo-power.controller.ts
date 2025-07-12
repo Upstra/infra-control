@@ -21,11 +21,13 @@ import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guar
 import { RequireResourcePermission } from '@/core/decorators/ressource-permission.decorator';
 import { ControlServerPowerUseCase } from '../use-cases/control-server-power.use-case';
 import { GetServerStatusUseCase } from '../use-cases/get-server-status.use-case';
+import { PingIloUseCase } from '../use-cases/ping-ilo.use-case';
 import { IloPowerActionDto } from '../dto/ilo-power-action.dto';
 import {
   IloPowerResponseDto,
   IloStatusResponseDto,
 } from '../dto/ilo-status.dto';
+import { PingRequestDto, PingResponseDto } from '@/core/dto/ping.dto';
 
 @ApiTags('iLO')
 @ApiBearerAuth()
@@ -35,6 +37,7 @@ export class IloPowerController {
   constructor(
     private readonly controlServerPowerUseCase: ControlServerPowerUseCase,
     private readonly getServerStatusUseCase: GetServerStatusUseCase,
+    private readonly pingIloUseCase: PingIloUseCase,
   ) {}
 
   @Post(':serverId/power')
@@ -103,5 +106,35 @@ export class IloPowerController {
     @Param('serverId') serverId: string,
   ): Promise<IloStatusResponseDto> {
     return this.getServerStatusUseCase.execute(serverId);
+  }
+
+  @Post(':serverId/ping')
+  @UseGuards(ResourcePermissionGuard)
+  @RequireResourcePermission({
+    resourceType: 'server',
+    requiredBit: PermissionBit.READ,
+    resourceIdSource: 'params',
+    resourceIdField: 'serverId',
+  })
+  @ApiOperation({
+    summary: 'Ping iLO connectivity',
+    description:
+      'Pings the iLO interface to check if it is accessible over the network. Required before checking server status or controlling power.',
+  })
+  @ApiParam({ name: 'serverId', description: 'Server ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Ping result with accessibility status and response time',
+    type: PingResponseDto,
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient permissions',
+  })
+  async pingIlo(
+    @Param('serverId') serverId: string,
+    @Body() pingDto: PingRequestDto,
+  ): Promise<PingResponseDto> {
+    return this.pingIloUseCase.execute(serverId, pingDto.timeout);
   }
 }

@@ -31,10 +31,12 @@ export class UpdateIloUseCase {
     private readonly iloDomain: IloDomainService,
   ) {}
 
-  async execute(id: string, iloDto: IloUpdateDto): Promise<IloResponseDto> {
-    const iloExists = await this.iloRepository.findIloById(id);
+  async execute(iloDto: IloUpdateDto): Promise<IloResponseDto> {
+    const iloExists = await this.iloRepository.findIloByIdWithCredentials(
+      iloDto.id,
+    );
     const entity = this.iloDomain.updateIloEntityFromDto(iloExists, iloDto);
-    const updated = await this.iloRepository.save(entity);
+    const updated = await this.iloRepository.updateIlo(entity);
     return new IloResponseDto(updated);
   }
 }
