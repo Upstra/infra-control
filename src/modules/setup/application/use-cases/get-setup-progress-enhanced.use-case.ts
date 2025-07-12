@@ -3,7 +3,7 @@ import { SetupProgressEnhancedDto, SetupStep } from '../dto';
 import { RoomRepositoryInterface } from '../../../rooms/domain/interfaces/room.repository.interface';
 import { UpsRepositoryInterface } from '../../../ups/domain/interfaces/ups.repository.interface';
 import { ServerRepositoryInterface } from '../../../servers/domain/interfaces/server.repository.interface';
-import { SetupProgressRepositoryInterface } from '../../domain/interfaces/setup-progress.repository.interface';
+import { SetupProgressRepositoryInterface } from '../../domain/interfaces/setup.repository.interface';
 
 @Injectable()
 export class GetSetupProgressEnhancedUseCase {
@@ -68,7 +68,11 @@ export class GetSetupProgressEnhancedUseCase {
       progressRecords.length > 0
         ? new Date(
             Math.max(
-              ...progressRecords.map((r) => new Date(r.completedAt).getTime()),
+              ...progressRecords.map((r) => 
+                r.completedAt instanceof Date 
+                  ? r.completedAt.getTime() 
+                  : new Date(r.completedAt).getTime()
+              ),
             ),
           )
         : new Date();

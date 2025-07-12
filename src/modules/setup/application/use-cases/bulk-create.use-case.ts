@@ -3,7 +3,7 @@ import { DataSource, QueryRunner } from 'typeorm';
 import { RoomRepositoryInterface } from '../../../rooms/domain/interfaces/room.repository.interface';
 import { UpsRepositoryInterface } from '../../../ups/domain/interfaces/ups.repository.interface';
 import { ServerRepositoryInterface } from '../../../servers/domain/interfaces/server.repository.interface';
-import { SetupService } from '../../domain/services/setup.service';
+import { CompleteSetupStepUseCase } from './complete-setup-step.use-case';
 import {
   BulkCreateRequestDto,
   BulkCreateResponseDto,
@@ -28,10 +28,10 @@ export class BulkCreateUseCase {
     private readonly roomRepository: RoomRepositoryInterface,
     private readonly upsRepository: UpsRepositoryInterface,
     private readonly serverRepository: ServerRepositoryInterface,
-    private readonly setupService: SetupService,
+    private readonly completeSetupStepUseCase: CompleteSetupStepUseCase,
   ) {}
 
-  async execute(dto: BulkCreateRequestDto): Promise<BulkCreateResponseDto> {
+  async execute(dto: BulkCreateRequestDto, userId?: string): Promise<BulkCreateResponseDto> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -97,7 +97,9 @@ export class BulkCreateUseCase {
       await queryRunner.commitTransaction();
 
       // Update setup status
-      await this.setupService.completeStep(SetupStep.REVIEW);
+      if (userId) {
+        await this.completeSetupStepUseCase.execute(SetupStep.REVIEW, userId);
+      }
 
       this.logger.log(
         `Bulk creation completed: ${created.rooms.length} rooms, ${created.upsList.length} UPS, ${created.servers.length} servers`,
@@ -116,7 +118,7 @@ export class BulkCreateUseCase {
         success: false,
         errors: [
           {
-            resource: 'unknown',
+            resource: 'room' as const,
             name: 'transaction',
             error: error.message,
           },

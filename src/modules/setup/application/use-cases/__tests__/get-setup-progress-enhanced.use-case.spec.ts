@@ -3,7 +3,7 @@ import { GetSetupProgressEnhancedUseCase } from '../get-setup-progress-enhanced.
 import { RoomRepositoryInterface } from '../../../../rooms/domain/interfaces/room.repository.interface';
 import { UpsRepositoryInterface } from '../../../../ups/domain/interfaces/ups.repository.interface';
 import { ServerRepositoryInterface } from '../../../../servers/domain/interfaces/server.repository.interface';
-import { SetupProgressRepositoryInterface } from '../../../domain/interfaces/setup-progress.repository.interface';
+import { SetupProgressRepositoryInterface } from '../../../domain/interfaces/setup.repository.interface';
 import { SetupStep } from '../../dto';
 import { SetupProgress } from '../../../domain/entities/setup-progress.entity';
 
@@ -86,12 +86,12 @@ describe('GetSetupProgressEnhancedUseCase', () => {
       const completedSteps: Partial<SetupProgress>[] = [
         {
           step: SetupStep.WELCOME,
-          completedAt: '2024-01-01',
+          completedAt: new Date('2024-01-01'),
           completedBy: 'user1',
         },
         {
           step: SetupStep.RESOURCE_PLANNING,
-          completedAt: '2024-01-02',
+          completedAt: new Date('2024-01-02'),
           completedBy: 'user1',
         },
       ];
@@ -119,42 +119,42 @@ describe('GetSetupProgressEnhancedUseCase', () => {
       const completedSteps: Partial<SetupProgress>[] = [
         {
           step: SetupStep.WELCOME,
-          completedAt: '2024-01-01',
+          completedAt: new Date('2024-01-01'),
           completedBy: 'user1',
         },
         {
           step: SetupStep.RESOURCE_PLANNING,
-          completedAt: '2024-01-02',
+          completedAt: new Date('2024-01-02'),
           completedBy: 'user1',
         },
         {
           step: SetupStep.ROOMS_CONFIG,
-          completedAt: '2024-01-03',
+          completedAt: new Date('2024-01-03'),
           completedBy: 'user1',
         },
         {
           step: SetupStep.UPS_CONFIG,
-          completedAt: '2024-01-04',
+          completedAt: new Date('2024-01-04'),
           completedBy: 'user1',
         },
         {
           step: SetupStep.SERVERS_CONFIG,
-          completedAt: '2024-01-05',
+          completedAt: new Date('2024-01-05'),
           completedBy: 'user1',
         },
         {
           step: SetupStep.RELATIONSHIPS,
-          completedAt: '2024-01-06',
+          completedAt: new Date('2024-01-06'),
           completedBy: 'user1',
         },
         {
           step: SetupStep.REVIEW,
-          completedAt: '2024-01-07',
+          completedAt: new Date('2024-01-07'),
           completedBy: 'user1',
         },
         {
           step: SetupStep.COMPLETE,
-          completedAt: '2024-01-08',
+          completedAt: new Date('2024-01-08'),
           completedBy: 'user1',
         },
       ];
@@ -177,7 +177,7 @@ describe('GetSetupProgressEnhancedUseCase', () => {
       const completedSteps: Partial<SetupProgress>[] = [
         {
           step: SetupStep.WELCOME,
-          completedAt: '2024-01-01',
+          completedAt: new Date('2024-01-01'),
           completedBy: 'user1',
         },
       ];
@@ -210,7 +210,7 @@ describe('GetSetupProgressEnhancedUseCase', () => {
       const completedSteps: Partial<SetupProgress>[] = [
         {
           step: SetupStep.REVIEW,
-          completedAt: '2024-01-01',
+          completedAt: new Date('2024-01-01'),
           completedBy: 'user1',
         },
       ];
@@ -231,12 +231,12 @@ describe('GetSetupProgressEnhancedUseCase', () => {
       const completedSteps: Partial<SetupProgress>[] = [
         {
           step: SetupStep.WELCOME,
-          completedAt: '2024-01-01',
+          completedAt: new Date('2024-01-01'),
           completedBy: 'user1',
         },
         {
           step: SetupStep.RESOURCE_PLANNING,
-          completedAt: '2024-01-02',
+          completedAt: new Date('2024-01-02'),
           completedBy: 'user1',
         },
         // Note: ROOMS_CONFIG, UPS_CONFIG, SERVERS_CONFIG are not completed
@@ -259,17 +259,17 @@ describe('GetSetupProgressEnhancedUseCase', () => {
       const completedSteps: Partial<SetupProgress>[] = [
         {
           step: SetupStep.WELCOME,
-          completedAt: '2024-01-01T10:00:00Z',
+          completedAt: new Date('2024-01-01T10:00:00Z'),
           completedBy: 'user1',
         },
         {
           step: SetupStep.RESOURCE_PLANNING,
-          completedAt: '2024-01-03T15:00:00Z',
+          completedAt: new Date('2024-01-03T15:00:00Z'),
           completedBy: 'user1',
         },
         {
           step: SetupStep.ROOMS_CONFIG,
-          completedAt: '2024-01-02T12:00:00Z',
+          completedAt: new Date('2024-01-02T12:00:00Z'),
           completedBy: 'user1',
         },
       ];

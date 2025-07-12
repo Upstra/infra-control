@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DataSource, QueryRunner } from 'typeorm';
 import { BadRequestException } from '@nestjs/common';
 import { BulkCreateUseCase } from '../bulk-create.use-case';
-import { SetupService } from '../../../domain/services/setup.service';
+import { CompleteSetupStepUseCase } from '../complete-setup-step.use-case';
 import { BulkCreateRequestDto, SetupStep } from '../../dto';
 import { Room } from '../../../../rooms/domain/entities/room.entity';
 import { Ups } from '../../../../ups/domain/entities/ups.entity';
@@ -11,7 +11,7 @@ import { Ilo } from '../../../../ilos/domain/entities/ilo.entity';
 
 describe('BulkCreateUseCase', () => {
   let useCase: BulkCreateUseCase;
-  let setupService: SetupService;
+  let completeSetupStepUseCase: CompleteSetupStepUseCase;
   let queryRunner: QueryRunner;
 
   beforeEach(async () => {
@@ -57,16 +57,16 @@ describe('BulkCreateUseCase', () => {
           },
         },
         {
-          provide: SetupService,
+          provide: CompleteSetupStepUseCase,
           useValue: {
-            completeStep: jest.fn(),
+            execute: jest.fn(),
           },
         },
       ],
     }).compile();
 
     useCase = module.get<BulkCreateUseCase>(BulkCreateUseCase);
-    setupService = module.get<SetupService>(SetupService);
+    completeSetupStepUseCase = module.get<CompleteSetupStepUseCase>(CompleteSetupStepUseCase);
   });
 
   describe('execute', () => {
@@ -130,7 +130,7 @@ describe('BulkCreateUseCase', () => {
       expect(result.idMapping.rooms['temp_room_2']).toBe('room-uuid-2');
       expect(result.idMapping.ups['temp_ups_1']).toBe('ups-uuid-1');
 
-      expect(setupService.completeStep).toHaveBeenCalledWith(SetupStep.REVIEW);
+      expect(completeSetupStepUseCase.execute).toHaveBeenCalledWith(SetupStep.REVIEW, undefined);
     });
 
     it('should create server with ILO', async () => {
@@ -182,7 +182,7 @@ describe('BulkCreateUseCase', () => {
 
       expect(queryRunner.rollbackTransaction).toHaveBeenCalled();
       expect(queryRunner.release).toHaveBeenCalled();
-      expect(setupService.completeStep).not.toHaveBeenCalled();
+      expect(completeSetupStepUseCase.execute).not.toHaveBeenCalled();
     });
 
     it('should throw error if UPS missing required IP', async () => {

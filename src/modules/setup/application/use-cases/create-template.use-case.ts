@@ -5,7 +5,7 @@ import {
   TemplateResponseDto,
   TemplateType,
 } from '../dto';
-import { CurrentUserInterface } from '../../../auth/domain/interfaces/current-user.interface';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 @Injectable()
 export class CreateTemplateUseCase {
@@ -18,7 +18,7 @@ export class CreateTemplateUseCase {
 
   async execute(
     dto: CreateTemplateRequestDto,
-    currentUser: CurrentUserInterface,
+    currentUser: JwtPayload,
   ): Promise<TemplateResponseDto> {
     const template: TemplateResponseDto = {
       id: uuidv4(),

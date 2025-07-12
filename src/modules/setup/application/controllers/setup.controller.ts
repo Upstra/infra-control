@@ -16,9 +16,10 @@ import {
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { SensitiveOperationsGuard } from '@/core/guards/sensitive-operations.guard';
 import { ApiUsageGuard } from '@/core/guards/api-usage.guard';
-import { AdminGuard } from '@/core/guards/admin.guard';
-import { CurrentUser } from '@/modules/auth/infrastructure/decorators/current-user.decorator';
-import { CurrentUserInterface } from '@/modules/auth/domain/interfaces/current-user.interface';
+import { RoleGuard } from '@/core/guards/role.guard';
+import { RequireRole } from '@/core/decorators/role.decorator';
+import { CurrentUser } from '@/core/decorators/current-user.decorator';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import {
   CompleteSetupStepUseCase,
   CompleteVmDiscoveryUseCase,
@@ -136,7 +137,8 @@ export class SetupController {
   }
 
   @Post('bulk')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Create multiple resources in bulk',
@@ -154,12 +156,14 @@ export class SetupController {
   })
   async bulkCreate(
     @Body() dto: BulkCreateRequestDto,
+    @CurrentUser() currentUser: JwtPayload,
   ): Promise<BulkCreateResponseDto> {
-    return this.bulkCreateUseCase.execute(dto);
+    return this.bulkCreateUseCase.execute(dto, currentUser.userId);
   }
 
   @Post('validate')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Validate resources before creation',
@@ -194,7 +198,8 @@ export class SetupController {
   }
 
   @Post('templates')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Create a custom template',
@@ -208,7 +213,7 @@ export class SetupController {
   })
   async createTemplate(
     @Body() dto: CreateTemplateRequestDto,
-    @CurrentUser() currentUser: CurrentUserInterface,
+    @CurrentUser() currentUser: JwtPayload,
   ): Promise<TemplateResponseDto> {
     return this.createTemplateUseCase.execute(dto, currentUser);
   }

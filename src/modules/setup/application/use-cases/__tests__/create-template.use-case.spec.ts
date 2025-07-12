@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CreateTemplateUseCase } from '../create-template.use-case';
 import { CreateTemplateRequestDto, TemplateType } from '../../dto';
-import { CurrentUserInterface } from '../../../../auth/domain/interfaces/current-user.interface';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 describe('CreateTemplateUseCase', () => {
   let useCase: CreateTemplateUseCase;
@@ -15,11 +15,19 @@ describe('CreateTemplateUseCase', () => {
   });
 
   describe('execute', () => {
-    const currentUser: CurrentUserInterface = {
+    const currentUser: JwtPayload = {
       userId: 'user-123',
       email: 'admin@example.com',
-      username: 'admin',
-      permissions: BigInt(0),
+      isTwoFactorEnabled: false,
+      role: {
+        id: 'role-123',
+        name: 'admin',
+        permissionVms: [],
+        permissionServers: [],
+        canCreateServer: true,
+        isAdmin: true,
+      },
+      isActive: true,
     };
 
     const validRequest: CreateTemplateRequestDto = {
@@ -130,7 +138,7 @@ describe('CreateTemplateUseCase', () => {
 
       expect(customTemplatesMap.size).toBe(1);
       const storedTemplate = Array.from(customTemplatesMap.values())[0];
-      expect(storedTemplate.name).toBe(validRequest.name);
+      expect((storedTemplate as any).name).toBe(validRequest.name);
     });
 
     it('should log template creation', async () => {
