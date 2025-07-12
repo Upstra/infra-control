@@ -36,9 +36,9 @@ describe('IloPowerService', () => {
     jest.clearAllMocks();
   });
 
-  describe('getServerStatus', () => {
-    it('should return ERROR status with deprecation warning', async () => {
-      const result = await service.getServerStatus(
+  describe('getServerPowerState', () => {
+    it('should return ERROR status with warning', async () => {
+      const result = await service.getServerPowerState(
         '192.168.1.100',
         mockCredentials,
       );

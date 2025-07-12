@@ -24,7 +24,7 @@ export class GetServerStatusUseCase {
       password: server.ilo.password,
     };
 
-    const status = await this.iloPowerService.getServerStatus(
+    const status = await this.iloPowerService.getServerPowerState(
       server.ilo.ip,
       credentials,
     );
