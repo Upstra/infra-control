@@ -30,6 +30,29 @@ export interface VmwareVmMetrics {
   totalStorage: number;
 }
 
+export interface VmwareServerInfo {
+  name: string;
+  vCenterIp: string;
+  cluster: string;
+  vendor: string;
+  model: string;
+  ip: string;
+  cpuCores: number;
+  cpuThreads: number;
+  cpuMHz: number;
+  ramTotal: number;
+}
+
+export interface VmwareServerMetrics {
+  powerState: 'poweredOn' | 'poweredOff' | 'standBy';
+  overallStatus: 'green' | 'yellow' | 'red' | 'gray';
+  rebootRequired: boolean;
+  cpuUsagePercent: number;
+  ramUsageMB: number;
+  uptime: number;
+  boottime: string;
+}
+
 export interface VmwareHost {
   name: string;
   ip: string;
