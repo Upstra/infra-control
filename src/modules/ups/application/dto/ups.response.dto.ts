@@ -18,15 +18,6 @@ export class UpsResponseDto {
   @IsString()
   readonly ip: string;
 
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsNumber()
-  readonly grace_period_on: number;
-
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsNumber()
-  readonly grace_period_off: number;
 
   @ApiProperty()
   @IsNotEmpty()
@@ -41,8 +32,6 @@ export class UpsResponseDto {
     this.id = ups.id;
     this.name = ups.name;
     this.ip = ups.ip;
-    this.grace_period_on = ups.grace_period_on;
-    this.grace_period_off = ups.grace_period_off;
     this.roomId = ups.roomId;
     this.serverCount = serverCount;
   }

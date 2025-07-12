@@ -12,25 +12,6 @@ export class UpsCreationDto {
   @IsString()
   readonly ip!: string;
 
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  readonly login!: string;
-
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  readonly password!: string;
-
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsNumber()
-  readonly grace_period_on!: number;
-
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsNumber()
-  readonly grace_period_off!: number;
 
   @ApiProperty()
   @IsNotEmpty()
