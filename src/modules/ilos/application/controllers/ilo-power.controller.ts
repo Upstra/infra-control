@@ -116,9 +116,10 @@ export class IloPowerController {
     resourceIdSource: 'params',
     resourceIdField: 'serverId',
   })
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Ping iLO connectivity',
-    description: 'Pings the iLO interface to check if it is accessible over the network. Required before checking server status or controlling power.'
+    description:
+      'Pings the iLO interface to check if it is accessible over the network. Required before checking server status or controlling power.',
   })
   @ApiParam({ name: 'serverId', description: 'Server ID' })
   @ApiResponse({
