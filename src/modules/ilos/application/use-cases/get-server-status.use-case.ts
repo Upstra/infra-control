@@ -47,7 +47,7 @@ export class GetServerStatusUseCase {
   }
 
   private extractStatusFromMetrics(metrics: any): IloServerStatus {
-    if (!metrics || !metrics.powerState) {
+    if (!metrics?.powerState) {
       return IloServerStatus.ERROR;
     }
 
