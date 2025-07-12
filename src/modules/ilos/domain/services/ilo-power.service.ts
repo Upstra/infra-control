@@ -16,21 +16,6 @@ export class IloPowerService {
 
   constructor(private readonly pythonExecutor: PythonExecutorService) {}
 
-  async getServerPowerState(
-    ip: string,
-    credentials: IloCredentialsDto,
-  ): Promise<IloServerStatus> {
-    // Pour obtenir le statut d'alimentation d'un serveur physique via iLO,
-    // nous devons utiliser une approche différente car server_metrics.py
-    // est pour VMware ESXi, pas pour iLO direct
-    
-    // Temporairement, on retourne ERROR car nous n'avons pas de script Python
-    // spécifique pour obtenir uniquement le statut via iLO
-    this.logger.warn(
-      'Getting power state via iLO requires implementation of a dedicated script',
-    );
-    return IloServerStatus.ERROR;
-  }
 
   async controlServerPower(
     ip: string,

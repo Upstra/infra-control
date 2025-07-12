@@ -1,13 +1,16 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Inject } from '@nestjs/common';
 import { GetServerWithIloUseCase } from '@/modules/servers/application/use-cases/get-server-with-ilo.use-case';
-import { IloPowerService } from '@/modules/ilos/domain/services/ilo-power.service';
-import { IloStatusResponseDto } from '../dto/ilo-status.dto';
+import { VmwareService } from '@/modules/vmware/domain/services/vmware.service';
+import { ConfigService } from '@nestjs/config';
+import { IloStatusResponseDto, IloServerStatus } from '../dto/ilo-status.dto';
+import { VmwareConnectionDto } from '@/modules/vmware/application/dto';
 
 @Injectable()
 export class GetServerStatusUseCase {
   constructor(
-    private readonly iloPowerService: IloPowerService,
+    private readonly vmwareService: VmwareService,
     private readonly getServerWithIloUseCase: GetServerWithIloUseCase,
+    private readonly configService: ConfigService,
   ) {}
 
   async execute(serverId: string): Promise<IloStatusResponseDto> {
@@ -19,19 +22,44 @@ export class GetServerStatusUseCase {
 
     const server = await this.getServerWithIloUseCase.execute(serverId);
 
-    const credentials = {
-      user: server.ilo.login,
-      password: server.ilo.password,
+    if (!server.vmwareHostMoid) {
+      throw new BadRequestException(
+        `Server ${serverId} does not have a VMware host moid configured`,
+      );
+    }
+
+    const vCenterConnection: VmwareConnectionDto = {
+      host: this.configService.get<string>('VCENTER_HOST') || '',
+      user: this.configService.get<string>('VCENTER_USER') || '',
+      password: this.configService.get<string>('VCENTER_PASSWORD') || '',
+      port: this.configService.get<number>('VCENTER_PORT') || 443,
     };
 
-    const status = await this.iloPowerService.getServerPowerState(
-      server.ilo.ip,
-      credentials,
+    const metrics = await this.vmwareService.getServerMetrics(
+      server.vmwareHostMoid,
+      vCenterConnection,
     );
+
+    const status = this.extractStatusFromMetrics(metrics);
 
     return {
       status,
       ip: server.ilo.ip,
     };
+  }
+
+  private extractStatusFromMetrics(metrics: any): IloServerStatus {
+    if (!metrics || !metrics.powerState) {
+      return IloServerStatus.ERROR;
+    }
+
+    const powerState = metrics.powerState.toLowerCase();
+    if (powerState === 'poweredon' || powerState === 'on') {
+      return IloServerStatus.ON;
+    } else if (powerState === 'poweredoff' || powerState === 'off') {
+      return IloServerStatus.OFF;
+    }
+
+    return IloServerStatus.ERROR;
   }
 }

@@ -1,12 +1,15 @@
 import { GetServerStatusUseCase } from '../get-server-status.use-case';
 import { IloServerStatus } from '../../dto/ilo-status.dto';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { GetServerWithIloUseCase } from '@/modules/servers/application/use-cases/get-server-with-ilo.use-case';
+import { VmwareService } from '@/modules/vmware/domain/services/vmware.service';
+import { ConfigService } from '@nestjs/config';
 
 describe('GetServerStatusUseCase', () => {
   let useCase: GetServerStatusUseCase;
-  let mockIloPowerService: any;
+  let mockVmwareService: jest.Mocked<VmwareService>;
   let mockGetServerWithIloUseCase: jest.Mocked<GetServerWithIloUseCase>;
+  let mockConfigService: jest.Mocked<ConfigService>;
 
   const mockServer = {
     id: 'server-1',
@@ -25,21 +28,36 @@ describe('GetServerStatusUseCase', () => {
     priority: 1,
     state: 'UP',
     roomId: 'room-1',
+    vmwareHostMoid: 'host-123',
   };
 
   beforeEach(() => {
-    mockIloPowerService = {
-      controlServerPower: jest.fn(),
-      getServerPowerState: jest.fn(),
-    };
+    mockVmwareService = {
+      getServerMetrics: jest.fn(),
+    } as unknown as jest.Mocked<VmwareService>;
 
     mockGetServerWithIloUseCase = {
       execute: jest.fn(),
     } as unknown as jest.Mocked<GetServerWithIloUseCase>;
 
+    mockConfigService = {
+      get: jest.fn(),
+    } as unknown as jest.Mocked<ConfigService>;
+
+    mockConfigService.get.mockImplementation((key: string) => {
+      const config: Record<string, any> = {
+        VCENTER_HOST: '192.168.1.5',
+        VCENTER_USER: 'vcenter-user',
+        VCENTER_PASSWORD: 'vcenter-pass',
+        VCENTER_PORT: 443,
+      };
+      return config[key];
+    });
+
     useCase = new GetServerStatusUseCase(
-      mockIloPowerService,
+      mockVmwareService,
       mockGetServerWithIloUseCase,
+      mockConfigService,
     );
   });
 
@@ -49,7 +67,15 @@ describe('GetServerStatusUseCase', () => {
 
   it('should get server status successfully', async () => {
     mockGetServerWithIloUseCase.execute.mockResolvedValue(mockServer as any);
-    mockIloPowerService.getServerPowerState.mockResolvedValue(IloServerStatus.ON);
+    mockVmwareService.getServerMetrics.mockResolvedValue({
+      powerState: 'poweredOn',
+      overallStatus: 'green',
+      rebootRequired: false,
+      cpuUsagePercent: 15.5,
+      ramUsageMB: 32768,
+      uptime: 86400,
+      boottime: '2023-11-01T12:00:00.000Z',
+    });
 
     const result = await useCase.execute('server-1');
 
@@ -60,18 +86,28 @@ describe('GetServerStatusUseCase', () => {
     expect(mockGetServerWithIloUseCase.execute).toHaveBeenCalledWith(
       'server-1',
     );
-    expect(mockIloPowerService.getServerPowerState).toHaveBeenCalledWith(
-      '192.168.1.100',
+    expect(mockVmwareService.getServerMetrics).toHaveBeenCalledWith(
+      'host-123',
       {
-        user: 'admin',
-        password: 'password123',
+        host: '192.168.1.5',
+        user: 'vcenter-user',
+        password: 'vcenter-pass',
+        port: 443,
       },
     );
   });
 
   it('should return OFF status', async () => {
     mockGetServerWithIloUseCase.execute.mockResolvedValue(mockServer as any);
-    mockIloPowerService.getServerPowerState.mockResolvedValue(IloServerStatus.OFF);
+    mockVmwareService.getServerMetrics.mockResolvedValue({
+      powerState: 'poweredOff',
+      overallStatus: 'green',
+      rebootRequired: false,
+      cpuUsagePercent: 0,
+      ramUsageMB: 0,
+      uptime: 0,
+      boottime: '',
+    });
 
     const result = await useCase.execute('server-1');
 
@@ -81,11 +117,9 @@ describe('GetServerStatusUseCase', () => {
     });
   });
 
-  it('should return ERROR status', async () => {
+  it('should return ERROR status when metrics are invalid', async () => {
     mockGetServerWithIloUseCase.execute.mockResolvedValue(mockServer as any);
-    mockIloPowerService.getServerPowerState.mockResolvedValue(
-      IloServerStatus.ERROR,
-    );
+    mockVmwareService.getServerMetrics.mockResolvedValue({} as any);
 
     const result = await useCase.execute('server-1');
 
@@ -107,7 +141,7 @@ describe('GetServerStatusUseCase', () => {
     expect(mockGetServerWithIloUseCase.execute).toHaveBeenCalledWith(
       'server-999',
     );
-    expect(mockIloPowerService.getServerPowerState).not.toHaveBeenCalled();
+    expect(mockVmwareService.getServerMetrics).not.toHaveBeenCalled();
   });
 
   it('should throw error when server has no iLO configured', async () => {
@@ -119,21 +153,34 @@ describe('GetServerStatusUseCase', () => {
       new NotFoundException('Server server-1 does not have an iLO configured'),
     );
 
-    expect(mockIloPowerService.getServerPowerState).not.toHaveBeenCalled();
+    expect(mockVmwareService.getServerMetrics).not.toHaveBeenCalled();
   });
 
-  it('should handle iLO service errors', async () => {
-    const error = new Error('Failed to connect to iLO');
+  it('should throw error when server has no VMware host moid configured', async () => {
+    const serverWithoutMoid = { ...mockServer, vmwareHostMoid: undefined };
+    mockGetServerWithIloUseCase.execute.mockResolvedValue(serverWithoutMoid as any);
+
+    await expect(useCase.execute('server-1')).rejects.toThrow(
+      new BadRequestException('Server server-1 does not have a VMware host moid configured'),
+    );
+
+    expect(mockVmwareService.getServerMetrics).not.toHaveBeenCalled();
+  });
+
+  it('should handle VMware service errors', async () => {
+    const error = new Error('Failed to connect to vCenter');
     mockGetServerWithIloUseCase.execute.mockResolvedValue(mockServer as any);
-    mockIloPowerService.getServerPowerState.mockRejectedValue(error);
+    mockVmwareService.getServerMetrics.mockRejectedValue(error);
 
     await expect(useCase.execute('server-1')).rejects.toThrow(error);
 
-    expect(mockIloPowerService.getServerPowerState).toHaveBeenCalledWith(
-      '192.168.1.100',
+    expect(mockVmwareService.getServerMetrics).toHaveBeenCalledWith(
+      'host-123',
       {
-        user: 'admin',
-        password: 'password123',
+        host: '192.168.1.5',
+        user: 'vcenter-user',
+        password: 'vcenter-pass',
+        port: 443,
       },
     );
   });

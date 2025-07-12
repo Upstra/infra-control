@@ -36,17 +36,6 @@ describe('IloPowerService', () => {
     jest.clearAllMocks();
   });
 
-  describe('getServerPowerState', () => {
-    it('should return ERROR status with warning', async () => {
-      const result = await service.getServerPowerState(
-        '192.168.1.100',
-        mockCredentials,
-      );
-
-      expect(result).toBe(IloServerStatus.ERROR);
-      expect(pythonExecutor.executePython).not.toHaveBeenCalled();
-    });
-  });
 
   describe('controlServerPower', () => {
     it('should start server successfully', async () => {
