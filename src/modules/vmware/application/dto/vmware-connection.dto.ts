@@ -1,7 +1,6 @@
 import { IsString, IsNumber, IsOptional, Min, Max } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { Exclude } from 'class-transformer';
 
 export class VmwareConnectionDto {
   @ApiProperty({
@@ -14,7 +13,7 @@ export class VmwareConnectionDto {
   @IsString()
   user: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Password for vCenter/ESXi authentication',
     writeOnly: true,
   })

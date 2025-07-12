@@ -19,7 +19,7 @@ export const ILO_PERMISSION_KEY = 'ilo_permission';
 @Injectable()
 export class IloPermissionGuard implements CanActivate {
   constructor(
-    private reflector: Reflector,
+    private readonly reflector: Reflector,
     private readonly getServerByIloIpUseCase: GetServerByIloIpUseCase,
     private readonly checkServerPermissionUseCase: CheckServerPermissionUseCase,
   ) {}
