@@ -27,17 +27,11 @@ export class GetServerStatusUseCase {
     }
 
     const vCenterConnection: VmwareConnectionDto = {
-      host: server.ip,
-      user: server.login,
-      password: server.password,
+      host: server.ilo.ip,
+      user: server.ilo.login,
+      password: server.ilo.password,
       port: 443,
     };
-
-    console.log('Server credentials check:', {
-      serverId: server.id,
-      hasPassword: !!server.password,
-      passwordLength: server.password?.length,
-    });
 
     const metrics = await this.vmwareService.getServerMetrics(
       server.vmwareHostMoid,
