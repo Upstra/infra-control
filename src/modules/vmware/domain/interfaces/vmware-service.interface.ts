@@ -1,5 +1,11 @@
 import { VmwareConnectionDto } from '@/modules/vmware/application/dto';
-import { VmwareVm, VmwareVmMetrics, VmwareHost } from './vmware-vm.interface';
+import {
+  VmwareVm,
+  VmwareVmMetrics,
+  VmwareHost,
+  VmwareServerInfo,
+  VmwareServerMetrics,
+} from './vmware-vm.interface';
 
 export interface IVmwareService {
   listVMs(connection: VmwareConnectionDto): Promise<VmwareVm[]>;
@@ -17,6 +23,14 @@ export interface IVmwareService {
     destinationMoid: string,
     connection: VmwareConnectionDto,
   ): Promise<{ success: boolean; message: string; newHost: string }>;
+  getServerInfo(
+    moid: string,
+    connection: VmwareConnectionDto,
+  ): Promise<VmwareServerInfo>;
+  getServerMetrics(
+    moid: string,
+    connection: VmwareConnectionDto,
+  ): Promise<VmwareServerMetrics>;
   getHostMetrics(
     moid: string,
     connection: VmwareConnectionDto,

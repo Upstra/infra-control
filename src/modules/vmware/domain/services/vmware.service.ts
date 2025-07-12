@@ -6,6 +6,8 @@ import {
   VmwareVm,
   VmwareVmMetrics,
   VmwareHost,
+  VmwareServerInfo,
+  VmwareServerMetrics,
 } from '../interfaces';
 
 @Injectable()
@@ -52,7 +54,7 @@ export class VmwareService implements IVmwareService {
     action: 'on' | 'off',
     connection: VmwareConnectionDto,
   ): Promise<{ success: boolean; message: string; newState: string }> {
-    const scriptName = action === 'on' ? 'turn_on.py' : 'turn_off.py';
+    const scriptName = action === 'on' ? 'vm_start.py' : 'vm_stop.py';
     const args = ['--moid', moid, ...this.buildConnectionArgs(connection)];
 
     try {
@@ -60,7 +62,7 @@ export class VmwareService implements IVmwareService {
       return {
         success: true,
         message:
-          result.message ??
+          result.result?.message ??
           `VM ${action === 'on' ? 'started' : 'stopped'} successfully`,
         newState: action === 'on' ? 'poweredOn' : 'poweredOff',
       };
@@ -76,26 +78,62 @@ export class VmwareService implements IVmwareService {
     connection: VmwareConnectionDto,
   ): Promise<{ success: boolean; message: string; newHost: string }> {
     const args = [
-      '--vmMoId',
+      '--vm_moid',
       vmMoid,
-      '--distMoId',
+      '--dist_moid',
       destinationMoid,
       ...this.buildConnectionArgs(connection),
     ];
 
     try {
       const result = await this.pythonExecutor.executePython(
-        'migrate_vm.py',
+        'vm_migration.py',
         args,
       );
       return {
         success: true,
-        message: result.message ?? 'VM migrated successfully',
+        message: result.result?.message ?? 'VM migrated successfully',
         newHost: result.newHost ?? destinationMoid,
       };
     } catch (error) {
       this.logger.error(`Failed to migrate VM ${vmMoid}:`, error);
       throw this.handlePythonError(error, 'Failed to migrate VM');
+    }
+  }
+
+  async getServerInfo(
+    moid: string,
+    connection: VmwareConnectionDto,
+  ): Promise<VmwareServerInfo> {
+    const args = ['--moid', moid, ...this.buildConnectionArgs(connection)];
+
+    try {
+      const result = await this.pythonExecutor.executePython(
+        'server_info.py',
+        args,
+      );
+      return this.parseServerInfo(result);
+    } catch (error) {
+      this.logger.error(`Failed to get info for server ${moid}:`, error);
+      throw this.handlePythonError(error, 'Failed to retrieve server info');
+    }
+  }
+
+  async getServerMetrics(
+    moid: string,
+    connection: VmwareConnectionDto,
+  ): Promise<VmwareServerMetrics> {
+    const args = ['--moid', moid, ...this.buildConnectionArgs(connection)];
+
+    try {
+      const result = await this.pythonExecutor.executePython(
+        'server_metrics.py',
+        args,
+      );
+      return this.parseServerMetrics(result);
+    } catch (error) {
+      this.logger.error(`Failed to get metrics for server ${moid}:`, error);
+      throw this.handlePythonError(error, 'Failed to retrieve server metrics');
     }
   }
 
@@ -173,6 +211,33 @@ export class VmwareService implements IVmwareService {
     };
   }
 
+  private parseServerInfo(result: any): VmwareServerInfo {
+    return {
+      name: result.name ?? 'Unknown',
+      vCenterIp: result.vCenterIp ?? '',
+      cluster: result.cluster ?? '',
+      vendor: result.vendor ?? 'Unknown',
+      model: result.model ?? 'Unknown',
+      ip: result.ip ?? '',
+      cpuCores: result.cpuCores ?? 0,
+      cpuThreads: result.cpuThreads ?? 0,
+      cpuMHz: result.cpuMHz ?? 0,
+      ramTotal: result.ramTotal ?? 0,
+    };
+  }
+
+  private parseServerMetrics(result: any): VmwareServerMetrics {
+    return {
+      powerState: result.powerState ?? 'poweredOff',
+      overallStatus: result.overallStatus ?? 'gray',
+      rebootRequired: result.rebootRequired ?? false,
+      cpuUsagePercent: result.cpuUsagePercent ?? 0,
+      ramUsageMB: result.ramUsageMB ?? 0,
+      uptime: result.uptime ?? 0,
+      boottime: result.boottime ?? '',
+    };
+  }
+
   private parseHostMetrics(result: any): VmwareHost {
     return {
       name: result.name,
@@ -212,16 +277,21 @@ export class VmwareService implements IVmwareService {
 
   private handlePythonError(error: any, defaultMessage: string): HttpException {
     const message = error.message ?? defaultMessage;
+    const httpCode = error.result?.httpCode ?? error.httpCode;
 
-    if (message.includes('Authentication failed') || message.includes('401')) {
+    if (httpCode === 401 || message.includes('Authentication failed')) {
       return new HttpException(
         'Invalid VMware credentials',
         HttpStatus.UNAUTHORIZED,
       );
     }
 
-    if (message.includes('not found') || message.includes('404')) {
+    if (httpCode === 404 || message.includes('not found')) {
       return new HttpException('Resource not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (httpCode === 403) {
+      return new HttpException('Action forbidden', HttpStatus.FORBIDDEN);
     }
 
     if (message.includes('timeout')) {
