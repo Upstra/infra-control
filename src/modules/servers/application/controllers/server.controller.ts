@@ -389,7 +389,7 @@ export class ServerController {
   async pingServer(
     @Param('id', ParseUUIDPipe) serverId: string,
     @Body() pingDto: PingRequestDto,
-    @CurrentUser() user: JwtPayload,
+    @CurrentUser() _user: JwtPayload,
   ): Promise<PingResponseDto> {
     return this.pingServerUseCase.execute(serverId, pingDto.timeout);
   }

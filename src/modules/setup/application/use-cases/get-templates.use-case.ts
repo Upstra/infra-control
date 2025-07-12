@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { TemplateListResponseDto, TemplateResponseDto, TemplateType } from '../dto';
+import {
+  TemplateListResponseDto,
+  TemplateResponseDto,
+  TemplateType,
+} from '../dto';
 
 @Injectable()
 export class GetTemplatesUseCase {
@@ -10,9 +14,7 @@ export class GetTemplatesUseCase {
       description: 'Basic setup for small data center with 1 room and 2 UPS',
       type: TemplateType.PREDEFINED,
       configuration: {
-        rooms: [
-          { name: 'Main Server Room' },
-        ],
+        rooms: [{ name: 'Main Server Room' }],
         upsList: [
           { name: 'UPS-Primary', roomId: 'temp_room_1', ip: '192.168.1.100' },
           { name: 'UPS-Backup', roomId: 'temp_room_1', ip: '192.168.1.101' },
@@ -53,7 +55,8 @@ export class GetTemplatesUseCase {
     {
       id: 'template-medium-dc',
       name: 'Medium Data Center',
-      description: 'Setup for medium data center with 2 rooms and redundant UPS',
+      description:
+        'Setup for medium data center with 2 rooms and redundant UPS',
       type: TemplateType.PREDEFINED,
       configuration: {
         rooms: [

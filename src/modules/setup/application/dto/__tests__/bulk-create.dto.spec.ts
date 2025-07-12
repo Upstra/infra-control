@@ -134,7 +134,7 @@ describe('BulkCreateDto', () => {
 
       const errors = await validate(dto);
       expect(errors).toBeGreaterThan(0);
-      const propertyNames = errors.map(e => e.property);
+      const propertyNames = errors.map((e) => e.property);
       expect(propertyNames).toContain('state');
       expect(propertyNames).toContain('grace_period_on');
       expect(propertyNames).toContain('grace_period_off');
@@ -150,10 +150,7 @@ describe('BulkCreateDto', () => {
   describe('BulkCreateRequestDto', () => {
     it('should validate a complete bulk create request', async () => {
       const dto = plainToInstance(BulkCreateRequestDto, {
-        rooms: [
-          { name: 'Room 1' },
-          { name: 'Room 2' },
-        ],
+        rooms: [{ name: 'Room 1' }, { name: 'Room 2' }],
         upsList: [
           { name: 'UPS-01', roomId: 'temp_room_1', ip: '192.168.1.100' },
         ],
@@ -199,7 +196,7 @@ describe('BulkCreateDto', () => {
 
       const errors = await validate(dto);
       expect(errors).toBeGreaterThan(0);
-      const propertyNames = errors.map(e => e.property);
+      const propertyNames = errors.map((e) => e.property);
       expect(propertyNames).toContain('rooms');
       expect(propertyNames).toContain('upsList');
       expect(propertyNames).toContain('servers');

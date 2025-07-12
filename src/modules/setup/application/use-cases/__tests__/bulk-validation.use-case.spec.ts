@@ -3,10 +3,8 @@ import { BulkValidationUseCase } from '../bulk-validation.use-case';
 import { RoomRepositoryInterface } from '../../../../rooms/domain/interfaces/room.repository.interface';
 import { UpsRepositoryInterface } from '../../../../ups/domain/interfaces/ups.repository.interface';
 import { ServerRepositoryInterface } from '../../../../servers/domain/interfaces/server.repository.interface';
-import { ValidationRequestDto, ValidationResponseDto } from '../../dto';
+import { ValidationRequestDto } from '../../dto';
 import { Room } from '../../../../rooms/domain/entities/room.entity';
-import { Ups } from '../../../../ups/domain/entities/ups.entity';
-import { Server } from '../../../../servers/domain/entities/server.entity';
 
 describe('BulkValidationUseCase', () => {
   let useCase: BulkValidationUseCase;
@@ -40,9 +38,15 @@ describe('BulkValidationUseCase', () => {
     }).compile();
 
     useCase = module.get<BulkValidationUseCase>(BulkValidationUseCase);
-    roomRepository = module.get<RoomRepositoryInterface>('RoomRepositoryInterface');
-    upsRepository = module.get<UpsRepositoryInterface>('UpsRepositoryInterface');
-    serverRepository = module.get<ServerRepositoryInterface>('ServerRepositoryInterface');
+    roomRepository = module.get<RoomRepositoryInterface>(
+      'RoomRepositoryInterface',
+    );
+    upsRepository = module.get<UpsRepositoryInterface>(
+      'UpsRepositoryInterface',
+    );
+    serverRepository = module.get<ServerRepositoryInterface>(
+      'ServerRepositoryInterface',
+    );
   });
 
   describe('execute', () => {
@@ -90,10 +94,7 @@ describe('BulkValidationUseCase', () => {
     it('should detect duplicate room names in batch', async () => {
       const requestWithDuplicates: ValidationRequestDto = {
         resources: {
-          rooms: [
-            { name: 'Room 1' },
-            { name: 'Room 1' },
-          ],
+          rooms: [{ name: 'Room 1' }, { name: 'Room 1' }],
           upsList: [],
           servers: [],
         },
@@ -115,7 +116,9 @@ describe('BulkValidationUseCase', () => {
 
     it('should detect existing rooms in database', async () => {
       const existingRoom = { id: 'existing-id', name: 'Room 1' } as Room;
-      jest.spyOn(roomRepository, 'findOneByField').mockResolvedValue(existingRoom);
+      jest
+        .spyOn(roomRepository, 'findOneByField')
+        .mockResolvedValue(existingRoom);
 
       const result = await useCase.execute({
         resources: {
@@ -239,7 +242,8 @@ describe('BulkValidationUseCase', () => {
       expect(result.warnings[0]).toEqual({
         resource: 'server',
         index: 0,
-        message: 'Priority value is very high (> 10), lower values have higher priority',
+        message:
+          'Priority value is very high (> 10), lower values have higher priority',
       });
     });
 
@@ -284,9 +288,7 @@ describe('BulkValidationUseCase', () => {
       const connectivityRequest: ValidationRequestDto = {
         resources: {
           rooms: [],
-          upsList: [
-            { name: 'UPS-01', ip: '192.168.1.100' },
-          ],
+          upsList: [{ name: 'UPS-01', ip: '192.168.1.100' }],
           servers: [
             {
               name: 'WEB-01',
@@ -312,8 +314,9 @@ describe('BulkValidationUseCase', () => {
       jest.spyOn(serverRepository, 'findOneByField').mockResolvedValue(null);
 
       // Mock the private pingHost method
-      const pingHostSpy = jest.spyOn(useCase as any, 'pingHost')
-        .mockResolvedValueOnce(true)  // UPS ping
+      jest
+        .spyOn(useCase as any, 'pingHost')
+        .mockResolvedValueOnce(true) // UPS ping
         .mockResolvedValueOnce(false) // Server ping
         .mockResolvedValueOnce(true); // ILO ping
 

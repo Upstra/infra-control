@@ -81,7 +81,12 @@ export class BulkCreateUseCase {
       for (const serverData of dto.servers) {
         const roomId = this.resolveId(serverData.roomId, idMapping.rooms);
         const upsId = this.resolveId(serverData.upsId, idMapping.ups);
-        const server = await this.createServer(queryRunner, serverData, roomId, upsId);
+        const server = await this.createServer(
+          queryRunner,
+          serverData,
+          roomId,
+          upsId,
+        );
         created.servers.push({
           id: server.id,
           name: server.name,
@@ -109,24 +114,29 @@ export class BulkCreateUseCase {
 
       throw new BadRequestException({
         success: false,
-        errors: [{
-          resource: 'unknown',
-          name: 'transaction',
-          error: error.message,
-        }] as BulkCreateErrorDto[],
+        errors: [
+          {
+            resource: 'unknown',
+            name: 'transaction',
+            error: error.message,
+          },
+        ] as BulkCreateErrorDto[],
       });
     } finally {
       await queryRunner.release();
     }
   }
 
-  private async createRoom(queryRunner: QueryRunner, roomData: BulkRoomDto): Promise<Room> {
+  private async createRoom(
+    queryRunner: QueryRunner,
+    roomData: BulkRoomDto,
+  ): Promise<Room> {
     const room = new Room();
     room.name = roomData.name;
-    
+
     // Note: The Room entity doesn't have location, capacity, or coolingType fields
     // These would need to be added to the Room entity if required
-    
+
     return await queryRunner.manager.save(Room, room);
   }
 
@@ -136,11 +146,15 @@ export class BulkCreateUseCase {
     roomId: string | null,
   ): Promise<Ups> {
     if (!roomId) {
-      throw new BadRequestException(`Room ID is required for UPS ${upsData.name}`);
+      throw new BadRequestException(
+        `Room ID is required for UPS ${upsData.name}`,
+      );
     }
 
     if (!upsData.ip) {
-      throw new BadRequestException(`IP address is required for UPS ${upsData.name}`);
+      throw new BadRequestException(
+        `IP address is required for UPS ${upsData.name}`,
+      );
     }
 
     const ups = new Ups();
@@ -161,7 +175,9 @@ export class BulkCreateUseCase {
     upsId: string | null,
   ): Promise<Server> {
     if (!roomId) {
-      throw new BadRequestException(`Room ID is required for server ${serverData.name}`);
+      throw new BadRequestException(
+        `Room ID is required for server ${serverData.name}`,
+      );
     }
 
     const server = new Server();
@@ -180,13 +196,18 @@ export class BulkCreateUseCase {
     server.groupId = serverData.groupId ?? undefined;
 
     // Create ILO if provided
-    if (serverData.ilo_name && serverData.ilo_ip && serverData.ilo_login && serverData.ilo_password) {
+    if (
+      serverData.ilo_name &&
+      serverData.ilo_ip &&
+      serverData.ilo_login &&
+      serverData.ilo_password
+    ) {
       const ilo = new Ilo();
       ilo.name = serverData.ilo_name;
       ilo.ip = serverData.ilo_ip;
       ilo.login = serverData.ilo_login;
       ilo.password = serverData.ilo_password;
-      
+
       const savedIlo = await queryRunner.manager.save(Ilo, ilo);
       server.ilo = savedIlo;
     }
@@ -194,7 +215,10 @@ export class BulkCreateUseCase {
     return await queryRunner.manager.save(Server, server);
   }
 
-  private resolveId(id: string | undefined, idMapping: Record<string, string>): string | null {
+  private resolveId(
+    id: string | undefined,
+    idMapping: Record<string, string>,
+  ): string | null {
     if (!id) {
       return null;
     }

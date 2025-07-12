@@ -26,13 +26,8 @@ describe('CreateTemplateUseCase', () => {
       name: 'My Custom Template',
       description: 'A custom template for testing',
       configuration: {
-        rooms: [
-          { name: 'Custom Room 1' },
-          { name: 'Custom Room 2' },
-        ],
-        upsList: [
-          { name: 'Custom UPS 1', ip: '192.168.1.200' },
-        ],
+        rooms: [{ name: 'Custom Room 1' }, { name: 'Custom Room 2' }],
+        upsList: [{ name: 'Custom UPS 1', ip: '192.168.1.200' }],
         servers: [
           {
             name: 'Custom Server 1',
@@ -112,9 +107,18 @@ describe('CreateTemplateUseCase', () => {
 
       const result = await useCase.execute(partialConfigRequest, currentUser);
 
-      expect(result.configuration.servers[0]).toHaveProperty('name', 'Server 1');
-      expect(result.configuration.servers[0]).toHaveProperty('state', 'stopped');
-      expect(result.configuration.servers[0]).toHaveProperty('type', 'physical');
+      expect(result.configuration.servers[0]).toHaveProperty(
+        'name',
+        'Server 1',
+      );
+      expect(result.configuration.servers[0]).toHaveProperty(
+        'state',
+        'stopped',
+      );
+      expect(result.configuration.servers[0]).toHaveProperty(
+        'type',
+        'physical',
+      );
     });
 
     it('should store template in memory', async () => {
@@ -123,7 +127,7 @@ describe('CreateTemplateUseCase', () => {
 
       // Access the private customTemplates map
       const customTemplatesMap = (useCase as any).customTemplates;
-      
+
       expect(customTemplatesMap.size).toBe(1);
       const storedTemplate = Array.from(customTemplatesMap.values())[0];
       expect(storedTemplate.name).toBe(validRequest.name);

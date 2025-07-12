@@ -199,7 +199,7 @@ export class UpsController {
   async pingUps(
     @Param('id', ParseUUIDPipe) upsId: string,
     @Body() pingDto: PingRequestDto,
-    @CurrentUser() user: JwtPayload,
+    @CurrentUser() _user: JwtPayload,
   ): Promise<PingResponseDto> {
     return this.pingUpsUseCase.execute(upsId, pingDto.timeout);
   }

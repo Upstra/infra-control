@@ -31,9 +31,9 @@ import {
   GetSetupProgressEnhancedUseCase,
 } from '../use-cases';
 import { CompleteVmDiscoveryDto } from '../dto/complete-vm-discovery.dto';
-import { 
-  CompleteSetupStepDto, 
-  SetupProgressDto, 
+import {
+  CompleteSetupStepDto,
+  SetupProgressDto,
   SetupStatusDto,
   BulkCreateRequestDto,
   BulkCreateResponseDto,
@@ -138,9 +138,9 @@ export class SetupController {
   @Post('bulk')
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Create multiple resources in bulk',
-    description: 'Create rooms, UPS, and servers in a single transaction'
+    description: 'Create rooms, UPS, and servers in a single transaction',
   })
   @ApiBody({ type: BulkCreateRequestDto })
   @ApiResponse({
@@ -152,16 +152,18 @@ export class SetupController {
     status: 400,
     description: 'Validation error or transaction failed',
   })
-  async bulkCreate(@Body() dto: BulkCreateRequestDto): Promise<BulkCreateResponseDto> {
+  async bulkCreate(
+    @Body() dto: BulkCreateRequestDto,
+  ): Promise<BulkCreateResponseDto> {
     return this.bulkCreateUseCase.execute(dto);
   }
 
   @Post('validate')
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Validate resources before creation',
-    description: 'Validate configuration and optionally test connectivity'
+    description: 'Validate configuration and optionally test connectivity',
   })
   @ApiBody({ type: ValidationRequestDto })
   @ApiResponse({
@@ -169,16 +171,18 @@ export class SetupController {
     description: 'Validation results',
     type: ValidationResponseDto,
   })
-  async validateResources(@Body() dto: ValidationRequestDto): Promise<ValidationResponseDto> {
+  async validateResources(
+    @Body() dto: ValidationRequestDto,
+  ): Promise<ValidationResponseDto> {
     return this.bulkValidationUseCase.execute(dto);
   }
 
   @Get('templates')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get available setup templates',
-    description: 'Retrieve predefined and custom setup templates'
+    description: 'Retrieve predefined and custom setup templates',
   })
   @ApiResponse({
     status: 200,
@@ -192,9 +196,9 @@ export class SetupController {
   @Post('templates')
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Create a custom template',
-    description: 'Save current configuration as a reusable template'
+    description: 'Save current configuration as a reusable template',
   })
   @ApiBody({ type: CreateTemplateRequestDto })
   @ApiResponse({
@@ -212,9 +216,9 @@ export class SetupController {
   @Get('progress/enhanced')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get enhanced setup progress',
-    description: 'Get detailed progress information including resource counts'
+    description: 'Get detailed progress information including resource counts',
   })
   @ApiResponse({
     status: 200,

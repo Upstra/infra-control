@@ -62,7 +62,7 @@ export class BulkValidationUseCase {
   private async validateRooms(
     rooms: any[],
     errors: ValidationErrorDto[],
-    warnings: ValidationWarningDto[],
+    _warnings: ValidationWarningDto[],
   ): Promise<void> {
     const roomNames = new Set<string>();
 
@@ -94,14 +94,13 @@ export class BulkValidationUseCase {
           message: `Room with name '${room.name}' already exists`,
         });
       }
-
     }
   }
 
   private async validateUps(
     upsList: any[],
     errors: ValidationErrorDto[],
-    warnings: ValidationWarningDto[],
+    _warnings: ValidationWarningDto[],
   ): Promise<void> {
     const upsNames = new Set<string>();
     const upsIps = new Set<string>();
@@ -147,7 +146,6 @@ export class BulkValidationUseCase {
           message: `UPS with name '${ups.name}' already exists`,
         });
       }
-
     }
   }
 
@@ -247,7 +245,8 @@ export class BulkValidationUseCase {
         warnings.push({
           resource: 'server',
           index: i,
-          message: 'Priority value is very high (> 10), lower values have higher priority',
+          message:
+            'Priority value is very high (> 10), lower values have higher priority',
         });
       }
 
@@ -263,7 +262,9 @@ export class BulkValidationUseCase {
     }
   }
 
-  private async checkConnectivity(resources: any): Promise<ConnectivityResultsDto> {
+  private async checkConnectivity(
+    resources: any,
+  ): Promise<ConnectivityResultsDto> {
     const upsResults: UpsConnectivityResultDto[] = [];
     const serverResults: ServerConnectivityResultDto[] = [];
 
@@ -305,9 +306,10 @@ export class BulkValidationUseCase {
 
   private async pingHost(ip: string): Promise<boolean> {
     try {
-      const command = process.platform === 'win32'
-        ? `ping -n 1 -w 5000 ${ip}`
-        : `ping -c 1 -W 5 ${ip}`;
+      const command =
+        process.platform === 'win32'
+          ? `ping -n 1 -w 5000 ${ip}`
+          : `ping -c 1 -W 5 ${ip}`;
 
       await execAsync(command);
       return true;

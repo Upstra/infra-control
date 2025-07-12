@@ -45,11 +45,21 @@ describe('GetSetupProgressEnhancedUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<GetSetupProgressEnhancedUseCase>(GetSetupProgressEnhancedUseCase);
-    roomRepository = module.get<RoomRepositoryInterface>('RoomRepositoryInterface');
-    upsRepository = module.get<UpsRepositoryInterface>('UpsRepositoryInterface');
-    serverRepository = module.get<ServerRepositoryInterface>('ServerRepositoryInterface');
-    setupProgressRepository = module.get<SetupProgressRepositoryInterface>('SetupProgressRepositoryInterface');
+    useCase = module.get<GetSetupProgressEnhancedUseCase>(
+      GetSetupProgressEnhancedUseCase,
+    );
+    roomRepository = module.get<RoomRepositoryInterface>(
+      'RoomRepositoryInterface',
+    );
+    upsRepository = module.get<UpsRepositoryInterface>(
+      'UpsRepositoryInterface',
+    );
+    serverRepository = module.get<ServerRepositoryInterface>(
+      'ServerRepositoryInterface',
+    );
+    setupProgressRepository = module.get<SetupProgressRepositoryInterface>(
+      'SetupProgressRepositoryInterface',
+    );
   });
 
   describe('execute', () => {
@@ -74,16 +84,29 @@ describe('GetSetupProgressEnhancedUseCase', () => {
       jest.spyOn(serverRepository, 'count').mockResolvedValue(0);
 
       const completedSteps: Partial<SetupProgress>[] = [
-        { step: SetupStep.WELCOME, completedAt: '2024-01-01', completedBy: 'user1' },
-        { step: SetupStep.RESOURCE_PLANNING, completedAt: '2024-01-02', completedBy: 'user1' },
+        {
+          step: SetupStep.WELCOME,
+          completedAt: '2024-01-01',
+          completedBy: 'user1',
+        },
+        {
+          step: SetupStep.RESOURCE_PLANNING,
+          completedAt: '2024-01-02',
+          completedBy: 'user1',
+        },
       ];
-      jest.spyOn(setupProgressRepository, 'findAll').mockResolvedValue(completedSteps as SetupProgress[]);
+      jest
+        .spyOn(setupProgressRepository, 'findAll')
+        .mockResolvedValue(completedSteps as SetupProgress[]);
 
       const result = await useCase.execute();
 
       // Progress: 2 completed out of 8 steps (0-7 indices)
       expect(result.currentStep).toBe(SetupStep.ROOMS_CONFIG);
-      expect(result.completedSteps).toEqual([SetupStep.WELCOME, SetupStep.RESOURCE_PLANNING]);
+      expect(result.completedSteps).toEqual([
+        SetupStep.WELCOME,
+        SetupStep.RESOURCE_PLANNING,
+      ]);
       expect(result.totalSteps).toBe(8);
       expect(result.percentComplete).toBe(25); // 2/8 * 100
     });
@@ -94,16 +117,50 @@ describe('GetSetupProgressEnhancedUseCase', () => {
       jest.spyOn(serverRepository, 'count').mockResolvedValue(1);
 
       const completedSteps: Partial<SetupProgress>[] = [
-        { step: SetupStep.WELCOME, completedAt: '2024-01-01', completedBy: 'user1' },
-        { step: SetupStep.RESOURCE_PLANNING, completedAt: '2024-01-02', completedBy: 'user1' },
-        { step: SetupStep.ROOMS_CONFIG, completedAt: '2024-01-03', completedBy: 'user1' },
-        { step: SetupStep.UPS_CONFIG, completedAt: '2024-01-04', completedBy: 'user1' },
-        { step: SetupStep.SERVERS_CONFIG, completedAt: '2024-01-05', completedBy: 'user1' },
-        { step: SetupStep.RELATIONSHIPS, completedAt: '2024-01-06', completedBy: 'user1' },
-        { step: SetupStep.REVIEW, completedAt: '2024-01-07', completedBy: 'user1' },
-        { step: SetupStep.COMPLETE, completedAt: '2024-01-08', completedBy: 'user1' },
+        {
+          step: SetupStep.WELCOME,
+          completedAt: '2024-01-01',
+          completedBy: 'user1',
+        },
+        {
+          step: SetupStep.RESOURCE_PLANNING,
+          completedAt: '2024-01-02',
+          completedBy: 'user1',
+        },
+        {
+          step: SetupStep.ROOMS_CONFIG,
+          completedAt: '2024-01-03',
+          completedBy: 'user1',
+        },
+        {
+          step: SetupStep.UPS_CONFIG,
+          completedAt: '2024-01-04',
+          completedBy: 'user1',
+        },
+        {
+          step: SetupStep.SERVERS_CONFIG,
+          completedAt: '2024-01-05',
+          completedBy: 'user1',
+        },
+        {
+          step: SetupStep.RELATIONSHIPS,
+          completedAt: '2024-01-06',
+          completedBy: 'user1',
+        },
+        {
+          step: SetupStep.REVIEW,
+          completedAt: '2024-01-07',
+          completedBy: 'user1',
+        },
+        {
+          step: SetupStep.COMPLETE,
+          completedAt: '2024-01-08',
+          completedBy: 'user1',
+        },
       ];
-      jest.spyOn(setupProgressRepository, 'findAll').mockResolvedValue(completedSteps as SetupProgress[]);
+      jest
+        .spyOn(setupProgressRepository, 'findAll')
+        .mockResolvedValue(completedSteps as SetupProgress[]);
 
       const result = await useCase.execute();
 
@@ -118,9 +175,15 @@ describe('GetSetupProgressEnhancedUseCase', () => {
       jest.spyOn(serverRepository, 'count').mockResolvedValue(5);
 
       const completedSteps: Partial<SetupProgress>[] = [
-        { step: SetupStep.WELCOME, completedAt: '2024-01-01', completedBy: 'user1' },
+        {
+          step: SetupStep.WELCOME,
+          completedAt: '2024-01-01',
+          completedBy: 'user1',
+        },
       ];
-      jest.spyOn(setupProgressRepository, 'findAll').mockResolvedValue(completedSteps as SetupProgress[]);
+      jest
+        .spyOn(setupProgressRepository, 'findAll')
+        .mockResolvedValue(completedSteps as SetupProgress[]);
 
       const result = await useCase.execute();
 
@@ -145,9 +208,15 @@ describe('GetSetupProgressEnhancedUseCase', () => {
       jest.spyOn(serverRepository, 'count').mockResolvedValue(5);
 
       const completedSteps: Partial<SetupProgress>[] = [
-        { step: SetupStep.REVIEW, completedAt: '2024-01-01', completedBy: 'user1' },
+        {
+          step: SetupStep.REVIEW,
+          completedAt: '2024-01-01',
+          completedBy: 'user1',
+        },
       ];
-      jest.spyOn(setupProgressRepository, 'findAll').mockResolvedValue(completedSteps as SetupProgress[]);
+      jest
+        .spyOn(setupProgressRepository, 'findAll')
+        .mockResolvedValue(completedSteps as SetupProgress[]);
 
       const result = await useCase.execute();
 
@@ -160,11 +229,21 @@ describe('GetSetupProgressEnhancedUseCase', () => {
       jest.spyOn(serverRepository, 'count').mockResolvedValue(1);
 
       const completedSteps: Partial<SetupProgress>[] = [
-        { step: SetupStep.WELCOME, completedAt: '2024-01-01', completedBy: 'user1' },
-        { step: SetupStep.RESOURCE_PLANNING, completedAt: '2024-01-02', completedBy: 'user1' },
+        {
+          step: SetupStep.WELCOME,
+          completedAt: '2024-01-01',
+          completedBy: 'user1',
+        },
+        {
+          step: SetupStep.RESOURCE_PLANNING,
+          completedAt: '2024-01-02',
+          completedBy: 'user1',
+        },
         // Note: ROOMS_CONFIG, UPS_CONFIG, SERVERS_CONFIG are not completed
       ];
-      jest.spyOn(setupProgressRepository, 'findAll').mockResolvedValue(completedSteps as SetupProgress[]);
+      jest
+        .spyOn(setupProgressRepository, 'findAll')
+        .mockResolvedValue(completedSteps as SetupProgress[]);
 
       const result = await useCase.execute();
 
@@ -178,11 +257,25 @@ describe('GetSetupProgressEnhancedUseCase', () => {
       jest.spyOn(serverRepository, 'count').mockResolvedValue(0);
 
       const completedSteps: Partial<SetupProgress>[] = [
-        { step: SetupStep.WELCOME, completedAt: '2024-01-01T10:00:00Z', completedBy: 'user1' },
-        { step: SetupStep.RESOURCE_PLANNING, completedAt: '2024-01-03T15:00:00Z', completedBy: 'user1' },
-        { step: SetupStep.ROOMS_CONFIG, completedAt: '2024-01-02T12:00:00Z', completedBy: 'user1' },
+        {
+          step: SetupStep.WELCOME,
+          completedAt: '2024-01-01T10:00:00Z',
+          completedBy: 'user1',
+        },
+        {
+          step: SetupStep.RESOURCE_PLANNING,
+          completedAt: '2024-01-03T15:00:00Z',
+          completedBy: 'user1',
+        },
+        {
+          step: SetupStep.ROOMS_CONFIG,
+          completedAt: '2024-01-02T12:00:00Z',
+          completedBy: 'user1',
+        },
       ];
-      jest.spyOn(setupProgressRepository, 'findAll').mockResolvedValue(completedSteps as SetupProgress[]);
+      jest
+        .spyOn(setupProgressRepository, 'findAll')
+        .mockResolvedValue(completedSteps as SetupProgress[]);
 
       const result = await useCase.execute();
 
@@ -200,8 +293,12 @@ describe('GetSetupProgressEnhancedUseCase', () => {
       const result = await useCase.execute();
       const afterDate = new Date();
 
-      expect(result.lastModified.getTime()).toBeGreaterThanOrEqual(beforeDate.getTime());
-      expect(result.lastModified.getTime()).toBeLessThanOrEqual(afterDate.getTime());
+      expect(result.lastModified.getTime()).toBeGreaterThanOrEqual(
+        beforeDate.getTime(),
+      );
+      expect(result.lastModified.getTime()).toBeLessThanOrEqual(
+        afterDate.getTime(),
+      );
     });
   });
 });

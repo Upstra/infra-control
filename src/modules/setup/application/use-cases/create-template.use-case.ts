@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
-import { 
-  CreateTemplateRequestDto, 
-  TemplateResponseDto, 
-  TemplateType 
+import {
+  CreateTemplateRequestDto,
+  TemplateResponseDto,
+  TemplateType,
 } from '../dto';
 import { CurrentUserInterface } from '../../../auth/domain/interfaces/current-user.interface';
 
@@ -13,7 +13,8 @@ export class CreateTemplateUseCase {
 
   // TODO: In the future, templates should be stored in the database
   // For now, we'll store them in memory for demonstration
-  private readonly customTemplates: Map<string, TemplateResponseDto> = new Map();
+  private readonly customTemplates: Map<string, TemplateResponseDto> =
+    new Map();
 
   async execute(
     dto: CreateTemplateRequestDto,

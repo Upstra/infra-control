@@ -2,9 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DataSource, QueryRunner } from 'typeorm';
 import { BadRequestException } from '@nestjs/common';
 import { BulkCreateUseCase } from '../bulk-create.use-case';
-import { RoomRepositoryInterface } from '../../../../rooms/domain/interfaces/room.repository.interface';
-import { UpsRepositoryInterface } from '../../../../ups/domain/interfaces/ups.repository.interface';
-import { ServerRepositoryInterface } from '../../../../servers/domain/interfaces/server.repository.interface';
 import { SetupService } from '../../../domain/services/setup.service';
 import { BulkCreateRequestDto, SetupStep } from '../../dto';
 import { Room } from '../../../../rooms/domain/entities/room.entity';
@@ -14,10 +11,6 @@ import { Ilo } from '../../../../ilos/domain/entities/ilo.entity';
 
 describe('BulkCreateUseCase', () => {
   let useCase: BulkCreateUseCase;
-  let dataSource: DataSource;
-  let roomRepository: RoomRepositoryInterface;
-  let upsRepository: UpsRepositoryInterface;
-  let serverRepository: ServerRepositoryInterface;
   let setupService: SetupService;
   let queryRunner: QueryRunner;
 
@@ -73,10 +66,6 @@ describe('BulkCreateUseCase', () => {
     }).compile();
 
     useCase = module.get<BulkCreateUseCase>(BulkCreateUseCase);
-    dataSource = module.get<DataSource>(DataSource);
-    roomRepository = module.get<RoomRepositoryInterface>('RoomRepositoryInterface');
-    upsRepository = module.get<UpsRepositoryInterface>('UpsRepositoryInterface');
-    serverRepository = module.get<ServerRepositoryInterface>('ServerRepositoryInterface');
     setupService = module.get<SetupService>(SetupService);
   });
 
@@ -87,7 +76,12 @@ describe('BulkCreateUseCase', () => {
         { name: 'Room 2', tempId: 'temp_room_2' },
       ],
       upsList: [
-        { name: 'UPS-01', ip: '192.168.1.100', roomId: 'temp_room_1', tempId: 'temp_ups_1' },
+        {
+          name: 'UPS-01',
+          ip: '192.168.1.100',
+          roomId: 'temp_room_1',
+          tempId: 'temp_ups_1',
+        },
       ],
       servers: [
         {
@@ -113,7 +107,8 @@ describe('BulkCreateUseCase', () => {
       const mockUps = { id: 'ups-uuid-1', name: 'UPS-01' } as Ups;
       const mockServer = { id: 'server-uuid-1', name: 'WEB-01' } as Server;
 
-      queryRunner.manager.save = jest.fn()
+      queryRunner.manager.save = jest
+        .fn()
         .mockResolvedValueOnce(mockRoom1)
         .mockResolvedValueOnce(mockRoom2)
         .mockResolvedValueOnce(mockUps)
@@ -155,9 +150,14 @@ describe('BulkCreateUseCase', () => {
 
       const mockRoom = { id: 'room-uuid-1', name: 'Room 1' } as Room;
       const mockIlo = { id: 'ilo-uuid-1', name: 'ILO-WEB-01' } as Ilo;
-      const mockServer = { id: 'server-uuid-1', name: 'WEB-01', ilo: mockIlo } as Server;
+      const mockServer = {
+        id: 'server-uuid-1',
+        name: 'WEB-01',
+        ilo: mockIlo,
+      } as Server;
 
-      queryRunner.manager.save = jest.fn()
+      queryRunner.manager.save = jest
+        .fn()
         .mockResolvedValueOnce(mockRoom)
         .mockResolvedValueOnce(mockIlo)
         .mockResolvedValueOnce(mockServer);
@@ -165,14 +165,20 @@ describe('BulkCreateUseCase', () => {
       const result = await useCase.execute(requestWithIlo);
 
       expect(result.success).toBe(true);
-      expect(queryRunner.manager.save).toHaveBeenCalledWith(Ilo, expect.any(Ilo));
+      expect(queryRunner.manager.save).toHaveBeenCalledWith(
+        Ilo,
+        expect.any(Ilo),
+      );
     });
 
     it('should rollback transaction on error', async () => {
-      queryRunner.manager.save = jest.fn()
+      queryRunner.manager.save = jest
+        .fn()
         .mockRejectedValueOnce(new Error('Database error'));
 
-      await expect(useCase.execute(validRequest)).rejects.toThrow(BadRequestException);
+      await expect(useCase.execute(validRequest)).rejects.toThrow(
+        BadRequestException,
+      );
 
       expect(queryRunner.rollbackTransaction).toHaveBeenCalled();
       expect(queryRunner.release).toHaveBeenCalled();
@@ -189,8 +195,12 @@ describe('BulkCreateUseCase', () => {
       const mockRoom = { id: 'room-uuid-1', name: 'Room 1' } as Room;
       queryRunner.manager.save = jest.fn().mockResolvedValueOnce(mockRoom);
 
-      await expect(useCase.execute(invalidRequest)).rejects.toThrow(BadRequestException);
-      await expect(useCase.execute(invalidRequest)).rejects.toThrow('IP address is required for UPS UPS-01');
+      await expect(useCase.execute(invalidRequest)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(useCase.execute(invalidRequest)).rejects.toThrow(
+        'IP address is required for UPS UPS-01',
+      );
     });
 
     it('should throw error if server missing room ID', async () => {
@@ -213,8 +223,12 @@ describe('BulkCreateUseCase', () => {
         ],
       };
 
-      await expect(useCase.execute(invalidRequest)).rejects.toThrow(BadRequestException);
-      await expect(useCase.execute(invalidRequest)).rejects.toThrow('Room ID is required for server WEB-01');
+      await expect(useCase.execute(invalidRequest)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(useCase.execute(invalidRequest)).rejects.toThrow(
+        'Room ID is required for server WEB-01',
+      );
     });
 
     it('should handle empty resource arrays', async () => {
@@ -237,7 +251,8 @@ describe('BulkCreateUseCase', () => {
       const mockUps = { id: 'ups-uuid-1', name: 'UPS-01' } as Ups;
       const mockServer = { id: 'server-uuid-1', name: 'WEB-01' } as Server;
 
-      queryRunner.manager.save = jest.fn()
+      queryRunner.manager.save = jest
+        .fn()
         .mockResolvedValueOnce(mockRoom)
         .mockResolvedValueOnce(mockUps)
         .mockResolvedValueOnce(mockServer);

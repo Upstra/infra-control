@@ -44,24 +44,34 @@ export class GetSetupProgressEnhancedUseCase {
     const completedSteps = progressRecords.map((record) => record.step);
 
     // Determine current step
-    const currentStep = this.determineCurrentStep(completedSteps, resourceCounts);
+    const currentStep = this.determineCurrentStep(
+      completedSteps,
+      resourceCounts,
+    );
 
     // Calculate progress
     const totalSteps = this.orderedSteps.length;
     const currentStepIndex = this.orderedSteps.indexOf(currentStep);
-    const percentComplete = Math.round((currentStepIndex / (totalSteps - 1)) * 100);
+    const percentComplete = Math.round(
+      (currentStepIndex / (totalSteps - 1)) * 100,
+    );
 
     // Check if can skip to review
-    const canSkipToReview = 
-      resourceCounts.rooms > 0 && 
-      resourceCounts.ups > 0 && 
+    const canSkipToReview =
+      resourceCounts.rooms > 0 &&
+      resourceCounts.ups > 0 &&
       resourceCounts.servers > 0 &&
       !completedSteps.includes(SetupStep.REVIEW);
 
     // Get last modified date
-    const lastModified = progressRecords.length > 0
-      ? new Date(Math.max(...progressRecords.map((r) => new Date(r.completedAt).getTime())))
-      : new Date();
+    const lastModified =
+      progressRecords.length > 0
+        ? new Date(
+            Math.max(
+              ...progressRecords.map((r) => new Date(r.completedAt).getTime()),
+            ),
+          )
+        : new Date();
 
     const isCompleted = completedSteps.includes(SetupStep.COMPLETE);
 
