@@ -350,7 +350,7 @@ describe('VmwareService', () => {
     });
 
     it('should handle error with new JSON format', async () => {
-      const error = new Error('Action forbidden');
+      const error: any = new Error('Action forbidden');
       error.result = { httpCode: 403, message: 'VM is locked' };
       pythonExecutor.executePython.mockRejectedValue(error);
 
