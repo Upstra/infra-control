@@ -116,10 +116,16 @@ export class AuthController {
       'Renvoie un nouvel access token à partir du refresh token (dans cookie httpOnly)',
   })
   @ApiResponse({ status: 200, type: LoginResponseDto })
-  refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const refreshToken = req.cookies['refreshToken'];
+    if (!refreshToken) {
+      throw new Error('Refresh token not found');
+    }
     const { accessToken, refreshToken: newRefreshToken } =
-      this.renewTokenUseCase.execute(refreshToken);
+      await this.renewTokenUseCase.execute(refreshToken);
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -157,8 +163,8 @@ export class AuthController {
     status: 429,
     description: 'Trop de tentatives. Veuillez réessayer plus tard.',
   })
-  forgotPassword(@Body() dto: ForgotPasswordDto) {
-    return this.forgotPasswordUseCase.execute(dto.email);
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return await this.forgotPasswordUseCase.execute(dto.email);
   }
 
   @Post('reset-password')
@@ -181,8 +187,8 @@ export class AuthController {
     status: 401,
     description: 'Token invalide ou expiré',
   })
-  resetPasswordWithToken(@Body() dto: ResetPasswordWithTokenDto) {
-    return this.resetPasswordWithTokenUseCase.execute(
+  async resetPasswordWithToken(@Body() dto: ResetPasswordWithTokenDto) {
+    return await this.resetPasswordWithTokenUseCase.execute(
       dto.token,
       dto.newPassword,
     );

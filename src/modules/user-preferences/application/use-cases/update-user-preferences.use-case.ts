@@ -30,14 +30,13 @@ export class UpdateUserPreferencesUseCase {
   private async getOrCreatePreferences(
     userId: string,
   ): Promise<UserPreference> {
-    let preferences =
-      await this.userPreferencesRepository.findByUserId(userId);
-    
+    let preferences = await this.userPreferencesRepository.findByUserId(userId);
+
     if (!preferences) {
       preferences = UserPreference.createDefault(userId);
       preferences = await this.userPreferencesRepository.create(preferences);
     }
-    
+
     return preferences;
   }
 

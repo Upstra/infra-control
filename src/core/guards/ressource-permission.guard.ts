@@ -50,6 +50,14 @@ export class ResourcePermissionGuard implements CanActivate {
       relations: ['roles'],
     });
 
+    if (!fullUser) {
+      throw new ForbiddenException('User not found');
+    }
+
+    if (!fullUser.roles || !Array.isArray(fullUser.roles)) {
+      throw new ForbiddenException('User roles not properly configured');
+    }
+
     const isAdmin = fullUser.roles.some((role) => role.isAdmin);
 
     if (isAdmin) {

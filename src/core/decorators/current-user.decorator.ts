@@ -4,6 +4,10 @@ export const CurrentUser = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();
 
+    if (!request) {
+      throw new Error('Request object not found');
+    }
+
     return request.user;
   },
 );

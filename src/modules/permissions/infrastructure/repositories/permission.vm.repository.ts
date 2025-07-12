@@ -27,7 +27,11 @@ export class PermissionVmRepository
     }
     try {
       return await this.find({ where: { [field]: value } as any, relations });
-    } catch {
+    } catch (error) {
+      this.logger.error(
+        `Failed to find VM permissions by ${String(field)}=${value}`,
+        error.stack,
+      );
       if (disableThrow) return [];
       throw new PermissionNotFoundException('vm', JSON.stringify(value));
     }
@@ -51,7 +55,11 @@ export class PermissionVmRepository
         where: { [field]: value } as any,
         relations,
       });
-    } catch {
+    } catch (error) {
+      this.logger.error(
+        `Failed to find VM permission by ${String(field)}=${value}`,
+        error.stack,
+      );
       if (disableThrow) return null;
       throw new PermissionNotFoundException('vm', JSON.stringify(value));
     }
@@ -101,7 +109,9 @@ export class PermissionVmRepository
 
   async deleteById(id: string): Promise<void> {
     const result = await this.delete({ id });
-    this.logger.log(`Deleted permission with id ${id}, result: ${JSON.stringify(result)}`);
+    this.logger.log(
+      `Deleted permission with id ${id}, result: ${JSON.stringify(result)}`,
+    );
   }
 
   async deleteByRoleId(roleId: string): Promise<void> {

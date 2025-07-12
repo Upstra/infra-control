@@ -52,9 +52,9 @@ describe('UserGateway', () => {
     });
   });
 
-  it('should call markOnline on connection and emit event', () => {
+  it('should call markOnline on connection and emit event', async () => {
     jwtService.verify.mockReturnValue({ userId: '123' });
-    gateway.handleConnection(mockSocket('token123') as Socket);
+    await gateway.handleConnection(mockSocket('token123') as Socket);
 
     expect(presenceService.markOnline).toHaveBeenCalledWith('123');
     expect(mockServerEmit).toHaveBeenCalledWith('presence:update', {
@@ -63,9 +63,9 @@ describe('UserGateway', () => {
     });
   });
 
-  it('should call markOffline on disconnect and emit event', () => {
+  it('should call markOffline on disconnect and emit event', async () => {
     jwtService.verify.mockReturnValue({ userId: '123' });
-    gateway.handleDisconnect(mockSocket('token123') as Socket);
+    await gateway.handleDisconnect(mockSocket('token123') as Socket);
 
     expect(presenceService.markOffline).toHaveBeenCalledWith('123');
     expect(mockServerEmit).toHaveBeenCalledWith('presence:update', {
@@ -74,9 +74,9 @@ describe('UserGateway', () => {
     });
   });
 
-  it('should call refreshTTL on ping', () => {
+  it('should call refreshTTL on ping', async () => {
     jwtService.verify.mockReturnValue({ userId: '123' });
-    gateway.handlePing(mockSocket('token123') as Socket);
+    await gateway.handlePing(mockSocket('token123') as Socket);
     expect(presenceService.refreshTTL).toHaveBeenCalledWith('123');
   });
 
@@ -130,35 +130,37 @@ describe('UserGateway', () => {
     expect(result).toEqual({ u1: true, u2: false });
   });
 
-  it('rethrows unknown error on connection', () => {
+  it('rethrows unknown error on connection', async () => {
     const err = new Error('oops');
     jwtService.verify.mockReturnValue({ userId: 'u1' });
     presenceService.markOnline.mockImplementation(() => {
       throw err;
     });
-    expect(() => gateway.handleConnection(mockSocket('t') as Socket)).toThrow(
-      err,
-    );
+    await expect(
+      gateway.handleConnection(mockSocket('t') as Socket),
+    ).rejects.toThrow(err);
   });
 
-  it('rethrows unknown error on disconnect', () => {
+  it('rethrows unknown error on disconnect', async () => {
     const err = new Error('oops');
     jwtService.verify.mockReturnValue({ userId: 'u1' });
     presenceService.markOffline.mockImplementation(() => {
       throw err;
     });
-    expect(() => gateway.handleDisconnect(mockSocket('t') as Socket)).toThrow(
-      err,
-    );
+    await expect(
+      gateway.handleDisconnect(mockSocket('t') as Socket),
+    ).rejects.toThrow(err);
   });
 
-  it('rethrows unknown error on ping', () => {
+  it('rethrows unknown error on ping', async () => {
     const err = new Error('oops');
     jwtService.verify.mockReturnValue({ userId: 'u1' });
     presenceService.refreshTTL.mockImplementation(() => {
       throw err;
     });
-    expect(() => gateway.handlePing(mockSocket('t') as Socket)).toThrow(err);
+    await expect(gateway.handlePing(mockSocket('t') as Socket)).rejects.toThrow(
+      err,
+    );
   });
 
   it('should throw JwtNotValid if token is missing', () => {

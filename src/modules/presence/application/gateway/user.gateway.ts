@@ -18,10 +18,10 @@ export class UserGateway {
     private readonly presenceService: PresenceService,
     private readonly jwtService: JwtService,
   ) {}
-  handleConnection(client: Socket) {
+  async handleConnection(client: Socket) {
     try {
       const userId = this.extractUserIdFromToken(client.handshake);
-      this.presenceService.markOnline(userId);
+      await this.presenceService.markOnline(userId);
       this.server.emit('presence:update', { userId, online: true });
     } catch (error) {
       if (error instanceof JwtNotValid) {
@@ -32,10 +32,10 @@ export class UserGateway {
     }
   }
 
-  handleDisconnect(client: Socket) {
+  async handleDisconnect(client: Socket) {
     try {
       const userId = this.extractUserIdFromToken(client.handshake);
-      this.presenceService.markOffline(userId);
+      await this.presenceService.markOffline(userId);
       this.server.emit('presence:update', { userId, online: false });
     } catch (error) {
       if (error instanceof JwtNotValid) {
@@ -47,10 +47,10 @@ export class UserGateway {
   }
 
   @SubscribeMessage('user:ping')
-  handlePing(@ConnectedSocket() client: Socket) {
+  async handlePing(@ConnectedSocket() client: Socket) {
     try {
       const userId = this.extractUserIdFromToken(client.handshake);
-      this.presenceService.refreshTTL(userId);
+      await this.presenceService.refreshTTL(userId);
     } catch (error) {
       if (error instanceof JwtNotValid) {
         this.handleInvalidToken(client);
@@ -72,11 +72,23 @@ export class UserGateway {
   async handleBulkStatusRequest(
     @MessageBody() userIds: string[],
   ): Promise<Record<string, boolean>> {
+    if (!Array.isArray(userIds)) {
+      throw new Error('userIds must be an array');
+    }
+
     const results: Record<string, boolean> = {};
 
-    for (const userId of userIds) {
-      results[userId] = await this.presenceService.isOnline(userId);
-    }
+    // Use Promise.all for better performance instead of sequential awaits
+    const statusPromises = userIds.map(async (userId) => {
+      const isOnline = await this.presenceService.isOnline(userId);
+      return { userId, isOnline };
+    });
+
+    const statusResults = await Promise.all(statusPromises);
+
+    statusResults.forEach(({ userId, isOnline }) => {
+      results[userId] = isOnline;
+    });
 
     return results;
   }

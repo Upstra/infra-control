@@ -123,9 +123,7 @@ describe('ExportSettingsUseCase', () => {
       expect(exportedDate.getTime()).toBeGreaterThanOrEqual(
         beforeExport.getTime(),
       );
-      expect(exportedDate.getTime()).toBeLessThanOrEqual(
-        afterExport.getTime(),
-      );
+      expect(exportedDate.getTime()).toBeLessThanOrEqual(afterExport.getTime());
     });
 
     it('should handle service errors', async () => {

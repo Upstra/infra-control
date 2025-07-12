@@ -52,7 +52,10 @@ async function bootstrap() {
   app.use(cookieParser());
   app.useGlobalPipes(setupValidationPipe());
   const corsOptions: CorsOptions = {
-    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       const allowedOrigins = [
         process.env.FRONTEND_URL ?? 'http://localhost',
         'http://localhost',
