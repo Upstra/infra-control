@@ -176,12 +176,13 @@ export class UpsController {
   @ApiParam({
     name: 'id',
     type: String,
-    description: 'UUID de l'UPS à ping',
+    description: `UUID de l'UPS à ping`,
     required: true,
   })
   @ApiOperation({
     summary: 'Ping UPS connectivity',
-    description: 'Pings the UPS device to check if it is accessible over the network. Required before checking UPS status.',
+    description:
+      'Pings the UPS device to check if it is accessible over the network. Required before checking UPS status.',
   })
   @ApiBody({
     type: PingRequestDto,

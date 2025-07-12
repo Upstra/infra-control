@@ -11,7 +11,9 @@ import {
   UpdateServerPriorityUseCase,
   CheckServerPermissionUseCase,
 } from '@/modules/servers/application/use-cases';
+import { PingServerUseCase } from '@/modules/servers/application/use-cases/ping-server.use-case';
 import { createMockServerDto } from '@/modules/servers/__mocks__/servers.mock';
+import { PingRequestDto } from '@/core/dto/ping.dto';
 
 import { PermissionGuard } from '@/core/guards/permission.guard';
 import { RoleGuard } from '@/core/guards/role.guard';
@@ -33,6 +35,7 @@ describe('ServerController', () => {
   let getServerByIdWithPermissionCheckUseCase: jest.Mocked<GetServerByIdWithPermissionCheckUseCase>;
   let updateServerPriorityUseCase: jest.Mocked<UpdateServerPriorityUseCase>;
   let checkServerPermissionUseCase: jest.Mocked<CheckServerPermissionUseCase>;
+  let pingServerUseCase: jest.Mocked<PingServerUseCase>;
 
   const mockPayload = createMockJwtPayload();
 
@@ -69,6 +72,7 @@ describe('ServerController', () => {
     getServerByIdWithPermissionCheckUseCase = { execute: jest.fn() } as any;
     updateServerPriorityUseCase = { execute: jest.fn() } as any;
     checkServerPermissionUseCase = { execute: jest.fn() } as any;
+    pingServerUseCase = { execute: jest.fn() } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ServerController],
@@ -90,6 +94,10 @@ describe('ServerController', () => {
         {
           provide: CheckServerPermissionUseCase,
           useValue: checkServerPermissionUseCase,
+        },
+        {
+          provide: PingServerUseCase,
+          useValue: pingServerUseCase,
         },
         {
           provide: GetUserWithRoleUseCase,
@@ -405,6 +413,69 @@ describe('ServerController', () => {
       await expect(
         controller.checkPermission(dto, mockPayload),
       ).rejects.toThrow('Server not found');
+    });
+  });
+
+  describe('pingServer', () => {
+    it('should ping server successfully', async () => {
+      const serverId = 'server-123';
+      const pingDto: PingRequestDto = {
+        host: '192.168.1.10',
+        timeout: 5000,
+      };
+      const user = createMockJwtPayload({ userId: 'user-123' });
+      const expectedResult = {
+        accessible: true,
+        host: '192.168.1.10',
+        responseTime: 25,
+      };
+
+      pingServerUseCase.execute.mockResolvedValue(expectedResult);
+
+      const result = await controller.pingServer(serverId, pingDto, user);
+
+      expect(pingServerUseCase.execute).toHaveBeenCalledWith(serverId, pingDto.host, pingDto.timeout);
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should ping server with default timeout', async () => {
+      const serverId = 'server-123';
+      const pingDto: PingRequestDto = {
+        host: '192.168.1.10',
+      };
+      const user = createMockJwtPayload({ userId: 'user-123' });
+      const expectedResult = {
+        accessible: true,
+        host: '192.168.1.10',
+        responseTime: 15,
+      };
+
+      pingServerUseCase.execute.mockResolvedValue(expectedResult);
+
+      const result = await controller.pingServer(serverId, pingDto, user);
+
+      expect(pingServerUseCase.execute).toHaveBeenCalledWith(serverId, pingDto.host, undefined);
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should handle ping failure', async () => {
+      const serverId = 'server-123';
+      const pingDto: PingRequestDto = {
+        host: 'unreachable-host',
+      };
+      const user = createMockJwtPayload({ userId: 'user-123' });
+      const expectedResult = {
+        accessible: false,
+        host: 'unreachable-host',
+        error: 'Host unreachable',
+      };
+
+      pingServerUseCase.execute.mockResolvedValue(expectedResult);
+
+      const result = await controller.pingServer(serverId, pingDto, user);
+
+      expect(pingServerUseCase.execute).toHaveBeenCalledWith(serverId, pingDto.host, undefined);
+      expect(result).toEqual(expectedResult);
     });
   });
 });

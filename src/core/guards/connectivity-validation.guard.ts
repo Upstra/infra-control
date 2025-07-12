@@ -11,7 +11,9 @@ export interface ConnectivityRequirement {
 
 export const CONNECTIVITY_KEY = 'connectivity';
 export const RequireConnectivity = (requirement: ConnectivityRequirement) => 
-  Reflect.defineMetadata(CONNECTIVITY_KEY, requirement, ConnectivityRequirement);
+  (target: any, _propertyKey?: string, descriptor?: PropertyDescriptor) => {
+    Reflect.defineMetadata(CONNECTIVITY_KEY, requirement, descriptor?.value ?? target);
+  };
 
 @Injectable()
 export class ConnectivityValidationGuard implements CanActivate {
