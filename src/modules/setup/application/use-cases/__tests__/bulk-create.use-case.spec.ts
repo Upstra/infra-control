@@ -145,6 +145,7 @@ describe('BulkCreateUseCase', () => {
         servers: [
           {
             ...validRequest.servers[0],
+            upsId: undefined, // No UPS reference
             ilo_name: 'ILO-WEB-01',
             ilo_ip: '192.168.1.11',
             ilo_login: 'admin',

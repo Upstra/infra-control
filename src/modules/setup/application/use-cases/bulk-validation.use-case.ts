@@ -32,16 +32,12 @@ export class BulkValidationUseCase {
     const warnings: ValidationWarningDto[] = [];
     let connectivityResults: ConnectivityResultsDto | undefined;
 
-    // Validate rooms
     await this.validateRooms(dto.resources.rooms, errors, warnings);
 
-    // Validate UPS
     await this.validateUps(dto.resources.upsList, errors, warnings);
 
-    // Validate servers
     await this.validateServers(dto.resources.servers, errors, warnings);
 
-    // Check connectivity if requested
     if (dto.checkConnectivity) {
       connectivityResults = await this.checkConnectivity(dto.resources);
     }
@@ -70,7 +66,6 @@ export class BulkValidationUseCase {
     for (let i = 0; i < rooms.length; i++) {
       const room = rooms[i];
 
-      // Check for duplicate names in the batch
       if (roomNames.has(room.name)) {
         errors.push({
           resource: 'room',
@@ -81,10 +76,10 @@ export class BulkValidationUseCase {
       }
       roomNames.add(room.name);
 
-      // Check if room already exists in database
       const existingRoom = await this.roomRepository.findOneByField({
         field: 'name',
         value: room.name,
+        disableThrow: true,
       });
 
       if (existingRoom) {
@@ -109,7 +104,6 @@ export class BulkValidationUseCase {
     for (let i = 0; i < upsList.length; i++) {
       const ups = upsList[i];
 
-      // Check for duplicate names in the batch
       if (upsNames.has(ups.name)) {
         errors.push({
           resource: 'ups',
@@ -120,7 +114,6 @@ export class BulkValidationUseCase {
       }
       upsNames.add(ups.name);
 
-      // Check for duplicate IPs in the batch
       if (ups.ip && upsIps.has(ups.ip)) {
         errors.push({
           resource: 'ups',
@@ -133,10 +126,10 @@ export class BulkValidationUseCase {
         upsIps.add(ups.ip);
       }
 
-      // Check if UPS already exists in database
       const existingUps = await this.upsRepository.findOneByField({
         field: 'name',
         value: ups.name,
+        disableThrow: true,
       });
 
       if (existingUps) {
@@ -162,7 +155,6 @@ export class BulkValidationUseCase {
     for (let i = 0; i < servers.length; i++) {
       const server = servers[i];
 
-      // Check for duplicate names in the batch
       if (serverNames.has(server.name)) {
         errors.push({
           resource: 'server',
@@ -173,7 +165,6 @@ export class BulkValidationUseCase {
       }
       serverNames.add(server.name);
 
-      // Check for duplicate IPs in the batch
       if (serverIps.has(server.ip)) {
         errors.push({
           resource: 'server',
@@ -184,7 +175,6 @@ export class BulkValidationUseCase {
       }
       serverIps.add(server.ip);
 
-      // Check for duplicate ILO IPs in the batch
       if (server.ilo_ip && iloIps.has(server.ilo_ip)) {
         errors.push({
           resource: 'server',
@@ -197,10 +187,10 @@ export class BulkValidationUseCase {
         iloIps.add(server.ilo_ip);
       }
 
-      // Check if server already exists in database
       const existingServer = await this.serverRepository.findOneByField({
         field: 'name',
         value: server.name,
+        disableThrow: true,
       });
 
       if (existingServer) {
@@ -212,7 +202,6 @@ export class BulkValidationUseCase {
         });
       }
 
-      // Validate grace periods
       if (server.grace_period_on < 0) {
         errors.push({
           resource: 'server',
@@ -231,7 +220,6 @@ export class BulkValidationUseCase {
         });
       }
 
-      // Validate priority
       if (server.priority < 0) {
         errors.push({
           resource: 'server',
@@ -241,7 +229,6 @@ export class BulkValidationUseCase {
         });
       }
 
-      // Warning for high priority values
       if (server.priority > 10) {
         warnings.push({
           resource: 'server',
@@ -251,7 +238,6 @@ export class BulkValidationUseCase {
         });
       }
 
-      // Validate ILO configuration
       if (server.ilo_ip && (!server.ilo_login || !server.ilo_password)) {
         errors.push({
           resource: 'server',
@@ -269,7 +255,6 @@ export class BulkValidationUseCase {
     const upsResults: UpsConnectivityResultDto[] = [];
     const serverResults: ServerConnectivityResultDto[] = [];
 
-    // Check UPS connectivity
     for (let i = 0; i < resources.upsList.length; i++) {
       const ups = resources.upsList[i];
       if (ups.ip) {
@@ -282,7 +267,6 @@ export class BulkValidationUseCase {
       }
     }
 
-    // Check server connectivity
     for (let i = 0; i < resources.servers.length; i++) {
       const server = resources.servers[i];
       const result: ServerConnectivityResultDto = {

@@ -1,4 +1,9 @@
-import { Injectable, Logger, BadRequestException, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  Inject,
+} from '@nestjs/common';
 import { DataSource, QueryRunner } from 'typeorm';
 import { RoomRepositoryInterface } from '../../../rooms/domain/interfaces/room.repository.interface';
 import { UpsRepositoryInterface } from '../../../ups/domain/interfaces/ups.repository.interface';
@@ -38,6 +43,8 @@ export class BulkCreateUseCase {
     dto: BulkCreateRequestDto,
     userId?: string,
   ): Promise<BulkCreateResponseDto> {
+    this.validateDependencies(dto);
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -54,36 +61,35 @@ export class BulkCreateUseCase {
         ups: {} as Record<string, string>,
       };
 
-      // Step 1: Create all rooms
       for (const roomData of dto.rooms) {
         const room = await this.createRoom(queryRunner, roomData);
+
+        const tempId = roomData.tempId || `room_${room.id}`;
+
         created.rooms.push({
           id: room.id,
           name: room.name,
-          tempId: roomData.tempId,
+          tempId: tempId,
         });
 
-        if (roomData.tempId) {
-          idMapping.rooms[roomData.tempId] = room.id;
-        }
+        idMapping.rooms[tempId] = room.id;
       }
 
-      // Step 2: Create all UPS (resolve room IDs)
       for (const upsData of dto.upsList) {
         const roomId = this.resolveId(upsData.roomId, idMapping.rooms);
         const ups = await this.createUps(queryRunner, upsData, roomId);
+
+        const tempId = upsData.tempId || `ups_${ups.id}`;
+
         created.upsList.push({
           id: ups.id,
           name: ups.name,
-          tempId: upsData.tempId,
+          tempId: tempId,
         });
 
-        if (upsData.tempId) {
-          idMapping.ups[upsData.tempId] = ups.id;
-        }
+        idMapping.ups[tempId] = ups.id;
       }
 
-      // Step 3: Create all servers (resolve room and UPS IDs)
       for (const serverData of dto.servers) {
         const roomId = this.resolveId(serverData.roomId, idMapping.rooms);
         const upsId = this.resolveId(serverData.upsId, idMapping.ups);
@@ -93,16 +99,18 @@ export class BulkCreateUseCase {
           roomId,
           upsId,
         );
+
+        const tempId = serverData.tempId || `server_${server.id}`;
+
         created.servers.push({
           id: server.id,
           name: server.name,
-          tempId: serverData.tempId,
+          tempId: tempId,
         });
       }
 
       await queryRunner.commitTransaction();
 
-      // Update setup status
       if (userId) {
         await this.completeSetupStepUseCase.execute(SetupStep.REVIEW, userId);
       }
@@ -119,6 +127,11 @@ export class BulkCreateUseCase {
     } catch (error) {
       await queryRunner.rollbackTransaction();
       this.logger.error('Bulk creation failed', error);
+
+      // If it's already a BadRequestException, re-throw it
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
 
       throw new BadRequestException({
         success: false,
@@ -141,9 +154,6 @@ export class BulkCreateUseCase {
   ): Promise<Room> {
     const room = new Room();
     room.name = roomData.name;
-
-    // Note: The Room entity doesn't have location, capacity, or coolingType fields
-    // These would need to be added to the Room entity if required
 
     return await queryRunner.manager.save(Room, room);
   }
@@ -169,9 +179,6 @@ export class BulkCreateUseCase {
     ups.name = upsData.name;
     ups.ip = upsData.ip;
     ups.roomId = roomId;
-
-    // Note: The Ups entity doesn't have brand, model, capacity, login, password, gracePeriod fields
-    // These would need to be added to the Ups entity if required
 
     return await queryRunner.manager.save(Ups, ups);
   }
@@ -203,7 +210,6 @@ export class BulkCreateUseCase {
     server.upsId = upsId ?? undefined;
     server.groupId = serverData.groupId ?? undefined;
 
-    // Create ILO if provided
     if (
       serverData.ilo_name &&
       serverData.ilo_ip &&
@@ -232,11 +238,59 @@ export class BulkCreateUseCase {
     }
 
     // Check if it's a temporary ID that needs mapping
-    if (id.startsWith('temp_') && idMapping[id]) {
-      return idMapping[id];
+    if (id.startsWith('temp_')) {
+      const mappedId = idMapping[id];
+      if (!mappedId) {
+        throw new BadRequestException(
+          `Temporary ID ${id} not found in mapping. This suggests a dependency issue.`,
+        );
+      }
+      return mappedId;
     }
 
-    // Otherwise, assume it's a real UUID
     return id;
+  }
+
+  /**
+   * Validate that all referenced tempIds exist in the request
+   */
+  private validateDependencies(dto: BulkCreateRequestDto): void {
+    const roomTempIds = new Set(dto.rooms.map((r) => r.tempId).filter(Boolean));
+    const upsTempIds = new Set(
+      dto.upsList.map((u) => u.tempId).filter(Boolean),
+    );
+
+    for (const ups of dto.upsList) {
+      if (
+        ups.roomId &&
+        ups.roomId.startsWith('temp_') &&
+        !roomTempIds.has(ups.roomId)
+      ) {
+        throw new BadRequestException(
+          `UPS "${ups.name}" references room tempId "${ups.roomId}" which doesn't exist in the request`,
+        );
+      }
+    }
+
+    for (const server of dto.servers) {
+      if (
+        server.roomId &&
+        server.roomId.startsWith('temp_') &&
+        !roomTempIds.has(server.roomId)
+      ) {
+        throw new BadRequestException(
+          `Server "${server.name}" references room tempId "${server.roomId}" which doesn't exist in the request`,
+        );
+      }
+      if (
+        server.upsId &&
+        server.upsId.startsWith('temp_') &&
+        !upsTempIds.has(server.upsId)
+      ) {
+        throw new BadRequestException(
+          `Server "${server.name}" references UPS tempId "${server.upsId}" which doesn't exist in the request`,
+        );
+      }
+    }
   }
 }
