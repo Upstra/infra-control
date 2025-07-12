@@ -191,7 +191,10 @@ describe('VmwareService', () => {
   describe('controlVMPower', () => {
     it('should power on VM successfully', async () => {
       pythonExecutor.executePython.mockResolvedValue({
-        message: 'VM powered on successfully',
+        result: {
+          message: 'VM has been successfully started',
+          httpCode: 200,
+        },
       });
 
       const result = await service.controlVMPower(
@@ -202,10 +205,10 @@ describe('VmwareService', () => {
 
       expect(result).toEqual({
         success: true,
-        message: 'VM powered on successfully',
+        message: 'VM has been successfully started',
         newState: 'poweredOn',
       });
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith('turn_on.py', [
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('vm_start.py', [
         '--moid',
         'vm-123',
         '--ip',
@@ -219,7 +222,10 @@ describe('VmwareService', () => {
 
     it('should power off VM successfully', async () => {
       pythonExecutor.executePython.mockResolvedValue({
-        message: 'VM powered off successfully',
+        result: {
+          message: 'VM has been successfully stopped',
+          httpCode: 200,
+        },
       });
 
       const result = await service.controlVMPower(
@@ -230,10 +236,10 @@ describe('VmwareService', () => {
 
       expect(result).toEqual({
         success: true,
-        message: 'VM powered off successfully',
+        message: 'VM has been successfully stopped',
         newState: 'poweredOff',
       });
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith('turn_off.py', [
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('vm_stop.py', [
         '--moid',
         'vm-123',
         '--ip',
@@ -261,7 +267,10 @@ describe('VmwareService', () => {
   describe('migrateVM', () => {
     it('should migrate VM successfully', async () => {
       pythonExecutor.executePython.mockResolvedValue({
-        message: 'VM migrated successfully',
+        result: {
+          message: 'VM migrated successfully',
+          httpCode: 200,
+        },
         newHost: 'host-456',
       });
 
@@ -277,11 +286,11 @@ describe('VmwareService', () => {
         newHost: 'host-456',
       });
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'migrate_vm.py',
+        'vm_migration.py',
         [
-          '--vmMoId',
+          '--vm_moid',
           'vm-123',
-          '--distMoId',
+          '--dist_moid',
           'host-456',
           '--ip',
           '192.168.1.10',
@@ -337,6 +346,114 @@ describe('VmwareService', () => {
         service.migrateVM('vm-123', 'host-456', mockConnection),
       ).rejects.toThrow(
         new HttpException('Invalid VMware credentials', HttpStatus.UNAUTHORIZED),
+      );
+    });
+
+    it('should handle error with new JSON format', async () => {
+      const error = new Error('Action forbidden');
+      error.result = { httpCode: 403, message: 'VM is locked' };
+      pythonExecutor.executePython.mockRejectedValue(error);
+
+      await expect(
+        service.migrateVM('vm-123', 'host-456', mockConnection),
+      ).rejects.toThrow(
+        new HttpException('Action forbidden', HttpStatus.FORBIDDEN),
+      );
+    });
+  });
+
+  describe('getServerInfo', () => {
+    it('should return server static information', async () => {
+      const mockServerInfo = {
+        name: 'esxi-server-01',
+        vCenterIp: '192.168.1.5',
+        cluster: 'Production-Cluster',
+        vendor: 'HP',
+        model: 'ProLiant DL380 Gen10',
+        ip: '192.168.1.10',
+        cpuCores: 16,
+        cpuThreads: 32,
+        cpuMHz: 2400.0,
+        ramTotal: 64,
+      };
+
+      pythonExecutor.executePython.mockResolvedValue(mockServerInfo);
+
+      const result = await service.getServerInfo('host-123', mockConnection);
+
+      expect(result).toEqual(mockServerInfo);
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
+        'server_info.py',
+        [
+          '--moid',
+          'host-123',
+          '--ip',
+          '192.168.1.10',
+          '--user',
+          'admin',
+          '--password',
+          'password123',
+        ],
+      );
+    });
+
+    it('should handle server not found error', async () => {
+      pythonExecutor.executePython.mockRejectedValue(
+        new Error('Server not found'),
+      );
+
+      await expect(
+        service.getServerInfo('host-999', mockConnection),
+      ).rejects.toThrow(
+        new HttpException('Resource not found', HttpStatus.NOT_FOUND),
+      );
+    });
+  });
+
+  describe('getServerMetrics', () => {
+    it('should return server dynamic metrics', async () => {
+      const mockServerMetrics = {
+        powerState: 'poweredOn',
+        overallStatus: 'green',
+        rebootRequired: false,
+        cpuUsagePercent: 15.625,
+        ramUsageMB: 32768,
+        uptime: 2592000,
+        boottime: '2023-11-01T12:00:00.000Z',
+      };
+
+      pythonExecutor.executePython.mockResolvedValue(mockServerMetrics);
+
+      const result = await service.getServerMetrics('host-123', mockConnection);
+
+      expect(result).toEqual(mockServerMetrics);
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
+        'server_metrics.py',
+        [
+          '--moid',
+          'host-123',
+          '--ip',
+          '192.168.1.10',
+          '--user',
+          'admin',
+          '--password',
+          'password123',
+        ],
+      );
+    });
+
+    it('should handle authentication error', async () => {
+      pythonExecutor.executePython.mockRejectedValue(
+        new Error('Authentication failed'),
+      );
+
+      await expect(
+        service.getServerMetrics('host-123', mockConnection),
+      ).rejects.toThrow(
+        new HttpException(
+          'Invalid VMware credentials',
+          HttpStatus.UNAUTHORIZED,
+        ),
       );
     });
   });

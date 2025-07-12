@@ -37,77 +37,24 @@ describe('IloPowerService', () => {
   });
 
   describe('getServerStatus', () => {
-    it('should return server ON status', async () => {
-      pythonExecutor.executePython.mockResolvedValue('ON');
-
-      const result = await service.getServerStatus(
-        '192.168.1.100',
-        mockCredentials,
-      );
-
-      expect(result).toBe(IloServerStatus.ON);
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith('ilo.py', [
-        '--ip',
-        '192.168.1.100',
-        '--user',
-        'admin',
-        '--password',
-        'ilopass123',
-        '--status',
-      ]);
-    });
-
-    it('should return server OFF status', async () => {
-      pythonExecutor.executePython.mockResolvedValue('OFF');
-
-      const result = await service.getServerStatus(
-        '192.168.1.100',
-        mockCredentials,
-      );
-
-      expect(result).toBe(IloServerStatus.OFF);
-    });
-
-    it('should return ERROR status for unknown response', async () => {
-      pythonExecutor.executePython.mockResolvedValue('UNKNOWN');
-
+    it('should return ERROR status with deprecation warning', async () => {
       const result = await service.getServerStatus(
         '192.168.1.100',
         mockCredentials,
       );
 
       expect(result).toBe(IloServerStatus.ERROR);
-    });
-
-    it('should handle status in object format', async () => {
-      pythonExecutor.executePython.mockResolvedValue({ status: 'PoweredOn' });
-
-      const result = await service.getServerStatus(
-        '192.168.1.100',
-        mockCredentials,
-      );
-
-      expect(result).toBe(IloServerStatus.ON);
-    });
-
-    it('should handle authentication errors', async () => {
-      pythonExecutor.executePython.mockRejectedValue(
-        new Error('Authentication failed'),
-      );
-
-      await expect(
-        service.getServerStatus('192.168.1.100', mockCredentials),
-      ).rejects.toThrow(
-        new HttpException('Invalid iLO credentials', HttpStatus.UNAUTHORIZED),
-      );
+      expect(pythonExecutor.executePython).not.toHaveBeenCalled();
     });
   });
 
   describe('controlServerPower', () => {
     it('should start server successfully', async () => {
       pythonExecutor.executePython.mockResolvedValue({
-        message: 'Server started successfully',
-        status: 'ON',
+        result: {
+          message: 'Server has been successfully started',
+          httpCode: 200,
+        },
       });
 
       const result = await service.controlServerPower(
@@ -118,24 +65,25 @@ describe('IloPowerService', () => {
 
       expect(result).toEqual({
         success: true,
-        message: 'Server started successfully',
+        message: 'Server has been successfully started',
         currentStatus: IloServerStatus.ON,
       });
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith('ilo.py', [
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('server_start.py', [
         '--ip',
         '192.168.1.100',
         '--user',
         'admin',
         '--password',
         'ilopass123',
-        '--start',
       ]);
     });
 
     it('should stop server successfully', async () => {
       pythonExecutor.executePython.mockResolvedValue({
-        message: 'Server stopped successfully',
-        status: 'OFF',
+        result: {
+          message: 'Server has been successfully stopped',
+          httpCode: 200,
+        },
       });
 
       const result = await service.controlServerPower(
@@ -146,22 +94,21 @@ describe('IloPowerService', () => {
 
       expect(result).toEqual({
         success: true,
-        message: 'Server stopped successfully',
+        message: 'Server has been successfully stopped',
         currentStatus: IloServerStatus.OFF,
       });
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith('ilo.py', [
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('server_stop.py', [
         '--ip',
         '192.168.1.100',
         '--user',
         'admin',
         '--password',
         'ilopass123',
-        '--stop',
       ]);
     });
 
     it('should use default message when not provided', async () => {
-      pythonExecutor.executePython.mockResolvedValue('ON');
+      pythonExecutor.executePython.mockResolvedValue({});
 
       const result = await service.controlServerPower(
         '192.168.1.100',
@@ -217,6 +164,22 @@ describe('IloPowerService', () => {
         ),
       ).rejects.toThrow(
         new HttpException('Unknown error', HttpStatus.INTERNAL_SERVER_ERROR),
+      );
+    });
+
+    it('should handle error with new JSON format', async () => {
+      const error = new Error('Action forbidden');
+      error.result = { httpCode: 403, message: 'Server is in maintenance mode' };
+      pythonExecutor.executePython.mockRejectedValue(error);
+
+      await expect(
+        service.controlServerPower(
+          '192.168.1.100',
+          IloPowerAction.START,
+          mockCredentials,
+        ),
+      ).rejects.toThrow(
+        new HttpException('Action forbidden', HttpStatus.FORBIDDEN),
       );
     });
   });
