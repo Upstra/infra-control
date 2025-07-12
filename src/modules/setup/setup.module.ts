@@ -11,13 +11,11 @@ import { SetupDomainService } from './domain/services/setup.domain.service';
 import { SetupStatusMapper } from './application/mappers/setup-status.mapper';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SetupProgress } from './domain/entities/setup-progress.entity';
-import { Template } from './domain/entities/template.entity';
 import { SetupProgressRepository } from './infrastructure/repositories/setup.typeorm.repository';
-import { TemplateRepository } from './infrastructure/repositories/template.repository';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([SetupProgress, Template]),
+    TypeOrmModule.forFeature([SetupProgress]),
     forwardRef(() => UserModule),
     forwardRef(() => RoomModule),
     forwardRef(() => ServerModule),
@@ -31,10 +29,6 @@ import { TemplateRepository } from './infrastructure/repositories/template.repos
     {
       provide: 'SetupProgressRepositoryInterface',
       useClass: SetupProgressRepository,
-    },
-    {
-      provide: 'TemplateRepositoryInterface',
-      useClass: TemplateRepository,
     },
   ],
   exports: [

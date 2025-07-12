@@ -1,17 +1,12 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   TemplateListResponseDto,
   TemplateResponseDto,
   TemplateType,
 } from '../dto';
-import { TemplateRepositoryInterface } from '../../domain/interfaces/template.repository.interface';
 
 @Injectable()
 export class GetTemplatesUseCase {
-  constructor(
-    @Inject('TemplateRepositoryInterface')
-    private readonly templateRepository: TemplateRepositoryInterface,
-  ) {}
   private readonly predefinedTemplates: TemplateResponseDto[] = [
     {
       id: 'template-small-dc',
@@ -103,22 +98,8 @@ export class GetTemplatesUseCase {
   ];
 
   async execute(): Promise<TemplateListResponseDto> {
-    const customTemplates = await this.templateRepository.findAll();
-
-    const customTemplateDtos: TemplateResponseDto[] = customTemplates.map(
-      (template) => ({
-        id: template.id,
-        name: template.name,
-        description: template.description,
-        type: template.type,
-        configuration: template.configuration as any,
-        createdAt: template.createdAt,
-        createdBy: template.createdBy,
-      }),
-    );
-
     return {
-      templates: [...this.predefinedTemplates, ...customTemplateDtos],
+      templates: this.predefinedTemplates,
     };
   }
 }

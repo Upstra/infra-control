@@ -1,47 +1,36 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   CreateTemplateRequestDto,
   TemplateResponseDto,
   TemplateType,
 } from '../dto';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
-import { TemplateRepositoryInterface } from '../../domain/interfaces/template.repository.interface';
-import { Template } from '../../domain/entities/template.entity';
 
 @Injectable()
 export class CreateTemplateUseCase {
   private readonly logger = new Logger(CreateTemplateUseCase.name);
-
-  constructor(
-    @Inject('TemplateRepositoryInterface')
-    private readonly templateRepository: TemplateRepositoryInterface,
-  ) {}
+  private readonly customTemplates: TemplateResponseDto[] = [];
 
   async execute(
     dto: CreateTemplateRequestDto,
     currentUser: JwtPayload,
   ): Promise<TemplateResponseDto> {
-    const template = new Template();
-    template.name = dto.name;
-    template.description = dto.description;
-    template.type = TemplateType.CUSTOM;
-    template.configuration = dto.configuration as any;
-    template.createdBy = currentUser.email;
+    const template: TemplateResponseDto = {
+      id: `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: dto.name,
+      description: dto.description,
+      type: TemplateType.CUSTOM,
+      configuration: dto.configuration,
+      createdAt: new Date(),
+      createdBy: currentUser.email,
+    };
 
-    const savedTemplate = await this.templateRepository.save(template);
+    this.customTemplates.push(template);
 
     this.logger.log(
-      `Created custom template '${savedTemplate.name}' by user ${currentUser.email}`,
+      `Created custom template '${template.name}' by user ${currentUser.email}`,
     );
 
-    return {
-      id: savedTemplate.id,
-      name: savedTemplate.name,
-      description: savedTemplate.description,
-      type: savedTemplate.type,
-      configuration: savedTemplate.configuration as any,
-      createdAt: savedTemplate.createdAt,
-      createdBy: savedTemplate.createdBy,
-    };
+    return template;
   }
 }
