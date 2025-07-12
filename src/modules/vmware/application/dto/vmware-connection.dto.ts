@@ -18,7 +18,7 @@ export class VmwareConnectionDto {
     writeOnly: true,
   })
   @IsString()
-  @Transform(({ value }) => '[REDACTED]', { toPlainOnly: true })
+  @Transform(() => '[REDACTED]', { toPlainOnly: true })
   password: string;
 
   @ApiPropertyOptional({

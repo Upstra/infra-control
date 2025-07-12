@@ -54,8 +54,8 @@ export class Server extends BaseEntity {
   login!: string;
 
   @ApiProperty({ writeOnly: true })
-  @Column({ 
-    type: 'varchar', 
+  @Column({
+    type: 'varchar',
     select: false,
     transformer: new EncryptionTransformer(),
   })

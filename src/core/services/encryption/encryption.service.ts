@@ -1,4 +1,8 @@
-import { Injectable, Logger, HttpException, HttpStatus, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import { EncryptionServiceInterface } from './encryption.interface';

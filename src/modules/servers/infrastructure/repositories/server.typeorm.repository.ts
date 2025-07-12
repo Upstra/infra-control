@@ -143,13 +143,16 @@ export class ServerTypeormRepository
         .addSelect('server.password')
         .where('server.id = :id', { id })
         .getOne();
-        
+
       if (!server) {
         throw new ServerNotFoundException(id);
       }
       return server;
     } catch (error) {
-      this.logger.error(`Error retrieving server with credentials for id ${id}:`, error);
+      this.logger.error(
+        `Error retrieving server with credentials for id ${id}:`,
+        error,
+      );
       throw new ServerRetrievalException(
         `Error retrieving server with credentials for id ${id}`,
       );

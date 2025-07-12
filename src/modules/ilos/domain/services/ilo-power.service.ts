@@ -16,7 +16,6 @@ export class IloPowerService {
 
   constructor(private readonly pythonExecutor: PythonExecutorService) {}
 
-
   async controlServerPower(
     ip: string,
     action: IloPowerAction,
@@ -55,7 +54,6 @@ export class IloPowerService {
       credentials.password,
     ];
   }
-
 
   private handleIloError(error: any, defaultMessage: string): HttpException {
     const message = error.message ?? defaultMessage;

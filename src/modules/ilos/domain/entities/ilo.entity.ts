@@ -21,7 +21,7 @@ export class Ilo extends BaseEntity {
   login!: string;
 
   @ApiProperty()
-  @Column({ 
+  @Column({
     type: 'varchar',
     transformer: new EncryptionTransformer(),
   })

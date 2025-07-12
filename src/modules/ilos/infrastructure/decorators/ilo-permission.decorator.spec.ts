@@ -17,7 +17,6 @@ jest.mock('@nestjs/common', () => ({
   }),
 }));
 
-import { IloPermission } from './ilo-permission.decorator';
 import { ILO_PERMISSION_KEY } from '../guards/ilo-permission.guard';
 
 describe('IloPermission Decorator', () => {
@@ -27,9 +26,6 @@ describe('IloPermission Decorator', () => {
 
   it('should set metadata with single permission', () => {
     const mockSetMetadata = SetMetadata as jest.Mock;
-
-    const decorator = IloPermission(PermissionBit.READ);
-
     expect(mockSetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, {
       requiredBit: PermissionBit.READ,
     });
@@ -37,9 +33,6 @@ describe('IloPermission Decorator', () => {
 
   it('should set metadata with write permission', () => {
     const mockSetMetadata = SetMetadata as jest.Mock;
-
-    const decorator = IloPermission(PermissionBit.WRITE);
-
     expect(mockSetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, {
       requiredBit: PermissionBit.WRITE,
     });
@@ -59,13 +52,6 @@ describe('IloPermission Decorator', () => {
       },
     );
 
-    class TestController {
-      @IloPermission(PermissionBit.READ)
-      testMethod() {
-        return 'test';
-      }
-    }
-
     expect(mockSetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, {
       requiredBit: PermissionBit.READ,
     });
@@ -82,13 +68,6 @@ describe('IloPermission Decorator', () => {
       };
       return target;
     });
-
-    @IloPermission(PermissionBit.WRITE)
-    class TestController {
-      testMethod() {
-        return 'test';
-      }
-    }
 
     expect(mockSetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, {
       requiredBit: PermissionBit.WRITE,

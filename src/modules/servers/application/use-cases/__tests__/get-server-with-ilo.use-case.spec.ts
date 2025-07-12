@@ -75,10 +75,12 @@ describe('GetServerWithIloUseCase', () => {
       const result = await useCase.execute('server-1');
 
       expect(result).toEqual(mockServerWithIlo);
-      expect(mockServerRepository.findServerByIdWithCredentials).toHaveBeenCalledWith(
-        'server-1',
-      );
-      expect(mockServerRepository.findServerByIdWithCredentials).toHaveBeenCalledTimes(1);
+      expect(
+        mockServerRepository.findServerByIdWithCredentials,
+      ).toHaveBeenCalledWith('server-1');
+      expect(
+        mockServerRepository.findServerByIdWithCredentials,
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('should throw NotFoundException when server not found', async () => {
@@ -90,10 +92,12 @@ describe('GetServerWithIloUseCase', () => {
         new NotFoundException('Server with ID server-999 not found'),
       );
 
-      expect(mockServerRepository.findServerByIdWithCredentials).toHaveBeenCalledWith(
-        'server-999',
-      );
-      expect(mockServerRepository.findServerByIdWithCredentials).toHaveBeenCalledTimes(1);
+      expect(
+        mockServerRepository.findServerByIdWithCredentials,
+      ).toHaveBeenCalledWith('server-999');
+      expect(
+        mockServerRepository.findServerByIdWithCredentials,
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('should throw NotFoundException when server has no iLO', async () => {
@@ -107,48 +111,62 @@ describe('GetServerWithIloUseCase', () => {
         ),
       );
 
-      expect(mockServerRepository.findServerByIdWithCredentials).toHaveBeenCalledWith(
-        'server-2',
-      );
-      expect(mockServerRepository.findServerByIdWithCredentials).toHaveBeenCalledTimes(1);
+      expect(
+        mockServerRepository.findServerByIdWithCredentials,
+      ).toHaveBeenCalledWith('server-2');
+      expect(
+        mockServerRepository.findServerByIdWithCredentials,
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('should handle repository errors properly', async () => {
       const dbError = new Error('Database connection error');
-      mockServerRepository.findServerByIdWithCredentials.mockRejectedValue(dbError);
+      mockServerRepository.findServerByIdWithCredentials.mockRejectedValue(
+        dbError,
+      );
 
       await expect(useCase.execute('server-1')).rejects.toThrow(dbError);
 
-      expect(mockServerRepository.findServerByIdWithCredentials).toHaveBeenCalledWith(
-        'server-1',
-      );
-      expect(mockServerRepository.findServerByIdWithCredentials).toHaveBeenCalledTimes(1);
+      expect(
+        mockServerRepository.findServerByIdWithCredentials,
+      ).toHaveBeenCalledWith('server-1');
+      expect(
+        mockServerRepository.findServerByIdWithCredentials,
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('should handle null server response', async () => {
-      mockServerRepository.findServerByIdWithCredentials.mockResolvedValue(null as any);
+      mockServerRepository.findServerByIdWithCredentials.mockResolvedValue(
+        null as any,
+      );
 
       await expect(useCase.execute('server-null')).rejects.toThrow(
         new NotFoundException('Server with ID server-null not found'),
       );
 
-      expect(mockServerRepository.findServerByIdWithCredentials).toHaveBeenCalledWith(
-        'server-null',
-      );
-      expect(mockServerRepository.findServerByIdWithCredentials).toHaveBeenCalledTimes(1);
+      expect(
+        mockServerRepository.findServerByIdWithCredentials,
+      ).toHaveBeenCalledWith('server-null');
+      expect(
+        mockServerRepository.findServerByIdWithCredentials,
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('should handle undefined server response', async () => {
-      mockServerRepository.findServerByIdWithCredentials.mockResolvedValue(undefined as any);
+      mockServerRepository.findServerByIdWithCredentials.mockResolvedValue(
+        undefined as any,
+      );
 
       await expect(useCase.execute('server-undefined')).rejects.toThrow(
         new NotFoundException('Server with ID server-undefined not found'),
       );
 
-      expect(mockServerRepository.findServerByIdWithCredentials).toHaveBeenCalledWith(
-        'server-undefined',
-      );
-      expect(mockServerRepository.findServerByIdWithCredentials).toHaveBeenCalledTimes(1);
+      expect(
+        mockServerRepository.findServerByIdWithCredentials,
+      ).toHaveBeenCalledWith('server-undefined');
+      expect(
+        mockServerRepository.findServerByIdWithCredentials,
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('should validate server id parameter', async () => {
@@ -161,7 +179,9 @@ describe('GetServerWithIloUseCase', () => {
         new NotFoundException(`Server with ID ${emptyId} not found`),
       );
 
-      expect(mockServerRepository.findServerByIdWithCredentials).toHaveBeenCalledWith(emptyId);
+      expect(
+        mockServerRepository.findServerByIdWithCredentials,
+      ).toHaveBeenCalledWith(emptyId);
     });
 
     it('should handle server with iLO but missing iLO properties', async () => {
@@ -178,9 +198,9 @@ describe('GetServerWithIloUseCase', () => {
 
       expect(result).toEqual(serverWithPartialIlo);
       expect(result.ilo).toBeDefined();
-      expect(mockServerRepository.findServerByIdWithCredentials).toHaveBeenCalledWith(
-        'server-partial',
-      );
+      expect(
+        mockServerRepository.findServerByIdWithCredentials,
+      ).toHaveBeenCalledWith('server-partial');
     });
   });
 
@@ -202,7 +222,9 @@ describe('GetServerWithIloUseCase', () => {
       const result = await useCase.execute(longId);
 
       expect(result).toEqual(mockServerWithIlo);
-      expect(mockServerRepository.findServerByIdWithCredentials).toHaveBeenCalledWith(longId);
+      expect(
+        mockServerRepository.findServerByIdWithCredentials,
+      ).toHaveBeenCalledWith(longId);
     });
 
     it('should handle special characters in server id', async () => {
@@ -214,9 +236,9 @@ describe('GetServerWithIloUseCase', () => {
       const result = await useCase.execute(specialId);
 
       expect(result).toEqual(mockServerWithIlo);
-      expect(mockServerRepository.findServerByIdWithCredentials).toHaveBeenCalledWith(
-        specialId,
-      );
+      expect(
+        mockServerRepository.findServerByIdWithCredentials,
+      ).toHaveBeenCalledWith(specialId);
     });
 
     it('should handle concurrent calls', async () => {
@@ -231,7 +253,9 @@ describe('GetServerWithIloUseCase', () => {
       const results = await Promise.all(promises);
 
       expect(results).toHaveLength(5);
-      expect(mockServerRepository.findServerByIdWithCredentials).toHaveBeenCalledTimes(5);
+      expect(
+        mockServerRepository.findServerByIdWithCredentials,
+      ).toHaveBeenCalledTimes(5);
     });
   });
 });

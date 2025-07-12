@@ -36,7 +36,6 @@ describe('IloPowerService', () => {
     jest.clearAllMocks();
   });
 
-
   describe('controlServerPower', () => {
     it('should start server successfully', async () => {
       pythonExecutor.executePython.mockResolvedValue({

@@ -143,10 +143,14 @@ describe('GetServerStatusUseCase', () => {
 
   it('should throw error when server has no VMware host moid configured', async () => {
     const serverWithoutMoid = { ...mockServer, vmwareHostMoid: undefined };
-    mockGetServerWithIloUseCase.execute.mockResolvedValue(serverWithoutMoid as any);
+    mockGetServerWithIloUseCase.execute.mockResolvedValue(
+      serverWithoutMoid as any,
+    );
 
     await expect(useCase.execute('server-1')).rejects.toThrow(
-      new BadRequestException('Server server-1 does not have a VMware host moid configured'),
+      new BadRequestException(
+        'Server server-1 does not have a VMware host moid configured',
+      ),
     );
 
     expect(mockVmwareService.getServerMetrics).not.toHaveBeenCalled();
