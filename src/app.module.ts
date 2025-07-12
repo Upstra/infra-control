@@ -31,6 +31,7 @@ import { UserPreferencesModule } from './modules/user-preferences/user-preferenc
 import { SystemSettingsModule } from './modules/system-settings/system-settings.module';
 import { PythonExecutorModule } from './core/services/python-executor';
 import { VmwareModule } from './modules/vmware/vmware.module';
+import { EncryptionModule } from './core/services/encryption';
 
 @Module({
   controllers: [],
@@ -38,6 +39,7 @@ import { VmwareModule } from './modules/vmware/vmware.module';
     configModule,
     TypeOrmModule.forRoot(typeOrmConfig),
     EventEmitterModule.forRoot(),
+    EncryptionModule,
     PythonExecutorModule,
     GuardsModule,
     InterceptorsModule,

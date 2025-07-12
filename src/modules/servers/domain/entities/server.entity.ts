@@ -17,6 +17,7 @@ import { Ups } from '../../../ups/domain/entities/ups.entity';
 import { Vm } from '../../../vms/domain/entities/vm.entity';
 import { PermissionServer } from '../../../permissions/domain/entities/permission.server.entity';
 import { Ilo } from '../../../ilos/domain/entities/ilo.entity';
+import { EncryptionTransformer } from '@/core/transformers/encryption.transformer';
 
 @Entity('server')
 export class Server extends BaseEntity {
@@ -53,7 +54,11 @@ export class Server extends BaseEntity {
   login!: string;
 
   @ApiProperty({ writeOnly: true })
-  @Column({ type: 'varchar', select: false })
+  @Column({ 
+    type: 'varchar', 
+    select: false,
+    transformer: new EncryptionTransformer(),
+  })
   password!: string;
 
   @ApiProperty()
