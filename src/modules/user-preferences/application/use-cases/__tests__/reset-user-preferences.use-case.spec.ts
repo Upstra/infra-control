@@ -126,12 +126,12 @@ describe('ResetUserPreferencesUseCase', () => {
       const savedPreferences = { ...defaultPreferences, id: 'pref-123' };
 
       mockRepository.findByUserId.mockResolvedValue(null);
-      mockRepository.update.mockResolvedValue(savedPreferences);
+      mockRepository.create.mockResolvedValue(savedPreferences);
 
       const result = await useCase.execute(userId);
 
       expect(result).toEqual(savedPreferences);
-      expect(mockRepository.update).toHaveBeenCalledWith(
+      expect(mockRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({
           userId,
           locale: 'fr',
@@ -178,7 +178,7 @@ describe('ResetUserPreferencesUseCase', () => {
 
     it('should handle reset for user with no previous preferences', async () => {
       mockRepository.findByUserId.mockResolvedValue(null);
-      mockRepository.update.mockImplementation(async (pref) => ({
+      mockRepository.create.mockImplementation(async (pref) => ({
         ...pref,
         id: 'new-pref-123',
       }));

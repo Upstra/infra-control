@@ -5,6 +5,7 @@ import {
   GetVmMetricsUseCase,
   ControlVmPowerUseCase,
   MigrateVmUseCase,
+  GetHostMetricsUseCase,
 } from '../../use-cases';
 import { VmPowerActionDto, VmPowerAction, VmMigrateDto } from '../../dto';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
@@ -16,6 +17,13 @@ describe('VmwareController', () => {
   let getVmMetricsUseCase: jest.Mocked<GetVmMetricsUseCase>;
   let controlVmPowerUseCase: jest.Mocked<ControlVmPowerUseCase>;
   let migrateVmUseCase: jest.Mocked<MigrateVmUseCase>;
+  let getHostMetricsUseCase: jest.Mocked<GetHostMetricsUseCase>;
+
+  const mockUser = {
+    id: 1,
+    username: 'testuser',
+    email: 'test@example.com',
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -45,6 +53,12 @@ describe('VmwareController', () => {
             execute: jest.fn(),
           },
         },
+        {
+          provide: GetHostMetricsUseCase,
+          useValue: {
+            execute: jest.fn(),
+          },
+        },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -58,6 +72,7 @@ describe('VmwareController', () => {
     getVmMetricsUseCase = module.get(GetVmMetricsUseCase);
     controlVmPowerUseCase = module.get(ControlVmPowerUseCase);
     migrateVmUseCase = module.get(MigrateVmUseCase);
+    getHostMetricsUseCase = module.get(GetHostMetricsUseCase);
   });
 
   it('should be defined', () => {
@@ -86,10 +101,13 @@ describe('VmwareController', () => {
 
       listVmsUseCase.execute.mockResolvedValue(mockResult);
 
-      const result = await controller.listVMs('server-1');
+      const result = await controller.listVMs('server-1', mockUser);
 
       expect(result).toEqual(mockResult);
-      expect(listVmsUseCase.execute).toHaveBeenCalledWith('server-1');
+      expect(listVmsUseCase.execute).toHaveBeenCalledWith({
+        serverId: 'server-1',
+        user: mockUser,
+      });
     });
   });
 
@@ -115,13 +133,14 @@ describe('VmwareController', () => {
 
       getVmMetricsUseCase.execute.mockResolvedValue(mockMetrics);
 
-      const result = await controller.getVMMetrics('server-1', 'vm-123');
+      const result = await controller.getVMMetrics('server-1', 'vm-123', mockUser);
 
       expect(result).toEqual(mockMetrics);
-      expect(getVmMetricsUseCase.execute).toHaveBeenCalledWith(
-        'server-1',
-        'vm-123',
-      );
+      expect(getVmMetricsUseCase.execute).toHaveBeenCalledWith({
+        serverId: 'server-1',
+        vmName: 'vm-123',
+        user: mockUser,
+      });
     });
   });
 
@@ -143,14 +162,16 @@ describe('VmwareController', () => {
         'server-1',
         'vm-123',
         powerActionDto,
+        mockUser,
       );
 
       expect(result).toEqual(mockResult);
-      expect(controlVmPowerUseCase.execute).toHaveBeenCalledWith(
-        'server-1',
-        'vm-123',
-        VmPowerAction.POWER_ON,
-      );
+      expect(controlVmPowerUseCase.execute).toHaveBeenCalledWith({
+        serverId: 'server-1',
+        vmName: 'vm-123',
+        action: VmPowerAction.POWER_ON,
+        user: mockUser,
+      });
     });
   });
 
@@ -172,14 +193,53 @@ describe('VmwareController', () => {
         'server-1',
         'vm-123',
         migrateDto,
+        mockUser,
       );
 
       expect(result).toEqual(mockResult);
-      expect(migrateVmUseCase.execute).toHaveBeenCalledWith(
-        'server-1',
-        'vm-123',
-        'host-456',
-      );
+      expect(migrateVmUseCase.execute).toHaveBeenCalledWith({
+        serverId: 'server-1',
+        vmName: 'vm-123',
+        targetHost: 'host-456',
+        user: mockUser,
+      });
+    });
+  });
+
+  describe('getHostMetrics', () => {
+    it('should return host metrics', async () => {
+      const mockMetrics = {
+        host_name: 'esxi-host-1',
+        cpu_usage_percent: 45.5,
+        memory_usage_percent: 62.3,
+        memory_total_gb: 128,
+        memory_used_gb: 79.7,
+        storage_total_gb: 2048,
+        storage_used_gb: 1024,
+        vm_count: 15,
+        power_state: 'PoweredOn',
+        connection_state: 'connected',
+        uptime_days: 30,
+      };
+
+      getHostMetricsUseCase.execute.mockResolvedValue(mockMetrics);
+
+      const result = await controller.getHostMetrics('server-1', mockUser);
+
+      expect(result).toEqual(mockMetrics);
+      expect(getHostMetricsUseCase.execute).toHaveBeenCalledWith({
+        serverId: 'server-1',
+        user: mockUser,
+      });
+    });
+
+    it('should handle errors when getting host metrics', async () => {
+      const error = new Error('Host not configured');
+      getHostMetricsUseCase.execute.mockRejectedValue(error);
+
+      await expect(
+        controller.getHostMetrics('server-1', mockUser),
+      ).rejects.toThrow(error);
     });
   });
 });

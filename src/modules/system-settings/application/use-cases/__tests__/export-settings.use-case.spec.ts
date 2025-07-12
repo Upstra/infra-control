@@ -105,7 +105,7 @@ describe('ExportSettingsUseCase', () => {
 
       expect(result).toHaveProperty('version', '1.0');
       expect(result).toHaveProperty('exportedAt');
-      expect(result.exportedAt).toBeInstanceOf(Date);
+      expect(typeof result.exportedAt).toBe('string');
       expect(result).toHaveProperty('settings', mockSettings.settings);
       expect(systemSettingsService.getSettings).toHaveBeenCalled();
     });
