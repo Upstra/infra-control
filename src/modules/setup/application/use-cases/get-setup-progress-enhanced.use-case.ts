@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { SetupProgressEnhancedDto, SetupStep } from '../dto';
 import { RoomRepositoryInterface } from '../../../rooms/domain/interfaces/room.repository.interface';
 import { UpsRepositoryInterface } from '../../../ups/domain/interfaces/ups.repository.interface';
@@ -19,9 +19,13 @@ export class GetSetupProgressEnhancedUseCase {
   ];
 
   constructor(
+    @Inject('RoomRepositoryInterface')
     private readonly roomRepository: RoomRepositoryInterface,
+    @Inject('UpsRepositoryInterface')
     private readonly upsRepository: UpsRepositoryInterface,
+    @Inject('ServerRepositoryInterface')
     private readonly serverRepository: ServerRepositoryInterface,
+    @Inject('SetupProgressRepositoryInterface')
     private readonly setupProgressRepository: SetupProgressRepositoryInterface,
   ) {}
 

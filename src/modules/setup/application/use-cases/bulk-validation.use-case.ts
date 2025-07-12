@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { spawn } from 'child_process';
 import { isIP } from 'net';
 import {
@@ -19,8 +19,11 @@ export class BulkValidationUseCase {
   private readonly logger = new Logger(BulkValidationUseCase.name);
 
   constructor(
+    @Inject('RoomRepositoryInterface')
     private readonly roomRepository: RoomRepositoryInterface,
+    @Inject('UpsRepositoryInterface')
     private readonly upsRepository: UpsRepositoryInterface,
+    @Inject('ServerRepositoryInterface')
     private readonly serverRepository: ServerRepositoryInterface,
   ) {}
 

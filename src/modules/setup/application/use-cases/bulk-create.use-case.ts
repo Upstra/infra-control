@@ -1,4 +1,4 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, Inject } from '@nestjs/common';
 import { DataSource, QueryRunner } from 'typeorm';
 import { RoomRepositoryInterface } from '../../../rooms/domain/interfaces/room.repository.interface';
 import { UpsRepositoryInterface } from '../../../ups/domain/interfaces/ups.repository.interface';
@@ -25,8 +25,11 @@ export class BulkCreateUseCase {
 
   constructor(
     private readonly dataSource: DataSource,
+    @Inject('RoomRepositoryInterface')
     private readonly roomRepository: RoomRepositoryInterface,
+    @Inject('UpsRepositoryInterface')
     private readonly upsRepository: UpsRepositoryInterface,
+    @Inject('ServerRepositoryInterface')
     private readonly serverRepository: ServerRepositoryInterface,
     private readonly completeSetupStepUseCase: CompleteSetupStepUseCase,
   ) {}
