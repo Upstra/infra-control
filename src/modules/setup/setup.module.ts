@@ -3,6 +3,7 @@ import { SetupController } from './application/controllers/setup.controller';
 import { SetupUseCases } from './application/use-cases';
 
 import { UpsModule } from '../ups/ups.module';
+import { RedisModule } from '../redis/redis.module';
 
 import { UserModule } from '../users/user.module';
 import { RoomModule } from '../rooms/room.module';
@@ -16,6 +17,7 @@ import { SetupProgressRepository } from './infrastructure/repositories/setup.typ
 @Module({
   imports: [
     TypeOrmModule.forFeature([SetupProgress]),
+    RedisModule,
     forwardRef(() => UserModule),
     forwardRef(() => RoomModule),
     forwardRef(() => ServerModule),

@@ -4,9 +4,11 @@ import {
   TemplateResponseDto,
   TemplateType,
 } from '../dto';
+import { RedisSafeService } from '../../../redis/application/services/redis-safe.service';
 
 @Injectable()
 export class GetTemplatesUseCase {
+  private readonly REDIS_KEY = 'setup:custom_templates';
   private readonly predefinedTemplates: TemplateResponseDto[] = [
     {
       id: 'template-small-dc',
@@ -97,9 +99,18 @@ export class GetTemplatesUseCase {
     },
   ];
 
+  constructor(
+    private readonly redisService: RedisSafeService,
+  ) {}
+
   async execute(): Promise<TemplateListResponseDto> {
+    const customTemplatesJson = await this.redisService.safeGet(this.REDIS_KEY);
+    const customTemplates: TemplateResponseDto[] = customTemplatesJson 
+      ? JSON.parse(customTemplatesJson) 
+      : [];
+
     return {
-      templates: this.predefinedTemplates,
+      templates: [...this.predefinedTemplates, ...customTemplates],
     };
   }
 }

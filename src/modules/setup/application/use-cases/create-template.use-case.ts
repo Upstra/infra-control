@@ -5,11 +5,16 @@ import {
   TemplateType,
 } from '../dto';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { RedisSafeService } from '../../../redis/application/services/redis-safe.service';
 
 @Injectable()
 export class CreateTemplateUseCase {
   private readonly logger = new Logger(CreateTemplateUseCase.name);
-  private readonly customTemplates: TemplateResponseDto[] = [];
+  private readonly REDIS_KEY = 'setup:custom_templates';
+
+  constructor(
+    private readonly redisService: RedisSafeService,
+  ) {}
 
   async execute(
     dto: CreateTemplateRequestDto,
@@ -25,7 +30,13 @@ export class CreateTemplateUseCase {
       createdBy: currentUser.email,
     };
 
-    this.customTemplates.push(template);
+    const existingTemplatesJson = await this.redisService.safeGet(this.REDIS_KEY);
+    const existingTemplates: TemplateResponseDto[] = existingTemplatesJson 
+      ? JSON.parse(existingTemplatesJson) 
+      : [];
+    
+    existingTemplates.push(template);
+    await this.redisService.safeSet(this.REDIS_KEY, JSON.stringify(existingTemplates));
 
     this.logger.log(
       `Created custom template '${template.name}' by user ${currentUser.email}`,
