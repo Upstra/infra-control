@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
+import { InternalServerErrorException } from '@nestjs/common';
 import { EncryptionService } from '../encryption.service';
 
 describe('EncryptionService', () => {
@@ -33,6 +34,9 @@ describe('EncryptionService', () => {
     it('should throw error if ENCRYPTION_KEY is not defined', () => {
       configService.get.mockReturnValue(undefined);
       
+      expect(() => new EncryptionService(configService)).toThrow(
+        InternalServerErrorException,
+      );
       expect(() => new EncryptionService(configService)).toThrow(
         'ENCRYPTION_KEY must be defined in environment variables',
       );
@@ -129,6 +133,9 @@ describe('EncryptionService', () => {
       const invalidEncrypted = 'invalid-base64-string!@#';
       
       expect(() => service.decrypt(invalidEncrypted)).toThrow(
+        InternalServerErrorException,
+      );
+      expect(() => service.decrypt(invalidEncrypted)).toThrow(
         'Failed to decrypt data',
       );
     });
@@ -140,11 +147,17 @@ describe('EncryptionService', () => {
       const corrupted = encrypted.slice(0, -10) + 'corrupted';
       
       expect(() => service.decrypt(corrupted)).toThrow(
+        InternalServerErrorException,
+      );
+      expect(() => service.decrypt(corrupted)).toThrow(
         'Failed to decrypt data',
       );
     });
 
     it('should throw error for empty encrypted text', () => {
+      expect(() => service.decrypt('')).toThrow(
+        InternalServerErrorException,
+      );
       expect(() => service.decrypt('')).toThrow(
         'Failed to decrypt data',
       );

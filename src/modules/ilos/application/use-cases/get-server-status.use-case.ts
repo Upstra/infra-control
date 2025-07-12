@@ -33,6 +33,12 @@ export class GetServerStatusUseCase {
       port: 443,
     };
 
+    console.log('Server credentials check:', {
+      serverId: server.id,
+      hasPassword: !!server.password,
+      passwordLength: server.password?.length,
+    });
+
     const metrics = await this.vmwareService.getServerMetrics(
       server.vmwareHostMoid,
       vCenterConnection,
