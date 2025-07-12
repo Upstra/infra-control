@@ -2,9 +2,10 @@ import { IsString, IsNumber, IsOptional, Min } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class PingRequestDto {
-  @ApiProperty({ description: 'IP address or hostname to ping' })
+  @ApiPropertyOptional({ description: 'IP address or hostname to ping' })
+  @IsOptional()
   @IsString()
-  host: string;
+  host?: string;
 
   @ApiPropertyOptional({ 
     description: 'Timeout in milliseconds', 

@@ -134,6 +134,6 @@ export class IloPowerController {
     @Param('serverId') serverId: string,
     @Body() pingDto: PingRequestDto,
   ): Promise<PingResponseDto> {
-    return this.pingIloUseCase.execute(serverId, pingDto.host, pingDto.timeout);
+    return this.pingIloUseCase.execute(serverId, pingDto.timeout);
   }
 }

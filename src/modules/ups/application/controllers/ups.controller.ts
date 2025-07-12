@@ -186,7 +186,7 @@ export class UpsController {
   })
   @ApiBody({
     type: PingRequestDto,
-    description: 'Host and timeout configuration for ping',
+    description: 'Timeout configuration for ping',
     required: true,
   })
   @ApiBearerAuth()
@@ -201,6 +201,6 @@ export class UpsController {
     @Body() pingDto: PingRequestDto,
     @CurrentUser() user: JwtPayload,
   ): Promise<PingResponseDto> {
-    return this.pingUpsUseCase.execute(upsId, pingDto.host, pingDto.timeout);
+    return this.pingUpsUseCase.execute(upsId, pingDto.timeout);
   }
 }

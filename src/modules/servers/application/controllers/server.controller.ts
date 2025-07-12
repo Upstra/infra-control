@@ -390,6 +390,6 @@ export class ServerController {
     @Body() pingDto: PingRequestDto,
     @CurrentUser() user: JwtPayload,
   ): Promise<PingResponseDto> {
-    return this.pingServerUseCase.execute(serverId, pingDto.host, pingDto.timeout);
+    return this.pingServerUseCase.execute(serverId, pingDto.timeout);
   }
 }
