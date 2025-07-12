@@ -42,7 +42,7 @@ describe('GetSetupStatusUseCase', () => {
       phase: SetupPhase.IN_PROGRESS,
       hasAdminUser: true,
       hasInfrastructure: false,
-      nextRequiredStep: 'create-room',
+      nextRequiredStep: 'rooms',
     };
 
     setupDomainService.determineSetupState.mockReturnValue(setupState);
@@ -53,7 +53,7 @@ describe('GetSetupStatusUseCase', () => {
       hasRooms: false,
       hasUps: false,
       hasServers: false,
-      currentStep: SetupStep.CREATE_ROOM,
+      currentStep: SetupStep.ROOMS_CONFIG,
       totalSteps: 5,
       currentStepIndex: 1,
     };
@@ -100,7 +100,7 @@ describe('GetSetupStatusUseCase', () => {
       phase: SetupPhase.IN_PROGRESS,
       hasAdminUser: true,
       hasInfrastructure: false,
-      nextRequiredStep: 'create-server',
+      nextRequiredStep: 'servers',
     };
 
     setupDomainService.determineSetupState.mockReturnValue(setupState);
@@ -111,7 +111,7 @@ describe('GetSetupStatusUseCase', () => {
       hasRooms: true,
       hasUps: true,
       hasServers: false,
-      currentStep: SetupStep.CREATE_SERVER,
+      currentStep: SetupStep.SERVERS_CONFIG,
       isCurrentUserAdmin: true,
       totalSteps: 5,
       currentStepIndex: 3,
@@ -143,7 +143,7 @@ describe('GetSetupStatusUseCase', () => {
       phase: SetupPhase.IN_PROGRESS,
       hasAdminUser: true,
       hasInfrastructure: false,
-      nextRequiredStep: 'create-server',
+      nextRequiredStep: 'servers',
     };
 
     setupDomainService.determineSetupState.mockReturnValue(setupState);
@@ -154,7 +154,7 @@ describe('GetSetupStatusUseCase', () => {
       hasRooms: true,
       hasUps: true,
       hasServers: false,
-      currentStep: SetupStep.CREATE_SERVER,
+      currentStep: SetupStep.SERVERS_CONFIG,
       isCurrentUserAdmin: false,
       totalSteps: 5,
       currentStepIndex: 3,

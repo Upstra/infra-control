@@ -56,7 +56,7 @@ export class SetupDomainService {
         phase: SetupPhase.IN_PROGRESS,
         hasAdminUser: true,
         hasInfrastructure: true,
-        nextRequiredStep: 'vm-discovery',
+        nextRequiredStep: 'relationships',
       };
     }
 
@@ -99,8 +99,8 @@ export class SetupDomainService {
    * @param upsCount - Number of UPS
    * @param serverCount - Number of servers
    *
-   * @returns {string | null} - Next required step: 'welcome', 'create-room',
-   *   'create-ups', or 'create-server'. Returns `null` if setup is complete.
+   * @returns {string | null} - Next required step: 'welcome', 'rooms',
+   *   'ups', 'servers', or 'relationships'. Returns `null` if setup is complete.
    */
   private determineNextStep(
     userCount: number,
@@ -110,10 +110,10 @@ export class SetupDomainService {
     hasSearchedForVms: boolean,
   ): string | null {
     if (userCount === 0) return 'welcome';
-    if (roomCount === 0) return 'create-room';
-    if (upsCount === 0) return 'create-ups';
-    if (serverCount === 0) return 'create-server';
-    if (!hasSearchedForVms) return 'vm-discovery';
+    if (roomCount === 0) return 'rooms';
+    if (upsCount === 0) return 'ups';
+    if (serverCount === 0) return 'servers';
+    if (!hasSearchedForVms) return 'relationships';
     return null;
   }
 

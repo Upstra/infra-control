@@ -9,7 +9,7 @@ describe('SetupStatusDto', () => {
       hasRooms: false,
       hasUps: false,
       hasServers: false,
-      currentStep: SetupStep.CREATE_ROOM,
+      currentStep: SetupStep.ROOMS_CONFIG,
       ...partial,
     });
   };

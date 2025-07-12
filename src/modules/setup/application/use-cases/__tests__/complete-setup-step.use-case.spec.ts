@@ -15,19 +15,19 @@ describe('CompleteSetupStepUseCase', () => {
     repo.findByStep.mockResolvedValue(null);
     repo.save.mockImplementation(async (e) => e);
 
-    const result = await useCase.execute(SetupStep.CREATE_UPS, 'user1', {
+    const result = await useCase.execute(SetupStep.UPS_CONFIG, 'user1', {
       note: 'done',
     });
 
     expect(repo.save).toHaveBeenCalled();
-    expect(result.step).toBe(SetupStep.CREATE_UPS);
+    expect(result.step).toBe(SetupStep.UPS_CONFIG);
     expect(result.completedBy).toBe('user1');
   });
 
   it('throws when step already completed', async () => {
     repo.findByStep.mockResolvedValue({ completedAt: 'yesterday' });
     await expect(
-      useCase.execute(SetupStep.CREATE_UPS, 'user1'),
+      useCase.execute(SetupStep.UPS_CONFIG, 'user1'),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 

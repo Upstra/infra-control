@@ -65,7 +65,7 @@ export class SetupStatusDto {
   @ApiProperty({
     description: 'Étape actuelle du processus de configuration',
     enum: SetupStep,
-    example: SetupStep.CREATE_ROOM,
+    example: SetupStep.ROOMS_CONFIG,
   })
   @IsEnum(SetupStep)
   currentStep: SetupStep;
