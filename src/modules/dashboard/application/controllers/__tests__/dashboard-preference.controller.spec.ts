@@ -4,7 +4,7 @@ import {
   GetPreferencesUseCase,
   UpdatePreferencesUseCase,
 } from '../../use-cases/preferences';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import {
   DashboardPreferenceResponseDto,
   UpdateDashboardPreferenceDto,
@@ -15,10 +15,7 @@ describe('DashboardPreferenceController', () => {
   let getPreferencesUseCase: jest.Mocked<GetPreferencesUseCase>;
   let updatePreferencesUseCase: jest.Mocked<UpdatePreferencesUseCase>;
 
-  const mockUser: JwtPayload = {
-    userId: 'user-123',
-    email: 'test@example.com',
-  };
+  const mockUser = createMockJwtPayload();
 
   const mockPreferences: DashboardPreferenceResponseDto = {
     theme: 'dark',

@@ -7,6 +7,7 @@ import { UserDomainService } from '../../../../users/domain/services/user.domain
 import { LogHistoryUseCase } from '../../../../history/application/use-cases/log-history.use-case';
 import { User } from '../../../../users/domain/entities/user.entity';
 import { EmailEventType } from '../../../../email/domain/events/email.events';
+import { createMockUser } from '../../../__mocks__/user.mock';
 
 describe('ResetPasswordWithTokenUseCase', () => {
   let useCase: ResetPasswordWithTokenUseCase;
@@ -15,7 +16,7 @@ describe('ResetPasswordWithTokenUseCase', () => {
   let eventEmitter: jest.Mocked<EventEmitter2>;
   let logHistoryUseCase: jest.Mocked<LogHistoryUseCase>;
 
-  const mockUser: Partial<User> = {
+  const mockUser = createMockUser({
     id: '123',
     username: 'testuser',
     email: 'test@example.com',
@@ -28,10 +29,7 @@ describe('ResetPasswordWithTokenUseCase', () => {
     isVerified: true,
     isTwoFactorEnabled: false,
     twoFactorSecret: '',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    roles: [],
-  };
+  });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -84,7 +82,7 @@ describe('ResetPasswordWithTokenUseCase', () => {
     const hashedPassword = 'newHashedPassword';
 
     it('should reset password successfully with valid token', async () => {
-      userRepository.findOneByField.mockResolvedValue(mockUser as User);
+      userRepository.findOneByField.mockResolvedValue(mockUser);
       userDomainService.hashPassword.mockResolvedValue(hashedPassword);
       userRepository.save.mockResolvedValue({
         ...mockUser,
@@ -142,22 +140,46 @@ describe('ResetPasswordWithTokenUseCase', () => {
     });
 
     it('should throw UnauthorizedException when token is missing', async () => {
-      const userWithoutToken = {
-        ...mockUser,
+      const userWithoutToken = createMockUser({
+        id: '123',
+        username: 'testuser',
+        email: 'test@example.com',
+        firstName: 'Test',
+        lastName: 'User',
+        password: 'oldHashedPassword',
         resetPasswordToken: null,
-      } as User;
+        resetPasswordExpiry: new Date(Date.now() + 3600000),
+        isActive: true,
+        isVerified: true,
+        isTwoFactorEnabled: false,
+        twoFactorSecret: '',
+      });
       userRepository.findOneByField.mockResolvedValue(userWithoutToken);
 
       await expect(useCase.execute(token, newPassword)).rejects.toThrow(
         new UnauthorizedException('Token de réinitialisation invalide'),
       );
+
+      expect(userDomainService.hashPassword).not.toHaveBeenCalled();
+      expect(userRepository.save).not.toHaveBeenCalled();
+      expect(eventEmitter.emit).not.toHaveBeenCalled();
     });
 
     it('should throw UnauthorizedException when expiry is missing', async () => {
-      const userWithoutExpiry = {
-        ...mockUser,
+      const userWithoutExpiry = createMockUser({
+        id: '123',
+        username: 'testuser',
+        email: 'test@example.com',
+        firstName: 'Test',
+        lastName: 'User',
+        password: 'oldHashedPassword',
+        resetPasswordToken: 'validtoken123',
         resetPasswordExpiry: null,
-      } as User;
+        isActive: true,
+        isVerified: true,
+        isTwoFactorEnabled: false,
+        twoFactorSecret: '',
+      });
       userRepository.findOneByField.mockResolvedValue(userWithoutExpiry);
 
       await expect(useCase.execute(token, newPassword)).rejects.toThrow(
@@ -166,14 +188,24 @@ describe('ResetPasswordWithTokenUseCase', () => {
     });
 
     it('should throw UnauthorizedException when token is expired', async () => {
-      const expiredUser = {
-        ...mockUser,
+      const expiredUser = createMockUser({
+        id: '123',
+        username: 'testuser',
+        email: 'test@example.com',
+        firstName: 'Test',
+        lastName: 'User',
+        password: 'oldHashedPassword',
+        resetPasswordToken: 'validtoken123',
         resetPasswordExpiry: new Date(Date.now() - 3600000), // 1 hour ago
-      } as User;
+        isActive: true,
+        isVerified: true,
+        isTwoFactorEnabled: false,
+        twoFactorSecret: '',
+      });
       userRepository.findOneByField.mockResolvedValue(expiredUser);
 
       await expect(useCase.execute(token, newPassword)).rejects.toThrow(
-        new UnauthorizedException('Le token de réinitialisation a expiré'),
+        UnauthorizedException,
       );
 
       expect(userDomainService.hashPassword).not.toHaveBeenCalled();
@@ -181,10 +213,20 @@ describe('ResetPasswordWithTokenUseCase', () => {
     });
 
     it('should use username as fallback when firstName is not available', async () => {
-      const userWithoutFirstName = {
-        ...mockUser,
+      const userWithoutFirstName = createMockUser({
+        id: '123',
+        username: 'testuser',
+        email: 'test@example.com',
         firstName: '',
-      } as User;
+        lastName: 'User',
+        password: 'oldHashedPassword',
+        resetPasswordToken: 'validtoken123',
+        resetPasswordExpiry: new Date(Date.now() + 3600000),
+        isActive: true,
+        isVerified: true,
+        isTwoFactorEnabled: false,
+        twoFactorSecret: '',
+      });
       userRepository.findOneByField.mockResolvedValue(userWithoutFirstName);
       userDomainService.hashPassword.mockResolvedValue(hashedPassword);
       userRepository.save.mockResolvedValue(userWithoutFirstName);
@@ -201,7 +243,23 @@ describe('ResetPasswordWithTokenUseCase', () => {
     });
 
     it('should clear reset token fields after successful reset', async () => {
-      userRepository.findOneByField.mockResolvedValue(mockUser as User);
+      // Create a fresh user with token for this test
+      const userWithToken = createMockUser({
+        id: '123',
+        username: 'testuser',
+        email: 'test@example.com',
+        firstName: 'Test',
+        lastName: 'User',
+        password: 'oldHashedPassword',
+        resetPasswordToken: 'validtoken123',
+        resetPasswordExpiry: new Date(Date.now() + 3600000),
+        isActive: true,
+        isVerified: true,
+        isTwoFactorEnabled: false,
+        twoFactorSecret: '',
+      });
+
+      userRepository.findOneByField.mockResolvedValue(userWithToken);
       userDomainService.hashPassword.mockResolvedValue(hashedPassword);
 
       let savedUser: User | null = null;
@@ -218,7 +276,23 @@ describe('ResetPasswordWithTokenUseCase', () => {
     });
 
     it('should handle database save errors gracefully', async () => {
-      userRepository.findOneByField.mockResolvedValue(mockUser as User);
+      // Create a fresh user with token for this test
+      const userWithToken = createMockUser({
+        id: '123',
+        username: 'testuser',
+        email: 'test@example.com',
+        firstName: 'Test',
+        lastName: 'User',
+        password: 'oldHashedPassword',
+        resetPasswordToken: 'validtoken123',
+        resetPasswordExpiry: new Date(Date.now() + 3600000),
+        isActive: true,
+        isVerified: true,
+        isTwoFactorEnabled: false,
+        twoFactorSecret: '',
+      });
+
+      userRepository.findOneByField.mockResolvedValue(userWithToken);
       userDomainService.hashPassword.mockResolvedValue(hashedPassword);
       userRepository.save.mockRejectedValue(new Error('Database error'));
 

@@ -22,6 +22,7 @@ import { ResetPasswordDto } from '../dto';
 import { UpdateAccountDto } from '../dto/update-account.dto';
 import { BulkActivateDto } from '../dto/bulk-activate.dto';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 
 const mockUser = {
   userId: 'abc-123',
@@ -49,10 +50,10 @@ describe('UserController', () => {
   const bulkActivateUseCase = { execute: jest.fn() };
   const createUserByAdminUseCase = { execute: jest.fn() };
 
-  const mockPayload: JwtPayload = {
+  const mockPayload: JwtPayload = createMockJwtPayload({
     userId: 'user-123',
     email: 'john.doe@example.com',
-  };
+  });
 
   beforeEach(async () => {
     jest.clearAllMocks();

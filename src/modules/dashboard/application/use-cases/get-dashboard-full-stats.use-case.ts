@@ -83,10 +83,7 @@ export class GetDashboardFullStatsUseCase {
       onlineUsers,
     };
 
-    await this.redisService.safeSet(
-      this.CACHE_KEY,
-      JSON.stringify(result),
-    );
+    await this.redisService.safeSet(this.CACHE_KEY, JSON.stringify(result));
     await this.redisService.safeExpire(this.CACHE_KEY, this.CACHE_TTL);
 
     return result;

@@ -2,11 +2,14 @@ import { RenewTokenUseCase } from '../renew-token.use-case';
 import { JwtService } from '@nestjs/jwt';
 import { TokenService } from '../../services/token.service';
 import { ExtendedJwtPayload } from '../../../domain/interfaces/extended-jwt-payload.interface';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
+import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 
 describe('RenewTokenUseCase', () => {
   let useCase: RenewTokenUseCase;
   let jwtService: jest.Mocked<JwtService>;
   let tokenService: jest.Mocked<TokenService>;
+  let userRepository: jest.Mocked<UserRepositoryInterface>;
 
   beforeEach(() => {
     jwtService = {
@@ -17,18 +20,24 @@ describe('RenewTokenUseCase', () => {
       generateTokens: jest.fn(),
     } as any;
 
-    useCase = new RenewTokenUseCase(jwtService, tokenService);
+    userRepository = {
+      getUserActiveStatus: jest.fn(),
+    } as any;
+
+    useCase = new RenewTokenUseCase(jwtService, tokenService, userRepository);
   });
 
-  it('should return a renewed token', () => {
+  it('should return a renewed token when isActive is present', async () => {
     const refreshToken = 'refresh.token';
-    const payload: ExtendedJwtPayload = {
+    const mockJwtPayload = createMockJwtPayload({
       userId: 'user-1',
       email: 'john@example.com',
       isTwoFactorEnabled: false,
-      role: { id: '1', name: 'admin' },
-      roles: [{ id: '1', name: 'admin' }],
       isActive: true,
+    });
+    const payload: ExtendedJwtPayload = {
+      ...mockJwtPayload,
+      roles: [mockJwtPayload.role],
     };
 
     jwtService.verify.mockReturnValue(payload);
@@ -38,9 +47,10 @@ describe('RenewTokenUseCase', () => {
       refreshToken: 'new.refresh.token',
     });
 
-    const result = useCase.execute(refreshToken);
+    const result = await useCase.execute(refreshToken);
 
     expect(jwtService.verify).toHaveBeenCalledWith(refreshToken);
+    expect(userRepository.getUserActiveStatus).not.toHaveBeenCalled();
     expect(tokenService.generateTokens).toHaveBeenCalledWith({
       userId: payload.userId,
       email: payload.email,
@@ -55,13 +65,74 @@ describe('RenewTokenUseCase', () => {
     });
   });
 
-  it('should throw UnauthorizedException when verification fails', () => {
+  it('should fetch user from database when isActive is undefined', async () => {
+    const refreshToken = 'refresh.token';
+    const mockJwtPayload = createMockJwtPayload({
+      userId: 'user-1',
+      email: 'john@example.com',
+      isTwoFactorEnabled: false,
+    });
+    const payload: ExtendedJwtPayload = {
+      ...mockJwtPayload,
+      roles: [mockJwtPayload.role],
+      isActive: undefined,
+    };
+
+    jwtService.verify.mockReturnValue(payload);
+
+    const mockUserStatus = { isActive: true };
+    userRepository.getUserActiveStatus.mockResolvedValue(mockUserStatus);
+
+    tokenService.generateTokens.mockReturnValue({
+      accessToken: 'new.access.token',
+      refreshToken: 'new.refresh.token',
+    });
+
+    const result = await useCase.execute(refreshToken);
+
+    expect(userRepository.getUserActiveStatus).toHaveBeenCalledWith('user-1');
+    expect(tokenService.generateTokens).toHaveBeenCalledWith({
+      userId: payload.userId,
+      email: payload.email,
+      isTwoFactorEnabled: payload.isTwoFactorEnabled,
+      role: payload.role,
+      roles: payload.roles,
+      isActive: mockUserStatus.isActive,
+    });
+    expect(result).toEqual({
+      accessToken: 'new.access.token',
+      refreshToken: 'new.refresh.token',
+    });
+  });
+
+  it('should throw UnauthorizedException when verification fails', async () => {
     jwtService.verify.mockImplementation(() => {
       throw new Error('invalid');
     });
 
-    expect(() => useCase.execute('bad.token')).toThrow(
+    await expect(useCase.execute('bad.token')).rejects.toThrow(
       'Invalid or expired refresh token',
+    );
+  });
+
+  it('should throw UnauthorizedException when user is not found (with undefined isActive)', async () => {
+    const refreshToken = 'refresh.token';
+    const mockJwtPayload = createMockJwtPayload({
+      userId: 'user-1',
+      email: 'john@example.com',
+      isTwoFactorEnabled: false,
+    });
+    const payload: ExtendedJwtPayload = {
+      ...mockJwtPayload,
+      roles: [mockJwtPayload.role],
+      isActive: undefined,
+    };
+
+    jwtService.verify.mockReturnValue(payload);
+    userRepository.getUserActiveStatus.mockResolvedValue(null);
+
+    await expect(useCase.execute(refreshToken)).rejects.toThrow(
+      'User not found',
     );
   });
 });

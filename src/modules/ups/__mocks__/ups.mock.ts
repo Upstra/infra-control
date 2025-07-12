@@ -14,10 +14,6 @@ export const createMockUpsDto = (
 ): UpsCreationDto => ({
   name: 'Onduleur Test',
   ip: '192.168.1.50',
-  login: 'admin',
-  password: 'adminpass',
-  grace_period_on: 20,
-  grace_period_off: 10,
   roomId: 'room-uuid',
   ...overrides,
 });

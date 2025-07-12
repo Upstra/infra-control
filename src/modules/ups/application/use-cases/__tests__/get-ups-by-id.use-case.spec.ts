@@ -38,10 +38,6 @@ describe('GetUpsByIdUseCase', () => {
         id: 'test-id',
         name: 'Test UPS',
         ip: '192.168.1.100',
-        login: 'admin',
-        password: 'password',
-        grace_period_on: 10,
-        grace_period_off: 5,
         roomId: 'room-1',
         servers: [],
         room: null,
@@ -79,10 +75,6 @@ describe('GetUpsByIdUseCase', () => {
         id: 'test-id',
         name: 'Test UPS',
         ip: '192.168.1.100',
-        login: 'admin',
-        password: 'password',
-        grace_period_on: 10,
-        grace_period_off: 5,
         roomId: 'room-1',
         servers: [],
         room: null,
@@ -104,10 +96,6 @@ describe('GetUpsByIdUseCase', () => {
         id: 'test-id',
         name: 'Test UPS',
         ip: '10.0.0.1',
-        login: 'testuser',
-        password: 'testpass',
-        grace_period_on: 15,
-        grace_period_off: 8,
         roomId: 'room-test',
         servers: [],
         room: null,
@@ -124,8 +112,6 @@ describe('GetUpsByIdUseCase', () => {
       expect(result.id).toBe('test-id');
       expect(result.name).toBe('Test UPS');
       expect(result.ip).toBe('10.0.0.1');
-      expect(result.grace_period_on).toBe(15);
-      expect(result.grace_period_off).toBe(8);
       expect(result.roomId).toBe('room-test');
       expect(result.serverCount).toBe(10);
     });

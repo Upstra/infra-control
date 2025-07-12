@@ -29,6 +29,9 @@ import { PrometheusModule } from './modules/prometheus/prometheus.module';
 import { EmailModule } from './modules/email/email.module';
 import { UserPreferencesModule } from './modules/user-preferences/user-preferences.module';
 import { SystemSettingsModule } from './modules/system-settings/system-settings.module';
+import { PythonExecutorModule } from './core/services/python-executor';
+import { VmwareModule } from './modules/vmware/vmware.module';
+import { EncryptionModule } from './core/services/encryption';
 
 @Module({
   controllers: [],
@@ -36,6 +39,8 @@ import { SystemSettingsModule } from './modules/system-settings/system-settings.
     configModule,
     TypeOrmModule.forRoot(typeOrmConfig),
     EventEmitterModule.forRoot(),
+    EncryptionModule,
+    PythonExecutorModule,
     GuardsModule,
     InterceptorsModule,
     AuthModule,
@@ -48,6 +53,7 @@ import { SystemSettingsModule } from './modules/system-settings/system-settings.
     ServerModule,
     UserModule,
     VmModule,
+    VmwareModule,
     RedisModule,
     PresenceModule,
     SetupModule,

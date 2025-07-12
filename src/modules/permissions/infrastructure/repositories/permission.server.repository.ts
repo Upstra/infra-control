@@ -106,7 +106,9 @@ export class PermissionServerRepository
 
   async deleteById(id: string): Promise<void> {
     const result = await this.delete({ id });
-    this.logger.log(`Deleted server permission with id ${id}, result: ${JSON.stringify(result)}`);
+    this.logger.log(
+      `Deleted server permission with id ${id}, result: ${JSON.stringify(result)}`,
+    );
   }
 
   async deleteByRoleId(roleId: string): Promise<void> {

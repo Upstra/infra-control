@@ -52,21 +52,33 @@ async function bootstrap() {
   app.use(cookieParser());
   app.useGlobalPipes(setupValidationPipe());
   const corsOptions: CorsOptions = {
-    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       const allowedOrigins = [
         process.env.FRONTEND_URL ?? 'http://localhost',
         'http://localhost',
         'http://localhost:80',
       ];
+      if (process.env.NODE_ENV !== 'production') {
+        const localhostRegex = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+        if (!origin || localhostRegex.test(origin)) {
+          callback(null, true);
+          return;
+        }
+      }
+
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
       }
     },
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     preflightContinue: false,
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
   };
   app.enableCors(corsOptions);
 

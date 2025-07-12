@@ -12,7 +12,7 @@ import {
   CheckServerPermissionUseCase,
 } from '@/modules/servers/application/use-cases';
 import { createMockServerDto } from '@/modules/servers/__mocks__/servers.mock';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
+
 import { PermissionGuard } from '@/core/guards/permission.guard';
 import { RoleGuard } from '@/core/guards/role.guard';
 import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
@@ -20,6 +20,7 @@ import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guar
 import { GetUserWithRoleUseCase } from '@/modules/users/application/use-cases';
 import { Reflector } from '@nestjs/core';
 import { ServerListResponseDto } from '../../dto/server.list.response.dto';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 
 describe('ServerController', () => {
   let controller: ServerController;
@@ -33,10 +34,7 @@ describe('ServerController', () => {
   let updateServerPriorityUseCase: jest.Mocked<UpdateServerPriorityUseCase>;
   let checkServerPermissionUseCase: jest.Mocked<CheckServerPermissionUseCase>;
 
-  const mockPayload: JwtPayload = {
-    userId: 'user-123',
-    email: 'john.doe@example.com',
-  };
+  const mockPayload = createMockJwtPayload();
 
   beforeEach(async () => {
     const mockJwtAuthGuard = {
@@ -129,10 +127,7 @@ describe('ServerController', () => {
   describe('getServerById', () => {
     it('should return a server by id', async () => {
       const dto = createMockServerDto();
-      const user: JwtPayload = {
-        userId: 'user-uuid',
-        email: 'john.doe@example.com',
-      };
+      const user = createMockJwtPayload({ userId: 'user-uuid' });
       getServerByIdWithPermissionCheckUseCase.execute.mockResolvedValue(dto);
 
       const result = await controller.getServerById('server-uuid', user);
@@ -144,10 +139,7 @@ describe('ServerController', () => {
     });
 
     it('should throw if server is not found (permission check route)', async () => {
-      const user: JwtPayload = {
-        userId: 'user-uuid',
-        email: 'john.doe@example.com',
-      };
+      const user = createMockJwtPayload({ userId: 'user-uuid' });
 
       getServerByIdWithPermissionCheckUseCase.execute.mockRejectedValue(
         new Error('Server not found'),
@@ -252,10 +244,7 @@ describe('ServerController', () => {
   describe('getMyServers', () => {
     it('should return paginated servers accessible to the user with default pagination', async () => {
       const dto = createMockServerDto();
-      const user: JwtPayload = {
-        userId: 'user-uuid',
-        email: 'john.doe@example.com',
-      };
+      const user = createMockJwtPayload({ userId: 'user-uuid' });
 
       const mockPaginatedResponse = new ServerListResponseDto([dto], 1, 1, 10);
       getUserServersUseCase.execute.mockResolvedValue(mockPaginatedResponse);
@@ -277,10 +266,7 @@ describe('ServerController', () => {
 
     it('should return paginated servers with custom pagination parameters', async () => {
       const dto = createMockServerDto();
-      const user: JwtPayload = {
-        userId: 'user-uuid',
-        email: 'john.doe@example.com',
-      };
+      const user = createMockJwtPayload({ userId: 'user-uuid' });
 
       const mockPaginatedResponse = new ServerListResponseDto([dto], 10, 2, 5);
       getUserServersUseCase.execute.mockResolvedValue(mockPaginatedResponse);
@@ -301,10 +287,7 @@ describe('ServerController', () => {
     });
 
     it('should handle empty results with pagination', async () => {
-      const user: JwtPayload = {
-        userId: 'user-uuid',
-        email: 'john.doe@example.com',
-      };
+      const user = createMockJwtPayload({ userId: 'user-uuid' });
 
       const mockPaginatedResponse = new ServerListResponseDto([], 0, 1, 10);
       getUserServersUseCase.execute.mockResolvedValue(mockPaginatedResponse);
@@ -349,10 +332,10 @@ describe('ServerController', () => {
 
   describe('Guard Integration Tests', () => {
     it('should handle guard permission denials gracefully', async () => {
-      const user: JwtPayload = {
+      const user = createMockJwtPayload({
         userId: 'user-uuid',
         email: 'blocked@example.com',
-      };
+      });
 
       getUserServersUseCase.execute.mockRejectedValue(new Error('Forbidden'));
 

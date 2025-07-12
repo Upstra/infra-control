@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UserController } from '../user.controller';
 import { SoftDeleteUserUseCase } from '../../use-cases/soft-delete-user.use-case';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { DeletionReason } from '../../dto/delete-account.dto';
 import {
   UserExceptions,
@@ -31,10 +32,10 @@ describe('UserController - deleteAccount', () => {
   let controller: UserController;
   let softDeleteUserUseCase: jest.Mocked<SoftDeleteUserUseCase>;
 
-  const mockAdmin: JwtPayload = {
+  const mockAdmin: JwtPayload = createMockJwtPayload({
     userId: 'admin-user-id',
     email: 'admin@test.com',
-  };
+  });
 
   const mockRequest = {
     ip: '192.168.1.1',

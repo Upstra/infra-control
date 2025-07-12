@@ -21,17 +21,6 @@ export class Ups extends BaseEntity {
   @Column({ type: 'varchar', unique: true })
   ip!: string;
 
-  @Column({ type: 'varchar' })
-  login!: string;
-
-  @Column({ type: 'varchar' })
-  password!: string;
-
-  @Column()
-  grace_period_on!: number;
-
-  @Column()
-  grace_period_off!: number;
 
   @OneToMany(() => Server, (server) => server.ups)
   servers: Server[];

@@ -89,5 +89,13 @@ export interface UserRepositoryInterface
    * @returns Array of users
    */
   findAll(relations?: string[], includeDeleted?: boolean): Promise<User[]>;
+
+  /**
+   * Get only the isActive status of a user.
+   *
+   * @param userId - The ID of the user
+   * @returns Object with isActive status or null if user not found
+   */
+  getUserActiveStatus(userId: string): Promise<{ isActive: boolean } | null>;
 }
 export { FindOneByFieldOptions, FindAllByFieldOptions };
