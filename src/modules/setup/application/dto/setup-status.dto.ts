@@ -7,11 +7,19 @@ import { IsBoolean, IsEnum, IsNumber, IsOptional } from 'class-validator';
  */
 export enum SetupStep {
   WELCOME = 'welcome',
+  RESOURCE_PLANNING = 'planning',
+  ROOMS_CONFIG = 'rooms',
+  UPS_CONFIG = 'ups',
+  SERVERS_CONFIG = 'servers',
+  RELATIONSHIPS = 'relationships',
+  REVIEW = 'review',
+  COMPLETE = 'complete',
+
+  // Deprecated - Keep for backward compatibility
   CREATE_ROOM = 'create-room',
   CREATE_UPS = 'create-ups',
   CREATE_SERVER = 'create-server',
   VM_DISCOVERY = 'vm-discovery',
-  COMPLETE = 'complete',
 }
 
 /**
