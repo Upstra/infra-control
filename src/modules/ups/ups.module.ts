@@ -7,6 +7,8 @@ import { UpsUseCases } from './application/use-cases';
 import { UpsDomainService } from './domain/services/ups.domain.service';
 import { AuditModule } from '../audit/audit.module';
 import { UserModule } from '../users/user.module';
+import { PingModule } from '@/core/services/ping';
+import { PingUpsUseCase } from './application/use-cases/ping-ups.use-case';
 
 @Module({
   controllers: [UpsController],
@@ -15,9 +17,11 @@ import { UserModule } from '../users/user.module';
     TypeOrmModule.forFeature([Ups]),
     AuditModule,
     forwardRef(() => UserModule),
+    PingModule,
   ],
   providers: [
     ...UpsUseCases,
+    PingUpsUseCase,
     UpsDomainService,
     {
       provide: 'UpsRepositoryInterface',
