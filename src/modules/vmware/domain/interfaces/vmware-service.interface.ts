@@ -5,6 +5,7 @@ import {
   VmwareHost,
   VmwareServerInfo,
   VmwareServerMetrics,
+  VmwarePowerState,
 } from './vmware-vm.interface';
 
 export interface IVmwareService {
@@ -17,7 +18,7 @@ export interface IVmwareService {
     moid: string,
     action: 'on' | 'off',
     connection: VmwareConnectionDto,
-  ): Promise<{ success: boolean; message: string; newState: string }>;
+  ): Promise<{ success: boolean; message: string; newState: VmwarePowerState }>;
   migrateVM(
     vmMoid: string,
     destinationMoid: string,

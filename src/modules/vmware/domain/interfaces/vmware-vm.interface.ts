@@ -1,3 +1,9 @@
+export type VmwarePowerState = 'poweredOn' | 'poweredOff' | 'suspended';
+export type VmwareServerPowerState = 'poweredOn' | 'poweredOff' | 'standBy';
+export type VmwareGuestState = 'running' | 'notRunning' | 'shuttingDown' | 'unknown';
+export type VmwareConnectionState = 'connected' | 'disconnected' | 'orphaned';
+export type VmwareHealthStatus = 'green' | 'yellow' | 'red' | 'gray';
+
 export interface VmwareVm {
   moid: string;
   name: string;
@@ -13,11 +19,11 @@ export interface VmwareVm {
 }
 
 export interface VmwareVmMetrics {
-  powerState: 'poweredOn' | 'poweredOff' | 'suspended';
-  guestState: 'running' | 'notRunning' | 'shuttingDown' | 'unknown';
-  connectionState: 'connected' | 'disconnected' | 'orphaned';
-  guestHeartbeatStatus: 'green' | 'yellow' | 'red' | 'gray';
-  overallStatus: 'green' | 'yellow' | 'red' | 'gray';
+  powerState: VmwarePowerState;
+  guestState: VmwareGuestState;
+  connectionState: VmwareConnectionState;
+  guestHeartbeatStatus: VmwareHealthStatus;
+  overallStatus: VmwareHealthStatus;
   maxCpuUsage: number;
   maxMemoryUsage: number;
   bootTime: string;
@@ -44,8 +50,8 @@ export interface VmwareServerInfo {
 }
 
 export interface VmwareServerMetrics {
-  powerState: 'poweredOn' | 'poweredOff' | 'standBy';
-  overallStatus: 'green' | 'yellow' | 'red' | 'gray';
+  powerState: VmwareServerPowerState;
+  overallStatus: VmwareHealthStatus;
   rebootRequired: boolean;
   cpuUsagePercent: number;
   ramUsageMB: number;
@@ -56,9 +62,9 @@ export interface VmwareServerMetrics {
 export interface VmwareHost {
   name: string;
   ip: string;
-  powerState: 'poweredOn' | 'poweredOff' | 'standBy';
+  powerState: VmwareServerPowerState;
   vCenterIp: string;
-  overallStatus: 'green' | 'yellow' | 'red' | 'gray';
+  overallStatus: VmwareHealthStatus;
   cpuCores: number;
   ramTotal: number;
   rebootRequired: boolean;

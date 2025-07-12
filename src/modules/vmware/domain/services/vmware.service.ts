@@ -8,6 +8,11 @@ import {
   VmwareHost,
   VmwareServerInfo,
   VmwareServerMetrics,
+  VmwarePowerState,
+  VmwareServerPowerState,
+  VmwareGuestState,
+  VmwareConnectionState,
+  VmwareHealthStatus,
 } from '../interfaces';
 
 @Injectable()
@@ -53,7 +58,7 @@ export class VmwareService implements IVmwareService {
     moid: string,
     action: 'on' | 'off',
     connection: VmwareConnectionDto,
-  ): Promise<{ success: boolean; message: string; newState: string }> {
+  ): Promise<{ success: boolean; message: string; newState: VmwarePowerState }> {
     const scriptName = action === 'on' ? 'vm_start.py' : 'vm_stop.py';
     const args = ['--moid', moid, ...this.buildConnectionArgs(connection)];
 
@@ -64,7 +69,7 @@ export class VmwareService implements IVmwareService {
         message:
           result.result?.message ??
           `VM ${action === 'on' ? 'started' : 'stopped'} successfully`,
-        newState: action === 'on' ? 'poweredOn' : 'poweredOff',
+        newState: (action === 'on' ? 'poweredOn' : 'poweredOff') as VmwarePowerState,
       };
     } catch (error) {
       this.logger.error(`Failed to ${action} VM ${moid}:`, error);
@@ -193,11 +198,11 @@ export class VmwareService implements IVmwareService {
 
   private parseVmMetrics(result: any): VmwareVmMetrics {
     return {
-      powerState: result.powerState ?? 'poweredOff',
-      guestState: result.guestState ?? 'unknown',
-      connectionState: result.connectionState ?? 'disconnected',
-      guestHeartbeatStatus: result.guestHeartbeatStatus ?? 'gray',
-      overallStatus: result.overallStatus ?? 'gray',
+      powerState: (result.powerState ?? 'poweredOff') as VmwarePowerState,
+      guestState: (result.guestState ?? 'unknown') as VmwareGuestState,
+      connectionState: (result.connectionState ?? 'disconnected') as VmwareConnectionState,
+      guestHeartbeatStatus: (result.guestHeartbeatStatus ?? 'gray') as VmwareHealthStatus,
+      overallStatus: (result.overallStatus ?? 'gray') as VmwareHealthStatus,
       maxCpuUsage: result.maxCpuUsage ?? 0,
       maxMemoryUsage: result.maxMemoryUsage ?? 0,
       bootTime: result.bootTime ?? '',
@@ -228,8 +233,8 @@ export class VmwareService implements IVmwareService {
 
   private parseServerMetrics(result: any): VmwareServerMetrics {
     return {
-      powerState: result.powerState ?? 'poweredOff',
-      overallStatus: result.overallStatus ?? 'gray',
+      powerState: (result.powerState ?? 'poweredOff') as VmwareServerPowerState,
+      overallStatus: (result.overallStatus ?? 'gray') as VmwareHealthStatus,
       rebootRequired: result.rebootRequired ?? false,
       cpuUsagePercent: result.cpuUsagePercent ?? 0,
       ramUsageMB: result.ramUsageMB ?? 0,
