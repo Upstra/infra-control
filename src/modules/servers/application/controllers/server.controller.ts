@@ -34,6 +34,7 @@ import {
   UpdateServerPriorityUseCase,
   CheckServerPermissionUseCase,
 } from '@/modules/servers/application/use-cases';
+import { PingServerUseCase } from '@/modules/servers/application/use-cases/ping-server.use-case';
 
 import { ServerResponseDto } from '../dto/server.response.dto';
 import { ServerCreationDto } from '../dto/server.creation.dto';
@@ -53,6 +54,7 @@ import { RequireResourcePermission } from '@/core/decorators/ressource-permissio
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 import { LogToHistory } from '@/core/decorators/logging-context.decorator';
 import { RequestContextDto } from '@/core/dto';
+import { PingRequestDto, PingResponseDto } from '@/core/dto/ping.dto';
 
 @ApiTags('Server')
 @Controller('server')
@@ -67,6 +69,7 @@ export class ServerController {
     private readonly getUserServersUseCase: GetUserServersUseCase,
     private readonly updateServerPriorityUseCase: UpdateServerPriorityUseCase,
     private readonly checkServerPermissionUseCase: CheckServerPermissionUseCase,
+    private readonly pingServerUseCase: PingServerUseCase,
   ) {}
 
   @Get('admin/all')
@@ -346,5 +349,47 @@ export class ServerController {
       user.userId,
       dto.permission,
     );
+  }
+
+  @Post(':id/ping')
+  @UseGuards(JwtAuthGuard, ResourcePermissionGuard)
+  @RequireResourcePermission({
+    resourceType: 'server',
+    requiredBit: PermissionBit.READ,
+    resourceIdSource: 'params',
+    resourceIdField: 'id',
+  })
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'UUID du serveur à ping',
+    required: true,
+  })
+  @ApiOperation({
+    summary: 'Ping server connectivity',
+    description: 'Pings the server to check if it is accessible over the network. Required before listing resources.',
+  })
+  @ApiBody({
+    type: PingRequestDto,
+    description: 'Host and timeout configuration for ping',
+    required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    type: PingResponseDto,
+    description: 'Ping result with accessibility status and response time',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient permissions',
+  })
+  async pingServer(
+    @Param('id', ParseUUIDPipe) serverId: string,
+    @Body() pingDto: PingRequestDto,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<PingResponseDto> {
+    return this.pingServerUseCase.execute(serverId, pingDto.host, pingDto.timeout);
   }
 }
