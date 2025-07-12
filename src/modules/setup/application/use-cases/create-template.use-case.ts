@@ -1,42 +1,47 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import {
   CreateTemplateRequestDto,
   TemplateResponseDto,
   TemplateType,
 } from '../dto';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { TemplateRepositoryInterface } from '../../domain/interfaces/template.repository.interface';
+import { Template } from '../../domain/entities/template.entity';
 
 @Injectable()
 export class CreateTemplateUseCase {
   private readonly logger = new Logger(CreateTemplateUseCase.name);
 
-  // TODO: In the future, templates should be stored in the database
-  // For now, we'll store them in memory for demonstration
-  private readonly customTemplates: Map<string, TemplateResponseDto> =
-    new Map();
+  constructor(
+    @Inject('TemplateRepositoryInterface')
+    private readonly templateRepository: TemplateRepositoryInterface,
+  ) {}
 
   async execute(
     dto: CreateTemplateRequestDto,
     currentUser: JwtPayload,
   ): Promise<TemplateResponseDto> {
-    const template: TemplateResponseDto = {
-      id: uuidv4(),
-      name: dto.name,
-      description: dto.description,
-      type: TemplateType.CUSTOM,
-      configuration: dto.configuration,
-      createdAt: new Date(),
-      createdBy: currentUser.email,
-    };
+    const template = new Template();
+    template.name = dto.name;
+    template.description = dto.description;
+    template.type = TemplateType.CUSTOM;
+    template.configuration = dto.configuration;
+    template.createdBy = currentUser.email;
 
-    // TODO: Save to database
-    this.customTemplates.set(template.id, template);
+    const savedTemplate = await this.templateRepository.save(template);
 
     this.logger.log(
-      `Created custom template '${template.name}' by user ${currentUser.email}`,
+      `Created custom template '${savedTemplate.name}' by user ${currentUser.email}`,
     );
 
-    return template;
+    return {
+      id: savedTemplate.id,
+      name: savedTemplate.name,
+      description: savedTemplate.description,
+      type: savedTemplate.type,
+      configuration: savedTemplate.configuration,
+      createdAt: savedTemplate.createdAt,
+      createdBy: savedTemplate.createdBy,
+    };
   }
 }
