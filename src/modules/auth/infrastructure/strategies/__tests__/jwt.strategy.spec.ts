@@ -280,9 +280,8 @@ describe('JwtStrategy', () => {
     });
 
     it('should handle null payload gracefully', async () => {
-      await expect(strategy.validate(null as any)).rejects.toThrow(
-        "Cannot read properties of null (reading 'userId')",
-      );
+      const result = await strategy.validate(null as any);
+      expect(result).toBeNull();
     });
 
     it('should handle empty payload object', async () => {

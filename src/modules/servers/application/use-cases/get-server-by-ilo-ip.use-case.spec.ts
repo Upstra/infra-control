@@ -9,7 +9,7 @@ describe('GetServerByIloIpUseCase', () => {
   let useCase: GetServerByIloIpUseCase;
   let serverRepository: jest.Mocked<ServerRepositoryInterface>;
 
-  const mockIlo: Ilo = {
+  const mockIlo = {
     id: 'ilo-1',
     ip: '192.168.1.100',
     login: 'admin',
@@ -18,7 +18,7 @@ describe('GetServerByIloIpUseCase', () => {
     modelName: 'iLO5',
     status: 'active',
     lastHealthCheck: new Date(),
-  } as Ilo;
+  } as any;
 
   const mockServer: Server = {
     id: 'server-1',

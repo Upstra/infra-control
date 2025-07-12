@@ -9,9 +9,12 @@ import {
 } from '../../use-cases';
 import {
   VmPowerActionDto,
+  VmPowerAction,
   VmMigrateDto,
 } from '../../dto';
 import { VmwareVm, VmwareHost } from '../../../domain/interfaces';
+import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
 
 describe('VmwareController', () => {
   let controller: VmwareController;
@@ -56,7 +59,12 @@ describe('VmwareController', () => {
           },
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(ResourcePermissionGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<VmwareController>(VmwareController);
     listVmsUseCase = module.get(ListVmsUseCase);
@@ -88,11 +96,11 @@ describe('VmwareController', () => {
         },
       ];
 
-      listVmsUseCase.execute.mockResolvedValue(mockVms);
+      listVmsUseCase.execute.mockResolvedValue({ vms: mockVms });
 
       const result = await controller.listVMs('server-1');
 
-      expect(result).toEqual(mockVms);
+      expect(result).toEqual({ vms: mockVms });
       expect(listVmsUseCase.execute).toHaveBeenCalledWith('server-1');
     });
   });
@@ -129,7 +137,7 @@ describe('VmwareController', () => {
   describe('controlVMPower', () => {
     it('should control VM power state', async () => {
       const dto: VmPowerActionDto = {
-        action: 'on',
+        action: VmPowerAction.POWER_ON,
       };
 
       const mockResult = {

@@ -61,6 +61,11 @@ describe('VmwareService', () => {
         powerState: 'poweredOn',
         guestOS: 'Ubuntu Linux (64-bit)',
         ipAddress: '192.168.1.100',
+        hostname: undefined,
+        numCpu: undefined,
+        memoryMB: undefined,
+        toolsStatus: undefined,
+        annotation: undefined,
       });
       expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.py', [
         '--ip',
@@ -119,24 +124,44 @@ describe('VmwareService', () => {
   describe('getVMMetrics', () => {
     it('should return VM metrics', async () => {
       const mockMetrics = {
-        vmName: 'Test VM',
         powerState: 'poweredOn',
-        cpuUsageMhz: 1500,
-        memoryUsageMB: 4096,
-        storageUsageGB: 50.5,
+        guestState: 'running',
+        connectionState: 'connected',
+        guestHeartbeatStatus: 'green',
+        overallStatus: 'green',
+        maxCpuUsage: 2400,
+        maxMemoryUsage: 8192,
+        bootTime: '2023-01-01T00:00:00.000Z',
+        isMigrating: false,
+        overallCpuUsage: 1500,
+        guestMemoryUsage: 4096,
         uptimeSeconds: 86400,
-        guestOS: 'Ubuntu Linux (64-bit)',
-        toolsStatus: 'toolsOk',
-        ipAddress: '192.168.1.100',
-        numCpu: 4,
-        memoryMB: 8192,
+        swappedMemory: 0,
+        usedStorage: 53687091200,
+        totalStorage: 107374182400,
       };
 
       pythonExecutor.executePython.mockResolvedValue(mockMetrics);
 
       const result = await service.getVMMetrics('vm-123', mockConnection);
 
-      expect(result).toEqual(mockMetrics);
+      expect(result).toEqual({
+        powerState: 'poweredOn',
+        guestState: 'running',
+        connectionState: 'connected',
+        guestHeartbeatStatus: 'green',
+        overallStatus: 'green',
+        maxCpuUsage: 2400,
+        maxMemoryUsage: 8192,
+        bootTime: '2023-01-01T00:00:00.000Z',
+        isMigrating: false,
+        overallCpuUsage: 1500,
+        guestMemoryUsage: 4096,
+        uptimeSeconds: 86400,
+        swappedMemory: 0,
+        usedStorage: 53687091200,
+        totalStorage: 107374182400,
+      });
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(
         'vm_metrics.py',
         [
@@ -319,29 +344,78 @@ describe('VmwareService', () => {
   describe('getHostMetrics', () => {
     it('should return host metrics', async () => {
       const mockHostMetrics = {
-        moid: 'host-123',
         name: 'ESXi-Host-01',
-        connectionState: 'connected',
+        ip: '192.168.1.100',
         powerState: 'poweredOn',
-        cpuInfo: {
-          model: 'Intel Xeon E5-2680',
-          cores: 16,
-          threads: 32,
-          mhz: 2400,
-        },
-        memoryInfo: {
-          totalMB: 131072,
-          usedMB: 65536,
-          freeMB: 65536,
-        },
-        uptimeSeconds: 432000,
+        vCenterIp: '192.168.1.10',
+        overallStatus: 'green',
+        cpuCores: 16,
+        ramTotal: 131072,
+        rebootRequired: false,
+        cpuUsageMHz: 12000,
+        ramUsageMB: 65536,
+        uptime: 432000,
+        boottime: '2023-01-01T00:00:00.000Z',
+        cluster: 'Production-Cluster',
+        cpuHz: 2400000000,
+        numCpuCores: 16,
+        numCpuThreads: 32,
+        model: 'Intel Xeon E5-2680',
+        vendor: 'Intel',
+        biosVendor: 'HPE',
+        firewall: 'enabled',
+        maxHostRunningVms: 1024,
+        maxHostSupportedVcpus: 4096,
+        maxMemMBPerFtVm: 131072,
+        maxNumDisksSVMotion: 248,
+        maxRegisteredVMs: 2048,
+        maxRunningVMs: 1024,
+        maxSupportedVcpus: 4096,
+        maxSupportedVmMemory: 6128640,
+        maxVcpusPerFtVm: 8,
+        quickBootSupported: true,
+        rebootSupported: true,
+        shutdownSupported: true,
       };
 
       pythonExecutor.executePython.mockResolvedValue(mockHostMetrics);
 
       const result = await service.getHostMetrics('host-123', mockConnection);
 
-      expect(result).toEqual(mockHostMetrics);
+      expect(result).toEqual({
+        name: 'ESXi-Host-01',
+        ip: '192.168.1.100',
+        powerState: 'poweredOn',
+        vCenterIp: '192.168.1.10',
+        overallStatus: 'green',
+        cpuCores: 16,
+        ramTotal: 131072,
+        rebootRequired: false,
+        cpuUsageMHz: 12000,
+        ramUsageMB: 65536,
+        uptime: 432000,
+        boottime: '2023-01-01T00:00:00.000Z',
+        cluster: 'Production-Cluster',
+        cpuHz: 2400000000,
+        numCpuCores: 16,
+        numCpuThreads: 32,
+        model: 'Intel Xeon E5-2680',
+        vendor: 'Intel',
+        biosVendor: 'HPE',
+        firewall: 'enabled',
+        maxHostRunningVms: 1024,
+        maxHostSupportedVcpus: 4096,
+        maxMemMBPerFtVm: 131072,
+        maxNumDisksSVMotion: 248,
+        maxRegisteredVMs: 2048,
+        maxRunningVMs: 1024,
+        maxSupportedVcpus: 4096,
+        maxSupportedVmMemory: 6128640,
+        maxVcpusPerFtVm: 8,
+        quickBootSupported: true,
+        rebootSupported: true,
+        shutdownSupported: true,
+      });
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(
         'server_metrics.py',
         [

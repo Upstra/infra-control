@@ -74,7 +74,7 @@ describe('CreatePermissionVmUseCase', () => {
       expect(logHistory.executeStructured).toHaveBeenCalledWith({
         entity: 'permission_vm',
         entityId: 'vm-10_role-vm',
-        action: 'CREATE',
+        action: 'CREATE_PERMISSION_VM',
         userId: 'user-123',
         newValue: {
           vmId: permission.vmId,
@@ -104,7 +104,7 @@ describe('CreatePermissionVmUseCase', () => {
       expect(logHistory.executeStructured).toHaveBeenCalledWith({
         entity: 'permission_vm',
         entityId: 'vm-456_role-123',
-        action: 'CREATE',
+        action: 'CREATE_PERMISSION_VM',
         userId: 'system',
         newValue: {
           vmId: permission.vmId,

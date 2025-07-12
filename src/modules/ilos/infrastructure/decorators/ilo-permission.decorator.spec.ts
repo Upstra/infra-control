@@ -1,7 +1,9 @@
 import { SetMetadata } from '@nestjs/common';
-import { IloPermission } from './ilo-permission.decorator';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
-import { ILO_PERMISSION_KEY } from '../guards/ilo-permission.guard';
+
+jest.mock('../guards/ilo-permission.guard', () => ({
+  ILO_PERMISSION_KEY: 'ilo_permission',
+}));
 
 jest.mock('@nestjs/common', () => ({
   SetMetadata: jest.fn().mockImplementation((key, value) => {
@@ -14,6 +16,9 @@ jest.mock('@nestjs/common', () => ({
     };
   }),
 }));
+
+import { IloPermission } from './ilo-permission.decorator';
+import { ILO_PERMISSION_KEY } from '../guards/ilo-permission.guard';
 
 describe('IloPermission Decorator', () => {
   beforeEach(() => {

@@ -3,7 +3,10 @@ import { IloPowerController } from './ilo-power.controller';
 import { ControlServerPowerUseCase } from '../use-cases/control-server-power.use-case';
 import { GetServerStatusUseCase } from '../use-cases/get-server-status.use-case';
 import { IloPowerAction, IloPowerActionDto } from '../dto/ilo-power-action.dto';
-import { IloPowerResponseDto, IloStatusResponseDto } from '../dto/ilo-status.dto';
+import {
+  IloPowerResponseDto,
+  IloStatusResponseDto,
+} from '../dto/ilo-status.dto';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
 import { IloServerStatus } from '../dto/ilo-status.dto';
@@ -98,7 +101,6 @@ describe('IloPowerController', () => {
         controller.controlServerPower('server-1', dto),
       ).rejects.toThrow(error);
     });
-
   });
 
   describe('getServerStatus', () => {
@@ -124,7 +126,6 @@ describe('IloPowerController', () => {
         error,
       );
     });
-
   });
 
   describe('guards', () => {
