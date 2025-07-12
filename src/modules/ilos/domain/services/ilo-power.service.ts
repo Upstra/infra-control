@@ -71,24 +71,6 @@ export class IloPowerService {
     ];
   }
 
-  private parseStatus(result: any): IloServerStatus {
-    if (typeof result === 'string') {
-      const status = result.toUpperCase().trim();
-      if (status === 'ON' || status === 'POWEREDON') {
-        return IloServerStatus.ON;
-      }
-      if (status === 'OFF' || status === 'POWEREDOFF') {
-        return IloServerStatus.OFF;
-      }
-      return IloServerStatus.ERROR;
-    }
-
-    if (result.status) {
-      return this.parseStatus(result.status);
-    }
-
-    return IloServerStatus.ERROR;
-  }
 
   private handleIloError(error: any, defaultMessage: string): HttpException {
     const message = error.message ?? defaultMessage;
