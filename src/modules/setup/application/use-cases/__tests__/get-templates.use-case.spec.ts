@@ -1,16 +1,29 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { GetTemplatesUseCase } from '../get-templates.use-case';
 import { TemplateType } from '../../dto';
+import { RedisSafeService } from '../../../../redis/application/services/redis-safe.service';
 
 describe('GetTemplatesUseCase', () => {
   let useCase: GetTemplatesUseCase;
+  let redisService: jest.Mocked<RedisSafeService>;
 
   beforeEach(async () => {
+    const mockRedisService = {
+      safeGet: jest.fn().mockResolvedValue(null),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [GetTemplatesUseCase],
+      providers: [
+        GetTemplatesUseCase,
+        {
+          provide: RedisSafeService,
+          useValue: mockRedisService,
+        },
+      ],
     }).compile();
 
     useCase = module.get<GetTemplatesUseCase>(GetTemplatesUseCase);
+    redisService = module.get(RedisSafeService);
   });
 
   describe('execute', () => {
@@ -97,6 +110,30 @@ describe('GetTemplatesUseCase', () => {
       smallDcTemplate!.configuration.servers.forEach((server) => {
         expect(server.roomId).toMatch(/^temp_room_\d+$/);
         expect(server.upsId).toMatch(/^temp_ups_\d+$/);
+      });
+    });
+
+    it('should include tempId for all rooms, UPS, and servers', async () => {
+      const result = await useCase.execute();
+
+      result.templates.forEach((template) => {
+        // Check rooms have tempId
+        template.configuration.rooms.forEach((room) => {
+          expect(room).toHaveProperty('tempId');
+          expect(room.tempId).toMatch(/^temp_room_\d+$/);
+        });
+
+        // Check UPS have tempId
+        template.configuration.upsList.forEach((ups) => {
+          expect(ups).toHaveProperty('tempId');
+          expect(ups.tempId).toMatch(/^temp_ups_\d+$/);
+        });
+
+        // Check servers have tempId (if any)
+        template.configuration.servers.forEach((server) => {
+          expect(server).toHaveProperty('tempId');
+          expect(server.tempId).toMatch(/^temp_server_\d+$/);
+        });
       });
     });
   });

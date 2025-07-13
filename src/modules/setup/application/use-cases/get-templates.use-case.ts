@@ -16,14 +16,15 @@ export class GetTemplatesUseCase {
       description: 'Basic setup for small data center with 1 room and 2 UPS',
       type: TemplateType.PREDEFINED,
       configuration: {
-        rooms: [{ name: 'Main Server Room' }],
+        rooms: [{ name: 'Main Server Room', tempId: 'temp_room_1' }],
         upsList: [
-          { name: 'UPS-Primary', roomId: 'temp_room_1', ip: '192.168.1.100' },
-          { name: 'UPS-Backup', roomId: 'temp_room_1', ip: '192.168.1.101' },
+          { name: 'UPS-Primary', tempId: 'temp_ups_1', roomId: 'temp_room_1', ip: '192.168.1.100' },
+          { name: 'UPS-Backup', tempId: 'temp_ups_2', roomId: 'temp_room_1', ip: '192.168.1.101' },
         ],
         servers: [
           {
             name: 'WEB-01',
+            tempId: 'temp_server_1',
             state: 'stopped',
             grace_period_on: 30,
             grace_period_off: 30,
@@ -38,6 +39,7 @@ export class GetTemplatesUseCase {
           },
           {
             name: 'DB-01',
+            tempId: 'temp_server_2',
             state: 'stopped',
             grace_period_on: 60,
             grace_period_off: 60,
@@ -62,14 +64,14 @@ export class GetTemplatesUseCase {
       type: TemplateType.PREDEFINED,
       configuration: {
         rooms: [
-          { name: 'Primary Server Room' },
-          { name: 'Secondary Server Room' },
+          { name: 'Primary Server Room', tempId: 'temp_room_1' },
+          { name: 'Secondary Server Room', tempId: 'temp_room_2' },
         ],
         upsList: [
-          { name: 'UPS-Room1-A', roomId: 'temp_room_1', ip: '192.168.1.100' },
-          { name: 'UPS-Room1-B', roomId: 'temp_room_1', ip: '192.168.1.101' },
-          { name: 'UPS-Room2-A', roomId: 'temp_room_2', ip: '192.168.1.102' },
-          { name: 'UPS-Room2-B', roomId: 'temp_room_2', ip: '192.168.1.103' },
+          { name: 'UPS-Room1-A', tempId: 'temp_ups_1', roomId: 'temp_room_1', ip: '192.168.1.100' },
+          { name: 'UPS-Room1-B', tempId: 'temp_ups_2', roomId: 'temp_room_1', ip: '192.168.1.101' },
+          { name: 'UPS-Room2-A', tempId: 'temp_ups_3', roomId: 'temp_room_2', ip: '192.168.1.102' },
+          { name: 'UPS-Room2-B', tempId: 'temp_ups_4', roomId: 'temp_room_2', ip: '192.168.1.103' },
         ],
         servers: [],
       },
@@ -82,16 +84,16 @@ export class GetTemplatesUseCase {
       type: TemplateType.PREDEFINED,
       configuration: {
         rooms: [
-          { name: 'DC1-Production' },
-          { name: 'DC1-Development' },
-          { name: 'DC1-Disaster Recovery' },
+          { name: 'DC1-Production', tempId: 'temp_room_1' },
+          { name: 'DC1-Development', tempId: 'temp_room_2' },
+          { name: 'DC1-Disaster Recovery', tempId: 'temp_room_3' },
         ],
         upsList: [
-          { name: 'DC1-PROD-UPS-01', roomId: 'temp_room_1' },
-          { name: 'DC1-PROD-UPS-02', roomId: 'temp_room_1' },
-          { name: 'DC1-DEV-UPS-01', roomId: 'temp_room_2' },
-          { name: 'DC1-DR-UPS-01', roomId: 'temp_room_3' },
-          { name: 'DC1-DR-UPS-02', roomId: 'temp_room_3' },
+          { name: 'DC1-PROD-UPS-01', tempId: 'temp_ups_1', roomId: 'temp_room_1' },
+          { name: 'DC1-PROD-UPS-02', tempId: 'temp_ups_2', roomId: 'temp_room_1' },
+          { name: 'DC1-DEV-UPS-01', tempId: 'temp_ups_3', roomId: 'temp_room_2' },
+          { name: 'DC1-DR-UPS-01', tempId: 'temp_ups_4', roomId: 'temp_room_3' },
+          { name: 'DC1-DR-UPS-02', tempId: 'temp_ups_5', roomId: 'temp_room_3' },
         ],
         servers: [],
       },
