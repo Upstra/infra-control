@@ -25,6 +25,7 @@ import {
   ControlVmPowerUseCase,
   MigrateVmUseCase,
   GetHostMetricsUseCase,
+  StartVMDiscoveryUseCase,
 } from '../use-cases';
 import { VmPowerActionDto, VmMigrateDto } from '../dto';
 
@@ -39,6 +40,7 @@ export class VmwareController {
     private readonly controlVmPowerUseCase: ControlVmPowerUseCase,
     private readonly migrateVmUseCase: MigrateVmUseCase,
     private readonly getHostMetricsUseCase: GetHostMetricsUseCase,
+    private readonly startVMDiscoveryUseCase: StartVMDiscoveryUseCase,
   ) {}
 
   @Get(':serverId/vms')
@@ -185,5 +187,27 @@ export class VmwareController {
   })
   async getHostMetrics(@Param('serverId') serverId: string) {
     return this.getHostMetricsUseCase.execute(serverId);
+  }
+
+  @Post('discovery/start')
+  @HttpCode(HttpStatus.ACCEPTED)
+  @ApiOperation({ summary: 'Start VM discovery process' })
+  @ApiResponse({
+    status: 202,
+    description: 'Discovery started successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        sessionId: { type: 'string' },
+        serverCount: { type: 'number' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient permissions',
+  })
+  async startVMDiscovery(@Body() body?: { serverIds?: number[] }) {
+    return this.startVMDiscoveryUseCase.execute({ serverIds: body?.serverIds });
   }
 }

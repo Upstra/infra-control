@@ -1,0 +1,59 @@
+import { Injectable } from '@nestjs/common';
+import { randomUUID } from 'crypto';
+
+import { VmwareDiscoveryService } from '../../domain/services/vmware-discovery.service';
+import { ServerRepositoryInterface } from '../../../servers/domain/interfaces/server.repository.interface';
+import { Server } from '../../../servers/domain/entities/server.entity';
+
+export interface StartVMDiscoveryCommand {
+  readonly serverIds?: number[];
+}
+
+export interface StartVMDiscoveryResult {
+  readonly sessionId: string;
+  readonly serverCount: number;
+}
+
+@Injectable()
+export class StartVMDiscoveryUseCase {
+  constructor(
+    private readonly vmwareDiscoveryService: VmwareDiscoveryService,
+    private readonly serversRepository: ServerRepositoryInterface,
+  ) {}
+
+  async execute(
+    command: StartVMDiscoveryCommand,
+  ): Promise<StartVMDiscoveryResult> {
+    const sessionId = randomUUID();
+
+    let servers: Server[];
+
+    if (command.serverIds?.length) {
+      servers = [];
+      for (const id of command.serverIds) {
+        const server = await this.serversRepository.findServerById(
+          id.toString(),
+        );
+        if (server) {
+          servers.push(server);
+        }
+      }
+    } else {
+      servers = await this.serversRepository.findAll();
+    }
+
+    const vmwareServers = servers.filter((server) =>
+      ['vmware', 'vcenter', 'esxi'].includes(server.type?.toLowerCase()),
+    );
+
+    this.vmwareDiscoveryService.discoverVmsFromServers(
+      vmwareServers,
+      sessionId,
+    );
+
+    return {
+      sessionId,
+      serverCount: vmwareServers.length,
+    };
+  }
+}

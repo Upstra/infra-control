@@ -9,6 +9,9 @@ import { GetVmMetricsUseCase } from './application/use-cases/get-vm-metrics.use-
 import { ControlVmPowerUseCase } from './application/use-cases/control-vm-power.use-case';
 import { MigrateVmUseCase } from './application/use-cases/migrate-vm.use-case';
 import { GetHostMetricsUseCase } from './application/use-cases/get-host-metrics.use-case';
+import { StartVMDiscoveryUseCase } from './application/use-cases/start-vm-discovery.use-case';
+import { VmwareDiscoveryGateway } from './application/gateway/vmware-discovery.gateway';
+import { VmwareDiscoveryService } from './domain/services/vmware-discovery.service';
 import { ServerModule } from '@/modules/servers/server.module';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
 import { PermissionModule } from '@/modules/permissions/permission.module';
@@ -24,12 +27,15 @@ import { PermissionModule } from '@/modules/permissions/permission.module';
   controllers: [VmwareController],
   providers: [
     VmwareService,
+    VmwareDiscoveryService,
+    VmwareDiscoveryGateway,
     ListVmsUseCase,
     GetVmMetricsUseCase,
     ControlVmPowerUseCase,
     MigrateVmUseCase,
     GetHostMetricsUseCase,
+    StartVMDiscoveryUseCase,
   ],
-  exports: [VmwareService],
+  exports: [VmwareService, VmwareDiscoveryService, VmwareDiscoveryGateway],
 })
 export class VmwareModule {}
