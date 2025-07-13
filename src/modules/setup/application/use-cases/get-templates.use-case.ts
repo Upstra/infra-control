@@ -18,8 +18,18 @@ export class GetTemplatesUseCase {
       configuration: {
         rooms: [{ name: 'Main Server Room', tempId: 'temp_room_1' }],
         upsList: [
-          { name: 'UPS-Primary', tempId: 'temp_ups_1', roomId: 'temp_room_1', ip: '192.168.1.100' },
-          { name: 'UPS-Backup', tempId: 'temp_ups_2', roomId: 'temp_room_1', ip: '192.168.1.101' },
+          {
+            name: 'UPS-Primary',
+            tempId: 'temp_ups_1',
+            roomId: 'temp_room_1',
+            ip: '192.168.1.100',
+          },
+          {
+            name: 'UPS-Backup',
+            tempId: 'temp_ups_2',
+            roomId: 'temp_room_1',
+            ip: '192.168.1.101',
+          },
         ],
         servers: [
           {
@@ -68,10 +78,30 @@ export class GetTemplatesUseCase {
           { name: 'Secondary Server Room', tempId: 'temp_room_2' },
         ],
         upsList: [
-          { name: 'UPS-Room1-A', tempId: 'temp_ups_1', roomId: 'temp_room_1', ip: '192.168.1.100' },
-          { name: 'UPS-Room1-B', tempId: 'temp_ups_2', roomId: 'temp_room_1', ip: '192.168.1.101' },
-          { name: 'UPS-Room2-A', tempId: 'temp_ups_3', roomId: 'temp_room_2', ip: '192.168.1.102' },
-          { name: 'UPS-Room2-B', tempId: 'temp_ups_4', roomId: 'temp_room_2', ip: '192.168.1.103' },
+          {
+            name: 'UPS-Room1-A',
+            tempId: 'temp_ups_1',
+            roomId: 'temp_room_1',
+            ip: '192.168.1.100',
+          },
+          {
+            name: 'UPS-Room1-B',
+            tempId: 'temp_ups_2',
+            roomId: 'temp_room_1',
+            ip: '192.168.1.101',
+          },
+          {
+            name: 'UPS-Room2-A',
+            tempId: 'temp_ups_3',
+            roomId: 'temp_room_2',
+            ip: '192.168.1.102',
+          },
+          {
+            name: 'UPS-Room2-B',
+            tempId: 'temp_ups_4',
+            roomId: 'temp_room_2',
+            ip: '192.168.1.103',
+          },
         ],
         servers: [],
       },
@@ -89,11 +119,31 @@ export class GetTemplatesUseCase {
           { name: 'DC1-Disaster Recovery', tempId: 'temp_room_3' },
         ],
         upsList: [
-          { name: 'DC1-PROD-UPS-01', tempId: 'temp_ups_1', roomId: 'temp_room_1' },
-          { name: 'DC1-PROD-UPS-02', tempId: 'temp_ups_2', roomId: 'temp_room_1' },
-          { name: 'DC1-DEV-UPS-01', tempId: 'temp_ups_3', roomId: 'temp_room_2' },
-          { name: 'DC1-DR-UPS-01', tempId: 'temp_ups_4', roomId: 'temp_room_3' },
-          { name: 'DC1-DR-UPS-02', tempId: 'temp_ups_5', roomId: 'temp_room_3' },
+          {
+            name: 'DC1-PROD-UPS-01',
+            tempId: 'temp_ups_1',
+            roomId: 'temp_room_1',
+          },
+          {
+            name: 'DC1-PROD-UPS-02',
+            tempId: 'temp_ups_2',
+            roomId: 'temp_room_1',
+          },
+          {
+            name: 'DC1-DEV-UPS-01',
+            tempId: 'temp_ups_3',
+            roomId: 'temp_room_2',
+          },
+          {
+            name: 'DC1-DR-UPS-01',
+            tempId: 'temp_ups_4',
+            roomId: 'temp_room_3',
+          },
+          {
+            name: 'DC1-DR-UPS-02',
+            tempId: 'temp_ups_5',
+            roomId: 'temp_room_3',
+          },
         ],
         servers: [],
       },
@@ -101,14 +151,12 @@ export class GetTemplatesUseCase {
     },
   ];
 
-  constructor(
-    private readonly redisService: RedisSafeService,
-  ) {}
+  constructor(private readonly redisService: RedisSafeService) {}
 
   async execute(): Promise<TemplateListResponseDto> {
     const customTemplatesJson = await this.redisService.safeGet(this.REDIS_KEY);
-    const customTemplates: TemplateResponseDto[] = customTemplatesJson 
-      ? JSON.parse(customTemplatesJson) 
+    const customTemplates: TemplateResponseDto[] = customTemplatesJson
+      ? JSON.parse(customTemplatesJson)
       : [];
 
     return {

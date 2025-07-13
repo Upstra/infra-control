@@ -4,7 +4,10 @@ import { Repository, Not } from 'typeorm';
 import { Ups } from '@/modules/ups/domain/entities/ups.entity';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
 import { Ilo } from '@/modules/ilos/domain/entities/ilo.entity';
-import { IpValidationRequestDto, IpValidationResponseDto } from '../dto/ip-validation.dto';
+import {
+  IpValidationRequestDto,
+  IpValidationResponseDto,
+} from '../dto/ip-validation.dto';
 
 @Injectable()
 export class ValidateIpUseCase {
@@ -24,10 +27,8 @@ export class ValidateIpUseCase {
       return { exists: false };
     }
 
-    this.logger.debug(`Validating IP availability: ${dto.ip} for ${dto.resourceType}`);
-
     const trimmedIp = dto.ip.trim();
-    const whereCondition = dto.excludeId 
+    const whereCondition = dto.excludeId
       ? { ip: trimmedIp, id: Not(dto.excludeId) }
       : { ip: trimmedIp };
 

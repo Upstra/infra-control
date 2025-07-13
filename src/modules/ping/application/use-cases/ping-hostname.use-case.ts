@@ -41,8 +41,8 @@ export class PingHostnameUseCase {
       const parts = hostname.split('.');
       // Must have exactly 4 parts
       if (parts.length !== 4) return false;
-      
-      return parts.every(part => {
+
+      return parts.every((part) => {
         const num = parseInt(part, 10);
         return num >= 0 && num <= 255;
       });
@@ -55,7 +55,8 @@ export class PingHostnameUseCase {
     }
 
     // Hostname validation
-    const hostnameRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    const hostnameRegex =
+      /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
     return hostnameRegex.test(hostname);
   }
 }

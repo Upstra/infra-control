@@ -5,7 +5,6 @@ import { RedisSafeService } from '../../../../redis/application/services/redis-s
 
 describe('GetTemplatesUseCase', () => {
   let useCase: GetTemplatesUseCase;
-  let redisService: jest.Mocked<RedisSafeService>;
 
   beforeEach(async () => {
     const mockRedisService = {
@@ -23,7 +22,6 @@ describe('GetTemplatesUseCase', () => {
     }).compile();
 
     useCase = module.get<GetTemplatesUseCase>(GetTemplatesUseCase);
-    redisService = module.get(RedisSafeService);
   });
 
   describe('execute', () => {

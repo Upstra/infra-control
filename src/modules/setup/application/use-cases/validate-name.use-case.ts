@@ -4,7 +4,10 @@ import { Repository, Not } from 'typeorm';
 import { Room } from '@/modules/rooms/domain/entities/room.entity';
 import { Ups } from '@/modules/ups/domain/entities/ups.entity';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
-import { NameValidationRequestDto, NameValidationResponseDto } from '../dto/ip-validation.dto';
+import {
+  NameValidationRequestDto,
+  NameValidationResponseDto,
+} from '../dto/ip-validation.dto';
 
 @Injectable()
 export class ValidateNameUseCase {
@@ -19,15 +22,15 @@ export class ValidateNameUseCase {
     private readonly serverRepository: Repository<Server>,
   ) {}
 
-  async execute(dto: NameValidationRequestDto): Promise<NameValidationResponseDto> {
+  async execute(
+    dto: NameValidationRequestDto,
+  ): Promise<NameValidationResponseDto> {
     if (!dto.name?.trim()) {
       return { exists: false };
     }
 
-    this.logger.debug(`Validating name availability: ${dto.name} for ${dto.resourceType}`);
-
     const trimmedName = dto.name.trim();
-    const whereCondition = dto.excludeId 
+    const whereCondition = dto.excludeId
       ? { name: trimmedName, id: Not(dto.excludeId) }
       : { name: trimmedName };
 
@@ -71,7 +74,10 @@ export class ValidateNameUseCase {
   /**
    * Legacy method for backward compatibility
    */
-  async validateName(name: string, type: 'ups' | 'server'): Promise<NameValidationResponseDto> {
+  async validateName(
+    name: string,
+    type: 'ups' | 'server',
+  ): Promise<NameValidationResponseDto> {
     return this.execute({ name, resourceType: type });
   }
 }
