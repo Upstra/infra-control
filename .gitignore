@@ -282,3 +282,5 @@ $RECYCLE.BIN/
 # Grafana 
 # Ignore data directory
 grafana/data/*
+
+perso/*

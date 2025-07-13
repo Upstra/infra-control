@@ -1,6 +1,5 @@
 import { ValidateIpUseCase } from '../../use-cases/validate-ip.use-case';
 import { ValidateNameUseCase } from '../../use-cases/validate-name.use-case';
-import { IpValidationRequestDto, NameValidationRequestDto } from '../../dto/ip-validation.dto';
 
 describe('SetupController - Validation Endpoints', () => {
   let validateIpUseCase: jest.Mocked<ValidateIpUseCase>;
@@ -25,8 +24,12 @@ describe('SetupController - Validation Endpoints', () => {
     jest.clearAllMocks();
     
     // Setup controller methods to call use cases
-    mockController.validateIp.mockImplementation((dto) => validateIpUseCase.execute(dto));
-    mockController.validateName.mockImplementation((dto) => validateNameUseCase.execute(dto));
+    mockController.validateIp.mockImplementation((value, type, excludeId) => 
+      validateIpUseCase.execute({ ip: value, resourceType: type, excludeId })
+    );
+    mockController.validateName.mockImplementation((value, type, excludeId) => 
+      validateNameUseCase.execute({ name: value, resourceType: type, excludeId })
+    );
   });
 
   afterEach(() => {
@@ -35,10 +38,8 @@ describe('SetupController - Validation Endpoints', () => {
 
   describe('validateIp', () => {
     it('should validate IP address availability', async () => {
-      const dto: IpValidationRequestDto = {
-        ip: '192.168.1.100',
-        resourceType: 'server',
-      };
+      const value = '192.168.1.100';
+      const type = 'server';
 
       const expectedResponse = {
         exists: false,
@@ -46,17 +47,19 @@ describe('SetupController - Validation Endpoints', () => {
 
       validateIpUseCase.execute.mockResolvedValue(expectedResponse);
 
-      const result = await mockController.validateIp(dto);
+      const result = await mockController.validateIp(value, type);
 
       expect(result).toEqual(expectedResponse);
-      expect(validateIpUseCase.execute).toHaveBeenCalledWith(dto);
+      expect(validateIpUseCase.execute).toHaveBeenCalledWith({
+        ip: value,
+        resourceType: type,
+        excludeId: undefined,
+      });
     });
 
     it('should return conflict when IP exists', async () => {
-      const dto: IpValidationRequestDto = {
-        ip: '192.168.1.100',
-        resourceType: 'ups',
-      };
+      const value = '192.168.1.100';
+      const type = 'ups';
 
       const expectedResponse = {
         exists: true,
@@ -65,18 +68,20 @@ describe('SetupController - Validation Endpoints', () => {
 
       validateIpUseCase.execute.mockResolvedValue(expectedResponse);
 
-      const result = await mockController.validateIp(dto);
+      const result = await mockController.validateIp(value, type);
 
       expect(result).toEqual(expectedResponse);
-      expect(validateIpUseCase.execute).toHaveBeenCalledWith(dto);
+      expect(validateIpUseCase.execute).toHaveBeenCalledWith({
+        ip: value,
+        resourceType: type,
+        excludeId: undefined,
+      });
     });
 
     it('should handle IP validation with excludeId', async () => {
-      const dto: IpValidationRequestDto = {
-        ip: '192.168.1.100',
-        resourceType: 'server',
-        excludeId: 'server-123',
-      };
+      const value = '192.168.1.100';
+      const type = 'server';
+      const excludeId = 'server-123';
 
       const expectedResponse = {
         exists: false,
@@ -84,19 +89,21 @@ describe('SetupController - Validation Endpoints', () => {
 
       validateIpUseCase.execute.mockResolvedValue(expectedResponse);
 
-      const result = await mockController.validateIp(dto);
+      const result = await mockController.validateIp(value, type, excludeId);
 
       expect(result).toEqual(expectedResponse);
-      expect(validateIpUseCase.execute).toHaveBeenCalledWith(dto);
+      expect(validateIpUseCase.execute).toHaveBeenCalledWith({
+        ip: value,
+        resourceType: type,
+        excludeId,
+      });
     });
   });
 
   describe('validateName', () => {
     it('should validate name availability', async () => {
-      const dto: NameValidationRequestDto = {
-        name: 'New Server',
-        resourceType: 'server',
-      };
+      const value = 'New Server';
+      const type = 'server';
 
       const expectedResponse = {
         exists: false,
@@ -104,17 +111,19 @@ describe('SetupController - Validation Endpoints', () => {
 
       validateNameUseCase.execute.mockResolvedValue(expectedResponse);
 
-      const result = await mockController.validateName(dto);
+      const result = await mockController.validateName(value, type);
 
       expect(result).toEqual(expectedResponse);
-      expect(validateNameUseCase.execute).toHaveBeenCalledWith(dto);
+      expect(validateNameUseCase.execute).toHaveBeenCalledWith({
+        name: value,
+        resourceType: type,
+        excludeId: undefined,
+      });
     });
 
     it('should return conflict when name exists', async () => {
-      const dto: NameValidationRequestDto = {
-        name: 'Existing Room',
-        resourceType: 'room',
-      };
+      const value = 'Existing Room';
+      const type = 'room';
 
       const expectedResponse = {
         exists: true,
@@ -123,18 +132,20 @@ describe('SetupController - Validation Endpoints', () => {
 
       validateNameUseCase.execute.mockResolvedValue(expectedResponse);
 
-      const result = await mockController.validateName(dto);
+      const result = await mockController.validateName(value, type);
 
       expect(result).toEqual(expectedResponse);
-      expect(validateNameUseCase.execute).toHaveBeenCalledWith(dto);
+      expect(validateNameUseCase.execute).toHaveBeenCalledWith({
+        name: value,
+        resourceType: type,
+        excludeId: undefined,
+      });
     });
 
     it('should handle name validation with excludeId', async () => {
-      const dto: NameValidationRequestDto = {
-        name: 'UPS Name',
-        resourceType: 'ups',
-        excludeId: 'ups-456',
-      };
+      const value = 'UPS Name';
+      const type = 'ups';
+      const excludeId = 'ups-456';
 
       const expectedResponse = {
         exists: false,
@@ -142,10 +153,14 @@ describe('SetupController - Validation Endpoints', () => {
 
       validateNameUseCase.execute.mockResolvedValue(expectedResponse);
 
-      const result = await mockController.validateName(dto);
+      const result = await mockController.validateName(value, type, excludeId);
 
       expect(result).toEqual(expectedResponse);
-      expect(validateNameUseCase.execute).toHaveBeenCalledWith(dto);
+      expect(validateNameUseCase.execute).toHaveBeenCalledWith({
+        name: value,
+        resourceType: type,
+        excludeId,
+      });
     });
   });
 });
