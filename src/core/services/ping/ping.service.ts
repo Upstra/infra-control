@@ -21,7 +21,7 @@ export class PingService {
     return new Promise((resolve) => {
       const startTime = Date.now();
       const isWindows = process.platform === 'win32';
-      const pingCommand = isWindows ? 'ping' : 'ping';
+      const pingCommand = 'ping';
       const pingArgs = isWindows
         ? ['-n', '1', '-w', Math.floor(pingTimeout).toString(), host]
         : ['-c', '1', '-W', Math.floor(pingTimeout / 1000).toString(), host];
