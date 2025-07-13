@@ -30,7 +30,6 @@ import {
   UpdateServerUseCase,
   DeleteServerUseCase,
   GetUserServersUseCase,
-  GetServerByIdWithPermissionCheckUseCase,
   UpdateServerPriorityUseCase,
   CheckServerPermissionUseCase,
 } from '@/modules/servers/application/use-cases';
@@ -65,7 +64,6 @@ export class ServerController {
     private readonly createServerUseCase: CreateServerUseCase,
     private readonly updateServerUseCase: UpdateServerUseCase,
     private readonly deleteServerUseCase: DeleteServerUseCase,
-    private readonly getServerByIdWithPermissionCheckUseCase: GetServerByIdWithPermissionCheckUseCase,
     private readonly getUserServersUseCase: GetUserServersUseCase,
     private readonly updateServerPriorityUseCase: UpdateServerPriorityUseCase,
     private readonly checkServerPermissionUseCase: CheckServerPermissionUseCase,
@@ -140,7 +138,13 @@ export class ServerController {
 
   @Get(':id')
   @UseFilters(InvalidQueryExceptionFilter)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ResourcePermissionGuard)
+  @RequireResourcePermission({
+    resourceType: 'server',
+    requiredBit: PermissionBit.READ,
+    resourceIdSource: 'params',
+    resourceIdField: 'id',
+  })
   @ApiBearerAuth()
   @ApiParam({
     name: 'id',
@@ -151,12 +155,8 @@ export class ServerController {
   @ApiResponse({ status: 200, type: ServerResponseDto })
   async getServerById(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: JwtPayload,
   ): Promise<ServerResponseDto> {
-    return this.getServerByIdWithPermissionCheckUseCase.execute(
-      id,
-      user.userId,
-    );
+    return this.getServerByIdUseCase.execute(id);
   }
 
   @Post()

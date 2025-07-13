@@ -57,8 +57,78 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
     const serverId = 'server-456';
     const roleId = 'role-789';
 
+    describe('Admin functionality', () => {
+      it('should allow admin users to access any server without permission check', async () => {
+        const mockAdminRole = createMockRole({ id: roleId, name: 'Admin', isAdmin: true });
+        const mockAdminUser = createMockUser({
+          id: userId,
+          roleId: roleId,
+          roles: [mockAdminRole],
+        });
+
+        const mockServer = createMockServer({
+          id: serverId,
+          name: 'Test Server',
+          ip: '192.168.1.1',
+        });
+
+        userRepo.findOneByField.mockResolvedValue(mockAdminUser);
+        serverRepo.findOneByField.mockResolvedValue(mockServer);
+
+        const result = await useCase.execute(serverId, userId);
+
+        expect(result).toBeInstanceOf(ServerResponseDto);
+        expect(result.id).toBe(serverId);
+        expect(result.name).toBe('Test Server');
+
+        expect(permissionRepo.findAllByField).not.toHaveBeenCalled();
+      });
+
+      it('should still return NotFoundException when server does not exist for admin', async () => {
+        const mockAdminRole = createMockRole({ id: roleId, name: 'Admin', isAdmin: true });
+        const mockAdminUser = createMockUser({
+          id: userId,
+          roleId: roleId,
+          roles: [mockAdminRole],
+        });
+
+        userRepo.findOneByField.mockResolvedValue(mockAdminUser);
+        serverRepo.findOneByField.mockResolvedValue(null);
+
+        await expect(useCase.execute(serverId, userId)).rejects.toThrow(
+          new NotFoundException('Server not found'),
+        );
+
+        expect(permissionRepo.findAllByField).not.toHaveBeenCalled();
+      });
+
+      it('should handle user with mixed admin and non-admin roles', async () => {
+        const adminRole = createMockRole({ id: 'admin-role', name: 'Admin', isAdmin: true });
+        const userRole = createMockRole({ id: 'user-role', name: 'User', isAdmin: false });
+        const mockUser = createMockUser({
+          id: userId,
+          roleId: roleId,
+          roles: [userRole, adminRole],
+        });
+
+        const mockServer = createMockServer({
+          id: serverId,
+          name: 'Test Server',
+        });
+
+        userRepo.findOneByField.mockResolvedValue(mockUser);
+        serverRepo.findOneByField.mockResolvedValue(mockServer);
+
+        const result = await useCase.execute(serverId, userId);
+
+        expect(result).toBeInstanceOf(ServerResponseDto);
+        expect(result.id).toBe(serverId);
+        expect(permissionRepo.findAllByField).not.toHaveBeenCalled();
+      });
+    });
+
     it('should successfully return server when user has READ permission', async () => {
-      const mockRole = createMockRole({ id: roleId, name: 'Admin' });
+      const mockRole = createMockRole({ id: roleId, name: 'User', isAdmin: false });
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,
@@ -138,7 +208,7 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
     });
 
     it('should throw ForbiddenException when user has no READ permission for the server', async () => {
-      const mockRole = createMockRole({ id: roleId, name: 'User' });
+      const mockRole = createMockRole({ id: roleId, name: 'User', isAdmin: false });
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,
@@ -174,7 +244,7 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
     });
 
     it('should throw NotFoundException when server does not exist', async () => {
-      const mockRole = createMockRole({ id: roleId, name: 'Admin' });
+      const mockRole = createMockRole({ id: roleId, name: 'User', isAdmin: false });
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,
@@ -200,7 +270,7 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
     });
 
     it('should handle user with multiple READ permissions including the requested server', async () => {
-      const mockRole = createMockRole({ id: roleId, name: 'Admin' });
+      const mockRole = createMockRole({ id: roleId, name: 'User', isAdmin: false });
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,
@@ -246,7 +316,7 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
     });
 
     it('should throw ForbiddenException when user has empty permissions', async () => {
-      const mockRole = createMockRole({ id: roleId, name: 'Guest' });
+      const mockRole = createMockRole({ id: roleId, name: 'Guest', isAdmin: false });
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,
@@ -264,7 +334,7 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
     });
 
     it('should handle permissions with null serverId correctly', async () => {
-      const mockRole = createMockRole({ id: roleId, name: 'Admin' });
+      const mockRole = createMockRole({ id: roleId, name: 'User', isAdmin: false });
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,
@@ -293,7 +363,7 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
     });
 
     it('should handle user with combined READ and WRITE permissions', async () => {
-      const mockRole = createMockRole({ id: roleId, name: 'PowerUser' });
+      const mockRole = createMockRole({ id: roleId, name: 'PowerUser', isAdmin: false });
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,
