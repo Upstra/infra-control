@@ -7,6 +7,8 @@ import { BulkValidationUseCase } from './bulk-validation.use-case';
 import { GetTemplatesUseCase } from './get-templates.use-case';
 import { CreateTemplateUseCase } from './create-template.use-case';
 import { GetSetupProgressEnhancedUseCase } from './get-setup-progress-enhanced.use-case';
+import { ValidateIpUseCase } from './validate-ip.use-case';
+import { ValidateNameUseCase } from './validate-name.use-case';
 
 export const SetupUseCases = [
   GetSetupStatusUseCase,
@@ -18,6 +20,8 @@ export const SetupUseCases = [
   GetTemplatesUseCase,
   CreateTemplateUseCase,
   GetSetupProgressEnhancedUseCase,
+  ValidateIpUseCase,
+  ValidateNameUseCase,
 ];
 
 export {
@@ -30,4 +34,6 @@ export {
   GetTemplatesUseCase,
   CreateTemplateUseCase,
   GetSetupProgressEnhancedUseCase,
+  ValidateIpUseCase,
+  ValidateNameUseCase,
 };
