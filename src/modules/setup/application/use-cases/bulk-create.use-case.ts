@@ -64,7 +64,7 @@ export class BulkCreateUseCase {
       for (const roomData of dto.rooms) {
         const room = await this.createRoom(queryRunner, roomData);
 
-        const tempId = roomData.tempId || `room_${room.id}`;
+        const tempId = roomData.tempId ?? (roomData as any).id ?? `room_${room.id}`;
 
         created.rooms.push({
           id: room.id,
@@ -79,7 +79,7 @@ export class BulkCreateUseCase {
         const roomId = this.resolveId(upsData.roomId, idMapping.rooms);
         const ups = await this.createUps(queryRunner, upsData, roomId);
 
-        const tempId = upsData.tempId || `ups_${ups.id}`;
+        const tempId = upsData.tempId ?? (upsData as any).id ?? `ups_${ups.id}`;
 
         created.upsList.push({
           id: ups.id,
@@ -100,7 +100,7 @@ export class BulkCreateUseCase {
           upsId,
         );
 
-        const tempId = serverData.tempId || `server_${server.id}`;
+        const tempId = serverData.tempId ?? (serverData as any).id ?? `server_${server.id}`;
 
         created.servers.push({
           id: server.id,
@@ -132,10 +132,9 @@ export class BulkCreateUseCase {
         throw error;
       }
 
-      // Handle specific database errors (like unique constraint violations)
       if (error.code && typeof error.code === 'string') {
         const errorMessage = this.parseDbError(error);
-        
+
         throw new BadRequestException({
           success: false,
           errors: [
@@ -148,12 +147,11 @@ export class BulkCreateUseCase {
         });
       }
 
-      // For other errors, use the original generic handling
       throw new BadRequestException({
         success: false,
         errors: [
           {
-            resource: 'room' as const,  // Default to room as fallback
+            resource: 'room' as const,
             name: 'transaction',
             error: error.message || 'An unexpected error occurred',
           },
@@ -270,9 +268,11 @@ export class BulkCreateUseCase {
    * Validate that all referenced tempIds exist in the request
    */
   private validateDependencies(dto: BulkCreateRequestDto): void {
-    const roomTempIds = new Set(dto.rooms.map((r) => r.tempId).filter(Boolean));
+    const roomTempIds = new Set(
+      dto.rooms.map((r) => r.tempId ?? (r as any).id).filter(Boolean),
+    );
     const upsTempIds = new Set(
-      dto.upsList.map((u) => u.tempId).filter(Boolean),
+      dto.upsList.map((u) => u.tempId ?? (u as any).id).filter(Boolean),
     );
 
     for (const ups of dto.upsList) {
