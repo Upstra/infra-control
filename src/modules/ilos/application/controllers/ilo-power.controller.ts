@@ -52,7 +52,7 @@ export class IloPowerController {
     resourceIdField: 'serverId',
   })
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Control physical server power state' })
+  @ApiOperation({ summary: 'Control server power state via iLO' })
   @ApiParam({ name: 'serverId', description: 'Server ID' })
   @ApiResponse({
     status: 200,
@@ -86,7 +86,7 @@ export class IloPowerController {
     resourceIdSource: 'params',
     resourceIdField: 'serverId',
   })
-  @ApiOperation({ summary: 'Get physical server power status' })
+  @ApiOperation({ summary: 'Get server power status via iLO' })
   @ApiParam({ name: 'serverId', description: 'Server ID' })
   @ApiResponse({
     status: 200,

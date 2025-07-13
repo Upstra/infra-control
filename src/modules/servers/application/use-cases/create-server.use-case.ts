@@ -127,7 +127,7 @@ export class CreateServerUseCase {
         iloIpAddress: ilo.ip,
       },
       metadata: {
-        serverType: 'physical',
+        serverType: 'esxi',
         hasUpsConnection: !!dto.upsId,
         assignedToGroup: !!dto.groupId,
         adminRolesGranted: adminRoleIds.length,

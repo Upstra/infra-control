@@ -150,7 +150,7 @@ describe('VmwareDiscoveryService', () => {
     it('should filter non-VMware servers', async () => {
       const mixedServers = [
         mockServer,
-        { ...mockServer, id: 'server-456', type: 'physical' } as Server,
+        { ...mockServer, id: 'server-456', type: 'vcenter' } as Server,
       ];
       const sessionId = 'session-123';
 

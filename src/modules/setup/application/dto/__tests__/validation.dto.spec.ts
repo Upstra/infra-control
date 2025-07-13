@@ -26,7 +26,7 @@ describe('ValidationDto', () => {
               ip: '192.168.1.10',
               login: 'admin',
               password: 'password',
-              type: 'physical',
+              type: 'esxi',
               priority: 1,
             },
           ],

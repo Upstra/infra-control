@@ -26,7 +26,7 @@ describe('GetServerByIloIpUseCase', () => {
     login: 'root',
     password: 'password',
     state: 'active',
-    type: 'physical',
+    type: 'esxi',
     priority: 1,
     grace_period_on: 300,
     grace_period_off: 120,

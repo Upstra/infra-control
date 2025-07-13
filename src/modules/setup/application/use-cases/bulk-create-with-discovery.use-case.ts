@@ -11,7 +11,8 @@ import { ServerRepositoryInterface } from '../../../servers/domain/interfaces/se
 import { BulkCreateRequestDto } from '../dto';
 import { Server } from '../../../servers/domain/entities/server.entity';
 
-export interface BulkCreateWithDiscoveryRequestDto extends BulkCreateRequestDto {
+export interface BulkCreateWithDiscoveryRequestDto
+  extends BulkCreateRequestDto {
   enableDiscovery?: boolean;
   discoverySessionId?: string;
 }
@@ -58,10 +59,13 @@ export class BulkCreateWithDiscoveryUseCase {
       };
     }
 
-    const shouldRunDiscovery = dto.enableDiscovery ?? this.hasVmwareServers(dto);
+    const shouldRunDiscovery =
+      dto.enableDiscovery ?? this.hasVmwareServers(dto);
 
     if (!shouldRunDiscovery) {
-      this.logger.log('No VMware servers detected or discovery disabled, skipping discovery phase');
+      this.logger.log(
+        'No VMware servers detected or discovery disabled, skipping discovery phase',
+      );
       return {
         ...bulkCreateResult,
         discoveryTriggered: false,
@@ -69,8 +73,8 @@ export class BulkCreateWithDiscoveryUseCase {
     }
 
     const sessionId = dto.discoverySessionId ?? randomUUID();
-    const createdServerIds = bulkCreateResult.created.servers.map(s => s.id);
-    
+    const createdServerIds = bulkCreateResult.created.servers.map((s) => s.id);
+
     const vmwareServers = await this.getVmwareServersFromIds(createdServerIds);
 
     if (vmwareServers.length === 0) {
@@ -83,13 +87,18 @@ export class BulkCreateWithDiscoveryUseCase {
       };
     }
 
-    this.logger.log(`Starting discovery for ${vmwareServers.length} VMware servers`);
-    
-    this.vmwareDiscoveryService.discoverVmsFromServers(vmwareServers, sessionId)
-      .then(results => {
-        this.logger.log(`Discovery completed: ${results.totalVmsDiscovered} VMs discovered`);
+    this.logger.log(
+      `Starting discovery for ${vmwareServers.length} VMware servers`,
+    );
+
+    this.vmwareDiscoveryService
+      .discoverVmsFromServers(vmwareServers, sessionId)
+      .then((results) => {
+        this.logger.log(
+          `Discovery completed: ${results.totalVmsDiscovered} VMs discovered`,
+        );
       })
-      .catch(error => {
+      .catch((error) => {
         this.logger.error('Discovery failed:', error);
       });
 
@@ -102,17 +111,19 @@ export class BulkCreateWithDiscoveryUseCase {
   }
 
   private hasVmwareServers(dto: BulkCreateRequestDto): boolean {
-    return dto.servers.some(server => 
-      ['vmware', 'vcenter', 'esxi'].includes(server.type?.toLowerCase())
+    return dto.servers.some((server) =>
+      ['vcenter', 'esxi'].includes(server.type?.toLowerCase()),
     );
   }
 
-  private async getVmwareServersFromIds(serverIds: string[]): Promise<Server[]> {
+  private async getVmwareServersFromIds(
+    serverIds: string[],
+  ): Promise<Server[]> {
     const vmwareServers: Server[] = [];
 
     for (const id of serverIds) {
       const server = await this.serverRepository.findServerById(id);
-      if (server && ['vmware', 'vcenter', 'esxi'].includes(server.type?.toLowerCase())) {
+      if (server && ['vcenter', 'esxi'].includes(server.type?.toLowerCase())) {
         vmwareServers.push(server);
       }
     }

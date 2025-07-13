@@ -448,7 +448,7 @@ describe('SetupController', () => {
         servers: [
           {
             name: 'Linux Server',
-            type: 'physical',
+            type: 'esxi',
             state: 'started',
             ip: '192.168.1.20',
             adminUrl: 'https://192.168.1.20',

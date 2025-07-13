@@ -24,7 +24,7 @@ describe('GetServerStatusUseCase', () => {
     name: 'Test Server',
     grace_period_on: 300,
     grace_period_off: 300,
-    type: 'physical',
+    type: 'esxi',
     priority: 1,
     state: 'UP',
     roomId: 'room-1',

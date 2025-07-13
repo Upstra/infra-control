@@ -88,8 +88,8 @@ export class ServerCreationDto {
   readonly password!: string;
 
   @ApiProperty({
-    description: 'Type de serveur (ex: physical, virtual, cloud, etc.)',
-    example: 'physical',
+    description: 'Type de serveur (ex: esxi, vcenter, etc.)',
+    example: 'esxi',
     required: true,
   })
   @IsNotEmpty()

@@ -19,7 +19,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       upsList: [{ id: 'ups-1', name: 'UPS 1', tempId: 'temp_ups_1' }],
       servers: [
         { id: 'server-1', name: 'VMware Server 1', tempId: 'temp_server_1' },
-        { id: 'server-2', name: 'Physical Server 1', tempId: 'temp_server_2' },
+        { id: 'server-2', name: 'ESXi Server 1', tempId: 'temp_server_2' },
       ],
     },
     idMapping: {
@@ -43,10 +43,10 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
     roomId: 'room-1',
   } as any as Server;
 
-  const mockPhysicalServer = {
+  const mockEsxiServer = {
     id: 'server-2',
-    name: 'Physical Server 1',
-    type: 'physical',
+    name: 'ESXi Server 1',
+    type: 'esxi',
     ip: '192.168.1.20',
     login: 'admin',
     password: 'password',
@@ -124,8 +124,8 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
           tempId: 'temp_server_1',
         },
         {
-          name: 'Physical Server 1',
-          type: 'physical',
+          name: 'ESXi Server 1',
+          type: 'esxi',
           state: 'stopped',
           grace_period_on: 30,
           grace_period_off: 30,
@@ -144,7 +144,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       bulkCreateUseCase.execute.mockResolvedValue(mockBulkCreateResult);
       serverRepository.findServerById
         .mockResolvedValueOnce(mockVmwareServer)
-        .mockResolvedValueOnce(mockPhysicalServer);
+        .mockResolvedValueOnce(mockEsxiServer);
       vmwareDiscoveryService.discoverVmsFromServers.mockResolvedValue(
         mockDiscoveryResults,
       );
@@ -199,14 +199,14 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
     it('should skip discovery when no VMware servers are present', async () => {
       const requestWithoutVmware = {
         ...mockRequest,
-        servers: [mockRequest.servers[1]], // Only physical server
+        servers: [mockRequest.servers[1]], // Only non-VMware server
       };
 
       bulkCreateUseCase.execute.mockResolvedValue({
         ...mockBulkCreateResult,
         created: {
           ...mockBulkCreateResult.created,
-          servers: [{ id: 'server-2', name: 'Physical Server 1', tempId: 'temp_server_2' }],
+          servers: [{ id: 'server-2', name: 'Non-VMware Server 1', tempId: 'temp_server_2' }],
         },
       });
 
@@ -256,7 +256,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       bulkCreateUseCase.execute.mockResolvedValue(mockBulkCreateResult);
       serverRepository.findServerById
         .mockResolvedValueOnce(mockVmwareServer)
-        .mockResolvedValueOnce(mockPhysicalServer);
+        .mockResolvedValueOnce(mockEsxiServer);
       vmwareDiscoveryService.discoverVmsFromServers.mockRejectedValue(
         new Error('Discovery failed'),
       );
@@ -278,7 +278,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
           ...mockBulkCreateResult.created,
           servers: [
             { id: 'server-1', name: 'VMware Server 1', tempId: 'temp_server_1' },
-            { id: 'server-2', name: 'Physical Server 1', tempId: 'temp_server_2' },
+            { id: 'server-2', name: 'ESXi Server 1', tempId: 'temp_server_2' },
             { id: 'server-3', name: 'ESXi Server', tempId: 'temp_server_3' },
             { id: 'server-4', name: 'vCenter Server', tempId: 'temp_server_4' },
           ],
@@ -302,7 +302,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       bulkCreateUseCase.execute.mockResolvedValue(mixedServersResult);
       serverRepository.findServerById
         .mockResolvedValueOnce(mockVmwareServer)
-        .mockResolvedValueOnce(mockPhysicalServer)
+        .mockResolvedValueOnce(mockEsxiServer)
         .mockResolvedValueOnce(esxiServer)
         .mockResolvedValueOnce(vcenterServer);
       vmwareDiscoveryService.discoverVmsFromServers.mockResolvedValue(
@@ -359,7 +359,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       bulkCreateUseCase.execute.mockResolvedValue(mockBulkCreateResult);
       serverRepository.findServerById
         .mockResolvedValueOnce(null) // Server not found
-        .mockResolvedValueOnce(mockPhysicalServer);
+        .mockResolvedValueOnce(mockEsxiServer);
 
       const result = await useCase.execute(mockRequest);
 
@@ -389,7 +389,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
         upsList: [],
         servers: [
           { ...mockServerBase, type: 'vmware' },
-          { ...mockServerBase, type: 'physical' },
+          { ...mockServerBase, type: 'esxi' },
         ],
       };
 
@@ -423,7 +423,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       const requestWithoutVmware = {
         rooms: [],
         upsList: [],
-        servers: [{ ...mockServerBase, type: 'physical' }],
+        servers: [{ ...mockServerBase, type: 'esxi' }],
       };
 
       const result = useCase['hasVmwareServers'](requestWithoutVmware);

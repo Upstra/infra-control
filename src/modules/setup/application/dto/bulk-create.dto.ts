@@ -157,7 +157,7 @@ export class BulkServerDto {
 
   @ApiProperty({
     description: 'Server type',
-    example: 'physical',
+    example: 'esxi',
   })
   @IsString()
   @IsNotEmpty()

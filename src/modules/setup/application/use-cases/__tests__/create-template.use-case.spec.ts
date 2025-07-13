@@ -62,7 +62,7 @@ describe('CreateTemplateUseCase', () => {
             ip: '192.168.1.20',
             login: 'admin',
             password: 'password',
-            type: 'physical',
+            type: 'esxi',
             priority: 1,
           },
         ],
@@ -171,7 +171,7 @@ describe('CreateTemplateUseCase', () => {
             {
               name: 'Server 1',
               state: 'stopped',
-              type: 'physical',
+              type: 'esxi',
               // Other fields are optional in the template
             } as any,
           ],
@@ -190,7 +190,7 @@ describe('CreateTemplateUseCase', () => {
       );
       expect(result.configuration.servers[0]).toHaveProperty(
         'type',
-        'physical',
+        'esxi',
       );
     });
 
