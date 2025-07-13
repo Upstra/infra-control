@@ -61,18 +61,13 @@ export class GetUserServersUseCase {
     const isAdmin = user?.roles?.some((role) => role.isAdmin) ?? false;
     if (isAdmin) {
       this.logger.debug(`User ${userId} is admin, returning all servers`);
-      
+
       try {
         const servers = await this.serverRepo.findAll();
         const totalCount = servers.length;
-        
+
         const skip = (page - 1) * limit;
         const paginatedServers = servers.slice(skip, skip + limit);
-
-        this.logger.debug(
-          `Admin user ${userId} has access to ${paginatedServers.length} servers (total: ${totalCount})`,
-        );
-
         const serversResponse = paginatedServers.map((s) =>
           ServerResponseDto.fromEntity(s),
         );

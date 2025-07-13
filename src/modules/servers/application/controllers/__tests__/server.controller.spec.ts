@@ -5,7 +5,6 @@ import {
   DeleteServerUseCase,
   GetAllServersUseCase,
   GetServerByIdUseCase,
-  GetServerByIdWithPermissionCheckUseCase,
   GetUserServersUseCase,
   UpdateServerUseCase,
   UpdateServerPriorityUseCase,
@@ -32,7 +31,6 @@ describe('ServerController', () => {
   let updateServerUseCase: jest.Mocked<UpdateServerUseCase>;
   let deleteServerUseCase: jest.Mocked<DeleteServerUseCase>;
   let getUserServersUseCase: jest.Mocked<GetUserServersUseCase>;
-  let getServerByIdWithPermissionCheckUseCase: jest.Mocked<GetServerByIdWithPermissionCheckUseCase>;
   let updateServerPriorityUseCase: jest.Mocked<UpdateServerPriorityUseCase>;
   let checkServerPermissionUseCase: jest.Mocked<CheckServerPermissionUseCase>;
   let pingServerUseCase: jest.Mocked<PingServerUseCase>;
@@ -69,7 +67,6 @@ describe('ServerController', () => {
     updateServerUseCase = { execute: jest.fn() } as any;
     deleteServerUseCase = { execute: jest.fn() } as any;
     getUserServersUseCase = { execute: jest.fn() } as any;
-    getServerByIdWithPermissionCheckUseCase = { execute: jest.fn() } as any;
     updateServerPriorityUseCase = { execute: jest.fn() } as any;
     checkServerPermissionUseCase = { execute: jest.fn() } as any;
     pingServerUseCase = { execute: jest.fn() } as any;
@@ -83,10 +80,6 @@ describe('ServerController', () => {
         { provide: UpdateServerUseCase, useValue: updateServerUseCase },
         { provide: DeleteServerUseCase, useValue: deleteServerUseCase },
         { provide: GetUserServersUseCase, useValue: getUserServersUseCase },
-        {
-          provide: GetServerByIdWithPermissionCheckUseCase,
-          useValue: getServerByIdWithPermissionCheckUseCase,
-        },
         {
           provide: UpdateServerPriorityUseCase,
           useValue: updateServerPriorityUseCase,
@@ -135,26 +128,21 @@ describe('ServerController', () => {
   describe('getServerById', () => {
     it('should return a server by id', async () => {
       const dto = createMockServerDto();
-      const user = createMockJwtPayload({ userId: 'user-uuid' });
-      getServerByIdWithPermissionCheckUseCase.execute.mockResolvedValue(dto);
+      getServerByIdUseCase.execute.mockResolvedValue(dto);
 
-      const result = await controller.getServerById('server-uuid', user);
+      const result = await controller.getServerById('server-uuid');
 
       expect(result).toEqual(dto);
-      expect(
-        getServerByIdWithPermissionCheckUseCase.execute,
-      ).toHaveBeenCalledWith('server-uuid', 'user-uuid');
+      expect(getServerByIdUseCase.execute).toHaveBeenCalledWith('server-uuid');
     });
 
-    it('should throw if server is not found (permission check route)', async () => {
-      const user = createMockJwtPayload({ userId: 'user-uuid' });
-
-      getServerByIdWithPermissionCheckUseCase.execute.mockRejectedValue(
+    it('should throw if server is not found', async () => {
+      getServerByIdUseCase.execute.mockRejectedValue(
         new Error('Server not found'),
       );
 
       await expect(
-        controller.getServerById('nonexistent-id', user),
+        controller.getServerById('nonexistent-id'),
       ).rejects.toThrow('Server not found');
     });
   });
@@ -436,7 +424,6 @@ describe('ServerController', () => {
 
       expect(pingServerUseCase.execute).toHaveBeenCalledWith(
         serverId,
-        pingDto.host,
         pingDto.timeout,
       );
       expect(result).toEqual(expectedResult);
@@ -460,7 +447,6 @@ describe('ServerController', () => {
 
       expect(pingServerUseCase.execute).toHaveBeenCalledWith(
         serverId,
-        pingDto.host,
         undefined,
       );
       expect(result).toEqual(expectedResult);
@@ -484,7 +470,6 @@ describe('ServerController', () => {
 
       expect(pingServerUseCase.execute).toHaveBeenCalledWith(
         serverId,
-        pingDto.host,
         undefined,
       );
       expect(result).toEqual(expectedResult);
