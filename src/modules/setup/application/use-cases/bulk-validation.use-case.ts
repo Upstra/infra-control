@@ -140,6 +140,24 @@ export class BulkValidationUseCase {
           message: `UPS with name '${ups.name}' already exists`,
         });
       }
+
+      // Check for existing IP in database
+      if (ups.ip) {
+        const existingUpsWithIp = await this.upsRepository.findOneByField({
+          field: 'ip',
+          value: ups.ip,
+          disableThrow: true,
+        });
+
+        if (existingUpsWithIp) {
+          errors.push({
+            resource: 'ups',
+            index: i,
+            field: 'ip',
+            message: `UPS with IP '${ups.ip}' already exists`,
+          });
+        }
+      }
     }
   }
 
@@ -199,6 +217,22 @@ export class BulkValidationUseCase {
           index: i,
           field: 'name',
           message: `Server with name '${server.name}' already exists`,
+        });
+      }
+
+      // Check for existing IP in database
+      const existingServerWithIp = await this.serverRepository.findOneByField({
+        field: 'ip',
+        value: server.ip,
+        disableThrow: true,
+      });
+
+      if (existingServerWithIp) {
+        errors.push({
+          resource: 'server',
+          index: i,
+          field: 'ip',
+          message: `Server with IP '${server.ip}' already exists`,
         });
       }
 

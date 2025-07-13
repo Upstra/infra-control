@@ -128,18 +128,34 @@ export class BulkCreateUseCase {
       await queryRunner.rollbackTransaction();
       this.logger.error('Bulk creation failed', error);
 
-      // If it's already a BadRequestException, re-throw it
       if (error instanceof BadRequestException) {
         throw error;
       }
 
+      // Handle specific database errors (like unique constraint violations)
+      if (error.code && typeof error.code === 'string') {
+        const errorMessage = this.parseDbError(error);
+        
+        throw new BadRequestException({
+          success: false,
+          errors: [
+            {
+              resource: this.getResourceFromError(error) as any,
+              name: this.getResourceNameFromError(error),
+              error: errorMessage,
+            },
+          ] as BulkCreateErrorDto[],
+        });
+      }
+
+      // For other errors, use the original generic handling
       throw new BadRequestException({
         success: false,
         errors: [
           {
-            resource: 'room' as const,
+            resource: 'room' as const,  // Default to room as fallback
             name: 'transaction',
-            error: error.message,
+            error: error.message || 'An unexpected error occurred',
           },
         ] as BulkCreateErrorDto[],
       });
@@ -237,7 +253,6 @@ export class BulkCreateUseCase {
       return null;
     }
 
-    // Check if it's a temporary ID that needs mapping
     if (id.startsWith('temp_')) {
       const mappedId = idMapping[id];
       if (!mappedId) {
@@ -292,5 +307,56 @@ export class BulkCreateUseCase {
         );
       }
     }
+  }
+
+  private parseDbError(error: any): string {
+    if (error.code === '23505') {
+      if (error.detail) {
+        const match = error.detail.match(/Key \((\w+)\)=\(([^)]+)\)/);
+        if (match) {
+          const field = match[1];
+          const value = match[2];
+          return `${field.toUpperCase()} '${value}' already exists`;
+        }
+      }
+      return 'This resource already exists (duplicate value)';
+    }
+
+    if (error.code === '23502') {
+      return 'Required field is missing';
+    }
+
+    if (error.code === '23503') {
+      return 'Invalid reference to related resource';
+    }
+
+    if (error.code === '22001') {
+      return 'One or more values are too long';
+    }
+
+    return error.message || 'An unexpected error occurred during creation';
+  }
+
+  private getResourceFromError(error: any): string {
+    if (error.table) {
+      return error.table;
+    }
+
+    if (error.query && typeof error.query === 'string') {
+      const match = error.query.match(/INSERT INTO "(\w+)"/);
+      if (match) {
+        return match[1];
+      }
+    }
+
+    return 'unknown';
+  }
+
+  private getResourceNameFromError(error: any): string {
+    if (error.parameters && error.parameters[0]) {
+      return error.parameters[0];
+    }
+
+    return 'unknown';
   }
 }
