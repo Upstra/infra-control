@@ -8,6 +8,7 @@ import { RedisModule } from '../redis/redis.module';
 import { UserModule } from '../users/user.module';
 import { RoomModule } from '../rooms/room.module';
 import { ServerModule } from '../servers/server.module';
+import { VmwareModule } from '../vmware/vmware.module';
 import { SetupDomainService } from './domain/services/setup.domain.service';
 import { SetupStatusMapper } from './application/mappers/setup-status.mapper';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -26,6 +27,7 @@ import { Ilo } from '../ilos/domain/entities/ilo.entity';
     forwardRef(() => RoomModule),
     forwardRef(() => ServerModule),
     forwardRef(() => UpsModule),
+    forwardRef(() => VmwareModule),
   ],
   controllers: [SetupController],
   providers: [
