@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 import { Ilo } from '../../domain/entities/ilo.entity';
 
 export class IloResponseDto {
@@ -21,10 +21,16 @@ export class IloResponseDto {
   @IsString()
   readonly ip!: string;
 
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  readonly password?: string;
+
   constructor(ilo: Ilo) {
     this.id = ilo.id;
     this.name = ilo.name;
     this.ip = ilo.ip;
     this.login = ilo.login;
+    this.password = ilo.password;
   }
 }
