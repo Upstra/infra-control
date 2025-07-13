@@ -33,6 +33,12 @@ import {
   SetupProgressEnhancedDto,
   ResourceCountsDto,
 } from './setup-progress-enhanced.dto';
+import {
+  IpValidationRequestDto,
+  NameValidationRequestDto,
+  IpValidationResponseDto,
+  NameValidationResponseDto,
+} from './ip-validation.dto';
 
 export {
   CompleteSetupStepDto,
@@ -62,4 +68,8 @@ export {
   TemplateConfigurationDto,
   SetupProgressEnhancedDto,
   ResourceCountsDto,
+  IpValidationRequestDto,
+  NameValidationRequestDto,
+  IpValidationResponseDto,
+  NameValidationResponseDto,
 };
