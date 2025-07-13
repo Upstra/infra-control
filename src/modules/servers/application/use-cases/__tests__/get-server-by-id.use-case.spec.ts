@@ -10,6 +10,7 @@ describe('GetServerByIdUseCase', () => {
   beforeEach(() => {
     repo = {
       findServerById: jest.fn(),
+      findServerByIdWithCredentials: jest.fn(),
     } as any;
 
     useCase = new GetServerByIdUseCase(repo);
@@ -17,22 +18,22 @@ describe('GetServerByIdUseCase', () => {
 
   it('should return a ServerResponseDto if server is found', async () => {
     const mockServer = createMockServer();
-    repo.findServerById.mockResolvedValue(mockServer);
+    repo.findServerByIdWithCredentials.mockResolvedValue(mockServer);
 
     const result = await useCase.execute('server-1');
 
     expect(result).toBeDefined();
     expect(result.id).toBe('server-1');
     expect(result.name).toBe(mockServer.name);
+    expect(repo.findServerByIdWithCredentials).toHaveBeenCalledWith('server-1');
   });
 
   it('should throw ServerNotFoundException if server does not exist', async () => {
-    repo.findServerById.mockImplementation(() => {
-      throw new ServerNotFoundException('not-found-id');
-    });
+    repo.findServerByIdWithCredentials.mockResolvedValue(null);
 
     await expect(useCase.execute('not-found-id')).rejects.toThrow(
       ServerNotFoundException,
     );
+    expect(repo.findServerByIdWithCredentials).toHaveBeenCalledWith('not-found-id');
   });
 });
