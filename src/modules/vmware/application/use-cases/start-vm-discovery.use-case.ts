@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 
 import { VmwareDiscoveryService } from '../../domain/services/vmware-discovery.service';
@@ -18,6 +18,7 @@ export interface StartVMDiscoveryResult {
 export class StartVMDiscoveryUseCase {
   constructor(
     private readonly vmwareDiscoveryService: VmwareDiscoveryService,
+    @Inject('ServerRepositoryInterface')
     private readonly serversRepository: ServerRepositoryInterface,
   ) {}
 
