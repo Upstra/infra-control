@@ -6,6 +6,7 @@ import {
   CompleteSetupStepUseCase,
   GetSetupProgressUseCase,
   BulkCreateUseCase,
+  BulkCreateWithDiscoveryUseCase,
   BulkValidationUseCase,
   GetTemplatesUseCase,
   CreateTemplateUseCase,
@@ -14,6 +15,10 @@ import {
   ValidateNameUseCase,
 } from '../../use-cases';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { RoleGuard } from '@/core/guards/role.guard';
+import { SensitiveOperationsGuard } from '@/core/guards/sensitive-operations.guard';
+import { ApiUsageGuard } from '@/core/guards/api-usage.guard';
 
 describe('SetupController', () => {
   let controller: SetupController;
@@ -22,6 +27,7 @@ describe('SetupController', () => {
   let completeSetupStepUseCase: CompleteSetupStepUseCase;
   let getSetupProgressUseCase: GetSetupProgressUseCase;
   let bulkCreateUseCase: BulkCreateUseCase;
+  let bulkCreateWithDiscoveryUseCase: BulkCreateWithDiscoveryUseCase;
   let bulkValidationUseCase: BulkValidationUseCase;
   let getTemplatesUseCase: GetTemplatesUseCase;
   let createTemplateUseCase: CreateTemplateUseCase;
@@ -60,6 +66,10 @@ describe('SetupController', () => {
   };
 
   beforeEach(async () => {
+    const mockGuard = {
+      canActivate: jest.fn().mockReturnValue(true),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [SetupController],
       providers: [
@@ -77,6 +87,7 @@ describe('SetupController', () => {
         },
         { provide: GetSetupProgressUseCase, useValue: { execute: jest.fn() } },
         { provide: BulkCreateUseCase, useValue: { execute: jest.fn() } },
+        { provide: BulkCreateWithDiscoveryUseCase, useValue: { execute: jest.fn() } },
         { provide: BulkValidationUseCase, useValue: { execute: jest.fn() } },
         { provide: GetTemplatesUseCase, useValue: { execute: jest.fn() } },
         { provide: CreateTemplateUseCase, useValue: { execute: jest.fn() } },
@@ -84,7 +95,16 @@ describe('SetupController', () => {
         { provide: ValidateIpUseCase, useValue: { execute: jest.fn() } },
         { provide: ValidateNameUseCase, useValue: { execute: jest.fn() } },
       ],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue(mockGuard)
+      .overrideGuard(RoleGuard)
+      .useValue(mockGuard)
+      .overrideGuard(SensitiveOperationsGuard)
+      .useValue(mockGuard)
+      .overrideGuard(ApiUsageGuard)
+      .useValue(mockGuard)
+      .compile();
 
     controller = module.get<SetupController>(SetupController);
     getSetupStatusUseCase = module.get(GetSetupStatusUseCase);
@@ -92,6 +112,7 @@ describe('SetupController', () => {
     completeSetupStepUseCase = module.get(CompleteSetupStepUseCase);
     getSetupProgressUseCase = module.get(GetSetupProgressUseCase);
     bulkCreateUseCase = module.get(BulkCreateUseCase);
+    bulkCreateWithDiscoveryUseCase = module.get(BulkCreateWithDiscoveryUseCase);
     bulkValidationUseCase = module.get(BulkValidationUseCase);
     getTemplatesUseCase = module.get(GetTemplatesUseCase);
     createTemplateUseCase = module.get(CreateTemplateUseCase);
@@ -358,6 +379,178 @@ describe('SetupController', () => {
         resourceType: 'room',
         excludeId: undefined,
       });
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('POST /setup/bulk-create-with-discovery', () => {
+    it('should create resources and trigger discovery', async () => {
+      const dto = {
+        rooms: [{ name: 'Room 1', tempId: 'temp_room_1' }],
+        upsList: [{ name: 'UPS 1', ip: '192.168.1.100', tempId: 'temp_ups_1' }],
+        servers: [
+          {
+            name: 'vCenter Server',
+            type: 'vcenter',
+            state: 'started',
+            ip: '192.168.1.10',
+            adminUrl: 'https://192.168.1.10',
+            login: 'admin',
+            password: 'password',
+            grace_period_on: 30,
+            grace_period_off: 30,
+            priority: 1,
+            tempId: 'temp_server_1',
+          },
+        ],
+        enableDiscovery: true,
+      };
+
+      const expectedResponse = {
+        success: true,
+        created: {
+          rooms: [{ id: 'room-123', name: 'Room 1', tempId: 'temp_room_1' }],
+          upsList: [{ id: 'ups-123', name: 'UPS 1', tempId: 'temp_ups_1' }],
+          servers: [{ id: 'server-123', name: 'vCenter Server', tempId: 'temp_server_1' }],
+        },
+        idMapping: {
+          rooms: { temp_room_1: 'room-123' },
+          ups: { temp_ups_1: 'ups-123' },
+        },
+        discoverySessionId: 'session-123',
+        discoveryTriggered: true,
+        vmwareServerCount: 1,
+      };
+
+      (bulkCreateWithDiscoveryUseCase.execute as jest.Mock).mockResolvedValue(
+        expectedResponse,
+      );
+
+      const result = await controller.bulkCreateWithDiscovery(dto, mockJwtPayload);
+
+      expect(bulkCreateWithDiscoveryUseCase.execute).toHaveBeenCalledWith(
+        {
+          rooms: dto.rooms,
+          upsList: dto.upsList,
+          servers: dto.servers,
+          enableDiscovery: true,
+          discoverySessionId: undefined,
+        },
+        mockJwtPayload.userId,
+      );
+      expect(result).toEqual(expectedResponse);
+    });
+
+    it('should create resources without discovery when disabled', async () => {
+      const dto = {
+        rooms: [{ name: 'Room 1', tempId: 'temp_room_1' }],
+        upsList: [],
+        servers: [
+          {
+            name: 'Linux Server',
+            type: 'physical',
+            state: 'started',
+            ip: '192.168.1.20',
+            adminUrl: 'https://192.168.1.20',
+            login: 'root',
+            password: 'password',
+            grace_period_on: 30,
+            grace_period_off: 30,
+            priority: 1,
+            tempId: 'temp_server_1',
+          },
+        ],
+        enableDiscovery: false,
+      };
+
+      const expectedResponse = {
+        success: true,
+        created: {
+          rooms: [{ id: 'room-123', name: 'Room 1', tempId: 'temp_room_1' }],
+          upsList: [],
+          servers: [{ id: 'server-123', name: 'Linux Server', tempId: 'temp_server_1' }],
+        },
+        idMapping: {
+          rooms: { temp_room_1: 'room-123' },
+          ups: {},
+        },
+        discoveryTriggered: false,
+      };
+
+      (bulkCreateWithDiscoveryUseCase.execute as jest.Mock).mockResolvedValue(
+        expectedResponse,
+      );
+
+      const result = await controller.bulkCreateWithDiscovery(dto, mockJwtPayload);
+
+      expect(bulkCreateWithDiscoveryUseCase.execute).toHaveBeenCalledWith(
+        {
+          rooms: dto.rooms,
+          upsList: dto.upsList,
+          servers: dto.servers,
+          enableDiscovery: false,
+          discoverySessionId: undefined,
+        },
+        mockJwtPayload.userId,
+      );
+      expect(result).toEqual(expectedResponse);
+    });
+
+    it('should use custom discovery session ID when provided', async () => {
+      const dto = {
+        rooms: [],
+        upsList: [],
+        servers: [
+          {
+            name: 'ESXi Host',
+            type: 'esxi',
+            state: 'started',
+            ip: '192.168.1.30',
+            adminUrl: 'https://192.168.1.30',
+            login: 'root',
+            password: 'password',
+            grace_period_on: 30,
+            grace_period_off: 30,
+            priority: 1,
+            tempId: 'temp_server_1',
+          },
+        ],
+        enableDiscovery: true,
+        discoverySessionId: 'custom-session-456',
+      };
+
+      const expectedResponse = {
+        success: true,
+        created: {
+          rooms: [],
+          upsList: [],
+          servers: [{ id: 'server-123', name: 'ESXi Host', tempId: 'temp_server_1' }],
+        },
+        idMapping: {
+          rooms: {},
+          ups: {},
+        },
+        discoverySessionId: 'custom-session-456',
+        discoveryTriggered: true,
+        vmwareServerCount: 1,
+      };
+
+      (bulkCreateWithDiscoveryUseCase.execute as jest.Mock).mockResolvedValue(
+        expectedResponse,
+      );
+
+      const result = await controller.bulkCreateWithDiscovery(dto, mockJwtPayload);
+
+      expect(bulkCreateWithDiscoveryUseCase.execute).toHaveBeenCalledWith(
+        {
+          rooms: dto.rooms,
+          upsList: dto.upsList,
+          servers: dto.servers,
+          enableDiscovery: true,
+          discoverySessionId: 'custom-session-456',
+        },
+        mockJwtPayload.userId,
+      );
       expect(result).toEqual(expectedResponse);
     });
   });
