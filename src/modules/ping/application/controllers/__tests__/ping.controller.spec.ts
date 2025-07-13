@@ -8,10 +8,9 @@ describe('PingController', () => {
   let pingHostnameUseCase: PingHostnameUseCase;
 
   const mockPingResponse: PingResponseDto = {
-    hostname: '192.168.1.100',
+    host: '192.168.1.100',
     accessible: true,
     responseTime: 15,
-    timestamp: new Date(),
   };
 
   beforeEach(async () => {
@@ -52,7 +51,7 @@ describe('PingController', () => {
       const hostname = 'example.com';
       const domainResponse: PingResponseDto = {
         ...mockPingResponse,
-        hostname,
+        host: hostname,
       };
       jest.spyOn(pingHostnameUseCase, 'execute').mockResolvedValue(domainResponse);
 
@@ -66,7 +65,7 @@ describe('PingController', () => {
       const hostname = 'localhost';
       const localhostResponse: PingResponseDto = {
         ...mockPingResponse,
-        hostname,
+        host: hostname,
         responseTime: 1,
       };
       jest.spyOn(pingHostnameUseCase, 'execute').mockResolvedValue(localhostResponse);
@@ -80,10 +79,8 @@ describe('PingController', () => {
     it('should handle unreachable hosts', async () => {
       const hostname = '10.0.0.1';
       const unreachableResponse: PingResponseDto = {
-        hostname,
+        host: hostname,
         accessible: false,
-        responseTime: null,
-        timestamp: new Date(),
         error: 'Host unreachable',
       };
       jest.spyOn(pingHostnameUseCase, 'execute').mockResolvedValue(unreachableResponse);
@@ -107,7 +104,7 @@ describe('PingController', () => {
       const hostname = '2001:db8::1';
       const ipv6Response: PingResponseDto = {
         ...mockPingResponse,
-        hostname,
+        host: hostname,
       };
       jest.spyOn(pingHostnameUseCase, 'execute').mockResolvedValue(ipv6Response);
 
@@ -121,7 +118,7 @@ describe('PingController', () => {
       const hostname = 'sub-domain.example.com';
       const specialResponse: PingResponseDto = {
         ...mockPingResponse,
-        hostname,
+        host: hostname,
       };
       jest.spyOn(pingHostnameUseCase, 'execute').mockResolvedValue(specialResponse);
 

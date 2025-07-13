@@ -207,7 +207,7 @@ describe('SetupController', () => {
   describe('POST /setup/validate', () => {
     it('should validate resources', async () => {
       const dto = {
-        configuration: {
+        resources: {
           rooms: [{ name: 'Room 1' }],
           upsList: [],
           servers: [],

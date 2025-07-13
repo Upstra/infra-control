@@ -100,6 +100,7 @@ describe('ConnectivityValidationGuard', () => {
       jest.spyOn(pingService, 'ping').mockResolvedValue({
         accessible: true,
         responseTime: 10,
+        host: '192.168.1.1',
       });
 
       const result = await guard.canActivate(mockExecutionContext);
@@ -121,6 +122,7 @@ describe('ConnectivityValidationGuard', () => {
       jest.spyOn(pingService, 'ping').mockResolvedValue({
         accessible: true,
         responseTime: 15,
+        host: '10.0.0.1',
       });
 
       const result = await guard.canActivate(mockExecutionContext);
@@ -141,6 +143,7 @@ describe('ConnectivityValidationGuard', () => {
       jest.spyOn(pingService, 'ping').mockResolvedValue({
         accessible: true,
         responseTime: 20,
+        host: 'example.com',
       });
 
       const result = await guard.canActivate(mockExecutionContext);
@@ -161,6 +164,7 @@ describe('ConnectivityValidationGuard', () => {
       jest.spyOn(pingService, 'ping').mockResolvedValue({
         accessible: false,
         error: 'Connection timeout',
+        host: '192.168.1.1',
       });
 
       await expect(guard.canActivate(mockExecutionContext)).rejects.toThrow(
@@ -179,6 +183,7 @@ describe('ConnectivityValidationGuard', () => {
       jest.spyOn(reflector, 'get').mockReturnValue(requirement);
       jest.spyOn(pingService, 'ping').mockResolvedValue({
         accessible: false,
+        host: '192.168.1.1',
       });
 
       await expect(guard.canActivate(mockExecutionContext)).rejects.toThrow(

@@ -20,13 +20,13 @@ describe('EncryptionInitProvider', () => {
 
   it('should be defined as a provider with correct structure', () => {
     expect(EncryptionInitProvider).toBeDefined();
-    expect(EncryptionInitProvider.provide).toBe('ENCRYPTION_INIT');
-    expect(EncryptionInitProvider.useFactory).toBeDefined();
-    expect(EncryptionInitProvider.inject).toEqual([EncryptionService]);
+    expect((EncryptionInitProvider as any).provide).toBe('ENCRYPTION_INIT');
+    expect((EncryptionInitProvider as any).useFactory).toBeDefined();
+    expect((EncryptionInitProvider as any).inject).toEqual([EncryptionService]);
   });
 
   it('should call setEncryptionService with the encryption service instance', () => {
-    const factory = EncryptionInitProvider.useFactory as Function;
+    const factory = (EncryptionInitProvider as any).useFactory as Function;
     const result = factory(encryptionService);
 
     expect(encryptionTransformer.setEncryptionService).toHaveBeenCalledWith(encryptionService);
@@ -35,7 +35,7 @@ describe('EncryptionInitProvider', () => {
   });
 
   it('should return true after initialization', () => {
-    const factory = EncryptionInitProvider.useFactory as Function;
+    const factory = (EncryptionInitProvider as any).useFactory as Function;
     const result = factory(encryptionService);
 
     expect(result).toBe(true);
@@ -59,7 +59,7 @@ describe('EncryptionInitProvider', () => {
   });
 
   it('should handle factory execution multiple times', () => {
-    const factory = EncryptionInitProvider.useFactory as Function;
+    const factory = (EncryptionInitProvider as any).useFactory as Function;
     
     factory(encryptionService);
     factory(encryptionService);

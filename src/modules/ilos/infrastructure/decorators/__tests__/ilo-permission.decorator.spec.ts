@@ -17,7 +17,7 @@ describe('IloPermission Decorator', () => {
   });
 
   it('should call SetMetadata with correct key and permission bit', () => {
-    const permissionBit = PermissionBit.ILO_READ;
+    const permissionBit = PermissionBit.READ;
     
     IloPermission(permissionBit);
 
@@ -25,16 +25,16 @@ describe('IloPermission Decorator', () => {
     expect(SetMetadata).toHaveBeenCalledTimes(1);
   });
 
-  it('should work with ILO_WRITE permission', () => {
-    const permissionBit = PermissionBit.ILO_WRITE;
+  it('should work with WRITE permission', () => {
+    const permissionBit = PermissionBit.WRITE;
     
     IloPermission(permissionBit);
 
     expect(SetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, { requiredBit: permissionBit });
   });
 
-  it('should work with ILO_EXECUTE permission', () => {
-    const permissionBit = PermissionBit.ILO_EXECUTE;
+  it('should work with SHUTDOWN permission', () => {
+    const permissionBit = PermissionBit.SHUTDOWN;
     
     IloPermission(permissionBit);
 
@@ -43,7 +43,7 @@ describe('IloPermission Decorator', () => {
 
   it('should be applicable to a method', () => {
     class TestController {
-      @IloPermission(PermissionBit.ILO_READ)
+      @IloPermission(PermissionBit.READ)
       testMethod() {
         return 'test';
       }
@@ -51,22 +51,22 @@ describe('IloPermission Decorator', () => {
 
     const metadata = Reflect.getMetadata(ILO_PERMISSION_KEY, TestController.prototype.testMethod);
     
-    expect(metadata).toEqual({ requiredBit: PermissionBit.ILO_READ });
+    expect(metadata).toEqual({ requiredBit: PermissionBit.READ });
   });
 
   it('should be applicable to multiple methods with different permissions', () => {
     class TestController {
-      @IloPermission(PermissionBit.ILO_READ)
+      @IloPermission(PermissionBit.READ)
       readMethod() {
         return 'read';
       }
 
-      @IloPermission(PermissionBit.ILO_WRITE)
+      @IloPermission(PermissionBit.WRITE)
       writeMethod() {
         return 'write';
       }
 
-      @IloPermission(PermissionBit.ILO_EXECUTE)
+      @IloPermission(PermissionBit.SHUTDOWN)
       executeMethod() {
         return 'execute';
       }
@@ -76,8 +76,8 @@ describe('IloPermission Decorator', () => {
     const writeMetadata = Reflect.getMetadata(ILO_PERMISSION_KEY, TestController.prototype.writeMethod);
     const executeMetadata = Reflect.getMetadata(ILO_PERMISSION_KEY, TestController.prototype.executeMethod);
     
-    expect(readMetadata).toEqual({ requiredBit: PermissionBit.ILO_READ });
-    expect(writeMetadata).toEqual({ requiredBit: PermissionBit.ILO_WRITE });
-    expect(executeMetadata).toEqual({ requiredBit: PermissionBit.ILO_EXECUTE });
+    expect(readMetadata).toEqual({ requiredBit: PermissionBit.READ });
+    expect(writeMetadata).toEqual({ requiredBit: PermissionBit.WRITE });
+    expect(executeMetadata).toEqual({ requiredBit: PermissionBit.SHUTDOWN });
   });
 });
