@@ -25,11 +25,6 @@ export class PingIloUseCase {
     );
 
     const result = await this.pingService.ping(server.ilo.ip, timeout);
-
-    this.logger.log(
-      `Ping result for server ${serverId} iLO: ${result.accessible ? 'accessible' : 'not accessible'}`,
-    );
-
     return result;
   }
 }

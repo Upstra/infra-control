@@ -42,6 +42,12 @@ export class PythonErrorInterceptor implements ExceptionFilter {
       } else if (exception.message.includes('Script execution failed')) {
         status = HttpStatus.BAD_REQUEST;
         message = exception.message;
+      } else if (exception.message.includes('ModuleNotFoundError')) {
+        status = HttpStatus.INTERNAL_SERVER_ERROR;
+        message = 'Python environment configuration error';
+      } else if (exception.message.includes('Traceback')) {
+        status = HttpStatus.INTERNAL_SERVER_ERROR;
+        message = 'Python script execution error';
       } else {
         message = exception.message;
       }

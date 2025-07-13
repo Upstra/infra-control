@@ -23,11 +23,6 @@ export class PingServerUseCase {
     this.logger.log(`Pinging server ${serverId} at host ${server.ip}`);
 
     const result = await this.pingService.ping(server.ip, timeout);
-
-    this.logger.log(
-      `Ping result for server ${serverId}: ${result.accessible ? 'accessible' : 'not accessible'}`,
-    );
-
     return result;
   }
 }

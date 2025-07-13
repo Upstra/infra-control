@@ -7,6 +7,7 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  UseFilters,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -28,11 +29,13 @@ import {
   IloStatusResponseDto,
 } from '../dto/ilo-status.dto';
 import { PingRequestDto, PingResponseDto } from '@/core/dto/ping.dto';
+import { PythonErrorInterceptor } from '@/core/interceptors/python-error.interceptor';
 
 @ApiTags('iLO')
 @ApiBearerAuth()
 @Controller('ilo/servers')
 @UseGuards(JwtAuthGuard)
+@UseFilters(PythonErrorInterceptor)
 export class IloPowerController {
   constructor(
     private readonly controlServerPowerUseCase: ControlServerPowerUseCase,
