@@ -9,6 +9,7 @@ import {
   IsUUID,
   ValidateNested,
   IsIP,
+  Allow,
 } from 'class-validator';
 
 /**
@@ -31,6 +32,14 @@ export class BulkRoomDto {
   @IsString()
   @IsOptional()
   tempId?: string;
+
+  @Allow()
+  @IsOptional()
+  id?: any;
+
+  @Allow()
+  @IsOptional()
+  status?: any;
 }
 
 /**
@@ -71,6 +80,14 @@ export class BulkUpsDto {
   @IsString()
   @IsOptional()
   tempId?: string;
+
+  @Allow()
+  @IsOptional()
+  id?: any;
+
+  @Allow()
+  @IsOptional()
+  status?: any;
 }
 
 /**
@@ -222,6 +239,14 @@ export class BulkServerDto {
   @IsString()
   @IsOptional()
   tempId?: string;
+
+  @Allow()
+  @IsOptional()
+  id?: any;
+
+  @Allow()
+  @IsOptional()
+  status?: any;
 }
 
 /**
