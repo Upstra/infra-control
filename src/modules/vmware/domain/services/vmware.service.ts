@@ -26,7 +26,7 @@ export class VmwareService implements IVmwareService {
 
     try {
       const result = await this.pythonExecutor.executePython(
-        'list_vm.py',
+        'list_vm.sh',
         args,
       );
       return this.parseVmList(result);
@@ -44,7 +44,7 @@ export class VmwareService implements IVmwareService {
 
     try {
       const result = await this.pythonExecutor.executePython(
-        'vm_metrics.py',
+        'vm_metrics.sh',
         args,
       );
       return this.parseVmMetrics(result);
@@ -63,7 +63,7 @@ export class VmwareService implements IVmwareService {
     message: string;
     newState: VmwarePowerState;
   }> {
-    const scriptName = action === 'on' ? 'vm_start.py' : 'vm_stop.py';
+    const scriptName = action === 'on' ? 'vm_start.sh' : 'vm_stop.sh';
     const args = ['--moid', moid, ...this.buildConnectionArgs(connection)];
 
     try {
@@ -98,7 +98,7 @@ export class VmwareService implements IVmwareService {
 
     try {
       const result = await this.pythonExecutor.executePython(
-        'vm_migration.py',
+        'vm_migration.sh',
         args,
       );
       return {
@@ -120,7 +120,7 @@ export class VmwareService implements IVmwareService {
 
     try {
       const result = await this.pythonExecutor.executePython(
-        'server_info.py',
+        'server_info.sh',
         args,
       );
       return this.parseServerInfo(result);
@@ -138,7 +138,7 @@ export class VmwareService implements IVmwareService {
 
     try {
       const result = await this.pythonExecutor.executePython(
-        'server_metrics.py',
+        'server_metrics.sh',
         args,
       );
       return this.parseServerMetrics(result);
@@ -156,7 +156,7 @@ export class VmwareService implements IVmwareService {
 
     try {
       const result = await this.pythonExecutor.executePython(
-        'server_metrics.py',
+        'server_metrics.sh',
         args,
       );
       return this.parseHostMetrics(result);
