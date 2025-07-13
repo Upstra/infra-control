@@ -13,6 +13,7 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { SensitiveOperationsGuard } from '@/core/guards/sensitive-operations.guard';
@@ -47,8 +48,6 @@ import {
   CreateTemplateRequestDto,
   TemplateResponseDto,
   SetupProgressEnhancedDto,
-  IpValidationRequestDto,
-  NameValidationRequestDto,
   IpValidationResponseDto,
   NameValidationResponseDto,
 } from '../dto';
@@ -243,37 +242,81 @@ export class SetupController {
     return this.getSetupProgressEnhancedUseCase.execute();
   }
 
-  @Post('validate/ip')
+  @Get('validate/ip')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Validate IP address availability',
     description: 'Check if an IP address is available for use in setup',
   })
-  @ApiBody({ type: IpValidationRequestDto })
+  @ApiQuery({
+    name: 'value',
+    description: 'IP address to validate',
+    example: '192.168.1.100',
+  })
+  @ApiQuery({
+    name: 'type',
+    description: 'Resource type',
+    enum: ['server', 'ups', 'ilo'],
+  })
+  @ApiQuery({
+    name: 'excludeId',
+    description: 'Resource ID to exclude from validation (for updates)',
+    required: false,
+  })
   @ApiResponse({
     status: 200,
     description: 'IP validation result',
     type: IpValidationResponseDto,
   })
-  async validateIp(@Body() dto: IpValidationRequestDto): Promise<IpValidationResponseDto> {
-    return this.validateIpUseCase.execute(dto);
+  async validateIp(
+    @Query('value') value: string,
+    @Query('type') type: 'server' | 'ups' | 'ilo',
+    @Query('excludeId') excludeId?: string,
+  ): Promise<IpValidationResponseDto> {
+    return this.validateIpUseCase.execute({
+      ip: value,
+      resourceType: type,
+      excludeId,
+    });
   }
 
-  @Post('validate/name')
+  @Get('validate/name')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Validate resource name availability',
     description: 'Check if a resource name is available for use in setup',
   })
-  @ApiBody({ type: NameValidationRequestDto })
+  @ApiQuery({
+    name: 'value',
+    description: 'Resource name to validate',
+    example: 'UPS-Primary',
+  })
+  @ApiQuery({
+    name: 'type',
+    description: 'Resource type',
+    enum: ['room', 'ups', 'server'],
+  })
+  @ApiQuery({
+    name: 'excludeId',
+    description: 'Resource ID to exclude from validation (for updates)',
+    required: false,
+  })
   @ApiResponse({
     status: 200,
     description: 'Name validation result',
     type: NameValidationResponseDto,
   })
-  async validateName(@Body() dto: NameValidationRequestDto): Promise<NameValidationResponseDto> {
-    return this.validateNameUseCase.execute(dto);
+  async validateName(
+    @Query('value') value: string,
+    @Query('type') type: 'room' | 'ups' | 'server',
+    @Query('excludeId') excludeId?: string,
+  ): Promise<NameValidationResponseDto> {
+    return this.validateNameUseCase.execute({
+      name: value,
+      resourceType: type,
+      excludeId,
+    });
   }
 }
