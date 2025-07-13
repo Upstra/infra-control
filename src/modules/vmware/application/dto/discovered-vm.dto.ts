@@ -32,4 +32,8 @@ export class DiscoveredVmDto {
 
   @IsString()
   serverName: string;
+
+  @IsOptional()
+  @IsString()
+  esxiHostMoid?: string;
 }

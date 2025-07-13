@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { VmwareService } from './vmware.service';
 import { VmwareDiscoveryGateway } from '../../application/gateway/vmware-discovery.gateway';
 import { Server } from '../../../servers/domain/entities/server.entity';
+import { ServerRepositoryInterface } from '../../../servers/domain/interfaces/server.repository.interface';
 import {
   DiscoveryProgressDto,
   DiscoveryResultsDto,
@@ -17,6 +18,7 @@ export interface ServerDiscoveryResult {
   error?: string;
   vmCount: number;
   vms: DiscoveredVmDto[];
+  hostMoid?: string;
 }
 
 @Injectable()
@@ -26,6 +28,8 @@ export class VmwareDiscoveryService {
   constructor(
     private readonly vmwareService: VmwareService,
     private readonly discoveryGateway: VmwareDiscoveryGateway,
+    @Inject('ServerRepositoryInterface')
+    private readonly serverRepository: ServerRepositoryInterface,
   ) {}
 
   async discoverVmsFromServers(
@@ -69,6 +73,10 @@ export class VmwareDiscoveryService {
 
       if (result.success) {
         allDiscoveredVms = [...allDiscoveredVms, ...result.vms];
+
+        if (result.hostMoid && !server.vmwareHostMoid) {
+          await this.updateServerHostMoid(server.id, result.hostMoid);
+        }
       }
 
       this.emitProgress(sessionId, {
@@ -126,6 +134,13 @@ export class VmwareDiscoveryService {
       result.vmCount = result.vms.length;
       result.success = true;
 
+      if (vmwareVms.length > 0 && vmwareVms[0].esxiHostMoid) {
+        result.hostMoid = vmwareVms[0].esxiHostMoid;
+        this.logger.debug(
+          `Discovered host moid ${result.hostMoid} for server ${server.name}`,
+        );
+      }
+
       this.logger.debug(
         `Successfully discovered ${result.vmCount} VMs from ${server.name}`,
       );
@@ -158,7 +173,7 @@ export class VmwareDiscoveryService {
       host: server.ip,
       user: server.login,
       password: server.password,
-      port: 443, // Default VMware port
+      port: 443,
     };
   }
 
@@ -166,14 +181,34 @@ export class VmwareDiscoveryService {
     return {
       moid: vmwareVm.moid,
       name: vmwareVm.name,
-      ip: vmwareVm.ipAddress,
-      guestOs: vmwareVm.guestOS,
+      ip: vmwareVm.ip,
+      guestOs: vmwareVm.guestOs,
       powerState: vmwareVm.powerState,
       memoryMB: vmwareVm.memoryMB,
-      numCpu: vmwareVm.numCpu,
+      numCpu: vmwareVm.numCPU,
       serverId: server.id,
       serverName: server.name,
+      esxiHostMoid: vmwareVm.esxiHostMoid,
     };
+  }
+
+  private async updateServerHostMoid(
+    serverId: string,
+    hostMoid: string,
+  ): Promise<void> {
+    try {
+      await this.serverRepository.updateServer(serverId, {
+        vmwareHostMoid: hostMoid,
+      });
+      this.logger.log(
+        `Updated server ${serverId} with vmwareHostMoid: ${hostMoid}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to update server ${serverId} with host moid:`,
+        error,
+      );
+    }
   }
 
   private emitProgress(
