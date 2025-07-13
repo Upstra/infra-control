@@ -59,12 +59,20 @@ describe('PingHostnameUseCase', () => {
     });
 
     it('should throw BadRequestException for invalid hostname or IP', async () => {
-      await expect(useCase.execute('256.256.256.256')).rejects.toThrow(BadRequestException);
-      await expect(useCase.execute('999.999.999.999')).rejects.toThrow(BadRequestException);
+      await expect(useCase.execute('256.256.256.256')).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(useCase.execute('999.999.999.999')).rejects.toThrow(
+        BadRequestException,
+      );
       await expect(useCase.execute('')).rejects.toThrow(BadRequestException);
       await expect(useCase.execute(' ')).rejects.toThrow(BadRequestException);
-      await expect(useCase.execute('invalid_hostname')).rejects.toThrow(BadRequestException);
-      await expect(useCase.execute('host name with spaces')).rejects.toThrow(BadRequestException);
+      await expect(useCase.execute('invalid_hostname')).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(useCase.execute('host name with spaces')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should accept valid hostnames', async () => {
@@ -96,7 +104,9 @@ describe('PingHostnameUseCase', () => {
       ];
 
       for (const hostname of invalidHostnames) {
-        await expect(useCase.execute(hostname)).rejects.toThrow(BadRequestException);
+        await expect(useCase.execute(hostname)).rejects.toThrow(
+          BadRequestException,
+        );
       }
     });
   });

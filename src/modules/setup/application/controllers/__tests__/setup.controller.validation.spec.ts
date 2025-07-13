@@ -22,13 +22,17 @@ describe('SetupController - Validation Endpoints', () => {
 
     // Reset mocks
     jest.clearAllMocks();
-    
+
     // Setup controller methods to call use cases
-    mockController.validateIp.mockImplementation((value, type, excludeId) => 
-      validateIpUseCase.execute({ ip: value, resourceType: type, excludeId })
+    mockController.validateIp.mockImplementation((value, type, excludeId) =>
+      validateIpUseCase.execute({ ip: value, resourceType: type, excludeId }),
     );
-    mockController.validateName.mockImplementation((value, type, excludeId) => 
-      validateNameUseCase.execute({ name: value, resourceType: type, excludeId })
+    mockController.validateName.mockImplementation((value, type, excludeId) =>
+      validateNameUseCase.execute({
+        name: value,
+        resourceType: type,
+        excludeId,
+      }),
     );
   });
 

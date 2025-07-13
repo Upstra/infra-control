@@ -111,7 +111,8 @@ export class SetupDomainService {
   ): string | null {
     if (userCount === 0) return 'welcome';
     // After welcome, always go to planning step
-    if (roomCount === 0 && upsCount === 0 && serverCount === 0) return 'planning';
+    if (roomCount === 0 && upsCount === 0 && serverCount === 0)
+      return 'planning';
     if (roomCount === 0) return 'rooms';
     if (upsCount === 0) return 'ups';
     if (serverCount === 0) return 'servers';

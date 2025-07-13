@@ -24,7 +24,7 @@ export class PingService {
       // Try ICMP ping
       const pingResult = await this.performICMPPing(hostname);
       const responseTime = Date.now() - startTime;
-      
+
       if (!pingResult.success) {
         return {
           success: false,
@@ -75,7 +75,7 @@ export class PingService {
         /bytes from/i,
       ];
 
-      const isSuccess = successPatterns.some(pattern => pattern.test(stdout));
+      const isSuccess = successPatterns.some((pattern) => pattern.test(stdout));
 
       return {
         success: isSuccess,
@@ -88,5 +88,4 @@ export class PingService {
       };
     }
   }
-
 }

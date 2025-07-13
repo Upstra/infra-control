@@ -23,7 +23,6 @@ describe('GetTemplatesUseCase', () => {
     }).compile();
 
     useCase = module.get<GetTemplatesUseCase>(GetTemplatesUseCase);
-    redisService = module.get(RedisSafeService);
   });
 
   describe('execute', () => {

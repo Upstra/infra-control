@@ -159,9 +159,7 @@ describe('ValidateIpUseCase', () => {
         excludeId: 'ups-1',
       };
 
-      const existingUps = { id: 'ups-1', name: 'UPS-Primary' };
-      upsRepository.findOne.mockResolvedValue(null); // No conflict after exclusion
-
+      upsRepository.findOne.mockResolvedValue(null);
       const result = await useCase.execute(dto);
 
       expect(result).toEqual({ exists: false });
