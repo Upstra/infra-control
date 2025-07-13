@@ -226,12 +226,29 @@ export class BulkCreateUseCase {
     server.upsId = upsId ?? undefined;
     server.groupId = serverData.groupId ?? undefined;
 
-    if (
-      serverData.ilo_name &&
-      serverData.ilo_ip &&
-      serverData.ilo_login &&
-      serverData.ilo_password
-    ) {
+    if (serverData.type === 'vcenter') {
+      if (
+        serverData.ilo_name ||
+        serverData.ilo_ip ||
+        serverData.ilo_login ||
+        serverData.ilo_password
+      ) {
+        throw new BadRequestException(
+          `vCenter server ${serverData.name} should not have iLO configuration`,
+        );
+      }
+    } else {
+      if (
+        !serverData.ilo_name ||
+        !serverData.ilo_ip ||
+        !serverData.ilo_login ||
+        !serverData.ilo_password
+      ) {
+        throw new BadRequestException(
+          `iLO configuration (name, IP, login, password) is required for ESXi server ${serverData.name}`,
+        );
+      }
+
       const ilo = new Ilo();
       ilo.name = serverData.ilo_name;
       ilo.ip = serverData.ilo_ip;

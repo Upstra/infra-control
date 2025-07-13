@@ -99,6 +99,10 @@ describe('BulkCreateUseCase', () => {
           priority: 1,
           roomId: 'temp_room_1',
           upsId: 'temp_ups_1',
+          ilo_name: 'ILO-WEB-01',
+          ilo_ip: '192.168.1.11',
+          ilo_login: 'admin',
+          ilo_password: 'ilopassword',
         },
       ],
     };
@@ -223,7 +227,7 @@ describe('BulkCreateUseCase', () => {
             ip: '192.168.1.10',
             login: 'admin',
             password: 'password',
-            type: 'esxi',
+            type: 'vcenter',
             priority: 1,
           },
         ],
@@ -312,6 +316,10 @@ describe('BulkCreateUseCase', () => {
           priority: 1,
           roomId: "temp_1752408362050_0",
           upsId: "temp_1752408362050_1",
+          ilo_name: "ILO-ESXSRV11",
+          ilo_ip: "172.23.30.11",
+          ilo_login: "Admin",
+          ilo_password: "5EcUr3D",
           id: "temp_1752408362050_3"  // Frontend uses id instead of tempId
         }]
       };

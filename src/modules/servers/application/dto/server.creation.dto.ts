@@ -139,6 +139,6 @@ export class ServerCreationDto {
     type: () => IloCreationDto,
     required: false,
   })
-  @IsNotEmpty()
+  @IsOptional()
   ilo?: IloCreationDto;
 }

@@ -79,14 +79,31 @@ export class CreateServerUseCase {
       group = await this.groupRepository.findById(dto.groupId);
     }
 
-    const ilo = await this.createIloUsecase.execute(dto.ilo);
-    if (!ilo) {
-      throw new NotFoundException(
-        'Failed to create or retrieve the iLO entity',
-      );
+    let ilo = null;
+    let iloId = undefined;
+
+    if (dto.type === 'vcenter') {
+      if (dto.ilo) {
+        throw new BadRequestException(
+          'vCenter servers should not have iLO configuration',
+        );
+      }
+    } else {
+      if (!dto.ilo) {
+        throw new BadRequestException(
+          'iLO configuration is required for ESXi servers',
+        );
+      }
+      ilo = await this.createIloUsecase.execute(dto.ilo);
+      if (!ilo) {
+        throw new NotFoundException(
+          'Failed to create or retrieve the iLO entity',
+        );
+      }
+      iloId = ilo.id;
     }
 
-    const entity = this.serverDomain.createServerEntityFromDto(dto, ilo.id);
+    const entity = this.serverDomain.createServerEntityFromDto(dto, iloId);
     const server = await this.serverRepository.save(entity);
 
     const user = await this.userRepository.findOneByField({
@@ -124,14 +141,14 @@ export class CreateServerUseCase {
         groupName: group?.name,
         upsId: server.upsId,
         iloId: server.iloId,
-        iloIpAddress: ilo.ip,
+        iloIpAddress: ilo?.ip,
       },
       metadata: {
-        serverType: 'esxi',
+        serverType: dto.type,
         hasUpsConnection: !!dto.upsId,
         assignedToGroup: !!dto.groupId,
         adminRolesGranted: adminRoleIds.length,
-        iloConfigured: true,
+        iloConfigured: !!ilo,
         initialPermissions: ['READ', 'WRITE', 'DELETE', 'SHUTDOWN', 'RESTART'],
       },
       ipAddress: requestContext?.ipAddress,
