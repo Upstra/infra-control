@@ -16,7 +16,7 @@ describe('PingService', () => {
 
   beforeEach(async () => {
     mockExecAsync = jest.fn();
-    (promisify as jest.Mock).mockReturnValue(mockExecAsync);
+    (promisify as unknown as jest.Mock).mockReturnValue(mockExecAsync);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [PingService],
