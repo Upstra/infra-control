@@ -125,7 +125,9 @@ export class BulkCreateUseCase {
         idMapping,
       };
     } catch (error) {
-      await queryRunner.rollbackTransaction();
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction();
+      }
       this.logger.error('Bulk creation failed', error);
 
       if (error instanceof BadRequestException) {
