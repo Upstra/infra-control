@@ -47,6 +47,11 @@ export class ServerResponseDto {
 
   @ApiProperty()
   @IsNotEmpty()
+  @IsString()
+  readonly adminUrl!: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
   @IsNumber()
   readonly priority!: number;
 
@@ -65,6 +70,16 @@ export class ServerResponseDto {
   @IsUUID()
   readonly upsId?: string;
 
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  readonly login!: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  readonly password?: string;
+
   @ApiProperty({ type: IloResponseDto, required: false })
   @IsOptional()
   readonly ilo?: IloResponseDto;
@@ -77,10 +92,13 @@ export class ServerResponseDto {
     this.grace_period_off = server.grace_period_off;
     this.ip = server.ip;
     this.type = server.type;
+    this.adminUrl = server.adminUrl;
     this.priority = server.priority;
     this.groupId = server.groupId;
     this.roomId = server.roomId;
     this.upsId = server.upsId;
+    this.login = server.login;
+    this.password = server.password;
     this.ilo = ilo;
   }
 

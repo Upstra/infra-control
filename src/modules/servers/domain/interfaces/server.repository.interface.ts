@@ -15,7 +15,10 @@ export interface ServerRepositoryInterface
     limit: number,
   ): Promise<[Server[], number]>;
 
-  findServerById(id: string): Promise<Server | null>;
+  findServerById(
+    id: string,
+    select?: (keyof Server)[] | string[],
+  ): Promise<Server | null>;
   findServerByIdWithCredentials(id: string): Promise<Server | null>;
   deleteServer(id: string): Promise<void>;
   updateServer(id: string, data: Partial<Server>): Promise<Server>;

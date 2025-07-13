@@ -30,7 +30,10 @@ export class GetServerByIdUseCase {
   ) {}
 
   async execute(id: string): Promise<ServerResponseDto> {
-    const server = await this.serverRepository.findServerById(id);
+    const server = await this.serverRepository.findServerById(id, [
+      '
+
+    );
     return new ServerResponseDto(server, server.ilo);
   }
 }
