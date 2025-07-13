@@ -5,6 +5,7 @@ import {
   Request,
   Post,
   Body,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -30,6 +31,8 @@ import {
   GetTemplatesUseCase,
   CreateTemplateUseCase,
   GetSetupProgressEnhancedUseCase,
+  ValidateIpUseCase,
+  ValidateNameUseCase,
 } from '../use-cases';
 import { CompleteVmDiscoveryDto } from '../dto/complete-vm-discovery.dto';
 import {
@@ -44,6 +47,10 @@ import {
   CreateTemplateRequestDto,
   TemplateResponseDto,
   SetupProgressEnhancedDto,
+  IpValidationRequestDto,
+  NameValidationRequestDto,
+  IpValidationResponseDto,
+  NameValidationResponseDto,
 } from '../dto';
 
 @ApiTags('Setup')
@@ -59,6 +66,8 @@ export class SetupController {
     private readonly getTemplatesUseCase: GetTemplatesUseCase,
     private readonly createTemplateUseCase: CreateTemplateUseCase,
     private readonly getSetupProgressEnhancedUseCase: GetSetupProgressEnhancedUseCase,
+    private readonly validateIpUseCase: ValidateIpUseCase,
+    private readonly validateNameUseCase: ValidateNameUseCase,
   ) {}
 
   @Get('status')
@@ -232,5 +241,39 @@ export class SetupController {
   })
   async getEnhancedProgress(): Promise<SetupProgressEnhancedDto> {
     return this.getSetupProgressEnhancedUseCase.execute();
+  }
+
+  @Post('validate/ip')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Validate IP address availability',
+    description: 'Check if an IP address is available for use in setup',
+  })
+  @ApiBody({ type: IpValidationRequestDto })
+  @ApiResponse({
+    status: 200,
+    description: 'IP validation result',
+    type: IpValidationResponseDto,
+  })
+  async validateIp(@Body() dto: IpValidationRequestDto): Promise<IpValidationResponseDto> {
+    return this.validateIpUseCase.execute(dto);
+  }
+
+  @Post('validate/name')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Validate resource name availability',
+    description: 'Check if a resource name is available for use in setup',
+  })
+  @ApiBody({ type: NameValidationRequestDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Name validation result',
+    type: NameValidationResponseDto,
+  })
+  async validateName(@Body() dto: NameValidationRequestDto): Promise<NameValidationResponseDto> {
+    return this.validateNameUseCase.execute(dto);
   }
 }
