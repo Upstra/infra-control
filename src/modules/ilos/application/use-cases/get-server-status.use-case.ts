@@ -27,9 +27,9 @@ export class GetServerStatusUseCase {
     }
 
     const vCenterConnection: VmwareConnectionDto = {
-      host: server.ilo.ip,
-      user: server.ilo.login,
-      password: server.ilo.password,
+      host: server.ip,
+      user: server.login,
+      password: server.password,
       port: 443,
     };
 
