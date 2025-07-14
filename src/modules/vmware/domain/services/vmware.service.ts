@@ -30,6 +30,8 @@ export class VmwareService implements IVmwareService {
         args,
       );
       this.logger.debug('Raw script output:', JSON.stringify(result));
+      
+      // Check if the result contains an error
       if (result?.result?.httpCode && result.result.httpCode !== 200) {
         const errorMessage = result.result.message || 'Unknown error';
         this.logger.error(`Script returned error: ${errorMessage} (HTTP ${result.result.httpCode})`);

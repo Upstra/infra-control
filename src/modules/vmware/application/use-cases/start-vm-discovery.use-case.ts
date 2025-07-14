@@ -32,7 +32,7 @@ export class StartVMDiscoveryUseCase {
     if (command.serverIds?.length) {
       servers = [];
       for (const id of command.serverIds) {
-        const server = await this.serversRepository.findServerById(
+        const server = await this.serversRepository.findServerByIdWithCredentials(
           id.toString(),
         );
         if (server) {
@@ -40,7 +40,7 @@ export class StartVMDiscoveryUseCase {
         }
       }
     } else {
-      servers = await this.serversRepository.findAll();
+      servers = await this.serversRepository.findAllWithCredentials();
     }
 
     const vmwareServers = servers.filter((server) =>

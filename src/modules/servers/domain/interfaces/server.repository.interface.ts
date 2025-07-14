@@ -20,6 +20,7 @@ export interface ServerRepositoryInterface
     select?: (keyof Server)[] | string[],
   ): Promise<Server | null>;
   findServerByIdWithCredentials(id: string): Promise<Server | null>;
+  findAllWithCredentials(): Promise<Server[]>;
   deleteServer(id: string): Promise<void>;
   updateServer(id: string, data: Partial<Server>): Promise<Server>;
   countByState(state: 'UP' | 'DOWN'): Promise<number>;

@@ -193,6 +193,22 @@ export class ServerTypeormRepository
     }
   }
 
+  async findAllWithCredentials(): Promise<Server[]> {
+    try {
+      return await this.createQueryBuilder('server')
+        .leftJoinAndSelect('server.ilo', 'ilo')
+        .leftJoinAndSelect('server.group', 'group')
+        .leftJoinAndSelect('server.room', 'room')
+        .leftJoinAndSelect('server.ups', 'ups')
+        .leftJoinAndSelect('server.vms', 'vms')
+        .addSelect('server.password')
+        .getMany();
+    } catch (error) {
+      this.logger.error('Error retrieving servers with credentials:', error);
+      throw new ServerRetrievalException('Error retrieving servers with credentials');
+    }
+  }
+
   async findOneByField<T extends keyof Server>({
     field,
     value,
