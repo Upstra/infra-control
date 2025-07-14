@@ -109,6 +109,20 @@ export class VmwareDiscoveryService {
 
     if (allDiscoveredVms.length > 0) {
       this.logger.log('Saving discovered VMs to database...');
+      
+      // Log all discovered VMs before saving
+      this.logger.log(`Discovered ${allDiscoveredVms.length} VMs to save:`);
+      allDiscoveredVms.forEach((vm, index) => {
+        this.logger.log(`VM ${index + 1}/${allDiscoveredVms.length}:`);
+        this.logger.log(`  - Name: ${vm.name}`);
+        this.logger.log(`  - MOID: ${vm.moid}`);
+        this.logger.log(`  - Server ID: ${vm.serverId}`);
+        this.logger.log(`  - Server Name: ${vm.serverName}`);
+        this.logger.log(`  - IP: ${vm.ip || 'N/A'}`);
+        this.logger.log(`  - Power State: ${vm.powerState || 'N/A'}`);
+        this.logger.log(`  - Guest OS: ${vm.guestOs || 'N/A'}`);
+      });
+      
       try {
         const saveResult = await this.saveDiscoveredVmsUseCase.execute(
           allDiscoveredVms,
