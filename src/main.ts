@@ -60,6 +60,9 @@ async function bootstrap() {
         process.env.FRONTEND_URL ?? 'http://localhost',
         'http://localhost',
         'http://localhost:80',
+        'http://localhost:3000',
+        'http://172.23.50.2',
+        'http://172.23.50.2:80',
       ];
       if (process.env.NODE_ENV !== 'production') {
         const localhostRegex = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
