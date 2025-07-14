@@ -13,7 +13,7 @@ import { PermissionModule } from '../permissions/permission.module';
 
 @Module({
   controllers: [VmController],
-  exports: [...VmUseCase, 'VmRepositoryInterface'],
+  exports: [...VmUseCase, 'VmRepositoryInterface', VmDomainService],
   imports: [
     TypeOrmModule.forFeature([Vm]),
     forwardRef(() => ServerModule),

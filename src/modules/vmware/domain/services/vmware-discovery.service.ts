@@ -10,6 +10,7 @@ import {
   DiscoveryStatus,
 } from '../../application/dto';
 import { VmwareConnectionDto } from '../../application/dto/vmware-connection.dto';
+import { SaveDiscoveredVmsUseCase } from '../../application/use-cases/save-discovered-vms.use-case';
 
 export interface ServerDiscoveryResult {
   serverId: string;
@@ -30,6 +31,7 @@ export class VmwareDiscoveryService {
     private readonly discoveryGateway: VmwareDiscoveryGateway,
     @Inject('ServerRepositoryInterface')
     private readonly serverRepository: ServerRepositoryInterface,
+    private readonly saveDiscoveredVmsUseCase: SaveDiscoveredVmsUseCase,
   ) {}
 
   async discoverVmsFromServers(
@@ -104,6 +106,24 @@ export class VmwareDiscoveryService {
       serverResults,
       allDiscoveredVms,
     };
+
+    if (allDiscoveredVms.length > 0) {
+      this.logger.log('Saving discovered VMs to database...');
+      try {
+        const saveResult = await this.saveDiscoveredVmsUseCase.execute(
+          allDiscoveredVms,
+        );
+        this.logger.log(
+          `Saved ${saveResult.savedCount} VMs to database (${saveResult.failedCount} failed)`,
+        );
+        
+        if (saveResult.errors.length > 0) {
+          this.logger.warn('Some VMs failed to save:', saveResult.errors);
+        }
+      } catch (error) {
+        this.logger.error('Failed to save discovered VMs:', error);
+      }
+    }
 
     this.discoveryGateway.emitDiscoveryComplete(sessionId, finalResults);
     this.logger.log(

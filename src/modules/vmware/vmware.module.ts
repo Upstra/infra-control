@@ -10,9 +10,11 @@ import { ControlVmPowerUseCase } from './application/use-cases/control-vm-power.
 import { MigrateVmUseCase } from './application/use-cases/migrate-vm.use-case';
 import { GetHostMetricsUseCase } from './application/use-cases/get-host-metrics.use-case';
 import { StartVMDiscoveryUseCase } from './application/use-cases/start-vm-discovery.use-case';
+import { SaveDiscoveredVmsUseCase } from './application/use-cases/save-discovered-vms.use-case';
 import { VmwareDiscoveryGateway } from './application/gateway/vmware-discovery.gateway';
 import { VmwareDiscoveryService } from './domain/services/vmware-discovery.service';
 import { ServerModule } from '@/modules/servers/server.module';
+import { VmModule } from '@/modules/vms/vm.module';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
 import { PermissionModule } from '@/modules/permissions/permission.module';
 
@@ -22,6 +24,7 @@ import { PermissionModule } from '@/modules/permissions/permission.module';
     PythonExecutorModule,
     TypeOrmModule.forFeature([Server]),
     forwardRef(() => ServerModule),
+    forwardRef(() => VmModule),
     PermissionModule,
   ],
   controllers: [VmwareController],
@@ -35,6 +38,7 @@ import { PermissionModule } from '@/modules/permissions/permission.module';
     MigrateVmUseCase,
     GetHostMetricsUseCase,
     StartVMDiscoveryUseCase,
+    SaveDiscoveredVmsUseCase,
   ],
   exports: [VmwareService, VmwareDiscoveryService, VmwareDiscoveryGateway],
 })

@@ -85,7 +85,7 @@ export class BulkCreateWithDiscoveryUseCase {
     this.logger.log(
       `Starting discovery for ${vmwareServers.length} VMware servers`,
     );
-    
+
     vmwareServers.forEach((server) => {
       this.logger.debug(`VMware server ${server.name}:`);
       this.logger.debug(`- Type: ${server.type}`);
@@ -126,7 +126,8 @@ export class BulkCreateWithDiscoveryUseCase {
     const vmwareServers: Server[] = [];
 
     for (const id of serverIds) {
-      const server = await this.serverRepository.findServerByIdWithCredentials(id);
+      const server =
+        await this.serverRepository.findServerByIdWithCredentials(id);
       if (server && ['vcenter', 'esxi'].includes(server.type?.toLowerCase())) {
         vmwareServers.push(server);
       }
