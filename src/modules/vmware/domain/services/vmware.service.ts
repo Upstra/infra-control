@@ -29,7 +29,10 @@ export class VmwareService implements IVmwareService {
         'list_vm.sh',
         args,
       );
-      return this.parseVmList(result);
+      this.logger.debug('Raw script output:', JSON.stringify(result));
+      const parsedVms = this.parseVmList(result);
+      this.logger.debug(`Parsed ${parsedVms.length} VMs`);
+      return parsedVms;
     } catch (error) {
       this.logger.error('Failed to list VMs:', error);
       throw this.handlePythonError(error, 'Failed to retrieve VM list');
@@ -184,9 +187,14 @@ export class VmwareService implements IVmwareService {
   }
 
   private parseVmList(result: any): VmwareVm[] {
+    this.logger.debug('parseVmList input:', JSON.stringify(result));
+    
     if (!result || !Array.isArray(result.vms)) {
+      this.logger.warn('Invalid result format or empty vms array');
       return [];
     }
+
+    this.logger.debug(`Found ${result.vms.length} VMs to parse`);
 
     return result.vms.map((vm: any) => ({
       moid: vm.moid,
