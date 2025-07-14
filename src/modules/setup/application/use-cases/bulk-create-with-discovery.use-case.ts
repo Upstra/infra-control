@@ -85,6 +85,15 @@ export class BulkCreateWithDiscoveryUseCase {
     this.logger.log(
       `Starting discovery for ${vmwareServers.length} VMware servers`,
     );
+    
+    vmwareServers.forEach((server) => {
+      this.logger.debug(`VMware server ${server.name}:`);
+      this.logger.debug(`- Type: ${server.type}`);
+      this.logger.debug(`- IP: ${server.ip}`);
+      this.logger.debug(`- Login: ${server.login}`);
+      this.logger.debug(`- Password exists: ${!!server.password}`);
+      this.logger.debug(`- Password length: ${server.password?.length ?? 0}`);
+    });
 
     this.vmwareDiscoveryService
       .discoverVmsFromServers(vmwareServers, sessionId)
@@ -117,7 +126,7 @@ export class BulkCreateWithDiscoveryUseCase {
     const vmwareServers: Server[] = [];
 
     for (const id of serverIds) {
-      const server = await this.serverRepository.findServerById(id);
+      const server = await this.serverRepository.findServerByIdWithCredentials(id);
       if (server && ['vcenter', 'esxi'].includes(server.type?.toLowerCase())) {
         vmwareServers.push(server);
       }

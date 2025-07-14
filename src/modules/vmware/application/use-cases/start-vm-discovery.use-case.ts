@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 
 import { VmwareDiscoveryService } from '../../domain/services/vmware-discovery.service';
@@ -16,6 +16,8 @@ export interface StartVMDiscoveryResult {
 
 @Injectable()
 export class StartVMDiscoveryUseCase {
+  private readonly logger = new Logger(StartVMDiscoveryUseCase.name);
+  
   constructor(
     private readonly vmwareDiscoveryService: VmwareDiscoveryService,
     @Inject('ServerRepositoryInterface')
@@ -46,6 +48,11 @@ export class StartVMDiscoveryUseCase {
     const vmwareServers = servers.filter((server) =>
       ['vmware', 'vcenter', 'esxi'].includes(server.type?.toLowerCase()),
     );
+    
+    this.logger.log(`Found ${vmwareServers.length} VMware servers`);
+    vmwareServers.forEach((server) => {
+      this.logger.debug(`Server ${server.name}: password exists = ${!!server.password}`);
+    });
 
     this.vmwareDiscoveryService.discoverVmsFromServers(
       vmwareServers,

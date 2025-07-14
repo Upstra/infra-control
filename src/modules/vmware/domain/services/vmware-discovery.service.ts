@@ -166,6 +166,12 @@ export class VmwareDiscoveryService {
   }
 
   private buildVmwareConnection(server: Server): VmwareConnectionDto {
+    this.logger.debug(`Building connection for server ${server.name}:`);
+    this.logger.debug(`- IP: ${server.ip}`);
+    this.logger.debug(`- Login: ${server.login}`);
+    this.logger.debug(`- Password exists: ${!!server.password}`);
+    this.logger.debug(`- Password length: ${server.password?.length ?? 0}`);
+    
     return {
       host: server.ip,
       user: server.login,
