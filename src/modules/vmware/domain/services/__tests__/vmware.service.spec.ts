@@ -44,8 +44,19 @@ describe('VmwareService', () => {
             moid: 'vm-123',
             name: 'Test VM',
             powerState: 'poweredOn',
-            guestOS: 'Ubuntu Linux (64-bit)',
-            ipAddress: '192.168.1.100',
+            guestOs: 'Ubuntu Linux (64-bit)',
+            guestFamily: 'linuxGuest',
+            version: 'vmx-11',
+            createDate: '2025-01-14T12:00:00Z',
+            numCoresPerSocket: 2,
+            esxiHostName: 'esxhost01',
+            esxiHostMoid: 'ha-host',
+            ip: '192.168.1.100',
+            hostname: 'test-vm',
+            numCPU: 4,
+            memoryMB: 8192,
+            toolsStatus: 'toolsOk',
+            annotation: 'Test annotation',
           },
         ],
       };
@@ -60,14 +71,20 @@ describe('VmwareService', () => {
         name: 'Test VM',
         powerState: 'poweredOn',
         guestOS: 'Ubuntu Linux (64-bit)',
-        ipAddress: '192.168.1.100',
-        hostname: undefined,
-        numCpu: undefined,
-        memoryMB: undefined,
-        toolsStatus: undefined,
-        annotation: undefined,
+        guestFamily: 'linuxGuest',
+        version: 'vmx-11',
+        createDate: '2025-01-14T12:00:00Z',
+        numCoresPerSocket: 2,
+        esxiHostName: 'esxhost01',
+        esxiHostMoid: 'ha-host',
+        ip: '192.168.1.100',
+        hostname: 'test-vm',
+        numCPU: 4,
+        memoryMB: 8192,
+        toolsStatus: 'toolsOk',
+        annotation: 'Test annotation',
       });
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.py', [
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.sh', [
         '--ip',
         '192.168.1.10',
         '--user',
@@ -108,7 +125,7 @@ describe('VmwareService', () => {
 
       await service.listVMs(customPortConnection);
 
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.py', [
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.sh', [
         '--ip',
         '192.168.1.10',
         '--user',
@@ -163,7 +180,7 @@ describe('VmwareService', () => {
         totalStorage: 107374182400,
       });
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'vm_metrics.py',
+        'vm_metrics.sh',
         [
           '--moid',
           'vm-123',
@@ -208,7 +225,7 @@ describe('VmwareService', () => {
         message: 'VM has been successfully started',
         newState: 'poweredOn',
       });
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith('vm_start.py', [
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('vm_start.sh', [
         '--moid',
         'vm-123',
         '--ip',
@@ -239,7 +256,7 @@ describe('VmwareService', () => {
         message: 'VM has been successfully stopped',
         newState: 'poweredOff',
       });
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith('vm_stop.py', [
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('vm_stop.sh', [
         '--moid',
         'vm-123',
         '--ip',
@@ -286,7 +303,7 @@ describe('VmwareService', () => {
         newHost: 'host-456',
       });
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'vm_migration.py',
+        'vm_migration.sh',
         [
           '--vm_moid',
           'vm-123',
@@ -386,7 +403,7 @@ describe('VmwareService', () => {
 
       expect(result).toEqual(mockServerInfo);
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'server_info.py',
+        'server_info.sh',
         [
           '--moid',
           'host-123',
@@ -431,7 +448,7 @@ describe('VmwareService', () => {
 
       expect(result).toEqual(mockServerMetrics);
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'server_metrics.py',
+        'server_metrics.sh',
         [
           '--moid',
           'host-123',
@@ -537,7 +554,7 @@ describe('VmwareService', () => {
         shutdownSupported: true,
       });
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'server_metrics.py',
+        'server_metrics.sh',
         [
           '--moid',
           'host-123',
@@ -561,7 +578,7 @@ describe('VmwareService', () => {
 
       await service.listVMs(connectionWithoutPort);
 
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.py', [
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.sh', [
         '--ip',
         '192.168.1.10',
         '--user',
@@ -578,7 +595,7 @@ describe('VmwareService', () => {
 
       await service.listVMs(connectionWithCustomPort);
 
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.py', [
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.sh', [
         '--ip',
         '192.168.1.10',
         '--user',
