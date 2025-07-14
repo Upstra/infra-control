@@ -30,6 +30,16 @@ export class VmwareService implements IVmwareService {
         args,
       );
       this.logger.debug('Raw script output:', JSON.stringify(result));
+      if (result?.result?.httpCode && result.result.httpCode !== 200) {
+        const errorMessage = result.result.message || 'Unknown error';
+        this.logger.error(`Script returned error: ${errorMessage} (HTTP ${result.result.httpCode})`);
+        
+        if (result.result.httpCode === 401) {
+          throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+        }
+        throw new HttpException(errorMessage, result.result.httpCode);
+      }
+      
       const parsedVms = this.parseVmList(result);
       this.logger.debug(`Parsed ${parsedVms.length} VMs`);
       return parsedVms;
