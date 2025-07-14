@@ -53,7 +53,7 @@ describe('PermissionGuard', () => {
         type: 'server',
         requiredBit: PermissionBit.DELETE,
       });
-      
+
       mockUserRepository.findOneByField.mockResolvedValue({
         id: 'user-1',
         roles: [{ id: 'role-1', isAdmin: true }],
@@ -61,8 +61,10 @@ describe('PermissionGuard', () => {
 
       const context = createMockExecutionContext();
       await expect(guard.canActivate(context as any)).resolves.toBe(true);
-      
-      expect(mockGetUserServerPermissionsUseCase.execute).not.toHaveBeenCalled();
+
+      expect(
+        mockGetUserServerPermissionsUseCase.execute,
+      ).not.toHaveBeenCalled();
       expect(mockGetUserVmPermissionsUseCase.execute).not.toHaveBeenCalled();
     });
 
@@ -71,7 +73,7 @@ describe('PermissionGuard', () => {
         type: 'vm',
         requiredBit: PermissionBit.WRITE,
       });
-      
+
       mockUserRepository.findOneByField.mockResolvedValue({
         id: 'user-1',
         roles: [{ id: 'role-1', isAdmin: true }],
@@ -79,7 +81,7 @@ describe('PermissionGuard', () => {
 
       const context = createMockExecutionContext();
       await expect(guard.canActivate(context as any)).resolves.toBe(true);
-      
+
       expect(mockGetUserVmPermissionsUseCase.execute).not.toHaveBeenCalled();
     });
 
@@ -88,12 +90,12 @@ describe('PermissionGuard', () => {
         type: 'server',
         requiredBit: PermissionBit.READ,
       });
-      
+
       mockUserRepository.findOneByField.mockResolvedValue({
         id: 'user-1',
         roles: [{ id: 'role-1', isAdmin: false }],
       });
-      
+
       mockGetUserServerPermissionsUseCase.execute.mockResolvedValue({
         permissionServers: [createMockPermissionServerDto({ bitmask: 1 })],
       });
@@ -101,8 +103,10 @@ describe('PermissionGuard', () => {
 
       const context = createMockExecutionContext();
       await expect(guard.canActivate(context as any)).resolves.toBe(true);
-      
-      expect(mockGetUserServerPermissionsUseCase.execute).toHaveBeenCalledWith('user-1');
+
+      expect(mockGetUserServerPermissionsUseCase.execute).toHaveBeenCalledWith(
+        'user-1',
+      );
     });
 
     it('should check permissions when user has no roles', async () => {
@@ -110,12 +114,12 @@ describe('PermissionGuard', () => {
         type: 'server',
         requiredBit: PermissionBit.READ,
       });
-      
+
       mockUserRepository.findOneByField.mockResolvedValue({
         id: 'user-1',
         roles: [],
       });
-      
+
       mockGetUserServerPermissionsUseCase.execute.mockResolvedValue({
         permissionServers: [createMockPermissionServerDto({ bitmask: 1 })],
       });
@@ -130,9 +134,9 @@ describe('PermissionGuard', () => {
         type: 'server',
         requiredBit: PermissionBit.READ,
       });
-      
+
       mockUserRepository.findOneByField.mockResolvedValue(null);
-      
+
       mockGetUserServerPermissionsUseCase.execute.mockResolvedValue({
         permissionServers: [createMockPermissionServerDto({ bitmask: 1 })],
       });

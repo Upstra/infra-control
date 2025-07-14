@@ -293,35 +293,41 @@ describe('BulkCreateUseCase', () => {
       const mockServer = { id: 'server-uuid-1', name: 'ESXSRV11' };
 
       const frontendRequest = {
-        rooms: [{
-          name: "Main Room",
-          id: "temp_1752408362050_0"  // Frontend uses id instead of tempId
-        }],
-        upsList: [{
-          name: "UPS-Second",
-          roomId: "temp_1752408362050_0",
-          ip: "192.168.1.102",
-          id: "temp_1752408362050_1"  // Frontend uses id instead of tempId
-        }],
-        servers: [{
-          name: "ESXSRV11",
-          state: "active",
-          grace_period_on: 30,
-          grace_period_off: 30,
-          adminUrl: "https://192.168.1.10",
-          ip: "172.23.10.11",
-          login: "admin",
-          password: "sdf99GHJ",
-          type: "esxi",
-          priority: 1,
-          roomId: "temp_1752408362050_0",
-          upsId: "temp_1752408362050_1",
-          ilo_name: "ILO-ESXSRV11",
-          ilo_ip: "172.23.30.11",
-          ilo_login: "Admin",
-          ilo_password: "5EcUr3D",
-          id: "temp_1752408362050_3"  // Frontend uses id instead of tempId
-        }]
+        rooms: [
+          {
+            name: 'Main Room',
+            id: 'temp_1752408362050_0', // Frontend uses id instead of tempId
+          },
+        ],
+        upsList: [
+          {
+            name: 'UPS-Second',
+            roomId: 'temp_1752408362050_0',
+            ip: '192.168.1.102',
+            id: 'temp_1752408362050_1', // Frontend uses id instead of tempId
+          },
+        ],
+        servers: [
+          {
+            name: 'ESXSRV11',
+            state: 'active',
+            grace_period_on: 30,
+            grace_period_off: 30,
+            adminUrl: 'https://192.168.1.10',
+            ip: '172.23.10.11',
+            login: 'admin',
+            password: 'sdf99GHJ',
+            type: 'esxi',
+            priority: 1,
+            roomId: 'temp_1752408362050_0',
+            upsId: 'temp_1752408362050_1',
+            ilo_name: 'ILO-ESXSRV11',
+            ilo_ip: '172.23.30.11',
+            ilo_login: 'Admin',
+            ilo_password: '5EcUr3D',
+            id: 'temp_1752408362050_3', // Frontend uses id instead of tempId
+          },
+        ],
       };
 
       queryRunner.manager.save = jest
@@ -343,7 +349,9 @@ describe('BulkCreateUseCase', () => {
       expect(result.created.servers[0].tempId).toBe('temp_1752408362050_3');
 
       // Verify ID mapping uses frontend id fields
-      expect(result.idMapping.rooms['temp_1752408362050_0']).toBe('room-uuid-1');
+      expect(result.idMapping.rooms['temp_1752408362050_0']).toBe(
+        'room-uuid-1',
+      );
       expect(result.idMapping.ups['temp_1752408362050_1']).toBe('ups-uuid-1');
     });
   });

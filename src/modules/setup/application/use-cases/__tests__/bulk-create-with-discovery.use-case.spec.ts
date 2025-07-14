@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException } from '@nestjs/common';
 import { BulkCreateWithDiscoveryUseCase } from '../bulk-create-with-discovery.use-case';
 import { BulkCreateUseCase } from '../bulk-create.use-case';
 import { VmwareDiscoveryService } from '../../../../vmware/domain/services/vmware-discovery.service';
@@ -163,10 +162,9 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
         'user-id',
       );
       expect(serverRepository.findServerById).toHaveBeenCalledTimes(2);
-      expect(vmwareDiscoveryService.discoverVmsFromServers).toHaveBeenCalledWith(
-        [mockVmwareServer],
-        expect.any(String),
-      );
+      expect(
+        vmwareDiscoveryService.discoverVmsFromServers,
+      ).toHaveBeenCalledWith([mockVmwareServer], expect.any(String));
     });
 
     it('should handle bulk create failure gracefully', async () => {
@@ -181,7 +179,13 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
           rooms: {},
           ups: {},
         },
-        errors: [{ resource: 'room' as const, name: 'Room 1', error: 'Already exists' }],
+        errors: [
+          {
+            resource: 'room' as const,
+            name: 'Room 1',
+            error: 'Already exists',
+          },
+        ],
       };
 
       bulkCreateUseCase.execute.mockResolvedValue(failureResult);
@@ -193,7 +197,9 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
         discoveryTriggered: false,
       });
 
-      expect(vmwareDiscoveryService.discoverVmsFromServers).not.toHaveBeenCalled();
+      expect(
+        vmwareDiscoveryService.discoverVmsFromServers,
+      ).not.toHaveBeenCalled();
     });
 
     it('should skip discovery when no VMware servers are present', async () => {
@@ -206,14 +212,22 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
         ...mockBulkCreateResult,
         created: {
           ...mockBulkCreateResult.created,
-          servers: [{ id: 'server-2', name: 'Non-VMware Server 1', tempId: 'temp_server_2' }],
+          servers: [
+            {
+              id: 'server-2',
+              name: 'Non-VMware Server 1',
+              tempId: 'temp_server_2',
+            },
+          ],
         },
       });
 
       const result = await useCase.execute(requestWithoutVmware);
 
       expect(result.discoveryTriggered).toBe(false);
-      expect(vmwareDiscoveryService.discoverVmsFromServers).not.toHaveBeenCalled();
+      expect(
+        vmwareDiscoveryService.discoverVmsFromServers,
+      ).not.toHaveBeenCalled();
     });
 
     it('should skip discovery when enableDiscovery is explicitly false', async () => {
@@ -227,7 +241,9 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       const result = await useCase.execute(requestWithDiscoveryDisabled);
 
       expect(result.discoveryTriggered).toBe(false);
-      expect(vmwareDiscoveryService.discoverVmsFromServers).not.toHaveBeenCalled();
+      expect(
+        vmwareDiscoveryService.discoverVmsFromServers,
+      ).not.toHaveBeenCalled();
     });
 
     it('should use provided discoverySessionId', async () => {
@@ -246,10 +262,9 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       const result = await useCase.execute(requestWithSessionId);
 
       expect(result.discoverySessionId).toBe(customSessionId);
-      expect(vmwareDiscoveryService.discoverVmsFromServers).toHaveBeenCalledWith(
-        expect.any(Array),
-        customSessionId,
-      );
+      expect(
+        vmwareDiscoveryService.discoverVmsFromServers,
+      ).toHaveBeenCalledWith(expect.any(Array), customSessionId);
     });
 
     it('should handle discovery service errors gracefully', async () => {
@@ -277,7 +292,11 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
         created: {
           ...mockBulkCreateResult.created,
           servers: [
-            { id: 'server-1', name: 'VMware Server 1', tempId: 'temp_server_1' },
+            {
+              id: 'server-1',
+              name: 'VMware Server 1',
+              tempId: 'temp_server_1',
+            },
             { id: 'server-2', name: 'ESXi Server 1', tempId: 'temp_server_2' },
             { id: 'server-3', name: 'ESXi Server', tempId: 'temp_server_3' },
             { id: 'server-4', name: 'vCenter Server', tempId: 'temp_server_4' },
@@ -312,7 +331,9 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       const result = await useCase.execute(mockRequest);
 
       expect(result.vmwareServerCount).toBe(3);
-      expect(vmwareDiscoveryService.discoverVmsFromServers).toHaveBeenCalledWith(
+      expect(
+        vmwareDiscoveryService.discoverVmsFromServers,
+      ).toHaveBeenCalledWith(
         [mockVmwareServer, esxiServer, vcenterServer],
         expect.any(String),
       );
@@ -365,7 +386,9 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
 
       expect(result.vmwareServerCount).toBe(0);
       expect(result.discoveryTriggered).toBe(false);
-      expect(vmwareDiscoveryService.discoverVmsFromServers).not.toHaveBeenCalled();
+      expect(
+        vmwareDiscoveryService.discoverVmsFromServers,
+      ).not.toHaveBeenCalled();
     });
   });
 

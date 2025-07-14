@@ -64,7 +64,8 @@ export class BulkCreateUseCase {
       for (const roomData of dto.rooms) {
         const room = await this.createRoom(queryRunner, roomData);
 
-        const tempId = roomData.tempId ?? (roomData as any).id ?? `room_${room.id}`;
+        const tempId =
+          roomData.tempId ?? (roomData as any).id ?? `room_${room.id}`;
 
         created.rooms.push({
           id: room.id,
@@ -100,7 +101,8 @@ export class BulkCreateUseCase {
           upsId,
         );
 
-        const tempId = serverData.tempId ?? (serverData as any).id ?? `server_${server.id}`;
+        const tempId =
+          serverData.tempId ?? (serverData as any).id ?? `server_${server.id}`;
 
         created.servers.push({
           id: server.id,

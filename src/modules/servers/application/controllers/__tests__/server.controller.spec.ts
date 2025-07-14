@@ -141,9 +141,9 @@ describe('ServerController', () => {
         new Error('Server not found'),
       );
 
-      await expect(
-        controller.getServerById('nonexistent-id'),
-      ).rejects.toThrow('Server not found');
+      await expect(controller.getServerById('nonexistent-id')).rejects.toThrow(
+        'Server not found',
+      );
     });
   });
 

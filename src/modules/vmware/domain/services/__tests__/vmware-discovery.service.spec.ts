@@ -108,7 +108,10 @@ describe('VmwareDiscoveryService', () => {
     });
 
     it('should update server vmwareHostMoid when discovered', async () => {
-      const serverWithoutMoid = { ...mockServer, vmwareHostMoid: null } as Server;
+      const serverWithoutMoid = {
+        ...mockServer,
+        vmwareHostMoid: null,
+      } as Server;
       const servers = [serverWithoutMoid];
       const sessionId = 'session-123';
 
@@ -123,7 +126,10 @@ describe('VmwareDiscoveryService', () => {
     });
 
     it('should not update server vmwareHostMoid if already set', async () => {
-      const serverWithMoid = { ...mockServer, vmwareHostMoid: 'existing-moid' } as Server;
+      const serverWithMoid = {
+        ...mockServer,
+        vmwareHostMoid: 'existing-moid',
+      } as Server;
       const servers = [serverWithMoid];
       const sessionId = 'session-123';
 

@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  BadRequestException,
-  Inject,
-} from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { BulkCreateUseCase } from './bulk-create.use-case';
 import { VmwareDiscoveryService } from '../../../vmware/domain/services/vmware-discovery.service';

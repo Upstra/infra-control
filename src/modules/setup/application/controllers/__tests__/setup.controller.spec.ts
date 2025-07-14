@@ -87,11 +87,17 @@ describe('SetupController', () => {
         },
         { provide: GetSetupProgressUseCase, useValue: { execute: jest.fn() } },
         { provide: BulkCreateUseCase, useValue: { execute: jest.fn() } },
-        { provide: BulkCreateWithDiscoveryUseCase, useValue: { execute: jest.fn() } },
+        {
+          provide: BulkCreateWithDiscoveryUseCase,
+          useValue: { execute: jest.fn() },
+        },
         { provide: BulkValidationUseCase, useValue: { execute: jest.fn() } },
         { provide: GetTemplatesUseCase, useValue: { execute: jest.fn() } },
         { provide: CreateTemplateUseCase, useValue: { execute: jest.fn() } },
-        { provide: GetSetupProgressEnhancedUseCase, useValue: { execute: jest.fn() } },
+        {
+          provide: GetSetupProgressEnhancedUseCase,
+          useValue: { execute: jest.fn() },
+        },
         { provide: ValidateIpUseCase, useValue: { execute: jest.fn() } },
         { provide: ValidateNameUseCase, useValue: { execute: jest.fn() } },
       ],
@@ -116,7 +122,9 @@ describe('SetupController', () => {
     bulkValidationUseCase = module.get(BulkValidationUseCase);
     getTemplatesUseCase = module.get(GetTemplatesUseCase);
     createTemplateUseCase = module.get(CreateTemplateUseCase);
-    getSetupProgressEnhancedUseCase = module.get(GetSetupProgressEnhancedUseCase);
+    getSetupProgressEnhancedUseCase = module.get(
+      GetSetupProgressEnhancedUseCase,
+    );
     validateIpUseCase = module.get(ValidateIpUseCase);
     validateNameUseCase = module.get(ValidateNameUseCase);
   });
@@ -216,11 +224,16 @@ describe('SetupController', () => {
         success: true,
         createdResources: { rooms: 1, ups: 0, servers: 0 },
       };
-      (bulkCreateUseCase.execute as jest.Mock).mockResolvedValue(expectedResponse);
+      (bulkCreateUseCase.execute as jest.Mock).mockResolvedValue(
+        expectedResponse,
+      );
 
       const result = await controller.bulkCreate(dto, mockJwtPayload);
 
-      expect(bulkCreateUseCase.execute).toHaveBeenCalledWith(dto, mockJwtPayload.userId);
+      expect(bulkCreateUseCase.execute).toHaveBeenCalledWith(
+        dto,
+        mockJwtPayload.userId,
+      );
       expect(result).toEqual(expectedResponse);
     });
   });
@@ -239,7 +252,9 @@ describe('SetupController', () => {
         valid: true,
         errors: [],
       };
-      (bulkValidationUseCase.execute as jest.Mock).mockResolvedValue(expectedResponse);
+      (bulkValidationUseCase.execute as jest.Mock).mockResolvedValue(
+        expectedResponse,
+      );
 
       const result = await controller.validateResources(dto);
 
@@ -251,11 +266,11 @@ describe('SetupController', () => {
   describe('GET /setup/templates', () => {
     it('should return templates list', async () => {
       const expectedResponse = {
-        templates: [
-          { id: '1', name: 'Template 1', type: 'predefined' },
-        ],
+        templates: [{ id: '1', name: 'Template 1', type: 'predefined' }],
       };
-      (getTemplatesUseCase.execute as jest.Mock).mockResolvedValue(expectedResponse);
+      (getTemplatesUseCase.execute as jest.Mock).mockResolvedValue(
+        expectedResponse,
+      );
 
       const result = await controller.getTemplates();
 
@@ -282,11 +297,16 @@ describe('SetupController', () => {
         type: 'custom',
         createdBy: mockJwtPayload.email,
       };
-      (createTemplateUseCase.execute as jest.Mock).mockResolvedValue(expectedResponse);
+      (createTemplateUseCase.execute as jest.Mock).mockResolvedValue(
+        expectedResponse,
+      );
 
       const result = await controller.createTemplate(dto, mockJwtPayload);
 
-      expect(createTemplateUseCase.execute).toHaveBeenCalledWith(dto, mockJwtPayload);
+      expect(createTemplateUseCase.execute).toHaveBeenCalledWith(
+        dto,
+        mockJwtPayload,
+      );
       expect(result).toEqual(expectedResponse);
     });
   });
@@ -302,7 +322,9 @@ describe('SetupController', () => {
           servers: 0,
         },
       };
-      (getSetupProgressEnhancedUseCase.execute as jest.Mock).mockResolvedValue(expectedResponse);
+      (getSetupProgressEnhancedUseCase.execute as jest.Mock).mockResolvedValue(
+        expectedResponse,
+      );
 
       const result = await controller.getEnhancedProgress();
 
@@ -317,9 +339,15 @@ describe('SetupController', () => {
         valid: true,
         available: true,
       };
-      (validateIpUseCase.execute as jest.Mock).mockResolvedValue(expectedResponse);
+      (validateIpUseCase.execute as jest.Mock).mockResolvedValue(
+        expectedResponse,
+      );
 
-      const result = await controller.validateIp('192.168.1.100', 'server', 'exclude-123');
+      const result = await controller.validateIp(
+        '192.168.1.100',
+        'server',
+        'exclude-123',
+      );
 
       expect(validateIpUseCase.execute).toHaveBeenCalledWith({
         ip: '192.168.1.100',
@@ -334,9 +362,15 @@ describe('SetupController', () => {
         valid: true,
         available: true,
       };
-      (validateIpUseCase.execute as jest.Mock).mockResolvedValue(expectedResponse);
+      (validateIpUseCase.execute as jest.Mock).mockResolvedValue(
+        expectedResponse,
+      );
 
-      const result = await controller.validateIp('192.168.1.100', 'ups', undefined);
+      const result = await controller.validateIp(
+        '192.168.1.100',
+        'ups',
+        undefined,
+      );
 
       expect(validateIpUseCase.execute).toHaveBeenCalledWith({
         ip: '192.168.1.100',
@@ -353,9 +387,15 @@ describe('SetupController', () => {
         valid: true,
         available: true,
       };
-      (validateNameUseCase.execute as jest.Mock).mockResolvedValue(expectedResponse);
+      (validateNameUseCase.execute as jest.Mock).mockResolvedValue(
+        expectedResponse,
+      );
 
-      const result = await controller.validateName('UPS-Primary', 'ups', 'exclude-456');
+      const result = await controller.validateName(
+        'UPS-Primary',
+        'ups',
+        'exclude-456',
+      );
 
       expect(validateNameUseCase.execute).toHaveBeenCalledWith({
         name: 'UPS-Primary',
@@ -370,7 +410,9 @@ describe('SetupController', () => {
         valid: true,
         available: true,
       };
-      (validateNameUseCase.execute as jest.Mock).mockResolvedValue(expectedResponse);
+      (validateNameUseCase.execute as jest.Mock).mockResolvedValue(
+        expectedResponse,
+      );
 
       const result = await controller.validateName('Room-A', 'room', undefined);
 
@@ -411,7 +453,13 @@ describe('SetupController', () => {
         created: {
           rooms: [{ id: 'room-123', name: 'Room 1', tempId: 'temp_room_1' }],
           upsList: [{ id: 'ups-123', name: 'UPS 1', tempId: 'temp_ups_1' }],
-          servers: [{ id: 'server-123', name: 'vCenter Server', tempId: 'temp_server_1' }],
+          servers: [
+            {
+              id: 'server-123',
+              name: 'vCenter Server',
+              tempId: 'temp_server_1',
+            },
+          ],
         },
         idMapping: {
           rooms: { temp_room_1: 'room-123' },
@@ -426,7 +474,10 @@ describe('SetupController', () => {
         expectedResponse,
       );
 
-      const result = await controller.bulkCreateWithDiscovery(dto, mockJwtPayload);
+      const result = await controller.bulkCreateWithDiscovery(
+        dto,
+        mockJwtPayload,
+      );
 
       expect(bulkCreateWithDiscoveryUseCase.execute).toHaveBeenCalledWith(
         {
@@ -468,7 +519,9 @@ describe('SetupController', () => {
         created: {
           rooms: [{ id: 'room-123', name: 'Room 1', tempId: 'temp_room_1' }],
           upsList: [],
-          servers: [{ id: 'server-123', name: 'Linux Server', tempId: 'temp_server_1' }],
+          servers: [
+            { id: 'server-123', name: 'Linux Server', tempId: 'temp_server_1' },
+          ],
         },
         idMapping: {
           rooms: { temp_room_1: 'room-123' },
@@ -481,7 +534,10 @@ describe('SetupController', () => {
         expectedResponse,
       );
 
-      const result = await controller.bulkCreateWithDiscovery(dto, mockJwtPayload);
+      const result = await controller.bulkCreateWithDiscovery(
+        dto,
+        mockJwtPayload,
+      );
 
       expect(bulkCreateWithDiscoveryUseCase.execute).toHaveBeenCalledWith(
         {
@@ -524,7 +580,9 @@ describe('SetupController', () => {
         created: {
           rooms: [],
           upsList: [],
-          servers: [{ id: 'server-123', name: 'ESXi Host', tempId: 'temp_server_1' }],
+          servers: [
+            { id: 'server-123', name: 'ESXi Host', tempId: 'temp_server_1' },
+          ],
         },
         idMapping: {
           rooms: {},
@@ -539,7 +597,10 @@ describe('SetupController', () => {
         expectedResponse,
       );
 
-      const result = await controller.bulkCreateWithDiscovery(dto, mockJwtPayload);
+      const result = await controller.bulkCreateWithDiscovery(
+        dto,
+        mockJwtPayload,
+      );
 
       expect(bulkCreateWithDiscoveryUseCase.execute).toHaveBeenCalledWith(
         {

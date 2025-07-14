@@ -94,7 +94,10 @@ export class PythonExecutorService {
         }
 
         if (code !== 0) {
-          const errorMessage = stderr.trim() || stdout.trim() || `Script execution failed with code ${code}`;
+          const errorMessage =
+            stderr.trim() ||
+            stdout.trim() ||
+            `Script execution failed with code ${code}`;
           this.logger.error(
             `Script ${bashScriptName} failed with code ${code}: ${errorMessage}`,
           );

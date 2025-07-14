@@ -1,4 +1,7 @@
-import { EncryptionTransformer, setEncryptionService } from '../encryption.transformer';
+import {
+  EncryptionTransformer,
+  setEncryptionService,
+} from '../encryption.transformer';
 import { EncryptionService } from '../../services/encryption';
 
 describe('EncryptionTransformer', () => {
@@ -23,10 +26,10 @@ describe('EncryptionTransformer', () => {
   describe('setEncryptionService', () => {
     it('should set the encryption service', () => {
       setEncryptionService(mockEncryptionService);
-      
+
       mockEncryptionService.encrypt.mockReturnValue('encrypted');
       const result = transformer.to('test');
-      
+
       expect(mockEncryptionService.encrypt).toHaveBeenCalledWith('test');
       expect(result).toBe('encrypted');
     });
@@ -62,7 +65,7 @@ describe('EncryptionTransformer', () => {
       const result = transformer.to('plain_text');
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'EncryptionService not initialized. Storing password in plain text.'
+        'EncryptionService not initialized. Storing password in plain text.',
       );
       expect(result).toBe('plain_text');
     });
@@ -75,7 +78,10 @@ describe('EncryptionTransformer', () => {
       });
 
       expect(() => transformer.to('plain_text')).toThrow(error);
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to encrypt value:', error);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Failed to encrypt value:',
+        error,
+      );
     });
 
     it('should handle special characters in value', () => {
@@ -84,7 +90,9 @@ describe('EncryptionTransformer', () => {
 
       const result = transformer.to('!@#$%^&*()_+');
 
-      expect(mockEncryptionService.encrypt).toHaveBeenCalledWith('!@#$%^&*()_+');
+      expect(mockEncryptionService.encrypt).toHaveBeenCalledWith(
+        '!@#$%^&*()_+',
+      );
       expect(result).toBe('encrypted_special');
     });
   });
@@ -111,7 +119,9 @@ describe('EncryptionTransformer', () => {
 
       const result = transformer.from('encrypted_text');
 
-      expect(mockEncryptionService.decrypt).toHaveBeenCalledWith('encrypted_text');
+      expect(mockEncryptionService.decrypt).toHaveBeenCalledWith(
+        'encrypted_text',
+      );
       expect(result).toBe('decrypted_value');
     });
 
@@ -119,7 +129,7 @@ describe('EncryptionTransformer', () => {
       const result = transformer.from('encrypted_text');
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'EncryptionService not initialized. Returning encrypted value.'
+        'EncryptionService not initialized. Returning encrypted value.',
       );
       expect(result).toBe('encrypted_text');
     });
@@ -132,7 +142,10 @@ describe('EncryptionTransformer', () => {
       });
 
       expect(() => transformer.from('encrypted_text')).toThrow(error);
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to decrypt value:', error);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Failed to decrypt value:',
+        error,
+      );
     });
 
     it('should handle base64 encoded values', () => {
@@ -141,7 +154,9 @@ describe('EncryptionTransformer', () => {
 
       const result = transformer.from('SGVsbG8gV29ybGQ=');
 
-      expect(mockEncryptionService.decrypt).toHaveBeenCalledWith('SGVsbG8gV29ybGQ=');
+      expect(mockEncryptionService.decrypt).toHaveBeenCalledWith(
+        'SGVsbG8gV29ybGQ=',
+      );
       expect(result).toBe('decrypted_base64');
     });
   });
@@ -162,7 +177,7 @@ describe('EncryptionTransformer', () => {
     it('should handle multiple transformers with same service', () => {
       const transformer2 = new EncryptionTransformer();
       setEncryptionService(mockEncryptionService);
-      
+
       mockEncryptionService.encrypt.mockReturnValue('encrypted1');
       mockEncryptionService.decrypt.mockReturnValue('decrypted1');
 

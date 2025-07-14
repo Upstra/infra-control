@@ -196,8 +196,11 @@ export class SetupController {
     @Body() dto: BulkCreateWithDiscoveryRequestDto,
     @CurrentUser() currentUser: JwtPayload,
   ): Promise<BulkCreateWithDiscoveryResponseDto> {
-    const { enableDiscovery = true, discoverySessionId, ...bulkCreateData } =
-      dto;
+    const {
+      enableDiscovery = true,
+      discoverySessionId,
+      ...bulkCreateData
+    } = dto;
     return this.bulkCreateWithDiscoveryUseCase.execute(
       {
         ...bulkCreateData,

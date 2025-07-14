@@ -1,7 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExecutionContext, BadRequestException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ConnectivityValidationGuard, ConnectivityRequirement, CONNECTIVITY_KEY, RequireConnectivity } from '../connectivity-validation.guard';
+import {
+  ConnectivityValidationGuard,
+  ConnectivityRequirement,
+  CONNECTIVITY_KEY,
+  RequireConnectivity,
+} from '../connectivity-validation.guard';
 import { PingService } from '@/core/services/ping';
 
 describe('ConnectivityValidationGuard', () => {
@@ -31,7 +36,9 @@ describe('ConnectivityValidationGuard', () => {
       ],
     }).compile();
 
-    guard = module.get<ConnectivityValidationGuard>(ConnectivityValidationGuard);
+    guard = module.get<ConnectivityValidationGuard>(
+      ConnectivityValidationGuard,
+    );
     reflector = module.get<Reflector>(Reflector);
     pingService = module.get<PingService>(PingService);
 
@@ -58,7 +65,10 @@ describe('ConnectivityValidationGuard', () => {
       const result = await guard.canActivate(mockExecutionContext);
 
       expect(result).toBe(true);
-      expect(reflector.get).toHaveBeenCalledWith(CONNECTIVITY_KEY, mockExecutionContext.getHandler());
+      expect(reflector.get).toHaveBeenCalledWith(
+        CONNECTIVITY_KEY,
+        mockExecutionContext.getHandler(),
+      );
     });
 
     it('should throw BadRequestException when host is not provided and required', async () => {
@@ -70,7 +80,7 @@ describe('ConnectivityValidationGuard', () => {
       jest.spyOn(reflector, 'get').mockReturnValue(requirement);
 
       await expect(guard.canActivate(mockExecutionContext)).rejects.toThrow(
-        new BadRequestException('Host not provided in body.host')
+        new BadRequestException('Host not provided in body.host'),
       );
     });
 
@@ -168,7 +178,9 @@ describe('ConnectivityValidationGuard', () => {
       });
 
       await expect(guard.canActivate(mockExecutionContext)).rejects.toThrow(
-        new BadRequestException('Host 192.168.1.1 is not accessible: Connection timeout')
+        new BadRequestException(
+          'Host 192.168.1.1 is not accessible: Connection timeout',
+        ),
       );
     });
 
@@ -187,7 +199,9 @@ describe('ConnectivityValidationGuard', () => {
       });
 
       await expect(guard.canActivate(mockExecutionContext)).rejects.toThrow(
-        new BadRequestException('Host 192.168.1.1 is not accessible: Unknown error')
+        new BadRequestException(
+          'Host 192.168.1.1 is not accessible: Unknown error',
+        ),
       );
     });
 
@@ -200,10 +214,12 @@ describe('ConnectivityValidationGuard', () => {
       mockRequest.body.host = '192.168.1.1';
 
       jest.spyOn(reflector, 'get').mockReturnValue(requirement);
-      jest.spyOn(pingService, 'ping').mockRejectedValue(new Error('Network error'));
+      jest
+        .spyOn(pingService, 'ping')
+        .mockRejectedValue(new Error('Network error'));
 
       await expect(guard.canActivate(mockExecutionContext)).rejects.toThrow(
-        new BadRequestException('Cannot reach host 192.168.1.1: Network error')
+        new BadRequestException('Cannot reach host 192.168.1.1: Network error'),
       );
     });
 
@@ -218,7 +234,7 @@ describe('ConnectivityValidationGuard', () => {
       jest.spyOn(reflector, 'get').mockReturnValue(requirement);
 
       await expect(guard.canActivate(mockExecutionContext)).rejects.toThrow(
-        new BadRequestException('Host not provided in body.nested')
+        new BadRequestException('Host not provided in body.nested'),
       );
     });
   });
