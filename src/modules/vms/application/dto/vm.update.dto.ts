@@ -8,7 +8,6 @@ import {
   IsInt,
 } from 'class-validator';
 import { IsPriority } from '../../../groups/application/validators/priority.validator';
-import { IsUniqueVmPriority } from '../validators/unique-vm-priority.validator';
 
 export class VmUpdateDto {
   @ApiProperty()
@@ -108,7 +107,6 @@ export class VmUpdateDto {
   })
   @IsOptional()
   @IsPriority()
-  @IsUniqueVmPriority()
   readonly priority?: number;
 
   @ApiProperty()

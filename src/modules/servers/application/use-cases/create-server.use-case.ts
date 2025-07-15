@@ -18,6 +18,7 @@ import { PermissionServerRepositoryInterface } from '@/modules/permissions/infra
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 import { UpsRepositoryInterface } from '@/modules/ups/domain/interfaces/ups.repository.interface';
 import { RequestContextDto } from '@/core/dto';
+import { DuplicateServerPriorityException } from '@/modules/servers/domain/exceptions/duplicate-priority.exception';
 
 /**
  * Creates a new server record and optionally provisions initial VMs.
@@ -77,6 +78,16 @@ export class CreateServerUseCase {
 
     if (dto.groupId) {
       group = await this.groupRepository.findById(dto.groupId);
+    }
+
+    // Validate priority uniqueness
+    const existingServer = await this.serverRepository.findOneByField({
+      field: 'priority',
+      value: dto.priority,
+    });
+    
+    if (existingServer) {
+      throw new DuplicateServerPriorityException(dto.priority);
     }
 
     let ilo = null;

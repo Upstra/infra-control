@@ -9,6 +9,7 @@ import { GroupType } from '@/modules/groups/domain/enums/group-type.enum';
 import { ServerUpdateDto } from '../dto/server.update.dto';
 import { ServerResponseDto } from '../dto/server.response.dto';
 import { Server } from '../../domain/entities/server.entity';
+import { DuplicateServerPriorityException } from '../../domain/exceptions/duplicate-priority.exception';
 
 /**
  * Updates metadata or state of an existing server.
@@ -49,6 +50,18 @@ export class UpdateServerUseCase {
       const group = await this.groupRepository.findById(dto.groupId);
       if (group && group.type !== GroupType.SERVER) {
         throw new GroupTypeMismatchException('server', group.type);
+      }
+    }
+
+    // Validate priority uniqueness
+    if (dto.priority !== undefined) {
+      const existingServer = await this.serverRepository.findOneByField({
+        field: 'priority',
+        value: dto.priority,
+      });
+      
+      if (existingServer && existingServer.id !== id) {
+        throw new DuplicateServerPriorityException(dto.priority);
       }
     }
 

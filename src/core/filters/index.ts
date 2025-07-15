@@ -10,6 +10,7 @@ import { AuthFilters } from './auth';
 import { PermissionFilters } from './permission';
 import { GroupExceptionFilter } from './group.exception.filter';
 import { GlobalExceptionFilter } from './global-exception.filter';
+import { DuplicatePriorityExceptionFilter } from './duplicate-priority.exception.filter';
 
 export const CoreFilters = [
   GlobalExceptionFilter,
@@ -22,6 +23,7 @@ export const CoreFilters = [
   ServerExceptionFilter,
   VmExceptionFilter,
   UpsExceptionFilter,
+  DuplicatePriorityExceptionFilter,
   ...AuthFilters,
   ...PermissionFilters,
 ];

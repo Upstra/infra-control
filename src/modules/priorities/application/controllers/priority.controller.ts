@@ -12,6 +12,8 @@ import {
   UseLoggingContext,
   LogToHistory,
 } from '@/core/decorators/logging-context.decorator';
+import { RoleGuard } from '@/core/guards/role.guard';
+import { RequireRole } from '@/core/decorators/role.decorator';
 import {
   GetServerPrioritiesUseCase,
   GetVmPrioritiesUseCase,
@@ -29,8 +31,9 @@ import {
 
 @ApiTags('priorities')
 @Controller('priorities')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RoleGuard)
 @ApiBearerAuth()
+@RequireRole({ isAdmin: true })
 export class PriorityController {
   constructor(
     private readonly getServerPriorities: GetServerPrioritiesUseCase,
@@ -41,13 +44,17 @@ export class PriorityController {
 
   @Get('servers')
   @ApiOperation({
-    summary: 'Get all servers with priorities',
-    description: 'Returns servers filtered by user permissions',
+    summary: 'Get all servers with priorities (Admin only)',
+    description: 'Returns all servers with their priorities. Requires admin privileges.',
   })
   @ApiResponse({
     status: 200,
     description: 'List of servers with priorities',
     type: [ServerPriorityResponseDto],
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin privileges required',
   })
   @UseLoggingContext({
     entityType: 'server-priority',
@@ -61,13 +68,17 @@ export class PriorityController {
 
   @Get('vms')
   @ApiOperation({
-    summary: 'Get all VMs with priorities',
-    description: 'Returns VMs filtered by user permissions',
+    summary: 'Get all VMs with priorities (Admin only)',
+    description: 'Returns all VMs with their priorities. Requires admin privileges.',
   })
   @ApiResponse({
     status: 200,
     description: 'List of VMs with priorities',
     type: [VmPriorityResponseDto],
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin privileges required',
   })
   @UseLoggingContext({
     entityType: 'vm-priority',
@@ -81,8 +92,8 @@ export class PriorityController {
 
   @Post('servers/swap')
   @ApiOperation({
-    summary: 'Swap priorities between two servers',
-    description: 'Atomically exchanges priority values between two servers',
+    summary: 'Swap priorities between two servers (Admin only)',
+    description: 'Atomically exchanges priority values between two servers. Requires admin privileges.',
   })
   @ApiResponse({
     status: 200,
@@ -91,7 +102,7 @@ export class PriorityController {
   })
   @ApiResponse({
     status: 403,
-    description: 'Insufficient permissions on one or both servers',
+    description: 'Forbidden - Admin privileges required',
   })
   @ApiResponse({
     status: 404,
@@ -126,8 +137,8 @@ export class PriorityController {
 
   @Post('vms/swap')
   @ApiOperation({
-    summary: 'Swap priorities between two VMs',
-    description: 'Atomically exchanges priority values between two VMs',
+    summary: 'Swap priorities between two VMs (Admin only)',
+    description: 'Atomically exchanges priority values between two VMs. Requires admin privileges.',
   })
   @ApiResponse({
     status: 200,
@@ -136,7 +147,7 @@ export class PriorityController {
   })
   @ApiResponse({
     status: 403,
-    description: 'Insufficient permissions on one or both VMs',
+    description: 'Forbidden - Admin privileges required',
   })
   @ApiResponse({
     status: 404,

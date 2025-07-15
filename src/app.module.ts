@@ -33,7 +33,6 @@ import { PythonExecutorModule } from './core/services/python-executor';
 import { VmwareModule } from './modules/vmware/vmware.module';
 import { EncryptionModule } from './core/services/encryption';
 import { PingModule } from './modules/ping/ping.module';
-import { ValidatorsModule } from './core/validators/validators.module';
 
 @Module({
   controllers: [],
@@ -43,7 +42,6 @@ import { ValidatorsModule } from './core/validators/validators.module';
     EventEmitterModule.forRoot(),
     EncryptionModule,
     PythonExecutorModule,
-    ValidatorsModule,
     GuardsModule,
     InterceptorsModule,
     AuthModule,

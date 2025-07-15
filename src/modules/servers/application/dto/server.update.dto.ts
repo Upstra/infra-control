@@ -2,7 +2,6 @@ import { IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { IloUpdateDto } from '../../../ilos/application/dto/ilo.update.dto';
 import { IsPriority } from '../../../groups/application/validators/priority.validator';
-import { IsUniqueServerPriority } from '../validators/unique-server-priority.validator';
 
 export class ServerUpdateDto {
   @ApiProperty()
@@ -57,7 +56,6 @@ export class ServerUpdateDto {
   })
   @IsOptional()
   @IsPriority()
-  @IsUniqueServerPriority()
   readonly priority?: number;
 
   @ApiProperty()

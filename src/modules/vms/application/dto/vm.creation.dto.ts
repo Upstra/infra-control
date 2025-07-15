@@ -9,7 +9,6 @@ import {
   IsInt,
 } from 'class-validator';
 import { IsPriority } from '../../../groups/application/validators/priority.validator';
-import { IsUniqueVmPriority } from '../validators/unique-vm-priority.validator';
 
 export class VmCreationDto {
   @ApiProperty()
@@ -109,7 +108,6 @@ export class VmCreationDto {
   })
   @IsNotEmpty()
   @IsPriority()
-  @IsUniqueVmPriority()
   readonly priority!: number;
 
   @ApiProperty()
