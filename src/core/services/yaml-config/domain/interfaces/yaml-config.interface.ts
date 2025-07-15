@@ -17,26 +17,22 @@ export interface HostConfig {
   ilo?: IloConfig;
 }
 
-export interface ShutdownConfig {
-  vmOrder: Array<{ vmMoId: string }>;
-  delay: number;
-}
-
-export interface RestartConfig {
-  delay: number;
+export interface UpsConfig {
+  shutdownGrace: number;
+  restartGrace: number;
 }
 
 export interface ServerMigrationConfig {
   server: {
     host: HostConfig;
     destination?: HostConfig;
-    shutdown: ShutdownConfig;
-    restart?: RestartConfig;
+    vmOrder: Array<{ vmMoId: string }>;
   };
 }
 
 export interface MigrationPlanConfig {
   vCenter: VCenterConfig;
+  ups: UpsConfig;
   servers: ServerMigrationConfig[];
 }
 

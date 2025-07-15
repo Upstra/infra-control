@@ -3,10 +3,12 @@ import {
   MigrationPlanConfig,
   ServerMigrationConfig,
   VCenterConfig,
+  UpsConfig,
 } from '../interfaces/yaml-config.interface';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
 import { Vm } from '@/modules/vms/domain/entities/vm.entity';
 import { Ilo } from '@/modules/ilos/domain/entities/ilo.entity';
+import { Ups } from '@/modules/ups/domain/entities/ups.entity';
 
 @Injectable()
 export class MigrationPlanBuilderService {
@@ -15,6 +17,7 @@ export class MigrationPlanBuilderService {
     vms: Vm[],
     ilos: Map<string, Ilo>,
     vCenterConfig: VCenterConfig,
+    upsConfig: UpsConfig,
     destinationServers?: Map<string, Server>,
   ): MigrationPlanConfig {
     const serverConfigs = servers.map((server) =>
@@ -23,6 +26,7 @@ export class MigrationPlanBuilderService {
 
     return {
       vCenter: vCenterConfig,
+      ups: upsConfig,
       servers: serverConfigs,
     };
   }
@@ -52,10 +56,7 @@ export class MigrationPlanBuilderService {
             },
           }),
         },
-        shutdown: {
-          vmOrder: sortedVms.map((vm) => ({ vmMoId: vm.moid })),
-          delay: 60,
-        },
+        vmOrder: sortedVms.map((vm) => ({ vmMoId: vm.moid })),
       },
     };
 
@@ -71,7 +72,6 @@ export class MigrationPlanBuilderService {
           },
         }),
       };
-      config.server.restart = { delay: 60 };
     }
 
     return config;
