@@ -50,7 +50,8 @@ export class GenerateMigrationPlanWithDestinationUseCase {
       ...new Set([...sourceServerIds, ...destinationServerIds]),
     ];
 
-    const servers = await this.serverRepository.findByIds(allServerIds, {
+    const servers = await this.serverRepository.find({
+      where: allServerIds.map((id) => ({ id })),
       relations: ['ups'],
     });
     const serverMap = new Map(servers.map((s) => [s.id, s]));
