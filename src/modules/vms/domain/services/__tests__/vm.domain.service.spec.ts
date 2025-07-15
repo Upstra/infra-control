@@ -14,8 +14,8 @@ describe('VmDomainService', () => {
     const dto: VmCreationDto = {
       name: 'VM-1',
       state: 'UP',
-      grace_period_on: 10,
-      grace_period_off: 5,
+      grace_period_on: 30,
+      grace_period_off: 30,
       os: 'Ubuntu',
       adminUrl: 'https://admin.local',
       ip: '192.168.1.10',
@@ -40,8 +40,6 @@ describe('VmDomainService', () => {
     const existingVm = Object.assign(new Vm(), {
       name: 'OldName',
       state: 'DOWN',
-      grace_period_on: 20,
-      grace_period_off: 20,
       os: 'Debian',
       adminUrl: 'https://old.local',
       ip: '192.168.1.100',
@@ -54,14 +52,12 @@ describe('VmDomainService', () => {
 
     const dto: VmUpdateDto = {
       name: 'UpdatedVM',
-      grace_period_on: 15,
       ip: '192.168.1.101',
     };
 
     const updated = service.updateVmEntity(existingVm, dto);
 
     expect(updated.name).toBe('UpdatedVM');
-    expect(updated.grace_period_on).toBe(15);
     expect(updated.ip).toBe('192.168.1.101');
     expect(updated.state).toBe('DOWN');
   });

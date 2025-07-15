@@ -28,8 +28,6 @@ describe('GetServerByIloIpUseCase', () => {
     state: 'active',
     type: 'esxi',
     priority: 1,
-    grace_period_on: 300,
-    grace_period_off: 120,
     adminUrl: 'https://192.168.1.10',
     ilo: mockIlo,
     iloId: 'ilo-1',

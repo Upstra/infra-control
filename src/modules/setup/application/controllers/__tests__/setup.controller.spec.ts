@@ -426,7 +426,7 @@ describe('SetupController', () => {
     it('should create resources and trigger discovery', async () => {
       const dto = {
         rooms: [{ name: 'Room 1', tempId: 'temp_room_1' }],
-        upsList: [{ name: 'UPS 1', ip: '192.168.1.100', tempId: 'temp_ups_1' }],
+        upsList: [{ name: 'UPS 1', ip: '192.168.1.100', grace_period_on: 30, grace_period_off: 30, tempId: 'temp_ups_1' }],
         servers: [
           {
             name: 'vCenter Server',
@@ -436,8 +436,6 @@ describe('SetupController', () => {
             adminUrl: 'https://192.168.1.10',
             login: 'admin',
             password: 'password',
-            grace_period_on: 30,
-            grace_period_off: 30,
             priority: 1,
             tempId: 'temp_server_1',
           },
@@ -496,8 +494,6 @@ describe('SetupController', () => {
             adminUrl: 'https://192.168.1.20',
             login: 'root',
             password: 'password',
-            grace_period_on: 30,
-            grace_period_off: 30,
             priority: 1,
             tempId: 'temp_server_1',
           },
@@ -550,8 +546,6 @@ describe('SetupController', () => {
             adminUrl: 'https://192.168.1.30',
             login: 'root',
             password: 'password',
-            grace_period_on: 30,
-            grace_period_off: 30,
             priority: 1,
             tempId: 'temp_server_1',
           },

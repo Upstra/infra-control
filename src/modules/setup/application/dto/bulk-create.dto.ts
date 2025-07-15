@@ -74,6 +74,20 @@ export class BulkUpsDto {
   ip?: string;
 
   @ApiProperty({
+    description: 'Grace period when turning on (seconds)',
+    example: 30,
+  })
+  @IsNumber()
+  grace_period_on: number;
+
+  @ApiProperty({
+    description: 'Grace period when turning off (seconds)',
+    example: 30,
+  })
+  @IsNumber()
+  grace_period_off: number;
+
+  @ApiProperty({
     description: 'Temporary ID from frontend for relationship mapping',
     example: 'temp_ups_1',
     required: false,
@@ -111,19 +125,6 @@ export class BulkServerDto {
   @IsNotEmpty()
   state: string;
 
-  @ApiProperty({
-    description: 'Grace period when turning on (seconds)',
-    example: 30,
-  })
-  @IsNumber()
-  grace_period_on: number;
-
-  @ApiProperty({
-    description: 'Grace period when turning off (seconds)',
-    example: 30,
-  })
-  @IsNumber()
-  grace_period_off: number;
 
   @ApiProperty({
     description: 'Administration URL',

@@ -23,8 +23,6 @@ describe('GetServerWithIloUseCase', () => {
     state: 'UP',
     type: 'esxi',
     priority: 1,
-    grace_period_on: 300,
-    grace_period_off: 300,
     ilo: mockIlo as Ilo,
   };
 
@@ -35,8 +33,6 @@ describe('GetServerWithIloUseCase', () => {
     state: 'UP',
     type: 'esxi',
     priority: 2,
-    grace_period_on: 300,
-    grace_period_off: 300,
     ilo: null,
   };
 

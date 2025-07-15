@@ -20,8 +20,6 @@ describe('ControlServerPowerUseCase', () => {
       name: 'iLO Server 1',
     },
     name: 'Test Server',
-    grace_period_on: 300,
-    grace_period_off: 300,
     type: 'esxi',
     priority: 1,
     state: 'UP',

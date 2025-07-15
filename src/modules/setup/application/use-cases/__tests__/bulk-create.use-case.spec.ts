@@ -81,6 +81,8 @@ describe('BulkCreateUseCase', () => {
         {
           name: 'UPS-01',
           ip: '192.168.1.100',
+          grace_period_on: 30,
+          grace_period_off: 30,
           roomId: 'temp_room_1',
           tempId: 'temp_ups_1',
         },
@@ -89,8 +91,6 @@ describe('BulkCreateUseCase', () => {
         {
           name: 'WEB-01',
           state: 'stopped',
-          grace_period_on: 30,
-          grace_period_off: 30,
           adminUrl: 'https://192.168.1.10',
           ip: '192.168.1.10',
           login: 'admin',
@@ -198,7 +198,7 @@ describe('BulkCreateUseCase', () => {
     it('should throw error if UPS missing required IP', async () => {
       const invalidRequest: BulkCreateRequestDto = {
         rooms: [{ name: 'Room 1' }],
-        upsList: [{ name: 'UPS-01', roomId: 'room-uuid-1' }],
+        upsList: [{ name: 'UPS-01', roomId: 'room-uuid-1', grace_period_on: 30, grace_period_off: 30 }],
         servers: [],
       };
 
@@ -221,8 +221,6 @@ describe('BulkCreateUseCase', () => {
           {
             name: 'WEB-01',
             state: 'stopped',
-            grace_period_on: 30,
-            grace_period_off: 30,
             adminUrl: 'https://192.168.1.10',
             ip: '192.168.1.10',
             login: 'admin',
@@ -304,6 +302,8 @@ describe('BulkCreateUseCase', () => {
             name: 'UPS-Second',
             roomId: 'temp_1752408362050_0',
             ip: '192.168.1.102',
+            grace_period_on: 30,
+            grace_period_off: 30,
             id: 'temp_1752408362050_1', // Frontend uses id instead of tempId
           },
         ],
@@ -311,8 +311,6 @@ describe('BulkCreateUseCase', () => {
           {
             name: 'ESXSRV11',
             state: 'active',
-            grace_period_on: 30,
-            grace_period_off: 30,
             adminUrl: 'https://192.168.1.10',
             ip: '172.23.10.11',
             login: 'admin',

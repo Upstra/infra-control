@@ -10,8 +10,6 @@ describe('VmCreationDto', () => {
     const dto = plainToInstance(VmCreationDto, {
       name: 'vm',
       state: 'UP',
-      grace_period_on: 10,
-      grace_period_off: 5,
       os: 'Linux',
       adminUrl: 'http://localhost',
       ip: '192.168.0.1',
@@ -49,8 +47,6 @@ describe('VmResponseDto', () => {
   it('should map correctly from Vm entity', () => {
     const mockVm = createMockVm({
       state: 'UP',
-      grace_period_on: 10,
-      grace_period_off: 5,
       os: 'Linux',
       adminUrl: 'http://admin',
       ip: '192.168.0.10',

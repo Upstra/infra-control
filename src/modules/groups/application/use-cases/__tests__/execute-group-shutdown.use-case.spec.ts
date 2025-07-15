@@ -255,7 +255,6 @@ describe('ExecuteGroupShutdownUseCase', () => {
             state: 'running',
             serverId: 's1',
             priority: 1,
-            grace_period_off: 60,
           }),
           Object.assign(new Vm(), {
             id: 'v2',
@@ -263,7 +262,6 @@ describe('ExecuteGroupShutdownUseCase', () => {
             state: 'stopped',
             serverId: 's1',
             priority: 2,
-            grace_period_off: 60,
           }),
         ];
 
@@ -355,7 +353,6 @@ describe('ExecuteGroupShutdownUseCase', () => {
           state: 'running',
           serverId: 's1',
           priority: 1,
-          grace_period_off: 120,
         });
 
         const waitSpy = jest

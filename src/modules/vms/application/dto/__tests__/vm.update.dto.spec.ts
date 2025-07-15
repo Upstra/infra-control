@@ -12,8 +12,6 @@ describe('VmUpdateDto', () => {
     const dto = Object.assign(new VmUpdateDto(), {
       name: 'VM-Test',
       state: 'UP',
-      grace_period_on: 15,
-      grace_period_off: 10,
       os: 'Ubuntu',
       adminUrl: 'https://admin.local',
       ip: '192.168.1.100',

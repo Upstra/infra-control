@@ -158,6 +158,24 @@ export class BulkValidationUseCase {
           });
         }
       }
+
+      if (ups.grace_period_on < 0) {
+        errors.push({
+          resource: 'ups',
+          index: i,
+          field: 'grace_period_on',
+          message: 'Grace period on must be positive',
+        });
+      }
+
+      if (ups.grace_period_off < 0) {
+        errors.push({
+          resource: 'ups',
+          index: i,
+          field: 'grace_period_off',
+          message: 'Grace period off must be positive',
+        });
+      }
     }
   }
 
@@ -236,23 +254,6 @@ export class BulkValidationUseCase {
         });
       }
 
-      if (server.grace_period_on < 0) {
-        errors.push({
-          resource: 'server',
-          index: i,
-          field: 'grace_period_on',
-          message: 'Grace period on must be positive',
-        });
-      }
-
-      if (server.grace_period_off < 0) {
-        errors.push({
-          resource: 'server',
-          index: i,
-          field: 'grace_period_off',
-          message: 'Grace period off must be positive',
-        });
-      }
 
       if (server.priority < 1 || server.priority > 999) {
         errors.push({

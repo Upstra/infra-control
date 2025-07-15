@@ -35,8 +35,6 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
     login: 'admin',
     password: 'password',
     state: 'stopped',
-    grace_period_on: 30,
-    grace_period_off: 30,
     adminUrl: 'https://192.168.1.10',
     priority: 1,
     roomId: 'room-1',
@@ -50,8 +48,6 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
     login: 'admin',
     password: 'password',
     state: 'stopped',
-    grace_period_on: 30,
-    grace_period_off: 30,
     adminUrl: 'https://192.168.1.20',
     priority: 2,
     roomId: 'room-1',
@@ -107,7 +103,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
   describe('execute', () => {
     const mockRequest = {
       rooms: [{ name: 'Room 1', tempId: 'temp_room_1' }],
-      upsList: [{ name: 'UPS 1', roomId: 'temp_room_1', tempId: 'temp_ups_1' }],
+      upsList: [{ name: 'UPS 1', roomId: 'temp_room_1', grace_period_on: 30, grace_period_off: 30, tempId: 'temp_ups_1' }],
       servers: [
         {
           name: 'VMware Server 1',

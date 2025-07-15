@@ -186,6 +186,8 @@ export class BulkCreateUseCase {
     const ups = new Ups();
     ups.name = upsData.name;
     ups.ip = upsData.ip;
+    ups.grace_period_on = upsData.grace_period_on;
+    ups.grace_period_off = upsData.grace_period_off;
     ups.roomId = roomId;
 
     return await queryRunner.manager.save(Ups, ups);
@@ -206,8 +208,6 @@ export class BulkCreateUseCase {
     const server = new Server();
     server.name = serverData.name;
     server.state = serverData.state;
-    server.grace_period_on = serverData.grace_period_on;
-    server.grace_period_off = serverData.grace_period_off;
     server.adminUrl = serverData.adminUrl;
     server.ip = serverData.ip;
     server.login = serverData.login;

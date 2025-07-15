@@ -55,13 +55,11 @@ describe('CreateTemplateUseCase', () => {
       description: 'A custom template for testing',
       configuration: {
         rooms: [{ name: 'Custom Room 1' }, { name: 'Custom Room 2' }],
-        upsList: [{ name: 'Custom UPS 1', ip: '192.168.1.200' }],
+        upsList: [{ name: 'Custom UPS 1', ip: '192.168.1.200', grace_period_on: 30, grace_period_off: 30 }],
         servers: [
           {
             name: 'Custom Server 1',
             state: 'stopped',
-            grace_period_on: 30,
-            grace_period_off: 30,
             adminUrl: 'https://192.168.1.20',
             ip: '192.168.1.20',
             login: 'admin',

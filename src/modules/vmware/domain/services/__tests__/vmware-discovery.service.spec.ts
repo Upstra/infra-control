@@ -22,8 +22,6 @@ describe('VmwareDiscoveryService', () => {
     type: 'esxi',
     state: 'started',
     adminUrl: 'https://192.168.1.10',
-    grace_period_on: 30,
-    grace_period_off: 30,
     priority: 1,
     vmwareHostMoid: null,
   } as Server;

@@ -8,8 +8,6 @@ describe('ServerCreationDto', () => {
     const dto = plainToInstance(ServerCreationDto, {
       name: 'My Server',
       state: 'UP',
-      grace_period_on: 10,
-      grace_period_off: 5,
       adminUrl: 'https://admin.local',
       ip: '192.168.0.1',
       login: 'admin',
@@ -31,8 +29,6 @@ describe('ServerCreationDto', () => {
     const dto = plainToInstance(ServerCreationDto, {
       name: 'My Server',
       state: 'UP',
-      grace_period_on: 10,
-      grace_period_off: 5,
       adminUrl: 'https://admin.local',
       ip: '192.168.0.1',
       login: 'admin',

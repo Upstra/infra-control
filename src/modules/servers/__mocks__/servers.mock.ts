@@ -13,8 +13,6 @@ export const createMockServer = (overrides?: Partial<Server>): Server => {
     id: 'server-1',
     name: 'Serveur Test',
     state: 'UP',
-    grace_period_on: 30,
-    grace_period_off: 10,
     adminUrl: 'https://admin.local',
     ip: '192.168.1.10',
     login: 'admin',
@@ -46,8 +44,6 @@ export const createMockServerCreationDto = (
 ): ServerCreationDto => ({
   name: 'Server1',
   state: 'UP',
-  grace_period_on: 10,
-  grace_period_off: 5,
   adminUrl: 'https://admin.local',
   ip: '192.168.1.1',
   login: 'admin',
@@ -66,8 +62,6 @@ export const createMockServerUpdateDto = (
 ): ServerUpdateDto => ({
   name: 'UpdatedServer',
   state: 'DOWN',
-  grace_period_on: 15,
-  grace_period_off: 8,
   adminUrl: 'https://updated-admin.local',
   ip: '192.168.1.20',
   login: 'updatedAdmin',
