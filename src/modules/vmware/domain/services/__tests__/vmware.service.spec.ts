@@ -15,6 +15,12 @@ describe('VmwareService', () => {
     port: 443,
   };
 
+  const mockConnectionWithoutPort: VmwareConnectionDto = {
+    host: '192.168.1.10',
+    user: 'admin',
+    password: 'password123',
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -604,6 +610,294 @@ describe('VmwareService', () => {
         'password123',
         '--port',
         '8443',
+      ]);
+    });
+
+    it('should not include port when port is 443', async () => {
+      pythonExecutor.executePython.mockResolvedValue({ vms: [] });
+
+      await service.listVMs(mockConnection);
+
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.sh', [
+        '--ip',
+        '192.168.1.10',
+        '--user',
+        'admin',
+        '--password',
+        'password123',
+      ]);
+    });
+  });
+
+  describe('edge cases and error handling', () => {
+    it('should handle missing result in response', async () => {
+      pythonExecutor.executePython.mockResolvedValue({});
+
+      const result = await service.controlVMPower('vm-123', 'on', mockConnection);
+
+      expect(result).toEqual({
+        success: true,
+        message: 'VM started successfully',
+        newState: 'poweredOn',
+      });
+    });
+
+    it('should handle missing newHost in migration response', async () => {
+      pythonExecutor.executePython.mockResolvedValue({
+        result: {
+          message: 'VM migrated successfully',
+          httpCode: 200,
+        },
+      });
+
+      const result = await service.migrateVM('vm-123', 'host-456', mockConnection);
+
+      expect(result).toEqual({
+        success: true,
+        message: 'VM migrated successfully',
+        newHost: 'host-456',
+      });
+    });
+
+    it('should handle parseVmList with missing fields', async () => {
+      pythonExecutor.executePython.mockResolvedValue({
+        vms: [
+          {
+            moid: 'vm-123',
+            name: 'Test VM',
+          },
+          {
+            moid: 'vm-456',
+          },
+        ],
+      });
+
+      const result = await service.listVMs(mockConnection);
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        moid: 'vm-123',
+        name: 'Test VM',
+        powerState: undefined,
+        guestOs: undefined,
+        guestFamily: undefined,
+        version: undefined,
+        createDate: undefined,
+        numCoresPerSocket: undefined,
+        esxiHostName: undefined,
+        esxiHostMoid: undefined,
+        ip: undefined,
+        hostname: undefined,
+        numCPU: undefined,
+        memoryMB: undefined,
+        toolsStatus: undefined,
+        annotation: undefined,
+      });
+    });
+
+    it('should handle parseVmMetrics with null values', async () => {
+      pythonExecutor.executePython.mockResolvedValue({
+        powerState: null,
+        guestState: null,
+        connectionState: null,
+        guestHeartbeatStatus: null,
+        overallStatus: null,
+        maxCpuUsage: null,
+        maxMemoryUsage: null,
+        bootTime: null,
+        isMigrating: null,
+        overallCpuUsage: null,
+        guestMemoryUsage: null,
+        uptimeSeconds: null,
+        swappedMemory: null,
+        usedStorage: null,
+        totalStorage: null,
+      });
+
+      const result = await service.getVMMetrics('vm-123', mockConnection);
+
+      expect(result).toEqual({
+        powerState: 'poweredOff',
+        guestState: 'unknown',
+        connectionState: 'disconnected',
+        guestHeartbeatStatus: 'gray',
+        overallStatus: 'gray',
+        maxCpuUsage: 0,
+        maxMemoryUsage: 0,
+        bootTime: '',
+        isMigrating: false,
+        overallCpuUsage: 0,
+        guestMemoryUsage: 0,
+        uptimeSeconds: 0,
+        swappedMemory: 0,
+        usedStorage: 0,
+        totalStorage: 0,
+      });
+    });
+
+    it('should handle parseServerInfo with missing fields', async () => {
+      pythonExecutor.executePython.mockResolvedValue({});
+
+      const result = await service.getServerInfo('host-123', mockConnection);
+
+      expect(result).toEqual({
+        name: 'Unknown',
+        vCenterIp: '',
+        cluster: '',
+        vendor: 'Unknown',
+        model: 'Unknown',
+        ip: '',
+        cpuCores: 0,
+        cpuThreads: 0,
+        cpuMHz: 0,
+        ramTotal: 0,
+      });
+    });
+
+    it('should handle parseServerMetrics with missing fields', async () => {
+      pythonExecutor.executePython.mockResolvedValue({});
+
+      const result = await service.getServerMetrics('host-123', mockConnection);
+
+      expect(result).toEqual({
+        powerState: 'poweredOff',
+        overallStatus: 'gray',
+        rebootRequired: false,
+        cpuUsagePercent: 0,
+        ramUsageMB: 0,
+        uptime: 0,
+        boottime: '',
+      });
+    });
+
+    it('should handle parseHostMetrics with default values', async () => {
+      pythonExecutor.executePython.mockResolvedValue({
+        name: 'Test Host',
+        ip: '192.168.1.1',
+        vCenterIp: '192.168.1.5',
+      });
+
+      const result = await service.getHostMetrics('host-123', mockConnection);
+
+      expect(result).toEqual({
+        name: 'Test Host',
+        ip: '192.168.1.1',
+        powerState: 'poweredOff',
+        vCenterIp: '192.168.1.5',
+        overallStatus: 'gray',
+        cpuCores: 0,
+        ramTotal: 0,
+        rebootRequired: false,
+        cpuUsageMHz: 0,
+        ramUsageMB: 0,
+        uptime: 0,
+        boottime: '',
+        cluster: '',
+        cpuHz: 0,
+        numCpuCores: 0,
+        numCpuThreads: 0,
+        model: '',
+        vendor: '',
+        biosVendor: '',
+        firewall: '',
+        maxHostRunningVms: 0,
+        maxHostSupportedVcpus: 0,
+        maxMemMBPerFtVm: 0,
+        maxNumDisksSVMotion: 0,
+        maxRegisteredVMs: 0,
+        maxRunningVMs: 0,
+        maxSupportedVcpus: 0,
+        maxSupportedVmMemory: 0,
+        maxVcpusPerFtVm: 0,
+        quickBootSupported: false,
+        rebootSupported: false,
+        shutdownSupported: false,
+      });
+    });
+
+    it('should handle error when empty password provided', async () => {
+      const connectionWithEmptyPassword = {
+        ...mockConnection,
+        password: '',
+      };
+
+      pythonExecutor.executePython.mockResolvedValue({ vms: [] });
+
+      await service.listVMs(connectionWithEmptyPassword);
+
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.sh', [
+        '--ip',
+        '192.168.1.10',
+        '--user',
+        'admin',
+        '--password',
+        '',
+      ]);
+    });
+
+    it('should log debug information when building connection args', async () => {
+      const loggerSpy = jest.spyOn(service['logger'], 'debug');
+      pythonExecutor.executePython.mockResolvedValue({ vms: [] });
+
+      await service.listVMs(mockConnection);
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        'Building connection args for 192.168.1.10:',
+      );
+      expect(loggerSpy).toHaveBeenCalledWith('- User: admin');
+      expect(loggerSpy).toHaveBeenCalledWith('- Password exists: true');
+      expect(loggerSpy).toHaveBeenCalledWith('- Password length: 11');
+    });
+
+    it('should log when no VMs found', async () => {
+      const loggerSpy = jest.spyOn(service['logger'], 'warn');
+      pythonExecutor.executePython.mockResolvedValue(null);
+
+      const result = await service.listVMs(mockConnection);
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        'Invalid result format or empty vms array',
+      );
+      expect(result).toEqual([]);
+    });
+
+    it('should log when parsing VMs', async () => {
+      const loggerSpy = jest.spyOn(service['logger'], 'debug');
+      pythonExecutor.executePython.mockResolvedValue({
+        vms: [{ moid: 'vm-1' }, { moid: 'vm-2' }],
+      });
+
+      await service.listVMs(mockConnection);
+
+      expect(loggerSpy).toHaveBeenCalledWith('Found 2 VMs to parse');
+      expect(loggerSpy).toHaveBeenCalledWith('Parsed 2 VMs');
+    });
+
+    it('should handle generic error appropriately', async () => {
+      pythonExecutor.executePython.mockRejectedValue(new Error('Unknown error'));
+
+      await expect(service.listVMs(mockConnection)).rejects.toThrow(
+        new HttpException('Unknown error', HttpStatus.INTERNAL_SERVER_ERROR),
+      );
+    });
+
+    it('should handle connection with undefined port', async () => {
+      const connectionWithUndefinedPort = {
+        ...mockConnection,
+        port: undefined,
+      };
+
+      pythonExecutor.executePython.mockResolvedValue({ vms: [] });
+
+      await service.listVMs(connectionWithUndefinedPort);
+
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.sh', [
+        '--ip',
+        '192.168.1.10',
+        '--user',
+        'admin',
+        '--password',
+        'password123',
       ]);
     });
   });
