@@ -228,12 +228,9 @@ describe('SetupController', () => {
         expectedResponse,
       );
 
-      const result = await controller.bulkCreate(dto, mockJwtPayload);
+      const result = await controller.bulkCreate(dto);
 
-      expect(bulkCreateUseCase.execute).toHaveBeenCalledWith(
-        dto,
-        mockJwtPayload.userId,
-      );
+      expect(bulkCreateUseCase.execute).toHaveBeenCalledWith(dto);
       expect(result).toEqual(expectedResponse);
     });
   });
@@ -474,10 +471,7 @@ describe('SetupController', () => {
         expectedResponse,
       );
 
-      const result = await controller.bulkCreateWithDiscovery(
-        dto,
-        mockJwtPayload,
-      );
+      const result = await controller.bulkCreateWithDiscovery(dto);
 
       expect(bulkCreateWithDiscoveryUseCase.execute).toHaveBeenCalledWith(
         {
@@ -487,7 +481,6 @@ describe('SetupController', () => {
           enableDiscovery: true,
           discoverySessionId: undefined,
         },
-        mockJwtPayload.userId,
       );
       expect(result).toEqual(expectedResponse);
     });
@@ -534,10 +527,7 @@ describe('SetupController', () => {
         expectedResponse,
       );
 
-      const result = await controller.bulkCreateWithDiscovery(
-        dto,
-        mockJwtPayload,
-      );
+      const result = await controller.bulkCreateWithDiscovery(dto);
 
       expect(bulkCreateWithDiscoveryUseCase.execute).toHaveBeenCalledWith(
         {
@@ -547,7 +537,6 @@ describe('SetupController', () => {
           enableDiscovery: false,
           discoverySessionId: undefined,
         },
-        mockJwtPayload.userId,
       );
       expect(result).toEqual(expectedResponse);
     });
@@ -597,10 +586,7 @@ describe('SetupController', () => {
         expectedResponse,
       );
 
-      const result = await controller.bulkCreateWithDiscovery(
-        dto,
-        mockJwtPayload,
-      );
+      const result = await controller.bulkCreateWithDiscovery(dto);
 
       expect(bulkCreateWithDiscoveryUseCase.execute).toHaveBeenCalledWith(
         {
@@ -610,7 +596,6 @@ describe('SetupController', () => {
           enableDiscovery: true,
           discoverySessionId: 'custom-session-456',
         },
-        mockJwtPayload.userId,
       );
       expect(result).toEqual(expectedResponse);
     });

@@ -86,6 +86,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
           provide: 'ServerRepositoryInterface',
           useValue: {
             findServerById: jest.fn(),
+            findServerByIdWithCredentials: jest.fn(),
           },
         },
       ],
@@ -141,30 +142,27 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
 
     it('should successfully create resources and trigger discovery for VMware servers', async () => {
       bulkCreateUseCase.execute.mockResolvedValue(mockBulkCreateResult);
-      serverRepository.findServerById
+      serverRepository.findServerByIdWithCredentials
         .mockResolvedValueOnce(mockVmwareServer)
         .mockResolvedValueOnce(mockEsxiServer);
       vmwareDiscoveryService.discoverVmsFromServers.mockResolvedValue(
         mockDiscoveryResults,
       );
 
-      const result = await useCase.execute(mockRequest, 'user-id');
+      const result = await useCase.execute(mockRequest);
 
       expect(result).toEqual({
         ...mockBulkCreateResult,
         discoverySessionId: expect.any(String),
         discoveryTriggered: true,
-        vmwareServerCount: 1,
+        vmwareServerCount: 2,
       });
 
-      expect(bulkCreateUseCase.execute).toHaveBeenCalledWith(
-        mockRequest,
-        'user-id',
-      );
-      expect(serverRepository.findServerById).toHaveBeenCalledTimes(2);
+      expect(bulkCreateUseCase.execute).toHaveBeenCalledWith(mockRequest);
+      expect(serverRepository.findServerByIdWithCredentials).toHaveBeenCalledTimes(2);
       expect(
         vmwareDiscoveryService.discoverVmsFromServers,
-      ).toHaveBeenCalledWith([mockVmwareServer], expect.any(String));
+      ).toHaveBeenCalledWith([mockVmwareServer, mockEsxiServer], expect.any(String));
     });
 
     it('should handle bulk create failure gracefully', async () => {
@@ -254,7 +252,9 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       };
 
       bulkCreateUseCase.execute.mockResolvedValue(mockBulkCreateResult);
-      serverRepository.findServerById.mockResolvedValue(mockVmwareServer);
+      serverRepository.findServerByIdWithCredentials
+        .mockResolvedValueOnce(mockVmwareServer)
+        .mockResolvedValueOnce(mockEsxiServer);
       vmwareDiscoveryService.discoverVmsFromServers.mockResolvedValue(
         mockDiscoveryResults,
       );
@@ -269,7 +269,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
 
     it('should handle discovery service errors gracefully', async () => {
       bulkCreateUseCase.execute.mockResolvedValue(mockBulkCreateResult);
-      serverRepository.findServerById
+      serverRepository.findServerByIdWithCredentials
         .mockResolvedValueOnce(mockVmwareServer)
         .mockResolvedValueOnce(mockEsxiServer);
       vmwareDiscoveryService.discoverVmsFromServers.mockRejectedValue(
@@ -319,7 +319,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       } as any as Server;
 
       bulkCreateUseCase.execute.mockResolvedValue(mixedServersResult);
-      serverRepository.findServerById
+      serverRepository.findServerByIdWithCredentials
         .mockResolvedValueOnce(mockVmwareServer)
         .mockResolvedValueOnce(mockEsxiServer)
         .mockResolvedValueOnce(esxiServer)
@@ -330,11 +330,11 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
 
       const result = await useCase.execute(mockRequest);
 
-      expect(result.vmwareServerCount).toBe(3);
+      expect(result.vmwareServerCount).toBe(4);
       expect(
         vmwareDiscoveryService.discoverVmsFromServers,
       ).toHaveBeenCalledWith(
-        [mockVmwareServer, esxiServer, vcenterServer],
+        [mockVmwareServer, mockEsxiServer, esxiServer, vcenterServer],
         expect.any(String),
       );
     });
@@ -355,7 +355,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       };
 
       bulkCreateUseCase.execute.mockResolvedValue(mockBulkCreateResult);
-      serverRepository.findServerById
+      serverRepository.findServerByIdWithCredentials
         .mockResolvedValueOnce({
           ...mockVmwareServer,
           type: 'VMware',
@@ -373,22 +373,25 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       const result = await useCase.execute(requestWithMixedCase);
 
       expect(result.discoveryTriggered).toBe(true);
-      expect(result.vmwareServerCount).toBe(2);
+      expect(result.vmwareServerCount).toBe(1);
     });
 
     it('should return zero vmwareServerCount when no VMware servers found in repository', async () => {
       bulkCreateUseCase.execute.mockResolvedValue(mockBulkCreateResult);
-      serverRepository.findServerById
+      serverRepository.findServerByIdWithCredentials
         .mockResolvedValueOnce(null) // Server not found
         .mockResolvedValueOnce(mockEsxiServer);
+      vmwareDiscoveryService.discoverVmsFromServers.mockResolvedValue(
+        mockDiscoveryResults,
+      );
 
       const result = await useCase.execute(mockRequest);
 
-      expect(result.vmwareServerCount).toBe(0);
-      expect(result.discoveryTriggered).toBe(false);
+      expect(result.vmwareServerCount).toBe(1);
+      expect(result.discoveryTriggered).toBe(true);
       expect(
         vmwareDiscoveryService.discoverVmsFromServers,
-      ).not.toHaveBeenCalled();
+      ).toHaveBeenCalledWith([mockEsxiServer], expect.any(String));
     });
   });
 
@@ -446,7 +449,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       const requestWithoutVmware = {
         rooms: [],
         upsList: [],
-        servers: [{ ...mockServerBase, type: 'esxi' }],
+        servers: [{ ...mockServerBase, type: 'ilo' }],
       };
 
       const result = useCase['hasVmwareServers'](requestWithoutVmware);
