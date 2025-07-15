@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 import { UpdateIloUseCase } from '@/modules/ilos/application/use-cases';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
@@ -53,15 +53,22 @@ export class UpdateServerUseCase {
       }
     }
 
-    // Validate priority uniqueness
     if (dto.priority !== undefined) {
-      const existingServer = await this.serverRepository.findOneByField({
-        field: 'priority',
-        value: dto.priority,
-      });
-      
-      if (existingServer && existingServer.id !== id) {
-        throw new DuplicateServerPriorityException(dto.priority);
+      const currentServer = await this.serverRepository.findServerById(id);
+
+      if (!currentServer) {
+        throw new NotFoundException(`Server with id ${id} not found`);
+      }
+
+      if (currentServer.type !== 'vcenter') {
+        const existingServer = await this.serverRepository.findOneByField({
+          field: 'priority',
+          value: dto.priority,
+        });
+
+        if (existingServer && existingServer.id !== id) {
+          throw new DuplicateServerPriorityException(dto.priority);
+        }
       }
     }
 

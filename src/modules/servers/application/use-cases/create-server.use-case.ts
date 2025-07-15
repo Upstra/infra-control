@@ -80,14 +80,15 @@ export class CreateServerUseCase {
       group = await this.groupRepository.findById(dto.groupId);
     }
 
-    // Validate priority uniqueness
-    const existingServer = await this.serverRepository.findOneByField({
-      field: 'priority',
-      value: dto.priority,
-    });
-    
-    if (existingServer) {
-      throw new DuplicateServerPriorityException(dto.priority);
+    if (dto.type !== 'vcenter') {
+      const existingServer = await this.serverRepository.findOneByField({
+        field: 'priority',
+        value: dto.priority,
+      });
+
+      if (existingServer) {
+        throw new DuplicateServerPriorityException(dto.priority);
+      }
     }
 
     let ilo = null;
