@@ -5,10 +5,8 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Vm } from '../../domain/entities/vm.entity';
+import { Injectable, Inject } from '@nestjs/common';
+import { VmRepositoryInterface } from '../../domain/interfaces/vm.repository.interface';
 
 @ValidatorConstraint({ async: true })
 @Injectable()
@@ -16,8 +14,8 @@ export class IsUniqueVmPriorityConstraint
   implements ValidatorConstraintInterface
 {
   constructor(
-    @InjectRepository(Vm)
-    private readonly vmRepository: Repository<Vm>,
+    @Inject('VmRepositoryInterface')
+    private readonly vmRepository: VmRepositoryInterface,
   ) {}
 
   async validate(

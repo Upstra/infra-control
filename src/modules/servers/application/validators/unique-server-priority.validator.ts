@@ -5,10 +5,8 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Server } from '../../domain/entities/server.entity';
+import { Injectable, Inject } from '@nestjs/common';
+import { ServerRepositoryInterface } from '../../domain/interfaces/server.repository.interface';
 
 @ValidatorConstraint({ async: true })
 @Injectable()
@@ -16,8 +14,8 @@ export class IsUniqueServerPriorityConstraint
   implements ValidatorConstraintInterface
 {
   constructor(
-    @InjectRepository(Server)
-    private readonly serverRepository: Repository<Server>,
+    @Inject('ServerRepositoryInterface')
+    private readonly serverRepository: ServerRepositoryInterface,
   ) {}
 
   async validate(
@@ -31,9 +29,10 @@ export class IsUniqueServerPriorityConstraint
     const object = args.object as any;
     const serverId = object.id;
 
-    const existingServer = await this.serverRepository.findOne({
-      where: { priority },
-      select: ['id'],
+    const existingServer = await this.serverRepository.findOneByField({
+      field: 'priority',
+      value: priority,
+      disableThrow: true,
     });
 
     if (!existingServer) {
