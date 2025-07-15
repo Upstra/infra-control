@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { GenerateMigrationPlanWithDestinationUseCase, MigrationDestination } from '../generate-migration-plan-with-destination.use-case';
 import { Server } from '../../../../servers/domain/entities/server.entity';
 import { Vm } from '../../../../vms/domain/entities/vm.entity';
@@ -121,7 +121,7 @@ describe('GenerateMigrationPlanWithDestinationUseCase', () => {
       });
       expect(mockServerRepository.findByIds).toHaveBeenCalledWith(['esxi-1', 'esxi-2']);
       expect(mockVmRepository.find).toHaveBeenCalledWith({
-        where: { serverId: ['esxi-1'] },
+        where: [{ serverId: 'esxi-1' }],
         order: { serverId: 'ASC', priority: 'ASC' },
       });
 
@@ -198,6 +198,27 @@ describe('GenerateMigrationPlanWithDestinationUseCase', () => {
         expect.any(Map),
         expect.any(Object),
         new Map(),
+      );
+    });
+
+    it('should throw BadRequestException for duplicate source servers', async () => {
+      const destinations: MigrationDestination[] = [
+        { sourceServerId: 'esxi-1', destinationServerId: 'esxi-2' },
+        { sourceServerId: 'esxi-1', destinationServerId: 'esxi-3' },
+      ];
+
+      await expect(useCase.execute(destinations)).rejects.toThrow(
+        new BadRequestException('Each source server can have at most one destination'),
+      );
+    });
+
+    it('should throw BadRequestException for same source and destination', async () => {
+      const destinations: MigrationDestination[] = [
+        { sourceServerId: 'esxi-1', destinationServerId: 'esxi-1' },
+      ];
+
+      await expect(useCase.execute(destinations)).rejects.toThrow(
+        new BadRequestException('Source and destination server cannot be the same'),
       );
     });
   });

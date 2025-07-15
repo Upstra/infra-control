@@ -1,9 +1,9 @@
+import { Server } from '@/modules/servers/domain/entities/server.entity';
 import { Test, TestingModule } from '@nestjs/testing';
-import { MigrationPlanBuilderService } from './migration-plan-builder.service';
-import { Server } from '../../../../../modules/servers/domain/entities/server.entity';
-import { Vm } from '../../../../../modules/vms/domain/entities/vm.entity';
-import { Ilo } from '../../../../../modules/ilos/domain/entities/ilo.entity';
-import { VCenterConfig } from '../interfaces/yaml-config.interface';
+import { MigrationPlanBuilderService } from '../migration-plan-builder.service';
+import { Ilo } from '@/modules/ilos/domain/entities/ilo.entity';
+import { VCenterConfig } from '../../interfaces/yaml-config.interface';
+import { Vm } from '@/modules/vms/domain/entities/vm.entity';
 
 describe('MigrationPlanBuilderService', () => {
   let service: MigrationPlanBuilderService;
@@ -13,7 +13,9 @@ describe('MigrationPlanBuilderService', () => {
       providers: [MigrationPlanBuilderService],
     }).compile();
 
-    service = module.get<MigrationPlanBuilderService>(MigrationPlanBuilderService);
+    service = module.get<MigrationPlanBuilderService>(
+      MigrationPlanBuilderService,
+    );
   });
 
   describe('buildMigrationPlan', () => {
@@ -43,12 +45,15 @@ describe('MigrationPlanBuilderService', () => {
       ];
 
       const ilos = new Map<string, Ilo>([
-        ['ilo-1', {
-          id: 'ilo-1',
-          ip: '192.168.1.10',
-          login: 'admin',
-          password: 'password',
-        } as Ilo],
+        [
+          'ilo-1',
+          {
+            id: 'ilo-1',
+            ip: '192.168.1.10',
+            login: 'admin',
+            password: 'password',
+          } as Ilo,
+        ],
       ]);
 
       const vCenterConfig: VCenterConfig = {
@@ -58,7 +63,12 @@ describe('MigrationPlanBuilderService', () => {
         port: 443,
       };
 
-      const result = service.buildMigrationPlan(servers, vms, ilos, vCenterConfig);
+      const result = service.buildMigrationPlan(
+        servers,
+        vms,
+        ilos,
+        vCenterConfig,
+      );
 
       expect(result.vCenter).toEqual(vCenterConfig);
       expect(result.servers).toHaveLength(1);
@@ -86,29 +96,38 @@ describe('MigrationPlanBuilderService', () => {
       ];
 
       const destinationServers = new Map<string, Server>([
-        ['1', {
-          id: '2',
-          name: 'Server2',
-          vmwareHostMoid: 'host-456',
-          iloId: 'ilo-2',
-        } as Server],
+        [
+          '1',
+          {
+            id: '2',
+            name: 'Server2',
+            vmwareHostMoid: 'host-456',
+            iloId: 'ilo-2',
+          } as Server,
+        ],
       ]);
 
       const vms: Vm[] = [];
 
       const ilos = new Map<string, Ilo>([
-        ['ilo-1', {
-          id: 'ilo-1',
-          ip: '192.168.1.10',
-          login: 'admin',
-          password: 'password',
-        } as Ilo],
-        ['ilo-2', {
-          id: 'ilo-2',
-          ip: '192.168.1.11',
-          login: 'admin',
-          password: 'password',
-        } as Ilo],
+        [
+          'ilo-1',
+          {
+            id: 'ilo-1',
+            ip: '192.168.1.10',
+            login: 'admin',
+            password: 'password',
+          } as Ilo,
+        ],
+        [
+          'ilo-2',
+          {
+            id: 'ilo-2',
+            ip: '192.168.1.11',
+            login: 'admin',
+            password: 'password',
+          } as Ilo,
+        ],
       ]);
 
       const vCenterConfig: VCenterConfig = {
@@ -157,7 +176,12 @@ describe('MigrationPlanBuilderService', () => {
         port: 443,
       };
 
-      const result = service.buildMigrationPlan(servers, vms, ilos, vCenterConfig);
+      const result = service.buildMigrationPlan(
+        servers,
+        vms,
+        ilos,
+        vCenterConfig,
+      );
 
       expect(result.servers[0].server.host.ilo).toBeUndefined();
     });
@@ -182,7 +206,12 @@ describe('MigrationPlanBuilderService', () => {
         port: 443,
       };
 
-      const result = service.buildMigrationPlan(servers, vms, ilos, vCenterConfig);
+      const result = service.buildMigrationPlan(
+        servers,
+        vms,
+        ilos,
+        vCenterConfig,
+      );
 
       expect(result.servers[0].server.host.moid).toBe('');
     });

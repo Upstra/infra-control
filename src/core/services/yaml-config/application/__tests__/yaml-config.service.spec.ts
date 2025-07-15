@@ -1,12 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { YamlConfigService } from './yaml-config.service';
-import { YamlParserService } from '../domain/services/yaml-parser.service';
-import { MigrationPlanBuilderService } from '../domain/services/migration-plan-builder.service';
-import { YamlFileRepository } from '../infrastructure/yaml-file.repository';
-import { Server } from '../../../../modules/servers/domain/entities/server.entity';
-import { Vm } from '../../../../modules/vms/domain/entities/vm.entity';
-import { Ilo } from '../../../../modules/ilos/domain/entities/ilo.entity';
-import { MigrationPlanConfig } from '../domain/interfaces/yaml-config.interface';
+import { YamlConfigService } from '../yaml-config.service';
+import { YamlParserService } from '../../domain/services/yaml-parser.service';
+import { MigrationPlanBuilderService } from '../../domain/services/migration-plan-builder.service';
+import { YamlFileRepository } from '../../infrastructure/yaml-file.repository';
+import { Vm } from '@/modules/vms/domain/entities/vm.entity';
+import { MigrationPlanConfig } from '../../domain/interfaces/yaml-config.interface';
+import { Ilo } from '@/modules/ilos/domain/entities/ilo.entity';
+import { Server } from '@/modules/servers/domain/entities/server.entity';
 
 describe('YamlConfigService', () => {
   let service: YamlConfigService;
@@ -51,9 +51,11 @@ describe('YamlConfigService', () => {
 
     service = module.get<YamlConfigService>(YamlConfigService);
     yamlParserService = module.get<YamlParserService>(YamlParserService);
-    planBuilderService = module.get<MigrationPlanBuilderService>(MigrationPlanBuilderService);
+    planBuilderService = module.get<MigrationPlanBuilderService>(
+      MigrationPlanBuilderService,
+    );
     fileRepository = module.get<YamlFileRepository>(YamlFileRepository);
-    
+
     jest.clearAllMocks();
   });
 

@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { Server } from '../../../../modules/servers/domain/entities/server.entity';
-import { Vm } from '../../../../modules/vms/domain/entities/vm.entity';
-import { Ilo } from '../../../../modules/ilos/domain/entities/ilo.entity';
 import {
   MigrationPlanConfig,
   ServerMigrationConfig,
   VCenterConfig,
 } from '../interfaces/yaml-config.interface';
+import { Server } from '@/modules/servers/domain/entities/server.entity';
+import { Vm } from '@/modules/vms/domain/entities/vm.entity';
+import { Ilo } from '@/modules/ilos/domain/entities/ilo.entity';
 
 @Injectable()
 export class MigrationPlanBuilderService {
@@ -17,7 +17,7 @@ export class MigrationPlanBuilderService {
     vCenterConfig: VCenterConfig,
     destinationServers?: Map<string, Server>,
   ): MigrationPlanConfig {
-    const serverConfigs = servers.map(server =>
+    const serverConfigs = servers.map((server) =>
       this.buildServerConfig(server, vms, ilos, destinationServers),
     );
 
@@ -53,7 +53,7 @@ export class MigrationPlanBuilderService {
           }),
         },
         shutdown: {
-          vmOrder: sortedVms.map(vm => ({ vmMoId: vm.moid })),
+          vmOrder: sortedVms.map((vm) => ({ vmMoId: vm.moid })),
           delay: 60,
         },
       },
@@ -78,14 +78,17 @@ export class MigrationPlanBuilderService {
   }
 
   private getServerVms(server: Server, vms: Vm[]): Vm[] {
-    return vms.filter(vm => vm.serverId === server.id);
+    return vms.filter((vm) => vm.serverId === server.id);
   }
 
   private sortVmsByPriority(vms: Vm[]): Vm[] {
     return [...vms].sort((a, b) => a.priority - b.priority);
   }
 
-  private getServerIlo(server: Server | undefined, ilos: Map<string, Ilo>): Ilo | null {
+  private getServerIlo(
+    server: Server | undefined,
+    ilos: Map<string, Ilo>,
+  ): Ilo | null {
     if (!server?.iloId) return null;
     return ilos.get(server.iloId) || null;
   }

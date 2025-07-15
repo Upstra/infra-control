@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { YamlFileRepository } from './yaml-file.repository';
 import * as fs from 'fs/promises';
+import { YamlFileRepository } from '../yaml-file.repository';
 
 jest.mock('fs/promises');
 
@@ -27,7 +27,7 @@ describe('YamlFileRepository', () => {
 
     repository = module.get<YamlFileRepository>(YamlFileRepository);
     configService = module.get<ConfigService>(ConfigService);
-    
+
     jest.clearAllMocks();
   });
 
@@ -42,15 +42,10 @@ describe('YamlFileRepository', () => {
 
       const result = await repository.write(filename, content);
 
-      expect(fs.mkdir).toHaveBeenCalledWith(
-        '/home/upstra/ups_manager/plans',
-        { recursive: true },
-      );
-      expect(fs.writeFile).toHaveBeenCalledWith(
-        expectedPath,
-        content,
-        'utf8',
-      );
+      expect(fs.mkdir).toHaveBeenCalledWith('/home/upstra/ups_manager/plans', {
+        recursive: true,
+      });
+      expect(fs.writeFile).toHaveBeenCalledWith(expectedPath, content, 'utf8');
       expect(result).toBe(expectedPath);
     });
 
@@ -140,10 +135,9 @@ describe('YamlFileRepository', () => {
 
       const result = await repository.list();
 
-      expect(fs.mkdir).toHaveBeenCalledWith(
-        '/home/upstra/ups_manager/plans',
-        { recursive: true },
-      );
+      expect(fs.mkdir).toHaveBeenCalledWith('/home/upstra/ups_manager/plans', {
+        recursive: true,
+      });
       expect(fs.readdir).toHaveBeenCalledWith('/home/upstra/ups_manager/plans');
       expect(result).toEqual(expected);
     });

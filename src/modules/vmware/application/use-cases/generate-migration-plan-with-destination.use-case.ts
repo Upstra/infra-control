@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Server } from '../../../servers/domain/entities/server.entity';
@@ -24,6 +24,8 @@ export class GenerateMigrationPlanWithDestinationUseCase {
   ) {}
 
   async execute(destinations: MigrationDestination[]): Promise<void> {
+    this.validateDestinations(destinations);
+
     const vCenterServer = await this.serverRepository.findOne({
       where: { type: 'vcenter' },
     });
@@ -53,7 +55,7 @@ export class GenerateMigrationPlanWithDestinationUseCase {
     });
 
     const vms = await this.vmRepository.find({
-      where: { serverId: sourceServerIds },
+      where: sourceServerIds.map(id => ({ serverId: id })),
       order: { serverId: 'ASC', priority: 'ASC' },
     });
 
@@ -76,5 +78,20 @@ export class GenerateMigrationPlanWithDestinationUseCase {
 
     const filename = 'migration.yml';
     await this.yamlConfigService.writeMigrationPlan(filename, yamlContent);
+  }
+
+  private validateDestinations(destinations: MigrationDestination[]): void {
+    const sourceServerIds = destinations.map(d => d.sourceServerId);
+    const uniqueSourceServerIds = new Set(sourceServerIds);
+
+    if (sourceServerIds.length !== uniqueSourceServerIds.size) {
+      throw new BadRequestException('Each source server can have at most one destination');
+    }
+
+    destinations.forEach(({ sourceServerId, destinationServerId }) => {
+      if (sourceServerId === destinationServerId) {
+        throw new BadRequestException('Source and destination server cannot be the same');
+      }
+    });
   }
 }

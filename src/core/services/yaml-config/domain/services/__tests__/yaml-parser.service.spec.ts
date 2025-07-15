@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { YamlParserService } from './yaml-parser.service';
 import * as yaml from 'js-yaml';
-import { MigrationPlanConfig } from '../interfaces/yaml-config.interface';
+import { MigrationPlanConfig } from '../../interfaces/yaml-config.interface';
+import { YamlParserService } from '../yaml-parser.service';
 
 jest.mock('js-yaml');
 
