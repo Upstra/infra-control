@@ -14,7 +14,6 @@ import { AuditModule } from '../audit/audit.module';
 import { UpsModule } from '../ups/ups.module';
 import { PingModule } from '@/core/services/ping';
 import { PingServerUseCase } from './application/use-cases/ping-server.use-case';
-import { IsUniqueServerPriorityConstraint } from './application/validators/unique-server-priority.validator';
 
 @Module({
   controllers: [ServerController],
@@ -35,7 +34,6 @@ import { IsUniqueServerPriorityConstraint } from './application/validators/uniqu
     ...ServerUseCases,
     PingServerUseCase,
     ServerDomainService,
-    IsUniqueServerPriorityConstraint,
     {
       provide: 'ServerRepositoryInterface',
       useClass: ServerTypeormRepository,
