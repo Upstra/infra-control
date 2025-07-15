@@ -26,6 +26,8 @@ import {
   MigrateVmUseCase,
   GetHostMetricsUseCase,
   StartVMDiscoveryUseCase,
+  GetActiveDiscoverySessionUseCase,
+  GetDiscoverySessionUseCase,
 } from '../use-cases';
 import { VmPowerActionDto, VmMigrateDto } from '../dto';
 
@@ -41,6 +43,8 @@ export class VmwareController {
     private readonly migrateVmUseCase: MigrateVmUseCase,
     private readonly getHostMetricsUseCase: GetHostMetricsUseCase,
     private readonly startVMDiscoveryUseCase: StartVMDiscoveryUseCase,
+    private readonly getActiveDiscoverySessionUseCase: GetActiveDiscoverySessionUseCase,
+    private readonly getDiscoverySessionUseCase: GetDiscoverySessionUseCase,
   ) {}
 
   @Get(':serverId/vms')
@@ -209,5 +213,43 @@ export class VmwareController {
   })
   async startVMDiscovery(@Body() body?: { serverIds?: number[] }) {
     return this.startVMDiscoveryUseCase.execute({ serverIds: body?.serverIds });
+  }
+
+  @Get('discovery/active')
+  @ApiOperation({ summary: 'Get active discovery session' })
+  @ApiResponse({
+    status: 200,
+    description: 'Active discovery session retrieved successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'No active discovery session found',
+  })
+  async getActiveDiscoverySession() {
+    const session = await this.getActiveDiscoverySessionUseCase.execute();
+    
+    if (!session) {
+      return { active: false };
+    }
+
+    return {
+      active: true,
+      session,
+    };
+  }
+
+  @Get('discovery/session/:sessionId')
+  @ApiOperation({ summary: 'Get specific discovery session' })
+  @ApiParam({ name: 'sessionId', description: 'Discovery session ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Discovery session retrieved successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Discovery session not found',
+  })
+  async getDiscoverySession(@Param('sessionId') sessionId: string) {
+    return this.getDiscoverySessionUseCase.execute(sessionId);
   }
 }

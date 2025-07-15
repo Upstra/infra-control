@@ -11,12 +11,16 @@ import { MigrateVmUseCase } from './application/use-cases/migrate-vm.use-case';
 import { GetHostMetricsUseCase } from './application/use-cases/get-host-metrics.use-case';
 import { StartVMDiscoveryUseCase } from './application/use-cases/start-vm-discovery.use-case';
 import { SaveDiscoveredVmsUseCase } from './application/use-cases/save-discovered-vms.use-case';
+import { GetActiveDiscoverySessionUseCase } from './application/use-cases/get-active-discovery-session.use-case';
+import { GetDiscoverySessionUseCase } from './application/use-cases/get-discovery-session.use-case';
 import { VmwareDiscoveryGateway } from './application/gateway/vmware-discovery.gateway';
 import { VmwareDiscoveryService } from './domain/services/vmware-discovery.service';
+import { DiscoverySessionService } from './domain/services/discovery-session.service';
 import { ServerModule } from '@/modules/servers/server.module';
 import { VmModule } from '@/modules/vms/vm.module';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
 import { PermissionModule } from '@/modules/permissions/permission.module';
+import { RedisModule } from '@/modules/redis/redis.module';
 
 @Module({
   imports: [
@@ -26,11 +30,13 @@ import { PermissionModule } from '@/modules/permissions/permission.module';
     forwardRef(() => ServerModule),
     forwardRef(() => VmModule),
     PermissionModule,
+    RedisModule,
   ],
   controllers: [VmwareController],
   providers: [
     VmwareService,
     VmwareDiscoveryService,
+    DiscoverySessionService,
     VmwareDiscoveryGateway,
     ListVmsUseCase,
     GetVmMetricsUseCase,
@@ -39,6 +45,8 @@ import { PermissionModule } from '@/modules/permissions/permission.module';
     GetHostMetricsUseCase,
     StartVMDiscoveryUseCase,
     SaveDiscoveredVmsUseCase,
+    GetActiveDiscoverySessionUseCase,
+    GetDiscoverySessionUseCase,
   ],
   exports: [VmwareService, VmwareDiscoveryService, VmwareDiscoveryGateway],
 })

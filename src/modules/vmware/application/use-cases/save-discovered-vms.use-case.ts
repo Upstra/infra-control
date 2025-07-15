@@ -36,15 +36,43 @@ export class SaveDiscoveredVmsUseCase {
 
     for (const discoveredVm of discoveredVms) {
       try {
-        const existingVm = await this.vmRepository.findOneByField({
-          field: 'moid',
-          value: discoveredVm.moid,
+        const existingVm = await this.vmRepository.findOne({
+          where: {
+            moid: discoveredVm.moid,
+            serverId: discoveredVm.serverId,
+          },
         });
 
         if (existingVm) {
-          this.logger.debug(
-            `VM ${discoveredVm.name} (moid: ${discoveredVm.moid}) already exists, skipping`,
-          );
+          const hasChanges =
+            existingVm.name !== discoveredVm.name ||
+            existingVm.state !== (discoveredVm.powerState ?? 'unknown') ||
+            existingVm.ip !== discoveredVm.ip ||
+            existingVm.guestOs !== discoveredVm.guestOs ||
+            existingVm.numCPU !== discoveredVm.numCpu ||
+            existingVm.esxiHostMoid !== discoveredVm.esxiHostMoid;
+
+          if (hasChanges) {
+            existingVm.name = discoveredVm.name;
+            existingVm.state = discoveredVm.powerState ?? 'unknown';
+            existingVm.ip = discoveredVm.ip || existingVm.ip;
+            existingVm.guestOs = discoveredVm.guestOs || existingVm.guestOs;
+            existingVm.numCPU = discoveredVm.numCpu || existingVm.numCPU;
+            existingVm.esxiHostMoid =
+              discoveredVm.esxiHostMoid || existingVm.esxiHostMoid;
+
+            const updatedVm = await this.vmRepository.save(existingVm);
+            result.savedVms.push(updatedVm);
+            result.savedCount++;
+
+            this.logger.debug(
+              `Updated existing VM ${discoveredVm.name} (moid: ${discoveredVm.moid})`,
+            );
+          } else {
+            this.logger.debug(
+              `VM ${discoveredVm.name} (moid: ${discoveredVm.moid}) already exists with no changes, skipping`,
+            );
+          }
           continue;
         }
 

@@ -98,6 +98,18 @@ export class RedisSafeService {
     }
   }
 
+  async safeSetEx(key: string, seconds: number, value: string) {
+    const client = this.redisClient;
+    if (!client) return;
+    try {
+      await client.setex(key, seconds, value);
+    } catch (e) {
+      this.online = false;
+      this.logger.error('Erreur Redis: ' + e.message);
+      this.scheduleReconnect();
+    }
+  }
+
   /**
    * Retrieve all keys matching the provided pattern.
    *

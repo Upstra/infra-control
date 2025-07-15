@@ -6,6 +6,7 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Group } from '../../../groups/domain/entities/group.entity';
@@ -13,6 +14,7 @@ import { Server } from '../../../servers/domain/entities/server.entity';
 import { PermissionVm } from '../../../permissions/domain/entities/permission.vm.entity';
 
 @Entity('vm')
+@Index(['moid', 'serverId'], { unique: true, where: 'moid IS NOT NULL' })
 export class Vm extends BaseEntity {
   @ApiProperty()
   @PrimaryGeneratedColumn('uuid')

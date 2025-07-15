@@ -11,6 +11,7 @@ import {
 } from '../../application/dto';
 import { VmwareConnectionDto } from '../../application/dto/vmware-connection.dto';
 import { SaveDiscoveredVmsUseCase } from '../../application/use-cases/save-discovered-vms.use-case';
+import { DiscoverySessionService } from './discovery-session.service';
 
 export interface ServerDiscoveryResult {
   serverId: string;
@@ -32,6 +33,7 @@ export class VmwareDiscoveryService {
     @Inject('ServerRepositoryInterface')
     private readonly serverRepository: ServerRepositoryInterface,
     private readonly saveDiscoveredVmsUseCase: SaveDiscoveredVmsUseCase,
+    private readonly discoverySessionService: DiscoverySessionService,
   ) {}
 
   async discoverVmsFromServers(
@@ -49,6 +51,12 @@ export class VmwareDiscoveryService {
       return this.createEmptyResults();
     }
 
+    // Create session in Redis
+    await this.discoverySessionService.createSession(
+      sessionId,
+      vmwareServers.length,
+    );
+
     this.emitProgress(sessionId, {
       status: DiscoveryStatus.STARTING,
       totalServers: vmwareServers.length,
@@ -62,13 +70,18 @@ export class VmwareDiscoveryService {
     for (let i = 0; i < vmwareServers.length; i++) {
       const server = vmwareServers[i];
 
-      this.emitProgress(sessionId, {
+      const progressData = {
         status: DiscoveryStatus.DISCOVERING,
         currentServer: server.name,
         progress: (i / vmwareServers.length) * 100,
         serversProcessed: i,
         totalServers: vmwareServers.length,
-      });
+      };
+
+      // Update session in Redis
+      await this.discoverySessionService.updateSession(sessionId, progressData);
+
+      this.emitProgress(sessionId, progressData);
 
       const result = await this.discoverVmsFromServer(server);
       serverResults.push(result);
@@ -80,6 +93,21 @@ export class VmwareDiscoveryService {
           await this.updateServerHostMoid(server.id, result.hostMoid);
         }
       }
+
+      const updateData = {
+        progress: ((i + 1) / vmwareServers.length) * 100,
+        serversProcessed: i + 1,
+        successfulServers: serverResults.filter((r) => r.success).length,
+        failedServers: serverResults.filter((r) => !r.success).length,
+        totalVmsDiscovered: allDiscoveredVms.length,
+        serverResults,
+        failedServerIds: serverResults
+          .filter((r) => !r.success)
+          .map((r) => r.serverId),
+      };
+
+      // Update session with results
+      await this.discoverySessionService.updateSession(sessionId, updateData);
 
       this.emitProgress(sessionId, {
         status: result.success
@@ -109,7 +137,7 @@ export class VmwareDiscoveryService {
 
     if (allDiscoveredVms.length > 0) {
       this.logger.log('Saving discovered VMs to database...');
-      
+
       // Log all discovered VMs before saving
       this.logger.log(`Discovered ${allDiscoveredVms.length} VMs to save:`);
       allDiscoveredVms.forEach((vm, index) => {
@@ -122,15 +150,14 @@ export class VmwareDiscoveryService {
         this.logger.log(`  - Power State: ${vm.powerState || 'N/A'}`);
         this.logger.log(`  - Guest OS: ${vm.guestOs || 'N/A'}`);
       });
-      
+
       try {
-        const saveResult = await this.saveDiscoveredVmsUseCase.execute(
-          allDiscoveredVms,
-        );
+        const saveResult =
+          await this.saveDiscoveredVmsUseCase.execute(allDiscoveredVms);
         this.logger.log(
           `Saved ${saveResult.savedCount} VMs to database (${saveResult.failedCount} failed)`,
         );
-        
+
         if (saveResult.errors.length > 0) {
           this.logger.warn('Some VMs failed to save:', saveResult.errors);
         }
@@ -138,6 +165,17 @@ export class VmwareDiscoveryService {
         this.logger.error('Failed to save discovered VMs:', error);
       }
     }
+
+    await this.discoverySessionService.completeSession(sessionId, {
+      totalVmsDiscovered: finalResults.totalVmsDiscovered,
+      serversProcessed: finalResults.totalServersProcessed,
+      successfulServers: finalResults.successfulServers,
+      failedServers: finalResults.failedServers,
+      serverResults: finalResults.serverResults,
+      failedServerIds: serverResults
+        .filter((r) => !r.success)
+        .map((r) => r.serverId),
+    });
 
     this.discoveryGateway.emitDiscoveryComplete(sessionId, finalResults);
     this.logger.log(
@@ -205,7 +243,7 @@ export class VmwareDiscoveryService {
     this.logger.debug(`- Login: ${server.login}`);
     this.logger.debug(`- Password exists: ${!!server.password}`);
     this.logger.debug(`- Password length: ${server.password?.length ?? 0}`);
-    
+
     return {
       host: server.ip,
       user: server.login,
