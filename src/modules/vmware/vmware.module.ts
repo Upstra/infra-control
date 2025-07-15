@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { PythonExecutorModule } from '@/core/services/python-executor/python-executor.module';
+import { YamlConfigModule } from '@/core/services/yaml-config/yaml-config.module';
 import { VmwareController } from './application/controllers/vmware.controller';
 import { VmwareService } from './domain/services/vmware.service';
 import { MigrationOrchestratorService } from './domain/services/migration-orchestrator.service';
@@ -19,6 +20,7 @@ import { ExecuteMigrationPlanUseCase } from './application/use-cases/execute-mig
 import { ExecuteRestartPlanUseCase } from './application/use-cases/execute-restart-plan.use-case';
 import { GetMigrationStatusUseCase } from './application/use-cases/get-migration-status.use-case';
 import { ClearMigrationDataUseCase } from './application/use-cases/clear-migration-data.use-case';
+import { GenerateMigrationPlanWithDestinationUseCase } from './application/use-cases/generate-migration-plan-with-destination.use-case';
 import { VmwareDiscoveryGateway } from './application/gateway/vmware-discovery.gateway';
 import { MigrationGateway } from './application/gateway/migration.gateway';
 import { VmwareDiscoveryService } from './domain/services/vmware-discovery.service';
@@ -26,6 +28,8 @@ import { DiscoverySessionService } from './domain/services/discovery-session.ser
 import { ServerModule } from '@/modules/servers/server.module';
 import { VmModule } from '@/modules/vms/vm.module';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
+import { Vm } from '@/modules/vms/domain/entities/vm.entity';
+import { Ilo } from '@/modules/ilos/domain/entities/ilo.entity';
 import { PermissionModule } from '@/modules/permissions/permission.module';
 import { RedisModule } from '@/modules/redis/redis.module';
 import { PresenceModule } from '@/modules/presence/presence.module';
@@ -35,7 +39,8 @@ import { PresenceModule } from '@/modules/presence/presence.module';
     ConfigModule,
     EventEmitterModule.forRoot(),
     PythonExecutorModule,
-    TypeOrmModule.forFeature([Server]),
+    YamlConfigModule,
+    TypeOrmModule.forFeature([Server, Vm, Ilo]),
     forwardRef(() => ServerModule),
     forwardRef(() => VmModule),
     PermissionModule,
@@ -63,6 +68,7 @@ import { PresenceModule } from '@/modules/presence/presence.module';
     ExecuteRestartPlanUseCase,
     GetMigrationStatusUseCase,
     ClearMigrationDataUseCase,
+    GenerateMigrationPlanWithDestinationUseCase,
   ],
   exports: [VmwareService, VmwareDiscoveryService, VmwareDiscoveryGateway, MigrationOrchestratorService],
 })

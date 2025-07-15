@@ -3,18 +3,17 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { Server } from '../../../servers/domain/entities/server.entity';
 import { SwapServerResponseDto } from '../dto/swap-response.dto';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
+import { GenerateMigrationPlanUseCase } from './generate-migration-plan.use-case';
 
 @Injectable()
 export class SwapServerPrioritiesUseCase {
   constructor(
-    @InjectRepository(Server)
-    serverRepository: Repository<Server>,
     private readonly logHistory: LogHistoryUseCase,
+    private readonly generateMigrationPlan: GenerateMigrationPlanUseCase,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -58,6 +57,8 @@ export class SwapServerPrioritiesUseCase {
         'SWAP_PRIORITY',
         userId,
       );
+
+      await this.generateMigrationPlan.execute();
 
       return {
         server1: { id: server1.id, priority: server1.priority },
