@@ -6,10 +6,7 @@ import {
   ServerNotFoundException,
   ServerRetrievalException,
 } from '../../domain/exceptions/server.exception';
-import {
-  FindOneByFieldOptions,
-  FindAllByFieldOptions,
-} from '@/core/utils/index';
+import { FindOneByFieldOptions, FindAllByFieldOptions } from '@/core/utils';
 import { InvalidQueryValueException } from '@/core/exceptions/repository.exception';
 import { PrimitiveFields } from '@/core/types/primitive-fields.interface';
 
@@ -115,21 +112,22 @@ export class ServerTypeormRepository
   }
 
   async findServerById(id: string): Promise<Server> {
+    let server: Server;
     try {
-      const server = await this.findOne({
+      server = await this.findOne({
         where: { id },
         relations: ['ilo', 'group', 'room', 'ups', 'vms'],
       });
-      if (!server) {
-        throw new ServerNotFoundException(id);
-      }
-      return server;
     } catch (error) {
       this.logger.error(`Error retrieving server with id ${id}:`, error);
       throw new ServerRetrievalException(
         `Error retrieving server with id ${id}`,
       );
     }
+    if (!server) {
+      throw new ServerNotFoundException(id);
+    }
+    return server;
   }
 
   async deleteServer(id: string): Promise<void> {

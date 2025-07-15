@@ -3,7 +3,7 @@ import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { GetServerPrioritiesUseCase } from '../get-server-priorities.use-case';
 import { Server } from '../../../../servers/domain/entities/server.entity';
-import { GetUserServerPermissionsUseCase } from '../../../../permissions/application/use-cases/permission-server';
+import { GetUserServerPermissionsUseCase } from '../../../../permissions/application/use-cases';
 import { PermissionBit } from '../../../../permissions/domain/value-objects/permission-bit.enum';
 
 describe('GetServerPrioritiesUseCase', () => {

@@ -4,7 +4,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { SwapServerPrioritiesUseCase } from '../swap-server-priorities.use-case';
 import { Server } from '../../../../servers/domain/entities/server.entity';
-import { GetUserServerPermissionsUseCase } from '../../../../permissions/application/use-cases/permission-server';
+import { GetUserServerPermissionsUseCase } from '../../../../permissions/application/use-cases';
 import { LogHistoryUseCase } from '../../../../history/application/use-cases';
 import { PermissionBit } from '../../../../permissions/domain/value-objects/permission-bit.enum';
 

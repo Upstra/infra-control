@@ -1,4 +1,4 @@
-import { FindOneByFieldOptions } from '../utils/index';
+import { FindOneByFieldOptions } from '@/core/utils';
 
 export interface GenericRepositoryInterface<T> {
   count(): Promise<number>;

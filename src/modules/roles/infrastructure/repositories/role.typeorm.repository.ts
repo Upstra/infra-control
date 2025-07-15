@@ -8,6 +8,7 @@ import {
 } from '../../domain/exceptions/role.exception';
 import { FindOneByFieldOptions } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { InvalidQueryValueException } from '@/core/exceptions/repository.exception';
+
 @Injectable()
 export class RoleTypeormRepository
   extends Repository<Role>
@@ -20,7 +21,7 @@ export class RoleTypeormRepository
   async findByName(name: string): Promise<Role> {
     const role = await this.findOne({
       where: { name },
-      relations: ['users', 'permissionServers', 'permissionVms'],
+      relations: ['users', 'permissionServers'],
     });
     if (!role) {
       throw new RoleNotFoundException(name);
@@ -30,7 +31,7 @@ export class RoleTypeormRepository
 
   async findAll(): Promise<Role[]> {
     return await this.find({
-      relations: ['users', 'permissionServers', 'permissionVms'],
+      relations: ['users', 'permissionServers'],
     });
   }
 
@@ -78,7 +79,6 @@ export class RoleTypeormRepository
       name,
       users: [],
       permissionServers: [],
-      permissionVms: [],
     });
     return await this.save(role);
   }
@@ -113,7 +113,7 @@ export class RoleTypeormRepository
     }
     return await this.find({
       where: ids.map((id) => ({ id })),
-      relations: ['users', 'permissionServers', 'permissionVms'],
+      relations: ['users', 'permissionServers'],
     });
   }
 }

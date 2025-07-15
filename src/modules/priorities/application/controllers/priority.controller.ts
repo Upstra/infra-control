@@ -14,17 +14,12 @@ import {
 } from '@/core/decorators/logging-context.decorator';
 import {
   GetServerPrioritiesUseCase,
-  GetVmPrioritiesUseCase,
   SwapServerPrioritiesUseCase,
-  SwapVmPrioritiesUseCase,
 } from '../use-cases';
 import {
   ServerPriorityResponseDto,
-  VmPriorityResponseDto,
   SwapServerPriorityDto,
-  SwapVmPriorityDto,
   SwapServerResponseDto,
-  SwapVmResponseDto,
 } from '../dto';
 
 @ApiTags('priorities')
@@ -34,9 +29,7 @@ import {
 export class PriorityController {
   constructor(
     private readonly getServerPriorities: GetServerPrioritiesUseCase,
-    private readonly getVmPriorities: GetVmPrioritiesUseCase,
     private readonly swapServerPriorities: SwapServerPrioritiesUseCase,
-    private readonly swapVmPriorities: SwapVmPrioritiesUseCase,
   ) {}
 
   @Get('servers')
@@ -57,26 +50,6 @@ export class PriorityController {
     @CurrentUser() user: JwtPayload,
   ): Promise<ServerPriorityResponseDto[]> {
     return this.getServerPriorities.execute(user.userId);
-  }
-
-  @Get('vms')
-  @ApiOperation({
-    summary: 'Get all VMs with priorities',
-    description: 'Returns VMs filtered by user permissions',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'List of VMs with priorities',
-    type: [VmPriorityResponseDto],
-  })
-  @UseLoggingContext({
-    entityType: 'vm-priority',
-    action: 'LIST',
-  })
-  async getVmPrioritiesList(
-    @CurrentUser() user: JwtPayload,
-  ): Promise<VmPriorityResponseDto[]> {
-    return this.getVmPriorities.execute(user.userId);
   }
 
   @Post('servers/swap')
@@ -122,46 +95,5 @@ export class PriorityController {
       dto.server2Id,
       user.userId,
     );
-  }
-
-  @Post('vms/swap')
-  @ApiOperation({
-    summary: 'Swap priorities between two VMs',
-    description: 'Atomically exchanges priority values between two VMs',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Priorities successfully swapped',
-    type: SwapVmResponseDto,
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Insufficient permissions on one or both VMs',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'One or both VMs not found',
-  })
-  @LogToHistory('vm-priority', 'SWAP', {
-    extractEntityId: (data) => `${data.vm1.id}-${data.vm2.id}`,
-    extractMetadata: (data) => ({
-      vm1: {
-        id: data.vm1.id,
-        name: data.vm1.name,
-        oldPriority: data.vm1.priority,
-      },
-      vm2: {
-        id: data.vm2.id,
-        name: data.vm2.name,
-        oldPriority: data.vm2.priority,
-      },
-      swapType: 'vm_priority_swap',
-    }),
-  })
-  async swapVmPrioritiesHandler(
-    @Body() dto: SwapVmPriorityDto,
-    @CurrentUser() user: JwtPayload,
-  ): Promise<SwapVmResponseDto> {
-    return this.swapVmPriorities.execute(dto.vm1Id, dto.vm2Id, user.userId);
   }
 }

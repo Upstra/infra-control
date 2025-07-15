@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { setupSwagger } from './core/config/swagger.config';
 import { setupValidationPipe } from './core/config/validation.config';
 import { Logger } from '@nestjs/common';
-import { registerAllGlobalFilters } from './core/utils/index';
+import { registerAllGlobalFilters } from '@/core/utils';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { parseEnvInt } from './core/utils/env-validation.util';
@@ -52,7 +52,10 @@ async function bootstrap() {
   app.use(cookieParser());
   app.useGlobalPipes(setupValidationPipe());
   const corsOptions: CorsOptions = {
-    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       const allowedOrigins = [
         process.env.FRONTEND_URL ?? 'http://localhost',
         'http://localhost',

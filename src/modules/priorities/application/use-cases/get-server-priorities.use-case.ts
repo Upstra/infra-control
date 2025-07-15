@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Server } from '../../../servers/domain/entities/server.entity';
 import { ServerPriorityResponseDto } from '../dto/server-priority-response.dto';
-import { GetUserServerPermissionsUseCase } from '../../../permissions/application/use-cases/permission-server';
+import { GetUserServerPermissionsUseCase } from '../../../permissions/application/use-cases';
 import { PermissionBit } from '../../../permissions/domain/value-objects/permission-bit.enum';
 @Injectable()
 export class GetServerPrioritiesUseCase {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { PermissionCheckStrategy } from './permission-strategy.interface';
-import { GetUserServerPermissionsUseCase } from '@/modules/permissions/application/use-cases/permission-server/get-user-permission-server-use-case';
-import { PermissionUtils } from '@/core/utils/index';
+import { PermissionCheckStrategy } from '@/core/guards';
+import { GetUserServerPermissionsUseCase } from '@modules/permissions/application/use-cases/get-user-permission-server-use-case';
+import { PermissionUtils } from '@/core/utils';
 
 @Injectable()
 export class ServerPermissionStrategy implements PermissionCheckStrategy {

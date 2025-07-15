@@ -1,7 +1,4 @@
-import {
-  createMockPermissionServer,
-  createMockPermissionVm,
-} from '@/modules/permissions/__mocks__/permissions.mock';
+import { createMockPermissionServer } from '@/modules/permissions/__mocks__/permissions.mock';
 import { Role } from '../domain/entities/role.entity';
 
 export const createMockRole = (overrides: Partial<Role> = {}): Role => {
@@ -10,7 +7,6 @@ export const createMockRole = (overrides: Partial<Role> = {}): Role => {
     name: 'ADMIN',
     users: [],
     permissionServers: [createMockPermissionServer()],
-    permissionVms: [createMockPermissionVm()],
     canCreateServer: true,
     isAdmin: true,
     ...overrides,

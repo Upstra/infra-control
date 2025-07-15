@@ -10,7 +10,7 @@ import { Reflector } from '@nestjs/core';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 
-import { PermissionStrategyFactory } from './strategies/permission-strategy.interface';
+import { PermissionStrategyFactory } from '@/core/guards/strategies';
 import {
   RESOURCE_PERMISSION_KEY,
   ResourcePermissionMetadata,

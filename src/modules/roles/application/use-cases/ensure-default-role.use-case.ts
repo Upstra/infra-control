@@ -47,7 +47,7 @@ export class EnsureDefaultRoleUseCase {
           field: 'name',
           value: 'ADMIN',
           disableThrow: true,
-          relations: ['users', 'permissionServers', 'permissionVms'],
+          relations: ['users', 'permissionServers'],
         });
 
         if (!admin.canCreateServer) {
@@ -70,7 +70,7 @@ export class EnsureDefaultRoleUseCase {
       field: 'name',
       value: 'GUEST',
       disableThrow: true,
-      relations: ['users', 'permissionServers', 'permissionVms'],
+      relations: ['users', 'permissionServers'],
     });
 
     if (!guest) {

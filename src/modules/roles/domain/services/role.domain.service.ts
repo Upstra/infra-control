@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Role } from '../entities/role.entity';
 import { PermissionServer } from '../../../permissions/domain/entities/permission.server.entity';
-import { PermissionVm } from '../../../permissions/domain/entities/permission.vm.entity';
 import { RoleCreationDto } from '../../application/dto';
 import { AdminRoleCreationDto } from '../../application/dto/role.creation.dto';
 import { RoleUpdateDto } from '../../application/dto/role.update.dto';
@@ -26,25 +25,17 @@ import { RoleUpdateDto } from '../../application/dto/role.update.dto';
 
 @Injectable()
 export class RoleDomainService {
-  createAdminRoleEntity(
-    permissionServer: PermissionServer,
-    permissionVm: PermissionVm,
-  ): Role {
+  createAdminRoleEntity(permissionServer: PermissionServer): Role {
     const role = new Role();
     role.name = 'ADMIN';
     role.permissionServers = [permissionServer];
-    role.permissionVms = [permissionVm];
     return role;
   }
 
-  createGuestRole(
-    permissionServer: PermissionServer,
-    permissionVm: PermissionVm,
-  ): Role {
+  createGuestRole(permissionServer: PermissionServer): Role {
     const role = new Role();
     role.name = 'GUEST';
     role.permissionServers = [permissionServer];
-    role.permissionVms = [permissionVm];
     return role;
   }
 

@@ -1,8 +1,8 @@
-import { ServerPermissionStrategy } from '../server-permission.strategy';
-import { GetUserServerPermissionsUseCase } from '@/modules/permissions/application/use-cases/permission-server/get-user-permission-server-use-case';
-import { PermissionUtils } from '@/core/utils/index';
+import { ServerPermissionStrategy } from '@/core/guards';
+import { GetUserServerPermissionsUseCase } from '@modules/permissions/application/use-cases/get-user-permission-server-use-case';
+import { PermissionUtils } from '@/core/utils';
 
-jest.mock('@/core/utils/index', () => ({
+jest.mock('@/core/utils', () => ({
   PermissionUtils: {
     has: jest.fn(),
   },

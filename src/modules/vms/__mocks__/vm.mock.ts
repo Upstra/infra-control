@@ -1,6 +1,6 @@
 import { Vm } from '../domain/entities/vm.entity';
 import { Group } from '@/modules/groups/domain/entities/group.entity';
-import { VmResponseDto } from '../application/dto/vm.response.dto';
+import { VmResponseDto } from '@modules/vms/application/dto';
 
 export const createMockVm = (partial?: Partial<Vm>): Vm => {
   const vm = new Vm();
@@ -19,7 +19,6 @@ export const createMockVm = (partial?: Partial<Vm>): Vm => {
   vm.server = partial?.server || undefined;
   vm.groupId = partial?.groupId || 'group-vm-1';
   vm.group = partial?.group || ({} as Group);
-  vm.permissions = partial?.permissions || [];
 
   return vm;
 };

@@ -1,5 +1,5 @@
 import { INestApplication, Logger } from '@nestjs/common';
-import { CoreFilters } from '../filters/index';
+import { CoreFilters } from '@/core/filters';
 
 export function registerAllGlobalFilters(app: INestApplication): void {
   const logger = new Logger('GlobalFilterLoader');

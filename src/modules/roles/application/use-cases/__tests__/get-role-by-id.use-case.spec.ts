@@ -23,7 +23,7 @@ describe('GetRoleByIdUseCase', () => {
     expect(roleRepository.findOneByField).toHaveBeenCalledWith({
       field: 'id',
       value: 'role-uuid',
-      relations: ['users', 'permissionServers', 'permissionVms'],
+      relations: ['users', 'permissionServers'],
     });
     expect(result.name).toBe('ADMIN');
   });

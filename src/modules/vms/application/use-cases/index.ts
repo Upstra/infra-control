@@ -6,7 +6,6 @@ import { UpdateVmUseCase } from './update-vm.use-case';
 import { DeleteVmUseCase } from './delete-vm.use-case';
 import { GetVmListUseCase } from './get-vm-list.use-case';
 import { UpdateVmPriorityUseCase } from './update-vm-priority.use-case';
-import { CheckVmPermissionUseCase } from './check-vm-permission.use-case';
 
 export const VmUseCase = [
   GetVmListUseCase,
@@ -17,7 +16,6 @@ export const VmUseCase = [
   UpdateVmUseCase,
   DeleteVmUseCase,
   UpdateVmPriorityUseCase,
-  CheckVmPermissionUseCase,
 ];
 
 export {
@@ -29,5 +27,4 @@ export {
   DeleteVmUseCase,
   GetVmListUseCase,
   UpdateVmPriorityUseCase,
-  CheckVmPermissionUseCase,
 };

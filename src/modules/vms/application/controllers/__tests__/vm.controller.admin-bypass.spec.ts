@@ -15,7 +15,6 @@ import {
   GetVmListUseCase,
   GetVmByIdUseCase,
   GetAllVmsAdminUseCase,
-  CheckVmPermissionUseCase,
 } from '../../use-cases';
 import { Reflector } from '@nestjs/core';
 import { GetUserWithRoleUseCase } from '@/modules/users/application/use-cases/get-user-with-role.use-case';
@@ -119,10 +118,6 @@ describe('VmController - Admin Bypass Tests', () => {
         },
         {
           provide: GetAllVmsAdminUseCase,
-          useValue: { execute: jest.fn() },
-        },
-        {
-          provide: CheckVmPermissionUseCase,
           useValue: { execute: jest.fn() },
         },
         {

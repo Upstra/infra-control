@@ -8,7 +8,6 @@ import {
 } from 'typeorm';
 import { User } from '../../../users/domain/entities/user.entity';
 import { PermissionServer } from '../../../permissions/domain/entities/permission.server.entity';
-import { PermissionVm } from '../../../permissions/domain/entities/permission.vm.entity';
 
 @Entity('role')
 export class Role extends BaseEntity {
@@ -25,11 +24,6 @@ export class Role extends BaseEntity {
     cascade: ['insert'],
   })
   permissionServers: PermissionServer[];
-
-  @OneToMany(() => PermissionVm, (permission) => permission.role, {
-    cascade: ['insert'],
-  })
-  permissionVms: PermissionVm[];
 
   @Column({ default: false })
   canCreateServer: boolean;

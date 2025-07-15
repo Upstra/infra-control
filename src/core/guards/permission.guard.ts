@@ -10,10 +10,9 @@ import {
   PermissionTarget,
 } from '@/core/decorators/permission.decorator';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
-import { PermissionUtils } from '@/core/utils/index';
+import { PermissionUtils } from '@/core/utils';
 import { ExpressRequestWithUser } from '../types/express-with-user.interface';
-import { GetUserServerPermissionsUseCase } from '@/modules/permissions/application/use-cases/permission-server/get-user-permission-server-use-case';
-import { GetUserVmPermissionsUseCase } from '@/modules/permissions/application/use-cases/permission-vm';
+import { GetUserServerPermissionsUseCase } from '@modules/permissions/application/use-cases/get-user-permission-server-use-case';
 
 // TODO: ADMIN ROLES SHOULD BYPASS THIS GUARD
 @Injectable()
@@ -21,7 +20,6 @@ export class PermissionGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly getUserServerPermissionsUseCase: GetUserServerPermissionsUseCase,
-    private readonly getUserVmPermissionsUseCase: GetUserVmPermissionsUseCase,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -40,20 +38,13 @@ export class PermissionGuard implements CanActivate {
       userWithRole = await this.getUserServerPermissionsUseCase.execute(
         user.userId,
       );
-    } else if (type === 'vm') {
-      userWithRole = await this.getUserVmPermissionsUseCase.execute(
-        user.userId,
-      );
     } else {
       throw new ForbiddenException('Invalid permission type');
     }
 
     if (!userWithRole) throw new ForbiddenException('No role found');
 
-    const permissionList =
-      type === 'server'
-        ? userWithRole.permissionServers
-        : userWithRole.permissionVms;
+    const permissionList = userWithRole.permissionServers;
     const allowed = permissionList.some((perm) =>
       PermissionUtils.has(perm.bitmask, requiredBit),
     );

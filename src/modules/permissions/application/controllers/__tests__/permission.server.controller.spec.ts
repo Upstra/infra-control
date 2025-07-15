@@ -11,7 +11,7 @@ import {
   GetPermissionsServerByRoleUseCase,
   UpdatePermissionServerUseCase,
   GetUserServerPermissionsUseCase,
-} from '../../use-cases/permission-server';
+} from '../../use-cases';
 import {
   BatchPermissionServerDto,
   BatchPermissionServerResponseDto,

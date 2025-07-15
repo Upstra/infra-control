@@ -8,7 +8,6 @@ import {
   CannotDeleteLastAdminRoleException,
   RoleNotFoundException,
 } from '../exceptions/role.exception';
-import { PermissionVmRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.vm.repository.interface';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
 
 @Injectable()
@@ -20,8 +19,6 @@ export class SafeRoleDeletionDomainService {
     private readonly userRepository: UserRepositoryInterface,
     @Inject('RoleRepositoryInterface')
     private readonly roleRepository: RoleRepositoryInterface,
-    @Inject('PermissionVmRepositoryInterface')
-    private readonly permissionVmRepository: PermissionVmRepositoryInterface,
     @Inject('PermissionServerRepositoryInterface')
     private readonly permissionServerRepository: PermissionServerRepositoryInterface,
   ) {}
@@ -97,7 +94,6 @@ export class SafeRoleDeletionDomainService {
 
     try {
       await Promise.all([
-        this.permissionVmRepository.deleteByRoleId(roleId),
         this.permissionServerRepository.deleteByRoleId(roleId),
       ]);
 

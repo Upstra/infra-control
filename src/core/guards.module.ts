@@ -1,14 +1,13 @@
 import { Module, Global, forwardRef } from '@nestjs/common';
 
-import { PermissionGuard } from './guards/permission.guard';
-import { RoleGuard } from './guards/role.guard';
+import { PermissionGuard } from '@/core/guards';
+import { RoleGuard } from '@/core/guards';
 
-import { ServerPermissionStrategy } from './guards/strategies/server-permission.strategy';
-import { VmPermissionStrategy } from './guards/strategies/vm-permission.strategy';
-import { PermissionStrategyFactoryImpl } from './guards/strategies/permission-strategy.factory';
+import { ServerPermissionStrategy } from '@/core/guards';
+import { PermissionStrategyFactoryImpl } from '@/core/guards';
 import { UserModule } from '@/modules/users/user.module';
 import { PermissionModule } from '@/modules/permissions/permission.module';
-import { ResourcePermissionGuard } from './guards/ressource-permission.guard';
+import { ResourcePermissionGuard } from '@/core/guards';
 
 @Global()
 @Module({
@@ -18,7 +17,6 @@ import { ResourcePermissionGuard } from './guards/ressource-permission.guard';
     RoleGuard,
     ResourcePermissionGuard,
     ServerPermissionStrategy,
-    VmPermissionStrategy,
     {
       provide: 'PermissionStrategyFactory',
       useClass: PermissionStrategyFactoryImpl,

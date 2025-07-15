@@ -1,6 +1,6 @@
 import { GenericRepositoryInterface } from '@/core/types/generic-repository.interface';
 import { Permission } from '../../domain/entities/permission.entity';
-import { FindOneByFieldOptions } from '@/core/utils/index';
+import { FindOneByFieldOptions } from '@/core/utils';
 
 export interface PermissionRepositoryInterface<T extends Permission>
   extends GenericRepositoryInterface<T> {

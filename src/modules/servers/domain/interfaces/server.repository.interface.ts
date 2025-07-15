@@ -1,4 +1,4 @@
-import { FindAllByFieldOptions } from '@/core/utils/index';
+import { FindAllByFieldOptions } from '@/core/utils';
 import { Server } from '../entities/server.entity';
 import { PrimitiveFields } from '@/core/types/primitive-fields.interface';
 import { GenericRepositoryInterface } from '@/core/types/generic-repository.interface';

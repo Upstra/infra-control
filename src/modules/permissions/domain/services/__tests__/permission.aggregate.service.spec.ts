@@ -1,8 +1,5 @@
 import { PermissionAggregateService } from '../permission.aggregate.service';
-import {
-  createMockPermissionServer,
-  createMockPermissionVm,
-} from '@/modules/permissions/__mocks__/permissions.mock';
+import { createMockPermissionServer } from '@/modules/permissions/__mocks__/permissions.mock';
 import { PermissionBit } from '../../value-objects/permission-bit.enum';
 
 describe('PermissionAggregateService', () => {
@@ -39,22 +36,5 @@ describe('PermissionAggregateService', () => {
       PermissionBit.RESTART | PermissionBit.SHUTDOWN,
     );
     expect(result).toHaveLength(3);
-  });
-
-  it('aggregates vm permissions by vmId', () => {
-    const perms = [
-      createMockPermissionVm({ vmId: 'vm1', bitmask: PermissionBit.READ }),
-      createMockPermissionVm({ vmId: 'vm1', bitmask: PermissionBit.DELETE }),
-      createMockPermissionVm({
-        vmId: undefined,
-        bitmask: PermissionBit.RESTART,
-      }),
-    ];
-    const result = PermissionAggregateService.aggregateVms(perms);
-    const vm1 = result.find((p) => p.vmId === 'vm1');
-    const global = result.find((p) => !p.vmId);
-    expect(vm1?.bitmask).toBe(PermissionBit.READ | PermissionBit.DELETE);
-    expect(global?.bitmask).toBe(PermissionBit.RESTART);
-    expect(result).toHaveLength(2);
   });
 });

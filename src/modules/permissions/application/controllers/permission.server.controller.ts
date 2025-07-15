@@ -26,13 +26,13 @@ import {
   BatchPermissionServerDto,
   BatchPermissionServerResponseDto,
 } from '../dto/batch-permission.server.dto';
-import { CreatePermissionServerUseCase } from '../use-cases/permission-server/create-permission-server.use-case';
-import { CreateBatchPermissionServerUseCase } from '../use-cases/permission-server/create-batch-permission-server.use-case';
-import { GetPermissionsServerByRoleUseCase } from '../use-cases/permission-server/get-permission-server-by-role.use-case';
-import { GetPermissionServerByIdsUseCase } from '../use-cases/permission-server/get-permission-server-by-ids.use-case';
-import { UpdatePermissionServerUseCase } from '../use-cases/permission-server/update-permission-server.use-case';
-import { DeletePermissionServerUseCase } from '../use-cases/permission-server/delete-permission-server.use-case';
-import { GetUserServerPermissionsUseCase } from '../use-cases/permission-server/get-user-permission-server-use-case';
+import { CreatePermissionServerUseCase } from '../use-cases/create-permission-server.use-case';
+import { CreateBatchPermissionServerUseCase } from '../use-cases/create-batch-permission-server.use-case';
+import { GetPermissionsServerByRoleUseCase } from '../use-cases/get-permission-server-by-role.use-case';
+import { GetPermissionServerByIdsUseCase } from '../use-cases/get-permission-server-by-ids.use-case';
+import { UpdatePermissionServerUseCase } from '../use-cases/update-permission-server.use-case';
+import { DeletePermissionServerUseCase } from '../use-cases/delete-permission-server.use-case';
+import { GetUserServerPermissionsUseCase } from '../use-cases/get-user-permission-server-use-case';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';

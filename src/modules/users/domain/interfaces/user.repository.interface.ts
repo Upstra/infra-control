@@ -1,7 +1,4 @@
-import {
-  FindOneByFieldOptions,
-  FindAllByFieldOptions,
-} from '@/core/utils/index';
+import { FindOneByFieldOptions, FindAllByFieldOptions } from '@/core/utils';
 import { PrimitiveFields } from '@/core/types/primitive-fields.interface';
 import { User } from '../entities/user.entity';
 import { GenericRepositoryInterface } from '@/core/types/generic-repository.interface';

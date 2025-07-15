@@ -29,7 +29,7 @@ export class GetRoleByIdUseCase {
     const role = await this.roleRepository.findOneByField({
       field: 'id',
       value: id,
-      relations: ['users', 'permissionServers', 'permissionVms'],
+      relations: ['users', 'permissionServers'],
     });
     return new RoleResponseDto(role);
   }

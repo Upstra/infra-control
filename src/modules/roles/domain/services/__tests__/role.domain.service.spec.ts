@@ -1,8 +1,5 @@
 import { RoleDomainService } from '../role.domain.service';
-import {
-  createMockPermissionServer,
-  createMockPermissionVm,
-} from '@/modules/permissions/__mocks__/permissions.mock';
+import { createMockPermissionServer } from '@/modules/permissions/__mocks__/permissions.mock';
 import { RoleCreationDto } from '@/modules/roles/application/dto/role.creation.dto';
 import { AdminRoleCreationDto } from '@/modules/roles/application/dto/role.creation.dto';
 import { RoleUpdateDto } from '@/modules/roles/application/dto/role.update.dto';
@@ -17,20 +14,16 @@ describe('RoleDomainService', () => {
 
   it('should create an admin role entity', () => {
     const permServer = createMockPermissionServer();
-    const permVm = createMockPermissionVm();
-    const role = service.createAdminRoleEntity(permServer, permVm);
+    const role = service.createAdminRoleEntity(permServer);
     expect(role.name).toBe('ADMIN');
     expect(role.permissionServers).toContain(permServer);
-    expect(role.permissionVms).toContain(permVm);
   });
 
   it('should create a guest role entity', () => {
     const permServer = createMockPermissionServer();
-    const permVm = createMockPermissionVm();
-    const role = service.createGuestRole(permServer, permVm);
+    const role = service.createGuestRole(permServer);
     expect(role.name).toBe('GUEST');
     expect(role.permissionServers).toContain(permServer);
-    expect(role.permissionVms).toContain(permVm);
   });
 
   it('should convert dto to role entity', () => {

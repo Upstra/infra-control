@@ -15,7 +15,6 @@ jest.mock('@/modules/roles/__mocks__/role.mock', () => ({
     name: 'ADMIN',
     users: [],
     permissionServers: [],
-    permissionVms: [],
     canCreateServer: true,
     ...overrides,
   })),

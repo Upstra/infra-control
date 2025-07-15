@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Server } from '../../../servers/domain/entities/server.entity';
 import { SwapServerResponseDto } from '../dto/swap-response.dto';
-import { GetUserServerPermissionsUseCase } from '../../../permissions/application/use-cases/permission-server';
+import { GetUserServerPermissionsUseCase } from '../../../permissions/application/use-cases';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 import { SwapPrioritiesBaseUseCase } from './base/swap-priorities-base.use-case';
 

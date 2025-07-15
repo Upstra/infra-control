@@ -1,14 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SoftDeleteUserUseCase } from '../soft-delete-user.use-case';
 import { UserRepositoryInterface } from '../../../domain/interfaces/user.repository.interface';
-import { LogHistoryUseCase } from '../../../../history/application/use-cases/log-history.use-case';
+import { LogHistoryUseCase } from '@modules/history/application/use-cases';
 import {
   UserNotFoundException,
   CannotDeleteOwnAccountException,
   CannotDeleteLastAdminException,
 } from '../../../domain/exceptions/user.exception';
 import { User } from '../../../domain/entities/user.entity';
-import { Role } from '../../../../roles/domain/entities/role.entity';
+import { Role } from '@modules/roles/domain/entities/role.entity';
 import { DeletionReason } from '../../dto/delete-account.dto';
 
 describe('SoftDeleteUserUseCase', () => {
@@ -48,7 +48,6 @@ describe('SoftDeleteUserUseCase', () => {
       isAdmin: false,
       users: [],
       permissionServers: [],
-      permissionVms: [],
       ...overrides,
     });
   };

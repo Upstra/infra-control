@@ -1,6 +1,4 @@
 import { PermissionServer } from '@/modules/permissions/domain/entities/permission.server.entity';
-import { PermissionVm } from '@/modules/permissions/domain/entities/permission.vm.entity';
-import { PermissionVmDto } from '../application/dto/permission.vm.dto';
 import { PermissionBit } from '../domain/value-objects/permission-bit.enum';
 import { buildBitmask } from './permission-bitmask.helper';
 import { Permission } from '../domain/entities/permission.entity';
@@ -15,14 +13,6 @@ export const createMockPermissionServer = (
     ...overrides,
   });
 
-export const createMockPermissionVm = (overrides?: Partial<PermissionVm>) =>
-  Object.assign(new PermissionVm(), {
-    roleId: 'role-uuid',
-    vmId: 'vm-uuid',
-    bitmask: buildBitmask([PermissionBit.READ]),
-    ...overrides,
-  });
-
 export const createMockPermissionServerDto = (overrides = {}) => ({
   roleId: 'role-uuid',
   serverId: 'server-uuid',
@@ -30,33 +20,13 @@ export const createMockPermissionServerDto = (overrides = {}) => ({
   ...overrides,
 });
 
-export const createMockPermissionVmDto = (
-  overrides?: Partial<PermissionVmDto>,
-) => {
-  const base: PermissionVmDto = {
-    roleId: 'c9e9f5ae-9fd6-4c28-b88d-838f4c5c27fd',
-    vmId: 'a2b7b46f-8f3c-4f12-87bb-9b1bb8db1a44',
-    bitmask: buildBitmask([PermissionBit.WRITE]),
-    ...overrides,
-  };
-
-  return Object.fromEntries(
-    Object.entries(base).filter(([_, v]) => v !== undefined),
-  ) as PermissionVmDto;
-};
-
 export class DummyPermission extends Permission {
-  serverId?: string | null;
-  vmId?: string | null;
+  serverId: string;
 
-  constructor(
-    bitmask: number,
-    opts: { serverId?: string | null; vmId?: string | null } = {},
-  ) {
+  constructor(bitmask: number, serverId: string) {
     super();
     this.bitmask = bitmask;
-    this.serverId = opts.serverId;
-    this.vmId = opts.vmId;
+    this.serverId = serverId;
     this.roleId = 'fake-role';
   }
 }

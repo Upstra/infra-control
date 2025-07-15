@@ -1,22 +1,15 @@
 import { ForbiddenException } from '@nestjs/common';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
-import { PermissionUtils } from '@/core/utils/index';
+import { PermissionUtils } from '@/core/utils';
 import { Reflector } from '@nestjs/core';
-import { PermissionGuard } from '../permission.guard';
-import {
-  createMockPermissionServerDto,
-  createMockPermissionVmDto,
-} from '@/modules/permissions/__mocks__/permissions.mock';
+import { PermissionGuard } from '@/core/guards';
+import { createMockPermissionServerDto } from '@/modules/permissions/__mocks__/permissions.mock';
 
 const mockReflector = {
   get: jest.fn(),
 } as jest.Mocked<Pick<Reflector, 'get'>>;
 
 const mockGetUserServerPermissionsUseCase = {
-  execute: jest.fn(),
-};
-
-const mockGetUserVmPermissionsUseCase = {
   execute: jest.fn(),
 };
 
@@ -38,7 +31,6 @@ describe('PermissionGuard', () => {
     guard = new PermissionGuard(
       mockReflector as any,
       mockGetUserServerPermissionsUseCase as any,
-      mockGetUserVmPermissionsUseCase as any,
     );
   });
 
@@ -112,60 +104,6 @@ describe('PermissionGuard', () => {
     });
   });
 
-  describe('VM Permissions', () => {
-    it('should allow access for vm permission (permission OK)', async () => {
-      mockReflector.get.mockReturnValue({
-        type: 'vm',
-        requiredBit: PermissionBit.WRITE,
-      });
-      mockGetUserVmPermissionsUseCase.execute.mockResolvedValue({
-        permissionVms: [createMockPermissionVmDto({ bitmask: 2 })],
-      });
-      jest.spyOn(PermissionUtils, 'has').mockReturnValue(true);
-
-      const context = createMockExecutionContext();
-      await expect(guard.canActivate(context as any)).resolves.toBe(true);
-    });
-
-    it('should deny if permission list for vm is missing required bit', async () => {
-      mockReflector.get.mockReturnValue({
-        type: 'vm',
-        requiredBit: PermissionBit.WRITE,
-      });
-      mockGetUserVmPermissionsUseCase.execute.mockResolvedValue({
-        permissionVms: [createMockPermissionVmDto({ bitmask: 1 })], // READ only
-      });
-      jest.spyOn(PermissionUtils, 'has').mockReturnValue(false);
-
-      const context = createMockExecutionContext();
-      await expect(guard.canActivate(context as any)).rejects.toThrow(
-        new ForbiddenException('Insufficient permissions'),
-      );
-    });
-
-    it('should allow access when user has multiple vm permissions and at least one matches', async () => {
-      mockReflector.get.mockReturnValue({
-        type: 'vm',
-        requiredBit: PermissionBit.DELETE,
-      });
-      mockGetUserVmPermissionsUseCase.execute.mockResolvedValue({
-        permissionVms: [
-          createMockPermissionVmDto({ bitmask: 1 }), // READ only
-          createMockPermissionVmDto({ bitmask: 4 }), // DELETE
-          createMockPermissionVmDto({ bitmask: 2 }), // WRITE only
-        ],
-      });
-      jest
-        .spyOn(PermissionUtils, 'has')
-        .mockReturnValueOnce(false)
-        .mockReturnValueOnce(true)
-        .mockReturnValueOnce(false);
-
-      const context = createMockExecutionContext();
-      await expect(guard.canActivate(context as any)).resolves.toBe(true);
-    });
-  });
-
   describe('Error Cases', () => {
     it('should throw if type is not server/vm (Invalid permission type)', async () => {
       mockReflector.get.mockReturnValue({
@@ -222,19 +160,6 @@ describe('PermissionGuard', () => {
       );
     });
 
-    it('should throw if vm use case returns undefined', async () => {
-      mockReflector.get.mockReturnValue({
-        type: 'vm',
-        requiredBit: PermissionBit.READ,
-      });
-      mockGetUserVmPermissionsUseCase.execute.mockResolvedValue(undefined);
-
-      const context = createMockExecutionContext();
-      await expect(guard.canActivate(context as any)).rejects.toThrow(
-        new ForbiddenException('No role found'),
-      );
-    });
-
     it('should handle when user is undefined in request', async () => {
       mockReflector.get.mockReturnValue({
         type: 'server',
@@ -278,21 +203,6 @@ describe('PermissionGuard', () => {
       const context = createMockExecutionContext();
       await expect(guard.canActivate(context as any)).rejects.toThrow(
         'Database connection failed',
-      );
-    });
-
-    it('should handle vm use case throwing an error', async () => {
-      mockReflector.get.mockReturnValue({
-        type: 'vm',
-        requiredBit: PermissionBit.WRITE,
-      });
-      mockGetUserVmPermissionsUseCase.execute.mockRejectedValue(
-        new Error('User not found'),
-      );
-
-      const context = createMockExecutionContext();
-      await expect(guard.canActivate(context as any)).rejects.toThrow(
-        'User not found',
       );
     });
 
@@ -363,29 +273,6 @@ describe('PermissionGuard', () => {
         otherProp: 'should-be-ignored-too',
       });
       jest.spyOn(PermissionUtils, 'has').mockReturnValue(true);
-
-      const context = createMockExecutionContext();
-      await expect(guard.canActivate(context as any)).resolves.toBe(true);
-    });
-
-    it('should handle vm permissions with null/undefined bitmask gracefully', async () => {
-      mockReflector.get.mockReturnValue({
-        type: 'vm',
-        requiredBit: PermissionBit.READ,
-      });
-
-      mockGetUserVmPermissionsUseCase.execute.mockResolvedValue({
-        permissionVms: [
-          { bitmask: null }, // null bitmask
-          { bitmask: undefined }, // undefined bitmask
-          { bitmask: 1 }, // valid bitmask
-        ],
-      });
-      jest
-        .spyOn(PermissionUtils, 'has')
-        .mockReturnValueOnce(false) // null bitmask
-        .mockReturnValueOnce(false) // undefined bitmask
-        .mockReturnValueOnce(true); // valid bitmask
 
       const context = createMockExecutionContext();
       await expect(guard.canActivate(context as any)).resolves.toBe(true);
