@@ -41,11 +41,10 @@ export class BulkCreateWithDiscoveryUseCase {
 
   async execute(
     dto: BulkCreateWithDiscoveryRequestDto,
-    userId?: string,
   ): Promise<BulkCreateWithDiscoveryResponseDto> {
     this.logger.log('Starting bulk create with discovery process');
 
-    const bulkCreateResult = await this.bulkCreateUseCase.execute(dto, userId);
+    const bulkCreateResult = await this.bulkCreateUseCase.execute(dto);
 
     if (!bulkCreateResult.success) {
       return {

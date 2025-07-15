@@ -8,13 +8,11 @@ import { DataSource, QueryRunner } from 'typeorm';
 import { RoomRepositoryInterface } from '../../../rooms/domain/interfaces/room.repository.interface';
 import { UpsRepositoryInterface } from '../../../ups/domain/interfaces/ups.repository.interface';
 import { ServerRepositoryInterface } from '../../../servers/domain/interfaces/server.repository.interface';
-import { CompleteSetupStepUseCase } from './complete-setup-step.use-case';
 import {
   BulkCreateRequestDto,
   BulkCreateResponseDto,
   BulkCreateErrorDto,
   CreatedResourceDto,
-  SetupStep,
   BulkRoomDto,
   BulkUpsDto,
   BulkServerDto,
@@ -36,12 +34,10 @@ export class BulkCreateUseCase {
     private readonly upsRepository: UpsRepositoryInterface,
     @Inject('ServerRepositoryInterface')
     private readonly serverRepository: ServerRepositoryInterface,
-    private readonly completeSetupStepUseCase: CompleteSetupStepUseCase,
   ) {}
 
   async execute(
     dto: BulkCreateRequestDto,
-    userId?: string,
   ): Promise<BulkCreateResponseDto> {
     this.validateDependencies(dto);
 
@@ -112,10 +108,6 @@ export class BulkCreateUseCase {
       }
 
       await queryRunner.commitTransaction();
-
-      if (userId) {
-        await this.completeSetupStepUseCase.execute(SetupStep.REVIEW, userId);
-      }
 
       this.logger.log(
         `Bulk creation completed: ${created.rooms.length} rooms, ${created.upsList.length} UPS, ${created.servers.length} servers`,

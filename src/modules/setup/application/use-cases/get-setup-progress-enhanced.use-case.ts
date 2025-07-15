@@ -30,7 +30,6 @@ export class GetSetupProgressEnhancedUseCase {
   ) {}
 
   async execute(): Promise<SetupProgressEnhancedDto> {
-    // Get resource counts
     const [roomCount, upsCount, serverCount] = await Promise.all([
       this.roomRepository.count(),
       this.upsRepository.count(),
@@ -43,31 +42,26 @@ export class GetSetupProgressEnhancedUseCase {
       servers: serverCount,
     };
 
-    // Get setup progress from database
     const progressRecords = await this.setupProgressRepository.findAll();
     const completedSteps = progressRecords.map((record) => record.step);
 
-    // Determine current step
     const currentStep = this.determineCurrentStep(
       completedSteps,
       resourceCounts,
     );
 
-    // Calculate progress
     const totalSteps = this.orderedSteps.length;
     const currentStepIndex = this.orderedSteps.indexOf(currentStep);
     const percentComplete = Math.round(
       (currentStepIndex / (totalSteps - 1)) * 100,
     );
 
-    // Check if can skip to review
     const canSkipToReview =
       resourceCounts.rooms > 0 &&
       resourceCounts.ups > 0 &&
       resourceCounts.servers > 0 &&
       !completedSteps.includes(SetupStep.REVIEW);
 
-    // Get last modified date
     const lastModified =
       progressRecords.length > 0
         ? new Date(

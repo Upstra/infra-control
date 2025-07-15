@@ -168,9 +168,8 @@ export class SetupController {
   })
   async bulkCreate(
     @Body() dto: BulkCreateRequestDto,
-    @CurrentUser() currentUser: JwtPayload,
   ): Promise<BulkCreateResponseDto> {
-    return this.bulkCreateUseCase.execute(dto, currentUser.userId);
+    return this.bulkCreateUseCase.execute(dto);
   }
 
   @Post('bulk-create-with-discovery')
@@ -194,21 +193,17 @@ export class SetupController {
   })
   async bulkCreateWithDiscovery(
     @Body() dto: BulkCreateWithDiscoveryRequestDto,
-    @CurrentUser() currentUser: JwtPayload,
   ): Promise<BulkCreateWithDiscoveryResponseDto> {
     const {
       enableDiscovery = true,
       discoverySessionId,
       ...bulkCreateData
     } = dto;
-    return this.bulkCreateWithDiscoveryUseCase.execute(
-      {
-        ...bulkCreateData,
-        enableDiscovery,
-        discoverySessionId,
-      },
-      currentUser.userId,
-    );
+    return this.bulkCreateWithDiscoveryUseCase.execute({
+      ...bulkCreateData,
+      enableDiscovery,
+      discoverySessionId,
+    });
   }
 
   @Post('validate')
