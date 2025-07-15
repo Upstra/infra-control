@@ -27,16 +27,6 @@ export class ServerResponseDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  @IsNumber()
-  readonly grace_period_on!: number;
-
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsNumber()
-  readonly grace_period_off!: number;
-
-  @ApiProperty()
-  @IsNotEmpty()
   @IsString()
   readonly ip!: string;
 
@@ -88,8 +78,6 @@ export class ServerResponseDto {
     this.id = server.id;
     this.name = server.name;
     this.state = server.state;
-    this.grace_period_on = server.grace_period_on;
-    this.grace_period_off = server.grace_period_off;
     this.ip = server.ip;
     this.type = server.type;
     this.adminUrl = server.adminUrl;

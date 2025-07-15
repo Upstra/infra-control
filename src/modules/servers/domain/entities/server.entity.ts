@@ -34,14 +34,6 @@ export class Server extends BaseEntity {
   state: string;
 
   @ApiProperty()
-  @Column()
-  grace_period_on: number;
-
-  @ApiProperty()
-  @Column()
-  grace_period_off: number;
-
-  @ApiProperty()
   @Column({ type: 'varchar' })
   adminUrl: string;
 

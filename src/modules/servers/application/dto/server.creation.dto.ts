@@ -33,26 +33,6 @@ export class ServerCreationDto {
   readonly state!: string;
 
   @ApiProperty({
-    description:
-      'Durée de la période de grâce lorsque le serveur est allumé (en secondes)',
-    example: 10,
-    required: true,
-  })
-  @IsNotEmpty()
-  @IsNumber()
-  readonly grace_period_on!: number;
-
-  @ApiProperty({
-    description:
-      'Durée de la période de grâce lorsque le serveur est éteint (en secondes)',
-    example: 10,
-    required: true,
-  })
-  @IsNotEmpty()
-  @IsNumber()
-  readonly grace_period_off!: number;
-
-  @ApiProperty({
     description: 'URL d’administration du serveur',
     example: 'https://admin.example.com',
     required: true,

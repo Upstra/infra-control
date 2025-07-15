@@ -16,16 +16,6 @@ export class ServerUpdateDto {
 
   @ApiProperty()
   @IsOptional()
-  @IsNumber()
-  readonly grace_period_on?: number;
-
-  @ApiProperty()
-  @IsOptional()
-  @IsNumber()
-  readonly grace_period_off?: number;
-
-  @ApiProperty()
-  @IsOptional()
   @IsString()
   readonly adminUrl?: string;
 
