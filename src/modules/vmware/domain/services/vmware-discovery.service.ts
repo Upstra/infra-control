@@ -250,10 +250,7 @@ export class VmwareDiscoveryService {
 
   private filterVmwareServers(servers: Server[]): Server[] {
     return servers.filter(
-      (server) =>
-        server.type === 'vmware' ||
-        server.type === 'esxi' ||
-        server.type === 'vcenter',
+      (server) => server.type === 'vmware' || server.type === 'esxi',
     );
   }
 
