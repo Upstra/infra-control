@@ -38,7 +38,9 @@ describe('ExecuteMigrationPlanUseCase', () => {
       expect(migrationOrchestrator.executeMigrationPlan).toHaveBeenCalledWith(
         planPath,
       );
-      expect(migrationOrchestrator.executeMigrationPlan).toHaveBeenCalledTimes(1);
+      expect(migrationOrchestrator.executeMigrationPlan).toHaveBeenCalledTimes(
+        1,
+      );
     });
 
     it('should pass through any errors from orchestrator', async () => {

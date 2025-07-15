@@ -98,13 +98,19 @@ describe('Migration DTOs', () => {
     });
 
     it('should handle all possible state values', () => {
-      const states = ['idle', 'in migration', 'migrated', 'restarting', 'failed'];
-      
-      states.forEach(state => {
+      const states = [
+        'idle',
+        'in migration',
+        'migrated',
+        'restarting',
+        'failed',
+      ];
+
+      states.forEach((state) => {
         const dto = new MigrationStatusResponseDto();
         dto.state = state;
         dto.events = [];
-        
+
         expect(dto.state).toBe(state);
       });
     });
@@ -162,9 +168,7 @@ describe('Migration DTOs', () => {
     it('should transform from plain object correctly', () => {
       const plainObject = {
         state: 'restarting',
-        events: [
-          { type: 'vm_migration', success: true },
-        ],
+        events: [{ type: 'vm_migration', success: true }],
         currentOperation: 'Restarting servers',
         startTime: '2023-01-01T00:00:00.000Z',
         endTime: null,

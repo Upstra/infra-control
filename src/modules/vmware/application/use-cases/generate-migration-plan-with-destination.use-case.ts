@@ -85,7 +85,6 @@ export class GenerateMigrationPlanWithDestinationUseCase {
       password: vCenterServer.password,
     };
 
-    // Get UPS configuration from the first server that has a UPS
     const serverWithUps = sourceServers.find((server) => server.ups);
     if (!serverWithUps || !serverWithUps.ups) {
       throw new NotFoundException(

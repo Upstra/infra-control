@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Server } from '../../../servers/domain/entities/server.entity';
 import { ServerPriorityResponseDto } from '../dto/server-priority-response.dto';
 @Injectable()

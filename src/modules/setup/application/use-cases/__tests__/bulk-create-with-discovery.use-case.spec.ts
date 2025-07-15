@@ -103,7 +103,15 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
   describe('execute', () => {
     const mockRequest = {
       rooms: [{ name: 'Room 1', tempId: 'temp_room_1' }],
-      upsList: [{ name: 'UPS 1', roomId: 'temp_room_1', grace_period_on: 30, grace_period_off: 30, tempId: 'temp_ups_1' }],
+      upsList: [
+        {
+          name: 'UPS 1',
+          roomId: 'temp_room_1',
+          grace_period_on: 30,
+          grace_period_off: 30,
+          tempId: 'temp_ups_1',
+        },
+      ],
       servers: [
         {
           name: 'VMware Server 1',

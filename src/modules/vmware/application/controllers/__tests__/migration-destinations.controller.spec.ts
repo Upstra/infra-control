@@ -61,14 +61,16 @@ describe('MigrationDestinationsController', () => {
         },
       ],
     })
-    .overrideGuard(JwtAuthGuard)
-    .useValue(mockJwtAuthGuard)
-    .overrideGuard(RoleGuard)
-    .useValue(mockRoleGuard)
-    .compile();
+      .overrideGuard(JwtAuthGuard)
+      .useValue(mockJwtAuthGuard)
+      .overrideGuard(RoleGuard)
+      .useValue(mockRoleGuard)
+      .compile();
 
-    controller = module.get<MigrationDestinationsController>(MigrationDestinationsController);
-    
+    controller = module.get<MigrationDestinationsController>(
+      MigrationDestinationsController,
+    );
+
     jest.clearAllMocks();
   });
 
@@ -113,11 +115,15 @@ describe('MigrationDestinationsController', () => {
       ];
       const dto: SetMigrationDestinationsDto = { destinations };
 
-      mockGenerateMigrationPlanWithDestination.execute.mockResolvedValue(undefined);
+      mockGenerateMigrationPlanWithDestination.execute.mockResolvedValue(
+        undefined,
+      );
 
       const result = await controller.setMigrationDestinations(dto, user);
 
-      expect(mockGenerateMigrationPlanWithDestination.execute).toHaveBeenCalledWith(destinations);
+      expect(
+        mockGenerateMigrationPlanWithDestination.execute,
+      ).toHaveBeenCalledWith(destinations);
       expect(result).toEqual({
         message: 'Migration destinations configured successfully',
         yamlPath: '/home/upstra/ups_manager/plans/migration.yml',
@@ -132,9 +138,14 @@ describe('MigrationDestinationsController', () => {
 
       mockRemoveMigrationDestination.execute.mockResolvedValue(undefined);
 
-      const result = await controller.removeMigrationDestination(sourceServerId, user);
+      const result = await controller.removeMigrationDestination(
+        sourceServerId,
+        user,
+      );
 
-      expect(mockRemoveMigrationDestination.execute).toHaveBeenCalledWith(sourceServerId);
+      expect(mockRemoveMigrationDestination.execute).toHaveBeenCalledWith(
+        sourceServerId,
+      );
       expect(result).toEqual({
         message: 'Migration destination removed successfully',
         sourceServerId,

@@ -8,7 +8,6 @@ import {
 import { Server } from '@/modules/servers/domain/entities/server.entity';
 import { Vm } from '@/modules/vms/domain/entities/vm.entity';
 import { Ilo } from '@/modules/ilos/domain/entities/ilo.entity';
-import { Ups } from '@/modules/ups/domain/entities/ups.entity';
 
 @Injectable()
 export class MigrationPlanBuilderService {

@@ -198,7 +198,14 @@ describe('BulkCreateUseCase', () => {
     it('should throw error if UPS missing required IP', async () => {
       const invalidRequest: BulkCreateRequestDto = {
         rooms: [{ name: 'Room 1' }],
-        upsList: [{ name: 'UPS-01', roomId: 'room-uuid-1', grace_period_on: 30, grace_period_off: 30 }],
+        upsList: [
+          {
+            name: 'UPS-01',
+            roomId: 'room-uuid-1',
+            grace_period_on: 30,
+            grace_period_off: 30,
+          },
+        ],
         servers: [],
       };
 

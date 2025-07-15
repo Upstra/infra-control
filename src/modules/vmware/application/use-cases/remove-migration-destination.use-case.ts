@@ -49,7 +49,7 @@ export class RemoveMigrationDestinationUseCase {
 
     // Récupérer les iLOs
     const ilos = await this.iloRepository.find();
-    const iloMap = new Map(ilos.map(ilo => [ilo.id, ilo]));
+    const iloMap = new Map(ilos.map((ilo) => [ilo.id, ilo]));
 
     const vCenterConfig = {
       ip: vCenterServer.ip,
@@ -69,6 +69,9 @@ export class RemoveMigrationDestinationUseCase {
       destinationMap,
     );
 
-    await this.yamlConfigService.writeMigrationPlan('migration.yml', yamlContent);
+    await this.yamlConfigService.writeMigrationPlan(
+      'migration.yml',
+      yamlContent,
+    );
   }
 }

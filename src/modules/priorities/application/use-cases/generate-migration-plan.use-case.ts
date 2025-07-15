@@ -37,7 +37,7 @@ export class GenerateMigrationPlanUseCase {
     });
 
     const ilos = await this.iloRepository.find();
-    const iloMap = new Map(ilos.map(ilo => [ilo.id, ilo]));
+    const iloMap = new Map(ilos.map((ilo) => [ilo.id, ilo]));
 
     const vCenterConfig = {
       ip: vCenterServer.ip,

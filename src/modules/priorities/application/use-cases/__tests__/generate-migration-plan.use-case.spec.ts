@@ -56,12 +56,16 @@ describe('GenerateMigrationPlanUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<GenerateMigrationPlanUseCase>(GenerateMigrationPlanUseCase);
-    serverRepository = module.get<Repository<Server>>(getRepositoryToken(Server));
+    useCase = module.get<GenerateMigrationPlanUseCase>(
+      GenerateMigrationPlanUseCase,
+    );
+    serverRepository = module.get<Repository<Server>>(
+      getRepositoryToken(Server),
+    );
     vmRepository = module.get<Repository<Vm>>(getRepositoryToken(Vm));
     iloRepository = module.get<Repository<Ilo>>(getRepositoryToken(Ilo));
     yamlConfigService = module.get<YamlConfigService>(YamlConfigService);
-    
+
     jest.clearAllMocks();
   });
 
@@ -106,8 +110,12 @@ describe('GenerateMigrationPlanUseCase', () => {
       mockServerRepository.find.mockResolvedValue(esxiServers);
       mockVmRepository.find.mockResolvedValue(vms);
       mockIloRepository.find.mockResolvedValue(ilos);
-      mockYamlConfigService.generateMigrationPlan.mockResolvedValue('yaml-content');
-      mockYamlConfigService.writeMigrationPlan.mockResolvedValue('/path/to/file');
+      mockYamlConfigService.generateMigrationPlan.mockResolvedValue(
+        'yaml-content',
+      );
+      mockYamlConfigService.writeMigrationPlan.mockResolvedValue(
+        '/path/to/file',
+      );
 
       await useCase.execute();
 
@@ -150,7 +158,9 @@ describe('GenerateMigrationPlanUseCase', () => {
       expect(mockServerRepository.find).not.toHaveBeenCalled();
       expect(mockVmRepository.find).not.toHaveBeenCalled();
       expect(mockIloRepository.find).not.toHaveBeenCalled();
-      expect(mockYamlConfigService.generateMigrationPlan).not.toHaveBeenCalled();
+      expect(
+        mockYamlConfigService.generateMigrationPlan,
+      ).not.toHaveBeenCalled();
     });
 
     it('should handle empty servers and VMs', async () => {
@@ -166,8 +176,12 @@ describe('GenerateMigrationPlanUseCase', () => {
       mockServerRepository.find.mockResolvedValue([]);
       mockVmRepository.find.mockResolvedValue([]);
       mockIloRepository.find.mockResolvedValue([]);
-      mockYamlConfigService.generateMigrationPlan.mockResolvedValue('yaml-content');
-      mockYamlConfigService.writeMigrationPlan.mockResolvedValue('/path/to/file');
+      mockYamlConfigService.generateMigrationPlan.mockResolvedValue(
+        'yaml-content',
+      );
+      mockYamlConfigService.writeMigrationPlan.mockResolvedValue(
+        '/path/to/file',
+      );
 
       await useCase.execute();
 

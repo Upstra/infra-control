@@ -57,7 +57,13 @@ describe('BulkValidationUseCase', () => {
           { name: 'Room 2', tempId: 'temp_room_2' },
         ],
         upsList: [
-          { name: 'UPS-01', ip: '192.168.1.100', grace_period_on: 30, grace_period_off: 30, roomId: 'temp_room_1' },
+          {
+            name: 'UPS-01',
+            ip: '192.168.1.100',
+            grace_period_on: 30,
+            grace_period_off: 30,
+            roomId: 'temp_room_1',
+          },
         ],
         servers: [
           {
@@ -141,8 +147,18 @@ describe('BulkValidationUseCase', () => {
         resources: {
           rooms: [],
           upsList: [
-            { name: 'UPS-01', ip: '192.168.1.100', grace_period_on: 30, grace_period_off: 30 },
-            { name: 'UPS-02', ip: '192.168.1.100', grace_period_on: 30, grace_period_off: 30 },
+            {
+              name: 'UPS-01',
+              ip: '192.168.1.100',
+              grace_period_on: 30,
+              grace_period_off: 30,
+            },
+            {
+              name: 'UPS-02',
+              ip: '192.168.1.100',
+              grace_period_on: 30,
+              grace_period_off: 30,
+            },
           ],
           servers: [],
         },
@@ -305,7 +321,14 @@ describe('BulkValidationUseCase', () => {
       const connectivityRequest: ValidationRequestDto = {
         resources: {
           rooms: [],
-          upsList: [{ name: 'UPS-01', ip: '192.168.1.100', grace_period_on: 30, grace_period_off: 30 }],
+          upsList: [
+            {
+              name: 'UPS-01',
+              ip: '192.168.1.100',
+              grace_period_on: 30,
+              grace_period_off: 30,
+            },
+          ],
           servers: [
             {
               name: 'WEB-01',

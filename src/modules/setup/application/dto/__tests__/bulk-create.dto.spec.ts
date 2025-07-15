@@ -154,7 +154,13 @@ describe('BulkCreateDto', () => {
       const dto = plainToInstance(BulkCreateRequestDto, {
         rooms: [{ name: 'Room 1' }, { name: 'Room 2' }],
         upsList: [
-          { name: 'UPS-01', roomId: 'temp_room_1', ip: '192.168.1.100', grace_period_on: 30, grace_period_off: 30 },
+          {
+            name: 'UPS-01',
+            roomId: 'temp_room_1',
+            ip: '192.168.1.100',
+            grace_period_on: 30,
+            grace_period_off: 30,
+          },
         ],
         servers: [
           {

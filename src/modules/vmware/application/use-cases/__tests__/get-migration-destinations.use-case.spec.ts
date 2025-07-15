@@ -22,9 +22,11 @@ describe('GetMigrationDestinationsUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<GetMigrationDestinationsUseCase>(GetMigrationDestinationsUseCase);
+    useCase = module.get<GetMigrationDestinationsUseCase>(
+      GetMigrationDestinationsUseCase,
+    );
     yamlConfigService = module.get<YamlConfigService>(YamlConfigService);
-    
+
     jest.clearAllMocks();
   });
 
@@ -72,11 +74,15 @@ describe('GetMigrationDestinationsUseCase', () => {
         ],
       };
 
-      mockYamlConfigService.readMigrationPlan.mockResolvedValue(mockMigrationPlan);
+      mockYamlConfigService.readMigrationPlan.mockResolvedValue(
+        mockMigrationPlan,
+      );
 
       const result = await useCase.execute();
 
-      expect(mockYamlConfigService.readMigrationPlan).toHaveBeenCalledWith('migration.yml');
+      expect(mockYamlConfigService.readMigrationPlan).toHaveBeenCalledWith(
+        'migration.yml',
+      );
       expect(result).toEqual({
         destinations: [
           {
@@ -139,7 +145,9 @@ describe('GetMigrationDestinationsUseCase', () => {
         ],
       };
 
-      mockYamlConfigService.readMigrationPlan.mockResolvedValue(mockMigrationPlan);
+      mockYamlConfigService.readMigrationPlan.mockResolvedValue(
+        mockMigrationPlan,
+      );
 
       const result = await useCase.execute();
 

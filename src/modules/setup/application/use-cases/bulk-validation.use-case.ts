@@ -238,7 +238,6 @@ export class BulkValidationUseCase {
         });
       }
 
-      // Check for existing IP in database
       const existingServerWithIp = await this.serverRepository.findOneByField({
         field: 'ip',
         value: server.ip,
@@ -253,7 +252,6 @@ export class BulkValidationUseCase {
           message: `Server with IP '${server.ip}' already exists`,
         });
       }
-
 
       if (server.priority < 1 || server.priority > 999) {
         errors.push({

@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Delete, Body, Param, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -40,7 +50,8 @@ export class MigrationDestinationsController {
   @Get()
   @ApiOperation({
     summary: 'Get current migration destinations (Admin only)',
-    description: 'Returns all configured migration destinations from the current YAML file.',
+    description:
+      'Returns all configured migration destinations from the current YAML file.',
   })
   @ApiResponse({
     status: 200,
@@ -64,7 +75,8 @@ export class MigrationDestinationsController {
   @Post()
   @ApiOperation({
     summary: 'Configure migration destinations (Admin only)',
-    description: 'Configure migration destinations for servers and generate the YAML file.',
+    description:
+      'Configure migration destinations for servers and generate the YAML file.',
   })
   @ApiResponse({
     status: 200,
@@ -91,7 +103,7 @@ export class MigrationDestinationsController {
     @CurrentUser() user: JwtPayload,
   ): Promise<SetDestinationsResponseDto> {
     await this.generateMigrationPlanWithDestination.execute(dto.destinations);
-    
+
     return {
       message: 'Migration destinations configured successfully',
       yamlPath: '/home/upstra/ups_manager/plans/migration.yml',
@@ -102,7 +114,8 @@ export class MigrationDestinationsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Remove migration destination (Admin only)',
-    description: 'Remove the migration destination for a specific source server.',
+    description:
+      'Remove the migration destination for a specific source server.',
   })
   @ApiParam({
     name: 'sourceServerId',
@@ -133,7 +146,7 @@ export class MigrationDestinationsController {
     @CurrentUser() user: JwtPayload,
   ): Promise<RemoveDestinationResponseDto> {
     await this.removeMigrationDestinationUseCase.execute(sourceServerId);
-    
+
     return {
       message: 'Migration destination removed successfully',
       sourceServerId,
