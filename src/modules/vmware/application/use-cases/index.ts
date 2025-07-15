@@ -11,3 +11,5 @@ export * from './execute-restart-plan.use-case';
 export * from './get-migration-status.use-case';
 export * from './clear-migration-data.use-case';
 export * from './generate-migration-plan-with-destination.use-case';
+export * from './get-migration-destinations.use-case';
+export * from './remove-migration-destination.use-case';

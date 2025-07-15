@@ -5,6 +5,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { PythonExecutorModule } from '@/core/services/python-executor/python-executor.module';
 import { YamlConfigModule } from '@/core/services/yaml-config/yaml-config.module';
 import { VmwareController } from './application/controllers/vmware.controller';
+import { MigrationDestinationsController } from './application/controllers/migration-destinations.controller';
 import { VmwareService } from './domain/services/vmware.service';
 import { MigrationOrchestratorService } from './domain/services/migration-orchestrator.service';
 import { ListVmsUseCase } from './application/use-cases/list-vms.use-case';
@@ -21,6 +22,8 @@ import { ExecuteRestartPlanUseCase } from './application/use-cases/execute-resta
 import { GetMigrationStatusUseCase } from './application/use-cases/get-migration-status.use-case';
 import { ClearMigrationDataUseCase } from './application/use-cases/clear-migration-data.use-case';
 import { GenerateMigrationPlanWithDestinationUseCase } from './application/use-cases/generate-migration-plan-with-destination.use-case';
+import { GetMigrationDestinationsUseCase } from './application/use-cases/get-migration-destinations.use-case';
+import { RemoveMigrationDestinationUseCase } from './application/use-cases/remove-migration-destination.use-case';
 import { VmwareDiscoveryGateway } from './application/gateway/vmware-discovery.gateway';
 import { MigrationGateway } from './application/gateway/migration.gateway';
 import { VmwareDiscoveryService } from './domain/services/vmware-discovery.service';
@@ -47,7 +50,7 @@ import { PresenceModule } from '@/modules/presence/presence.module';
     RedisModule,
     PresenceModule,
   ],
-  controllers: [VmwareController],
+  controllers: [VmwareController, MigrationDestinationsController],
   providers: [
     VmwareService,
     VmwareDiscoveryService,
@@ -69,6 +72,8 @@ import { PresenceModule } from '@/modules/presence/presence.module';
     GetMigrationStatusUseCase,
     ClearMigrationDataUseCase,
     GenerateMigrationPlanWithDestinationUseCase,
+    GetMigrationDestinationsUseCase,
+    RemoveMigrationDestinationUseCase,
   ],
   exports: [VmwareService, VmwareDiscoveryService, VmwareDiscoveryGateway, MigrationOrchestratorService],
 })

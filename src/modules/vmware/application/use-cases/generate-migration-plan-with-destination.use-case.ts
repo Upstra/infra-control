@@ -8,7 +8,7 @@ import { YamlConfigService } from '@/core/services/yaml-config/application/yaml-
 
 export interface MigrationDestination {
   sourceServerId: string;
-  destinationServerId: string;
+  destinationServerId?: string;
 }
 
 @Injectable()
@@ -35,7 +35,9 @@ export class GenerateMigrationPlanWithDestinationUseCase {
     }
 
     const sourceServerIds = destinations.map(d => d.sourceServerId);
-    const destinationServerIds = destinations.map(d => d.destinationServerId);
+    const destinationServerIds = destinations
+      .filter(d => d.destinationServerId)
+      .map(d => d.destinationServerId!);
     const allServerIds = [...new Set([...sourceServerIds, ...destinationServerIds])];
 
     const servers = await this.serverRepository.findByIds(allServerIds);
@@ -48,9 +50,11 @@ export class GenerateMigrationPlanWithDestinationUseCase {
 
     const destinationMap = new Map<string, Server>();
     destinations.forEach(({ sourceServerId, destinationServerId }) => {
-      const destServer = serverMap.get(destinationServerId);
-      if (destServer && destServer.type === 'esxi') {
-        destinationMap.set(sourceServerId, destServer);
+      if (destinationServerId) {
+        const destServer = serverMap.get(destinationServerId);
+        if (destServer && destServer.type === 'esxi') {
+          destinationMap.set(sourceServerId, destServer);
+        }
       }
     });
 
@@ -89,7 +93,7 @@ export class GenerateMigrationPlanWithDestinationUseCase {
     }
 
     destinations.forEach(({ sourceServerId, destinationServerId }) => {
-      if (sourceServerId === destinationServerId) {
+      if (destinationServerId && sourceServerId === destinationServerId) {
         throw new BadRequestException('Source and destination server cannot be the same');
       }
     });
