@@ -7,6 +7,7 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -28,8 +29,13 @@ import {
   StartVMDiscoveryUseCase,
   GetActiveDiscoverySessionUseCase,
   GetDiscoverySessionUseCase,
+  ExecuteMigrationPlanUseCase,
+  ExecuteRestartPlanUseCase,
+  GetMigrationStatusUseCase,
+  ClearMigrationDataUseCase,
 } from '../use-cases';
 import { VmPowerActionDto, VmMigrateDto } from '../dto';
+import { ExecuteMigrationPlanDto, MigrationStatusResponseDto } from '../dto/migration-plan.dto';
 
 @ApiTags('VMware')
 @ApiBearerAuth()
@@ -45,6 +51,10 @@ export class VmwareController {
     private readonly startVMDiscoveryUseCase: StartVMDiscoveryUseCase,
     private readonly getActiveDiscoverySessionUseCase: GetActiveDiscoverySessionUseCase,
     private readonly getDiscoverySessionUseCase: GetDiscoverySessionUseCase,
+    private readonly executeMigrationPlanUseCase: ExecuteMigrationPlanUseCase,
+    private readonly executeRestartPlanUseCase: ExecuteRestartPlanUseCase,
+    private readonly getMigrationStatusUseCase: GetMigrationStatusUseCase,
+    private readonly clearMigrationDataUseCase: ClearMigrationDataUseCase,
   ) {}
 
   @Get(':serverId/vms')
@@ -251,5 +261,57 @@ export class VmwareController {
   })
   async getDiscoverySession(@Param('sessionId') sessionId: string) {
     return this.getDiscoverySessionUseCase.execute(sessionId);
+  }
+
+  @Post('migration/plan')
+  @HttpCode(HttpStatus.ACCEPTED)
+  @ApiOperation({ summary: 'Execute UPS migration plan' })
+  @ApiResponse({
+    status: 202,
+    description: 'Migration plan started successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid request or migration already in progress',
+  })
+  async executeMigrationPlan(@Body() dto: ExecuteMigrationPlanDto) {
+    return this.executeMigrationPlanUseCase.execute(dto.planPath);
+  }
+
+  @Post('migration/restart')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Execute restart plan after migration' })
+  @ApiResponse({
+    status: 200,
+    description: 'Restart plan executed successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid state for restart',
+  })
+  async executeRestartPlan() {
+    return this.executeRestartPlanUseCase.execute();
+  }
+
+  @Get('migration/status')
+  @ApiOperation({ summary: 'Get current migration status' })
+  @ApiResponse({
+    status: 200,
+    description: 'Migration status retrieved successfully',
+    type: MigrationStatusResponseDto,
+  })
+  async getMigrationStatus(): Promise<MigrationStatusResponseDto> {
+    return this.getMigrationStatusUseCase.execute();
+  }
+
+  @Delete('migration')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Clear migration data from Redis' })
+  @ApiResponse({
+    status: 204,
+    description: 'Migration data cleared successfully',
+  })
+  async clearMigrationData() {
+    await this.clearMigrationDataUseCase.execute();
   }
 }

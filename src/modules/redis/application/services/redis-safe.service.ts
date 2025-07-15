@@ -128,4 +128,17 @@ export class RedisSafeService {
       return [];
     }
   }
+
+  async safeLRange(key: string, start: number, stop: number): Promise<string[]> {
+    const client = this.redisClient;
+    if (!client) return [];
+    try {
+      return await client.lrange(key, start, stop);
+    } catch (e) {
+      this.online = false;
+      this.logger.error('Erreur Redis: ' + e.message);
+      this.scheduleReconnect();
+      return [];
+    }
+  }
 }

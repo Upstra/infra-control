@@ -4,3 +4,4 @@ export * from './vm-migrate.dto';
 export * from './discovery-progress.dto';
 export * from './discovery-results.dto';
 export * from './discovered-vm.dto';
+export * from './migration-plan.dto';

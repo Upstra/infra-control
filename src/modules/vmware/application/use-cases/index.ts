@@ -6,3 +6,7 @@ export * from './get-host-metrics.use-case';
 export * from './start-vm-discovery.use-case';
 export * from './get-active-discovery-session.use-case';
 export * from './get-discovery-session.use-case';
+export * from './execute-migration-plan.use-case';
+export * from './execute-restart-plan.use-case';
+export * from './get-migration-status.use-case';
+export * from './clear-migration-data.use-case';
