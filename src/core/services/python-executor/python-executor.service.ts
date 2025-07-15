@@ -28,7 +28,7 @@ export class PythonExecutorService {
       this.configService.get<string>('PYTHON_SCRIPTS_PATH') ??
       '/home/upstra/ups_manager';
     this.defaultTimeout =
-      this.configService.get<number>('PYTHON_EXECUTION_TIMEOUT') ?? 300000;
+      this.configService.get<number>('PYTHON_TIMEOUT') ?? 300 * 1000;
   }
 
   async executePython(

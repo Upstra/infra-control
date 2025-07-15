@@ -48,6 +48,11 @@ export class VmwareDiscoveryService {
 
     if (vmwareServers.length === 0) {
       this.logger.warn('No VMware servers found in the provided list');
+      this.logger.warn(
+        'Provided servers:',
+        servers.map((s) => ({ name: s.name, type: s.type })),
+      );
+      this.logger.warn('Supported types: vmware, esxi, vcenter');
       return this.createEmptyResults();
     }
 
@@ -200,7 +205,19 @@ export class VmwareDiscoveryService {
       );
 
       const connection = this.buildVmwareConnection(server);
-      const vmwareVms = await this.vmwareService.listVMs(connection);
+
+      // Add timeout for individual server discovery
+      const timeout = new Promise((_, reject) => {
+        setTimeout(
+          () => reject(new Error('Server discovery timeout after 5 minutes')),
+          5 * 60 * 1000,
+        );
+      });
+
+      const vmwareVms = (await Promise.race([
+        this.vmwareService.listVMs(connection),
+        timeout,
+      ])) as any[];
 
       result.vms = vmwareVms.map((vm) => this.mapToDiscoveredVm(vm, server));
       result.vmCount = result.vms.length;
@@ -233,7 +250,10 @@ export class VmwareDiscoveryService {
 
   private filterVmwareServers(servers: Server[]): Server[] {
     return servers.filter(
-      (server) => server.type === 'vmware' || server.type === 'esxi',
+      (server) =>
+        server.type === 'vmware' ||
+        server.type === 'esxi' ||
+        server.type === 'vcenter',
     );
   }
 

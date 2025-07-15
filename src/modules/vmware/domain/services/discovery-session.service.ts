@@ -102,7 +102,6 @@ export class DiscoverySessionService {
       completedAt: new Date(),
     });
 
-    // Remove from active session
     const activeSessionId = await this.redisSafeService.safeGet(
       this.ACTIVE_SESSION_KEY,
     );
@@ -117,7 +116,6 @@ export class DiscoverySessionService {
       completedAt: new Date(),
     });
 
-    // Remove from active session
     const activeSessionId = await this.redisSafeService.safeGet(
       this.ACTIVE_SESSION_KEY,
     );
@@ -130,7 +128,6 @@ export class DiscoverySessionService {
     const key = `${this.SESSION_PREFIX}${sessionId}`;
     await this.redisSafeService.safeDel(key);
 
-    // Remove from active if it's the active one
     const activeSessionId = await this.redisSafeService.safeGet(
       this.ACTIVE_SESSION_KEY,
     );
