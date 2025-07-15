@@ -2,7 +2,7 @@ import { Server } from '@/modules/servers/domain/entities/server.entity';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MigrationPlanBuilderService } from '../migration-plan-builder.service';
 import { Ilo } from '@/modules/ilos/domain/entities/ilo.entity';
-import { VCenterConfig } from '../../interfaces/yaml-config.interface';
+import { VCenterConfig, UpsConfig } from '../../interfaces/yaml-config.interface';
 import { Vm } from '@/modules/vms/domain/entities/vm.entity';
 
 describe('MigrationPlanBuilderService', () => {
@@ -63,14 +63,21 @@ describe('MigrationPlanBuilderService', () => {
         port: 443,
       };
 
+      const upsConfig: UpsConfig = {
+        shutdownGrace: 300,
+        restartGrace: 60,
+      };
+
       const result = service.buildMigrationPlan(
         servers,
         vms,
         ilos,
         vCenterConfig,
+        upsConfig,
       );
 
       expect(result.vCenter).toEqual(vCenterConfig);
+      expect(result.ups).toEqual(upsConfig);
       expect(result.servers).toHaveLength(1);
       expect(result.servers[0].server.host.name).toBe('Server1');
       expect(result.servers[0].server.host.moid).toBe('host-123');
@@ -79,7 +86,7 @@ describe('MigrationPlanBuilderService', () => {
         user: 'admin',
         password: 'password',
       });
-      expect(result.servers[0].server.shutdown.vmOrder).toEqual([
+      expect(result.servers[0].server.vmOrder).toEqual([
         { vmMoId: 'vm-moid-2' },
         { vmMoId: 'vm-moid-1' },
       ]);
@@ -137,11 +144,17 @@ describe('MigrationPlanBuilderService', () => {
         port: 443,
       };
 
+      const upsConfig: UpsConfig = {
+        shutdownGrace: 300,
+        restartGrace: 60,
+      };
+
       const result = service.buildMigrationPlan(
         servers,
         vms,
         ilos,
         vCenterConfig,
+        upsConfig,
         destinationServers,
       );
 
@@ -153,7 +166,6 @@ describe('MigrationPlanBuilderService', () => {
         user: 'admin',
         password: 'password',
       });
-      expect(result.servers[0].server.restart).toEqual({ delay: 60 });
     });
 
     it('should handle servers without iLO', () => {
@@ -176,11 +188,17 @@ describe('MigrationPlanBuilderService', () => {
         port: 443,
       };
 
+      const upsConfig: UpsConfig = {
+        shutdownGrace: 300,
+        restartGrace: 60,
+      };
+
       const result = service.buildMigrationPlan(
         servers,
         vms,
         ilos,
         vCenterConfig,
+        upsConfig,
       );
 
       expect(result.servers[0].server.host.ilo).toBeUndefined();
@@ -206,11 +224,17 @@ describe('MigrationPlanBuilderService', () => {
         port: 443,
       };
 
+      const upsConfig: UpsConfig = {
+        shutdownGrace: 300,
+        restartGrace: 60,
+      };
+
       const result = service.buildMigrationPlan(
         servers,
         vms,
         ilos,
         vCenterConfig,
+        upsConfig,
       );
 
       expect(result.servers[0].server.host.moid).toBe('');

@@ -4,7 +4,7 @@ import { YamlParserService } from '../../domain/services/yaml-parser.service';
 import { MigrationPlanBuilderService } from '../../domain/services/migration-plan-builder.service';
 import { YamlFileRepository } from '../../infrastructure/yaml-file.repository';
 import { Vm } from '@/modules/vms/domain/entities/vm.entity';
-import { MigrationPlanConfig } from '../../domain/interfaces/yaml-config.interface';
+import { MigrationPlanConfig, UpsConfig } from '../../domain/interfaces/yaml-config.interface';
 import { Ilo } from '@/modules/ilos/domain/entities/ilo.entity';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
 
@@ -69,9 +69,14 @@ describe('YamlConfigService', () => {
         user: 'admin',
         password: 'password',
       };
+      const upsConfig: UpsConfig = {
+        shutdownGrace: 300,
+        restartGrace: 60,
+      };
 
       const mockPlan: MigrationPlanConfig = {
         vCenter: { ...vCenterConfig, port: 443 },
+        ups: upsConfig,
         servers: [],
       };
 
@@ -83,6 +88,7 @@ describe('YamlConfigService', () => {
         vms,
         ilos,
         vCenterConfig,
+        upsConfig,
       );
 
       expect(mockPlanBuilderService.buildMigrationPlan).toHaveBeenCalledWith(
@@ -90,6 +96,7 @@ describe('YamlConfigService', () => {
         vms,
         ilos,
         { ...vCenterConfig, port: 443 },
+        upsConfig,
         undefined,
       );
       expect(mockYamlParserService.generateYaml).toHaveBeenCalledWith(mockPlan);
@@ -105,6 +112,10 @@ describe('YamlConfigService', () => {
           user: 'admin',
           password: 'password',
           port: 443,
+        },
+        ups: {
+          shutdownGrace: 300,
+          restartGrace: 60,
         },
         servers: [],
       };
@@ -127,6 +138,10 @@ describe('YamlConfigService', () => {
           user: 'admin',
           password: 'password',
           port: 443,
+        },
+        ups: {
+          shutdownGrace: 300,
+          restartGrace: 60,
         },
         servers: [],
       };
@@ -165,6 +180,10 @@ describe('YamlConfigService', () => {
           user: 'admin',
           password: 'password',
           port: 443,
+        },
+        ups: {
+          shutdownGrace: 300,
+          restartGrace: 60,
         },
         servers: [],
       };

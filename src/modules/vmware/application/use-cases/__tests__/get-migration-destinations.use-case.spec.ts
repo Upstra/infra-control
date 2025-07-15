@@ -39,6 +39,10 @@ describe('GetMigrationDestinationsUseCase', () => {
           password: 'password',
           port: 443,
         },
+        ups: {
+          shutdownGrace: 300,
+          restartGrace: 60,
+        },
         servers: [
           {
             server: {
@@ -50,13 +54,7 @@ describe('GetMigrationDestinationsUseCase', () => {
                 name: 'esxi-02',
                 moid: 'host-456',
               },
-              shutdown: {
-                vmOrder: [],
-                delay: 60,
-              },
-              restart: {
-                delay: 60,
-              },
+              vmOrder: [],
             },
           },
           {
@@ -65,10 +63,7 @@ describe('GetMigrationDestinationsUseCase', () => {
                 name: 'esxi-03',
                 moid: 'host-789',
               },
-              shutdown: {
-                vmOrder: [],
-                delay: 60,
-              },
+              vmOrder: [],
             },
           },
         ],
@@ -129,6 +124,10 @@ describe('GetMigrationDestinationsUseCase', () => {
           password: 'password',
           port: 443,
         },
+        ups: {
+          shutdownGrace: 300,
+          restartGrace: 60,
+        },
         servers: [
           {
             server: {
@@ -136,10 +135,7 @@ describe('GetMigrationDestinationsUseCase', () => {
                 name: 'esxi-01',
                 moid: 'host-123',
               },
-              shutdown: {
-                vmOrder: [],
-                delay: 60,
-              },
+              vmOrder: [],
             },
           },
         ],

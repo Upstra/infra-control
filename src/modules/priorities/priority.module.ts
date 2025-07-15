@@ -15,11 +15,12 @@ import {
 import { Server } from '../servers/domain/entities/server.entity';
 import { Vm } from '../vms/domain/entities/vm.entity';
 import { Ilo } from '../ilos/domain/entities/ilo.entity';
+import { Ups } from '../ups/domain/entities/ups.entity';
 import { YamlConfigModule } from '@/core/services/yaml-config/yaml-config.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Server, Vm, Ilo]),
+    TypeOrmModule.forFeature([Server, Vm, Ilo, Ups]),
     ServerModule,
     VmModule,
     PermissionModule,
