@@ -30,18 +30,23 @@ export class VmwareService implements IVmwareService {
         args,
       );
       this.logger.debug('Raw script output:', JSON.stringify(result));
-      
+
       // Check if the result contains an error
       if (result?.result?.httpCode && result.result.httpCode !== 200) {
         const errorMessage = result.result.message || 'Unknown error';
-        this.logger.error(`Script returned error: ${errorMessage} (HTTP ${result.result.httpCode})`);
-        
+        this.logger.error(
+          `Script returned error: ${errorMessage} (HTTP ${result.result.httpCode})`,
+        );
+
         if (result.result.httpCode === 401) {
-          throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+          throw new HttpException(
+            'Invalid credentials',
+            HttpStatus.UNAUTHORIZED,
+          );
         }
         throw new HttpException(errorMessage, result.result.httpCode);
       }
-      
+
       const parsedVms = this.parseVmList(result);
       this.logger.debug(`Parsed ${parsedVms.length} VMs`);
       return parsedVms;
@@ -186,7 +191,7 @@ export class VmwareService implements IVmwareService {
     this.logger.debug(`- User: ${connection.user}`);
     this.logger.debug(`- Password exists: ${!!connection.password}`);
     this.logger.debug(`- Password length: ${connection.password?.length ?? 0}`);
-    
+
     const args = [
       '--ip',
       connection.host,
@@ -205,7 +210,7 @@ export class VmwareService implements IVmwareService {
 
   private parseVmList(result: any): VmwareVm[] {
     this.logger.debug('parseVmList input:', JSON.stringify(result));
-    
+
     if (!result || !Array.isArray(result.vms)) {
       this.logger.warn('Invalid result format or empty vms array');
       return [];
@@ -217,7 +222,7 @@ export class VmwareService implements IVmwareService {
       moid: vm.moid,
       name: vm.name,
       powerState: vm.powerState,
-      guestOS: vm.guestOs,
+      guestOs: vm.guestOs,
       guestFamily: vm.guestFamily,
       version: vm.version,
       createDate: vm.createDate,

@@ -473,15 +473,13 @@ describe('SetupController', () => {
 
       const result = await controller.bulkCreateWithDiscovery(dto);
 
-      expect(bulkCreateWithDiscoveryUseCase.execute).toHaveBeenCalledWith(
-        {
-          rooms: dto.rooms,
-          upsList: dto.upsList,
-          servers: dto.servers,
-          enableDiscovery: true,
-          discoverySessionId: undefined,
-        },
-      );
+      expect(bulkCreateWithDiscoveryUseCase.execute).toHaveBeenCalledWith({
+        rooms: dto.rooms,
+        upsList: dto.upsList,
+        servers: dto.servers,
+        enableDiscovery: true,
+        discoverySessionId: undefined,
+      });
       expect(result).toEqual(expectedResponse);
     });
 
@@ -529,15 +527,13 @@ describe('SetupController', () => {
 
       const result = await controller.bulkCreateWithDiscovery(dto);
 
-      expect(bulkCreateWithDiscoveryUseCase.execute).toHaveBeenCalledWith(
-        {
-          rooms: dto.rooms,
-          upsList: dto.upsList,
-          servers: dto.servers,
-          enableDiscovery: false,
-          discoverySessionId: undefined,
-        },
-      );
+      expect(bulkCreateWithDiscoveryUseCase.execute).toHaveBeenCalledWith({
+        rooms: dto.rooms,
+        upsList: dto.upsList,
+        servers: dto.servers,
+        enableDiscovery: false,
+        discoverySessionId: undefined,
+      });
       expect(result).toEqual(expectedResponse);
     });
 
@@ -588,15 +584,13 @@ describe('SetupController', () => {
 
       const result = await controller.bulkCreateWithDiscovery(dto);
 
-      expect(bulkCreateWithDiscoveryUseCase.execute).toHaveBeenCalledWith(
-        {
-          rooms: dto.rooms,
-          upsList: dto.upsList,
-          servers: dto.servers,
-          enableDiscovery: true,
-          discoverySessionId: 'custom-session-456',
-        },
-      );
+      expect(bulkCreateWithDiscoveryUseCase.execute).toHaveBeenCalledWith({
+        rooms: dto.rooms,
+        upsList: dto.upsList,
+        servers: dto.servers,
+        enableDiscovery: true,
+        discoverySessionId: 'custom-session-456',
+      });
       expect(result).toEqual(expectedResponse);
     });
   });

@@ -227,7 +227,7 @@ export class VmwareController {
   })
   async getActiveDiscoverySession() {
     const session = await this.getActiveDiscoverySessionUseCase.execute();
-    
+
     if (!session) {
       return { active: false };
     }

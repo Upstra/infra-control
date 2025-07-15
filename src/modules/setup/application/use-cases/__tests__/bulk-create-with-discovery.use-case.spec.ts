@@ -159,10 +159,15 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       });
 
       expect(bulkCreateUseCase.execute).toHaveBeenCalledWith(mockRequest);
-      expect(serverRepository.findServerByIdWithCredentials).toHaveBeenCalledTimes(2);
+      expect(
+        serverRepository.findServerByIdWithCredentials,
+      ).toHaveBeenCalledTimes(2);
       expect(
         vmwareDiscoveryService.discoverVmsFromServers,
-      ).toHaveBeenCalledWith([mockVmwareServer, mockEsxiServer], expect.any(String));
+      ).toHaveBeenCalledWith(
+        [mockVmwareServer, mockEsxiServer],
+        expect.any(String),
+      );
     });
 
     it('should handle bulk create failure gracefully', async () => {

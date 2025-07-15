@@ -20,6 +20,11 @@ export interface VmwareVm {
   numCPU: number;
   esxiHostName: string;
   esxiHostMoid: string;
+  powerState?: string;
+  memoryMB?: number;
+  hostname?: string;
+  toolsStatus?: string;
+  annotation?: string;
 }
 
 export interface VmwareVmMetrics {

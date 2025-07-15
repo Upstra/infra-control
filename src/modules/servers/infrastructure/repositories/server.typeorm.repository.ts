@@ -205,7 +205,9 @@ export class ServerTypeormRepository
         .getMany();
     } catch (error) {
       this.logger.error('Error retrieving servers with credentials:', error);
-      throw new ServerRetrievalException('Error retrieving servers with credentials');
+      throw new ServerRetrievalException(
+        'Error retrieving servers with credentials',
+      );
     }
   }
 

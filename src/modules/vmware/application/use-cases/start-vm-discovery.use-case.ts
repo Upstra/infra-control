@@ -17,7 +17,7 @@ export interface StartVMDiscoveryResult {
 @Injectable()
 export class StartVMDiscoveryUseCase {
   private readonly logger = new Logger(StartVMDiscoveryUseCase.name);
-  
+
   constructor(
     private readonly vmwareDiscoveryService: VmwareDiscoveryService,
     @Inject('ServerRepositoryInterface')
@@ -34,9 +34,10 @@ export class StartVMDiscoveryUseCase {
     if (command.serverIds?.length) {
       servers = [];
       for (const id of command.serverIds) {
-        const server = await this.serversRepository.findServerByIdWithCredentials(
-          id.toString(),
-        );
+        const server =
+          await this.serversRepository.findServerByIdWithCredentials(
+            id.toString(),
+          );
         if (server) {
           servers.push(server);
         }
@@ -48,10 +49,12 @@ export class StartVMDiscoveryUseCase {
     const vmwareServers = servers.filter((server) =>
       ['vmware', 'vcenter', 'esxi'].includes(server.type?.toLowerCase()),
     );
-    
+
     this.logger.log(`Found ${vmwareServers.length} VMware servers`);
     vmwareServers.forEach((server) => {
-      this.logger.debug(`Server ${server.name}: password exists = ${!!server.password}`);
+      this.logger.debug(
+        `Server ${server.name}: password exists = ${!!server.password}`,
+      );
     });
 
     this.vmwareDiscoveryService.discoverVmsFromServers(

@@ -10,7 +10,7 @@ export class GetDiscoverySessionUseCase {
 
   async execute(sessionId: string): Promise<DiscoverySessionData> {
     const session = await this.discoverySessionService.getSession(sessionId);
-    
+
     if (!session) {
       throw new NotFoundException(`Discovery session ${sessionId} not found`);
     }

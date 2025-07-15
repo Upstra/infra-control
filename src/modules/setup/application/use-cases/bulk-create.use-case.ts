@@ -36,9 +36,7 @@ export class BulkCreateUseCase {
     private readonly serverRepository: ServerRepositoryInterface,
   ) {}
 
-  async execute(
-    dto: BulkCreateRequestDto,
-  ): Promise<BulkCreateResponseDto> {
+  async execute(dto: BulkCreateRequestDto): Promise<BulkCreateResponseDto> {
     this.validateDependencies(dto);
 
     const queryRunner = this.dataSource.createQueryRunner();
