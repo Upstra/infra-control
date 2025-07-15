@@ -254,12 +254,12 @@ export class BulkValidationUseCase {
         });
       }
 
-      if (server.priority < 0) {
+      if (server.priority < 1 || server.priority > 999) {
         errors.push({
           resource: 'server',
           index: i,
           field: 'priority',
-          message: 'Priority must be positive',
+          message: 'Priority must be between 1 and 999',
         });
       }
 
@@ -278,6 +278,47 @@ export class BulkValidationUseCase {
           index: i,
           field: 'ilo_ip',
           message: 'ILO IP provided but credentials are missing',
+        });
+      }
+    }
+
+    await this.validateServerPriorityUniqueness(servers, errors);
+  }
+
+  private async validateServerPriorityUniqueness(
+    servers: any[],
+    errors: ValidationErrorDto[],
+  ): Promise<void> {
+    const prioritiesInBatch = new Set<number>();
+
+    for (let i = 0; i < servers.length; i++) {
+      const server = servers[i];
+
+      if (prioritiesInBatch.has(server.priority)) {
+        errors.push({
+          resource: 'server',
+          index: i,
+          field: 'priority',
+          message: `Priority ${server.priority} is already used by another server in this batch`,
+        });
+      } else {
+        prioritiesInBatch.add(server.priority);
+      }
+    }
+
+    for (let i = 0; i < servers.length; i++) {
+      const server = servers[i];
+      const existingServer = await this.serverRepository.findOneByField({
+        field: 'priority',
+        value: server.priority,
+      });
+
+      if (existingServer) {
+        errors.push({
+          resource: 'server',
+          index: i,
+          field: 'priority',
+          message: `Priority ${server.priority} is already used by an existing server`,
         });
       }
     }

@@ -10,6 +10,7 @@ import { AuditModule } from '../audit/audit.module';
 import { GroupModule } from '../groups/group.module';
 import { UserModule } from '../users/user.module';
 import { PermissionModule } from '../permissions/permission.module';
+import { IsUniqueVmPriorityConstraint } from './application/validators/unique-vm-priority.validator';
 
 @Module({
   controllers: [VmController],
@@ -25,6 +26,7 @@ import { PermissionModule } from '../permissions/permission.module';
   providers: [
     ...VmUseCase,
     VmDomainService,
+    IsUniqueVmPriorityConstraint,
     {
       provide: 'VmRepositoryInterface',
       useClass: VmTypeormRepository,

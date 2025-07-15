@@ -27,6 +27,20 @@ export class SaveDiscoveredVmsUseCase {
   ): Promise<SaveDiscoveredVmsResult> {
     this.logger.log(`Saving ${discoveredVms.length} discovered VMs`);
 
+    const vmsByServer = new Map<
+      string,
+      { vm: DiscoveredVmDto; priority: number }[]
+    >();
+
+    for (const vm of discoveredVms) {
+      if (!vmsByServer.has(vm.serverId)) {
+        vmsByServer.set(vm.serverId, []);
+      }
+      vmsByServer.get(vm.serverId)!.push({ vm, priority: 0 });
+    }
+
+    await this.calculateUniquePriorities(vmsByServer);
+
     const result: SaveDiscoveredVmsResult = {
       savedCount: 0,
       failedCount: 0,
@@ -34,84 +48,86 @@ export class SaveDiscoveredVmsUseCase {
       errors: [],
     };
 
-    for (const discoveredVm of discoveredVms) {
-      try {
-        const existingVm = await this.vmRepository.findOne({
-          where: {
-            moid: discoveredVm.moid,
-            serverId: discoveredVm.serverId,
-          },
-        });
+    for (const [_, serverVms] of vmsByServer.entries()) {
+      for (const { vm: discoveredVm, priority } of serverVms) {
+        try {
+          const existingVm = await this.vmRepository.findOne({
+            where: {
+              moid: discoveredVm.moid,
+              serverId: discoveredVm.serverId,
+            },
+          });
 
-        if (existingVm) {
-          const hasChanges =
-            existingVm.name !== discoveredVm.name ||
-            existingVm.state !== (discoveredVm.powerState ?? 'unknown') ||
-            existingVm.ip !== discoveredVm.ip ||
-            existingVm.guestOs !== discoveredVm.guestOs ||
-            existingVm.numCPU !== discoveredVm.numCpu ||
-            existingVm.esxiHostMoid !== discoveredVm.esxiHostMoid;
+          if (existingVm) {
+            const hasChanges =
+              existingVm.name !== discoveredVm.name ||
+              existingVm.state !== (discoveredVm.powerState ?? 'unknown') ||
+              existingVm.ip !== discoveredVm.ip ||
+              existingVm.guestOs !== discoveredVm.guestOs ||
+              existingVm.numCPU !== discoveredVm.numCpu ||
+              existingVm.esxiHostMoid !== discoveredVm.esxiHostMoid;
 
-          if (hasChanges) {
-            existingVm.name = discoveredVm.name;
-            existingVm.state = discoveredVm.powerState ?? 'unknown';
-            existingVm.ip = discoveredVm.ip || existingVm.ip;
-            existingVm.guestOs = discoveredVm.guestOs || existingVm.guestOs;
-            existingVm.numCPU = discoveredVm.numCpu || existingVm.numCPU;
-            existingVm.esxiHostMoid =
-              discoveredVm.esxiHostMoid || existingVm.esxiHostMoid;
+            if (hasChanges) {
+              existingVm.name = discoveredVm.name;
+              existingVm.state = discoveredVm.powerState ?? 'unknown';
+              existingVm.ip = discoveredVm.ip || existingVm.ip;
+              existingVm.guestOs = discoveredVm.guestOs || existingVm.guestOs;
+              existingVm.numCPU = discoveredVm.numCpu || existingVm.numCPU;
+              existingVm.esxiHostMoid =
+                discoveredVm.esxiHostMoid || existingVm.esxiHostMoid;
 
-            const updatedVm = await this.vmRepository.save(existingVm);
-            result.savedVms.push(updatedVm);
-            result.savedCount++;
+              const updatedVm = await this.vmRepository.save(existingVm);
+              result.savedVms.push(updatedVm);
+              result.savedCount++;
 
-            this.logger.debug(
-              `Updated existing VM ${discoveredVm.name} (moid: ${discoveredVm.moid})`,
-            );
-          } else {
-            this.logger.debug(
-              `VM ${discoveredVm.name} (moid: ${discoveredVm.moid}) already exists with no changes, skipping`,
-            );
+              this.logger.debug(
+                `Updated existing VM ${discoveredVm.name} (moid: ${discoveredVm.moid})`,
+              );
+            } else {
+              this.logger.debug(
+                `VM ${discoveredVm.name} (moid: ${discoveredVm.moid}) already exists with no changes, skipping`,
+              );
+            }
+            continue;
           }
-          continue;
+
+          const vmCreationDto: VmCreationDto = {
+            name: discoveredVm.name,
+            state: discoveredVm.powerState ?? 'unknown',
+            grace_period_on: 0,
+            grace_period_off: 0,
+            priority: priority,
+            serverId: discoveredVm.serverId,
+            moid: discoveredVm.moid,
+            ip: discoveredVm.ip || undefined,
+            guestOs: discoveredVm.guestOs || undefined,
+            numCPU: discoveredVm.numCpu || undefined,
+            esxiHostMoid: discoveredVm.esxiHostMoid || undefined,
+          };
+
+          const vmEntity = this.vmDomainService.createVmEntity(vmCreationDto);
+          const savedVm = await this.vmRepository.save(vmEntity);
+
+          result.savedVms.push(savedVm);
+          result.savedCount++;
+
+          this.logger.debug(
+            `Successfully saved VM ${discoveredVm.name} (id: ${savedVm.id})`,
+          );
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : 'Unknown error';
+          result.errors.push({
+            vm: discoveredVm.name,
+            error: errorMessage,
+          });
+          result.failedCount++;
+
+          this.logger.error(
+            `Failed to save VM ${discoveredVm.name}:`,
+            errorMessage,
+          );
         }
-
-        const vmCreationDto: VmCreationDto = {
-          name: discoveredVm.name,
-          state: discoveredVm.powerState ?? 'unknown',
-          grace_period_on: 0,
-          grace_period_off: 0,
-          priority: 100,
-          serverId: discoveredVm.serverId,
-          moid: discoveredVm.moid,
-          ip: discoveredVm.ip || undefined,
-          guestOs: discoveredVm.guestOs || undefined,
-          numCPU: discoveredVm.numCpu || undefined,
-          esxiHostMoid: discoveredVm.esxiHostMoid || undefined,
-        };
-
-        const vmEntity = this.vmDomainService.createVmEntity(vmCreationDto);
-        const savedVm = await this.vmRepository.save(vmEntity);
-
-        result.savedVms.push(savedVm);
-        result.savedCount++;
-
-        this.logger.debug(
-          `Successfully saved VM ${discoveredVm.name} (id: ${savedVm.id})`,
-        );
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Unknown error';
-        result.errors.push({
-          vm: discoveredVm.name,
-          error: errorMessage,
-        });
-        result.failedCount++;
-
-        this.logger.error(
-          `Failed to save VM ${discoveredVm.name}:`,
-          errorMessage,
-        );
       }
     }
 
@@ -120,5 +136,31 @@ export class SaveDiscoveredVmsUseCase {
     );
 
     return result;
+  }
+
+  private async calculateUniquePriorities(
+    vmsByServer: Map<string, { vm: DiscoveredVmDto; priority: number }[]>,
+  ): Promise<void> {
+    for (const [serverId, serverVms] of vmsByServer.entries()) {
+      const existingVms = await this.vmRepository.findAll();
+      const serverExistingVms = existingVms.filter(
+        (vm) => vm.serverId === serverId,
+      );
+
+      const existingPriorities = new Set(
+        serverExistingVms.map((vm: Vm) => vm.priority),
+      );
+
+      let nextPriority = 1;
+      for (const vmData of serverVms) {
+        while (existingPriorities.has(nextPriority)) {
+          nextPriority++;
+        }
+
+        vmData.priority = nextPriority;
+        existingPriorities.add(nextPriority);
+        nextPriority++;
+      }
+    }
   }
 }

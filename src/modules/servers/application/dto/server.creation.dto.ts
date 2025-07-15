@@ -7,6 +7,8 @@ import {
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { IloCreationDto } from '../../../ilos/application/dto/ilo.creation.dto';
+import { IsPriority } from '../../../groups/application/validators/priority.validator';
+import { IsUniqueServerPriority } from '../validators/unique-server-priority.validator';
 
 /**
  * DTO utilisé pour la création d'un serveur.
@@ -103,7 +105,8 @@ export class ServerCreationDto {
     required: true,
   })
   @IsNotEmpty()
-  @IsNumber()
+  @IsPriority()
+  @IsUniqueServerPriority()
   readonly priority!: number;
 
   @ApiProperty({
