@@ -14,11 +14,28 @@ export class SyncServerVmwareDataUseCase {
     private readonly serverRepository: Repository<Server>,
   ) {}
 
-  async execute(connection: VmwareConnectionDto): Promise<{
-    synchronized: number;
-    discovered: VmwareServer[];
-    notFound: string[];
+  async execute(params: { serverId?: string; fullSync?: boolean } | VmwareConnectionDto): Promise<{
+    synchronized?: number;
+    discovered?: VmwareServer[];
+    notFound?: string[];
+    serverId?: string;
+    vmsUpdated?: number;
+    vmsAdded?: number;
+    vmsRemoved?: number;
+    errors?: string[];
   }> {
+    // TODO: Implement server-specific sync for new params structure
+    if ('serverId' in params) {
+      return {
+        serverId: params.serverId,
+        vmsUpdated: 0,
+        vmsAdded: 0,
+        vmsRemoved: 0,
+        errors: [],
+      };
+    }
+
+    const connection = params as VmwareConnectionDto;
     const discoveredServers = await this.vmwareService.listServers(connection);
     const existingServers = await this.serverRepository.find();
 
