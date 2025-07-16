@@ -3,6 +3,8 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { SyncServerVmwareDataUseCase } from '../use-cases/sync-server-vmware-data.use-case';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
+import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
+import { EmailService } from '@/modules/email/application/services/email.service';
 
 @Injectable()
 export class VmwareSyncScheduler {
@@ -13,6 +15,8 @@ export class VmwareSyncScheduler {
     private readonly syncServerVmwareData: SyncServerVmwareDataUseCase,
     @Inject('ServerRepositoryInterface')
     private readonly serverRepository: ServerRepositoryInterface,
+    @Inject('UserRepositoryInterface')
+    private readonly userRepository: UserRepositoryInterface,
     private readonly emailService: EmailService,
     private readonly configService: ConfigService,
   ) {
@@ -38,7 +42,7 @@ export class VmwareSyncScheduler {
     };
 
     try {
-      const servers = await this.serverRepository.find({
+      const servers = await this.serverRepository.findAll({
         where: { type: 'vmware' },
       });
 
@@ -76,33 +80,37 @@ export class VmwareSyncScheduler {
 
   private async sendSyncReport(report: any, duration: number): Promise<void> {
     try {
-      const adminEmails = this.configService
-        .get('ADMIN_EMAILS', '')
-        .split(',')
-        .filter(Boolean);
-      if (adminEmails.length === 0) return;
+      // Get admin users from database
+      const adminUsers = await this.userRepository.findAll({
+        relations: ['role'],
+        where: {
+          active: true,
+        },
+      });
+
+      const adminEmails = adminUsers
+        .filter(user => user.role?.isAdmin === true)
+        .map(user => user.email);
+
+      if (adminEmails.length === 0) {
+        this.logger.warn('No admin users found to send sync report');
+        return;
+      }
 
       await this.emailService.sendEmail({
         to: adminEmails,
         subject: 'VMware Sync Report - Errors Detected',
-        html: `
-          <h2>VMware Daily Sync Report</h2>
-          <p><strong>Date:</strong> ${new Date().toISOString()}</p>
-          <p><strong>Duration:</strong> ${(duration / 1000).toFixed(2)} seconds</p>
-          
-          <h3>Summary</h3>
-          <ul>
-            <li>Total Servers: ${report.totalServers}</li>
-            <li>Successful: ${report.successfulServers}</li>
-            <li>Failed: ${report.failedServers}</li>
-            <li>VMs Updated: ${report.vmsUpdated}</li>
-          </ul>
-          
-          <h3>Errors</h3>
-          <ul>
-            ${report.errors.map((err) => `<li>${err}</li>`).join('')}
-          </ul>
-        `,
+        template: 'vmware-sync-report',
+        context: {
+          date: new Date().toLocaleString('fr-FR'),
+          duration: (duration / 1000).toFixed(2),
+          totalServers: report.totalServers,
+          successfulServers: report.successfulServers,
+          failedServers: report.failedServers,
+          vmsUpdated: report.vmsUpdated,
+          errors: report.errors,
+          currentYear: new Date().getFullYear(),
+        },
       });
     } catch (error) {
       this.logger.error('Failed to send sync report email:', error);
