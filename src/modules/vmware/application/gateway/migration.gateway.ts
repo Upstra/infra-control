@@ -10,11 +10,15 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import { JwtService } from '@nestjs/jwt';
 import { MigrationOrchestratorService } from '../../domain/services/migration-orchestrator.service';
 import {
   MigrationEvent,
   MigrationState,
 } from '../../domain/interfaces/migration-orchestrator.interface';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
+import { RequestContextDto } from '@/core/dto/request-context.dto';
+import { JwtNotValid } from '@/modules/auth/domain/exceptions/auth.exception';
 
 @WebSocketGateway({
   namespace: 'migration',
@@ -31,22 +35,37 @@ export class MigrationGateway
 
   private readonly logger = new Logger(MigrationGateway.name);
   private readonly connectedClients = new Map<string, Socket>();
+  private readonly userSessions = new Map<string, string>();
 
   constructor(
     private readonly migrationOrchestrator: MigrationOrchestratorService,
+    private readonly jwtService: JwtService,
+    private readonly logHistoryUseCase: LogHistoryUseCase,
   ) {}
 
   async handleConnection(client: Socket): Promise<void> {
-    this.logger.log(`Client connected: ${client.id}`);
-    this.connectedClients.set(client.id, client);
+    try {
+      const userId = this.extractUserIdFromToken(client);
+      this.logger.log(`Client connected: ${client.id} (User: ${userId})`);
+      this.connectedClients.set(client.id, client);
+      this.userSessions.set(client.id, userId);
 
-    const status = await this.migrationOrchestrator.getMigrationStatus();
-    client.emit('migration:status', status);
+      const status = await this.migrationOrchestrator.getMigrationStatus();
+      client.emit('migration:status', status);
+    } catch (error) {
+      if (error instanceof JwtNotValid) {
+        this.handleInvalidToken(client);
+      } else {
+        this.logger.error('Connection error:', error);
+        client.disconnect();
+      }
+    }
   }
 
   handleDisconnect(client: Socket): void {
     this.logger.log(`Client disconnected: ${client.id}`);
     this.connectedClients.delete(client.id);
+    this.userSessions.delete(client.id);
   }
 
   @SubscribeMessage('migration:getStatus')
@@ -61,7 +80,32 @@ export class MigrationGateway
     @MessageBody() data: { planPath: string },
   ): Promise<void> {
     try {
-      await this.migrationOrchestrator.executeMigrationPlan(data.planPath);
+      const userId = this.userSessions.get(client.id);
+      if (!userId) {
+        throw new JwtNotValid();
+      }
+
+      const requestContext = RequestContextDto.fromSocket(client);
+      const sessionId = client.id;
+
+      await this.logHistoryUseCase.executeStructured({
+        entity: 'migration',
+        entityId: sessionId,
+        action: 'START_MIGRATION',
+        userId,
+        metadata: {
+          planPath: data.planPath,
+          migrationType: 'unknown',
+        },
+        ipAddress: requestContext.ipAddress,
+        userAgent: requestContext.userAgent,
+      });
+
+      await this.migrationOrchestrator.executeMigrationPlan(
+        data.planPath,
+        userId,
+        requestContext,
+      );
       client.emit('migration:started', { success: true });
     } catch (error) {
       client.emit('migration:error', {
@@ -75,7 +119,30 @@ export class MigrationGateway
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
     try {
-      await this.migrationOrchestrator.executeRestartPlan();
+      const userId = this.userSessions.get(client.id);
+      if (!userId) {
+        throw new JwtNotValid();
+      }
+
+      const requestContext = RequestContextDto.fromSocket(client);
+      const sessionId = client.id;
+
+      await this.logHistoryUseCase.executeStructured({
+        entity: 'migration',
+        entityId: sessionId,
+        action: 'START_RESTART',
+        userId,
+        metadata: {
+          migrationType: 'restart',
+        },
+        ipAddress: requestContext.ipAddress,
+        userAgent: requestContext.userAgent,
+      });
+
+      await this.migrationOrchestrator.executeRestartPlan(
+        userId,
+        requestContext,
+      );
       client.emit('migration:restarted', { success: true });
     } catch (error) {
       client.emit('migration:error', {
@@ -89,6 +156,24 @@ export class MigrationGateway
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
     try {
+      const userId = this.userSessions.get(client.id);
+      if (!userId) {
+        throw new JwtNotValid();
+      }
+
+      const requestContext = RequestContextDto.fromSocket(client);
+      const sessionId = client.id;
+
+      await this.logHistoryUseCase.executeStructured({
+        entity: 'migration',
+        entityId: sessionId,
+        action: 'CANCEL_MIGRATION',
+        userId,
+        metadata: {},
+        ipAddress: requestContext.ipAddress,
+        userAgent: requestContext.userAgent,
+      });
+
       await this.migrationOrchestrator.cancelMigration();
       client.emit('migration:cancelled', { success: true });
     } catch (error) {
@@ -111,5 +196,22 @@ export class MigrationGateway
   @OnEvent('migration.operationChange')
   handleOperationChange(data: { operation: string }): void {
     this.server.emit('migration:operationChange', data);
+  }
+
+  private handleInvalidToken(client: Socket): void {
+    client.emit('auth:refresh');
+    client.disconnect();
+  }
+
+  private extractUserIdFromToken(client: Socket): string {
+    const token = client.handshake.auth?.token;
+    if (!token) throw new JwtNotValid();
+
+    try {
+      const payload = this.jwtService.verify(token);
+      return payload.userId;
+    } catch {
+      throw new JwtNotValid();
+    }
   }
 }
