@@ -157,6 +157,7 @@ describe('MigrationGateway', () => {
 
     it('should handle migration error', async () => {
       migrationOrchestrator.executeMigrationPlan.mockRejectedValue(new Error('Migration failed'));
+      logHistoryUseCase.executeStructured.mockReturnValue(Promise.resolve());
 
       await gateway.handleStartMigration(mockSocket, { planPath: '/path/to/plan.yaml' });
 
@@ -171,7 +172,7 @@ describe('MigrationGateway', () => {
       await gateway.handleStartMigration(mockSocket, { planPath: '/path/to/plan.yaml' });
 
       expect(mockSocket.emit).toHaveBeenCalledWith('migration:error', {
-        message: 'JwtNotValid',
+        message: 'Le token fourni est invalide ou manquant',
       });
     });
 

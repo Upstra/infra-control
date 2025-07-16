@@ -26,6 +26,8 @@ describe('MigrationOrchestratorService', () => {
   const mockYaml = yaml as jest.Mocked<typeof yaml>;
 
   beforeEach(async () => {
+    jest.useFakeTimers();
+    
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MigrationOrchestratorService,
@@ -35,7 +37,7 @@ describe('MigrationOrchestratorService', () => {
             safeGet: jest.fn(),
             safeSet: jest.fn(),
             safeDel: jest.fn(),
-            safeLRange: jest.fn(),
+            safeLRange: jest.fn().mockResolvedValue([]),
           },
         },
         {
@@ -73,6 +75,11 @@ describe('MigrationOrchestratorService', () => {
     vmRepository = module.get('VmRepositoryInterface');
 
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
   });
 
   describe('executeMigrationPlan with logging', () => {
@@ -115,6 +122,8 @@ describe('MigrationOrchestratorService', () => {
         .mockResolvedValueOnce({ name: 'VM-App' } as any);
 
       await service.executeMigrationPlan(planPath, userId, requestContext);
+      
+      jest.runAllTimers();
 
       expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith({
         entity: 'migration',
@@ -149,6 +158,8 @@ describe('MigrationOrchestratorService', () => {
       redis.safeLRange.mockResolvedValue(mockEvents);
 
       await service.executeMigrationPlan(planPath, userId, requestContext);
+      
+      jest.runAllTimers();
 
       expect(logHistoryUseCase.executeStructured).toHaveBeenLastCalledWith(
         expect.objectContaining({
@@ -172,6 +183,8 @@ describe('MigrationOrchestratorService', () => {
       await expect(service.executeMigrationPlan(planPath, userId, requestContext)).rejects.toThrow(
         'Python script failed',
       );
+      
+      jest.runAllTimers();
 
       expect(logHistoryUseCase.executeStructured).toHaveBeenLastCalledWith(
         expect.objectContaining({
@@ -200,6 +213,8 @@ describe('MigrationOrchestratorService', () => {
       mockYaml.load.mockReturnValue(shutdownPlan);
 
       await service.executeMigrationPlan(planPath, userId, requestContext);
+      
+      jest.runAllTimers();
 
       expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -218,6 +233,8 @@ describe('MigrationOrchestratorService', () => {
       });
 
       await service.executeMigrationPlan(planPath, userId, requestContext);
+      
+      jest.runAllTimers();
 
       expect(pythonExecutor.executePython).toHaveBeenCalled();
     });
@@ -230,6 +247,8 @@ describe('MigrationOrchestratorService', () => {
       );
 
       await serviceWithoutLogging.executeMigrationPlan(planPath, userId, requestContext);
+      
+      jest.runAllTimers();
 
       expect(logHistoryUseCase.executeStructured).not.toHaveBeenCalled();
       expect(pythonExecutor.executePython).toHaveBeenCalled();
@@ -247,12 +266,14 @@ describe('MigrationOrchestratorService', () => {
 
     it('should log restart start and completion', async () => {
       await service.executeRestartPlan(userId, requestContext);
+      
+      jest.runAllTimers();
 
       expect(logHistoryUseCase.executeStructured).toHaveBeenCalledTimes(2);
 
       expect(logHistoryUseCase.executeStructured).toHaveBeenNthCalledWith(1, {
         entity: 'migration',
-        entityId: expect.stringContaining('restart-'),
+        entityId: 'test-correlation-id',
         action: 'START_RESTART',
         userId: 'user-123',
         metadata: {
@@ -264,7 +285,7 @@ describe('MigrationOrchestratorService', () => {
 
       expect(logHistoryUseCase.executeStructured).toHaveBeenNthCalledWith(2, {
         entity: 'migration',
-        entityId: expect.stringContaining('restart-'),
+        entityId: 'test-correlation-id',
         action: 'COMPLETE_RESTART',
         userId: 'user-123',
         metadata: {
@@ -283,6 +304,8 @@ describe('MigrationOrchestratorService', () => {
       await expect(service.executeRestartPlan(userId, requestContext)).rejects.toThrow(
         'Restart failed',
       );
+      
+      jest.runAllTimers();
 
       expect(logHistoryUseCase.executeStructured).toHaveBeenLastCalledWith(
         expect.objectContaining({
@@ -302,7 +325,7 @@ describe('MigrationOrchestratorService', () => {
         servers: [
           {
             host: { name: 'ESXi-01' },
-            destination: { name: 'ESXi-02' },
+            destination: { name: 'ESXi-03' },
             vm_order: ['vm-123'],
           },
         ],
@@ -317,7 +340,7 @@ describe('MigrationOrchestratorService', () => {
         moid: 'vm-123',
         name: 'TestVM',
         sourceServer: 'ESXi-01',
-        destinationServer: 'ESXi-02',
+        destinationServer: 'ESXi-03',
       });
     });
 
