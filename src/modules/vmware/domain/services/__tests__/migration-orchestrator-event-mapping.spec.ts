@@ -2,13 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { MigrationOrchestratorService } from '../migration-orchestrator.service';
 import { PythonExecutorService } from '@/core/services/python-executor';
-import { RedisService } from '@/core/services/redis/redis.service';
-import { MigrationState } from '../../interfaces/migration-orchestrator.interface';
+import { RedisSafeService } from '@/modules/redis/application/services/redis-safe.service';
 
 describe('MigrationOrchestratorService - Event Mapping', () => {
   let service: MigrationOrchestratorService;
   let pythonExecutor: jest.Mocked<PythonExecutorService>;
-  let redis: jest.Mocked<RedisService>;
+  let redis: jest.Mocked<RedisSafeService>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
 
   beforeEach(async () => {
@@ -22,7 +21,7 @@ describe('MigrationOrchestratorService - Event Mapping', () => {
           },
         },
         {
-          provide: RedisService,
+          provide: RedisSafeService,
           useValue: {
             safeGet: jest.fn(),
             safeSet: jest.fn(),
@@ -44,7 +43,7 @@ describe('MigrationOrchestratorService - Event Mapping', () => {
       MigrationOrchestratorService,
     );
     pythonExecutor = module.get(PythonExecutorService);
-    redis = module.get(RedisService);
+    redis = module.get(RedisSafeService);
     eventEmitter = module.get(EventEmitter2);
   });
 

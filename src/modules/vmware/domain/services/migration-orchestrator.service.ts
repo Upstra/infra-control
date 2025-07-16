@@ -162,7 +162,6 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
   }
 
   private mapVmwareEventToMigrationEvent(vmwareEvent: any): MigrationEvent {
-    // Map des événements VMware vers les types attendus
     const eventTypeMap: Record<string, MigrationEvent['type']> = {
       VMStartedEvent: 'vm_started',
       VMMigrationEvent: 'vm_migration',
@@ -170,17 +169,13 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
       ServerShutdownEvent: 'server_shutdown',
     };
 
-    // Déterminer le type d'événement
     const eventType = eventTypeMap[vmwareEvent.type] || vmwareEvent.type;
-
-    // Construire l'événement au format attendu
     const migrationEvent: MigrationEvent = {
       type: eventType,
       timestamp: vmwareEvent.timestamp || new Date().toISOString(),
       success: vmwareEvent.success ?? true,
     };
 
-    // Ajouter les champs spécifiques selon le type d'événement
     switch (eventType) {
       case 'vm_started':
       case 'vm_shutdown':
@@ -204,13 +199,11 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
         break;
     }
 
-    // Ajouter le message d'erreur si présent
     if (vmwareEvent.error) {
       migrationEvent.error = vmwareEvent.error;
       migrationEvent.success = false;
     }
 
-    // Ajouter le message descriptif si présent
     if (vmwareEvent.message) {
       migrationEvent.message = vmwareEvent.message;
     }
@@ -233,15 +226,12 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
       const events = rawEvents.map((e) => {
         const parsedEvent = JSON.parse(e);
         this.logger.debug('Raw event from Redis:', parsedEvent);
-
-        // Si c'est un événement VMware natif, le transformer
         if (parsedEvent.type && parsedEvent.type.endsWith('Event')) {
           const transformedEvent =
             this.mapVmwareEventToMigrationEvent(parsedEvent);
           this.logger.debug('Transformed event:', transformedEvent);
           return transformedEvent;
         }
-        // Sinon, le retourner tel quel (déjà au bon format)
         return parsedEvent;
       });
 
@@ -273,11 +263,9 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
       );
       return rawEvents.map((e) => {
         const parsedEvent = JSON.parse(e);
-        // Si c'est un événement VMware natif, le transformer
         if (parsedEvent.type && parsedEvent.type.endsWith('Event')) {
           return this.mapVmwareEventToMigrationEvent(parsedEvent);
         }
-        // Sinon, le retourner tel quel (déjà au bon format)
         return parsedEvent;
       });
     } catch (error) {
@@ -295,20 +283,16 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
   }
 
   private startEventPolling(): void {
-    // Si un polling est déjà en cours, l'arrêter
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
     }
 
-    // Polling immédiat
     this.pollRedisEvents();
 
-    // Puis toutes les 2 secondes
     this.pollingInterval = setInterval(() => {
       this.pollRedisEvents();
     }, 2000);
 
-    // Arrêter le polling après 10 minutes (timeout de migration)
     setTimeout(() => {
       this.stopEventPolling();
     }, 600000);
