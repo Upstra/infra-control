@@ -9,7 +9,9 @@ import {
   IsUUID,
   ValidateNested,
   IsIP,
+  Allow,
 } from 'class-validator';
+import { IsPriority } from '../../../groups/application/validators/priority.validator';
 
 /**
  * DTO for creating a room in bulk operation
@@ -31,6 +33,14 @@ export class BulkRoomDto {
   @IsString()
   @IsOptional()
   tempId?: string;
+
+  @Allow()
+  @IsOptional()
+  id?: any;
+
+  @Allow()
+  @IsOptional()
+  status?: any;
 }
 
 /**
@@ -64,6 +74,20 @@ export class BulkUpsDto {
   ip?: string;
 
   @ApiProperty({
+    description: 'Grace period when turning on (seconds)',
+    example: 30,
+  })
+  @IsNumber()
+  grace_period_on: number;
+
+  @ApiProperty({
+    description: 'Grace period when turning off (seconds)',
+    example: 30,
+  })
+  @IsNumber()
+  grace_period_off: number;
+
+  @ApiProperty({
     description: 'Temporary ID from frontend for relationship mapping',
     example: 'temp_ups_1',
     required: false,
@@ -71,6 +95,14 @@ export class BulkUpsDto {
   @IsString()
   @IsOptional()
   tempId?: string;
+
+  @Allow()
+  @IsOptional()
+  id?: any;
+
+  @Allow()
+  @IsOptional()
+  status?: any;
 }
 
 /**
@@ -92,20 +124,6 @@ export class BulkServerDto {
   @IsString()
   @IsNotEmpty()
   state: string;
-
-  @ApiProperty({
-    description: 'Grace period when turning on (seconds)',
-    example: 30,
-  })
-  @IsNumber()
-  grace_period_on: number;
-
-  @ApiProperty({
-    description: 'Grace period when turning off (seconds)',
-    example: 30,
-  })
-  @IsNumber()
-  grace_period_off: number;
 
   @ApiProperty({
     description: 'Administration URL',
@@ -140,17 +158,19 @@ export class BulkServerDto {
 
   @ApiProperty({
     description: 'Server type',
-    example: 'physical',
+    example: 'esxi',
   })
   @IsString()
   @IsNotEmpty()
   type: string;
 
   @ApiProperty({
-    description: 'Priority in group/rack (lower = higher priority)',
+    description:
+      'Priority in group/rack (lower = higher priority). Must be unique across all servers (1-999)',
     example: 1,
   })
   @IsNumber()
+  @IsPriority()
   priority: number;
 
   @ApiProperty({
@@ -222,6 +242,14 @@ export class BulkServerDto {
   @IsString()
   @IsOptional()
   tempId?: string;
+
+  @Allow()
+  @IsOptional()
+  id?: any;
+
+  @Allow()
+  @IsOptional()
+  status?: any;
 }
 
 /**

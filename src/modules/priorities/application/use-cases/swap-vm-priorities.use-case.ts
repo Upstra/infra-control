@@ -1,61 +1,77 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { DataSource } from 'typeorm';
 import { Vm } from '../../../vms/domain/entities/vm.entity';
 import { SwapVmResponseDto } from '../dto/swap-response.dto';
-import { GetUserVmPermissionsUseCase } from '../../../permissions/application/use-cases/permission-vm';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
-import { SwapPrioritiesBaseUseCase } from './base/swap-priorities-base.use-case';
+import { GenerateMigrationPlanUseCase } from './generate-migration-plan.use-case';
 
 @Injectable()
-export class SwapVmPrioritiesUseCase extends SwapPrioritiesBaseUseCase<
-  Vm,
-  { vmId?: string; bitmask: number },
-  SwapVmResponseDto
-> {
+export class SwapVmPrioritiesUseCase {
   constructor(
-    @InjectRepository(Vm)
-    private readonly vmRepository: Repository<Vm>,
-    private readonly getUserPermissionVm: GetUserVmPermissionsUseCase,
-    protected readonly logHistory: LogHistoryUseCase,
-    protected readonly dataSource: DataSource,
-  ) {
-    super(dataSource, logHistory);
-  }
+    private readonly logHistory: LogHistoryUseCase,
+    private readonly generateMigrationPlan: GenerateMigrationPlanUseCase,
+    private readonly dataSource: DataSource,
+  ) {}
 
-  protected getEntityRepository(): Repository<Vm> {
-    return this.vmRepository;
-  }
+  async execute(
+    vm1Id: string,
+    vm2Id: string,
+    userId: string,
+  ): Promise<SwapVmResponseDto> {
+    return await this.dataSource.transaction(async (manager) => {
+      const vmRepo = manager.getRepository(Vm);
 
-  protected getEntityName(): string {
-    return 'VM';
-  }
+      const vm1 = await vmRepo.findOne({
+        where: { id: vm1Id },
+        relations: ['server'],
+      });
+      const vm2 = await vmRepo.findOne({
+        where: { id: vm2Id },
+        relations: ['server'],
+      });
 
-  protected getEntityNamePlural(): string {
-    return 'VMs';
-  }
+      if (!vm1) {
+        throw new NotFoundException(`VM with id ${vm1Id} not found`);
+      }
+      if (!vm2) {
+        throw new NotFoundException(`VM with id ${vm2Id} not found`);
+      }
 
-  protected async getUserPermissions(userId: string) {
-    return this.getUserPermissionVm.execute(userId);
-  }
+      if (vm1.server?.type === 'vcenter' || vm2.server?.type === 'vcenter') {
+        throw new BadRequestException(
+          'Cannot swap priorities for VMs on vCenter servers',
+        );
+      }
 
-  protected getPermissionId(permission: {
-    vmId?: string;
-    bitmask: number;
-  }): string {
-    return permission.vmId ?? '';
-  }
+      if (vm1.serverId !== vm2.serverId) {
+        throw new BadRequestException(
+          'Cannot swap priorities between VMs on different servers',
+        );
+      }
 
-  protected getLogMetadata(entity: Vm, _swapPartner: Vm): Record<string, any> {
-    return {
-      vmServerId: entity.serverId,
-    };
-  }
+      const temp = vm1.priority;
+      vm1.priority = vm2.priority;
+      vm2.priority = temp;
 
-  protected formatResult(entity1: Vm, entity2: Vm): SwapVmResponseDto {
-    return {
-      vm1: { id: entity1.id, priority: entity1.priority },
-      vm2: { id: entity2.id, priority: entity2.priority },
-    };
+      await vmRepo.save([vm1, vm2]);
+
+      await this.logHistory.execute(
+        'vm',
+        `${vm1Id}-${vm2Id}`,
+        'SWAP_PRIORITY',
+        userId,
+      );
+
+      await this.generateMigrationPlan.execute();
+
+      return {
+        vm1: { id: vm1.id, priority: vm1.priority },
+        vm2: { id: vm2.id, priority: vm2.priority },
+      };
+    });
   }
 }

@@ -15,18 +15,23 @@ describe('ValidationDto', () => {
       const dto = plainToInstance(ValidationRequestDto, {
         resources: {
           rooms: [{ name: 'Room 1' }],
-          upsList: [{ name: 'UPS-01', ip: '192.168.1.100' }],
+          upsList: [
+            {
+              name: 'UPS-01',
+              ip: '192.168.1.100',
+              grace_period_on: 30,
+              grace_period_off: 30,
+            },
+          ],
           servers: [
             {
               name: 'WEB-01',
               state: 'stopped',
-              grace_period_on: 30,
-              grace_period_off: 30,
               adminUrl: 'https://192.168.1.10',
               ip: '192.168.1.10',
               login: 'admin',
               password: 'password',
-              type: 'physical',
+              type: 'esxi',
               priority: 1,
             },
           ],

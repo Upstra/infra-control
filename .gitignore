@@ -284,3 +284,6 @@ $RECYCLE.BIN/
 grafana/data/*
 
 perso/*
+
+# SBOM files (generated)
+sbom/

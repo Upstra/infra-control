@@ -59,7 +59,11 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
 
     describe('Admin functionality', () => {
       it('should allow admin users to access any server without permission check', async () => {
-        const mockAdminRole = createMockRole({ id: roleId, name: 'Admin', isAdmin: true });
+        const mockAdminRole = createMockRole({
+          id: roleId,
+          name: 'Admin',
+          isAdmin: true,
+        });
         const mockAdminUser = createMockUser({
           id: userId,
           roleId: roleId,
@@ -85,7 +89,11 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
       });
 
       it('should still return NotFoundException when server does not exist for admin', async () => {
-        const mockAdminRole = createMockRole({ id: roleId, name: 'Admin', isAdmin: true });
+        const mockAdminRole = createMockRole({
+          id: roleId,
+          name: 'Admin',
+          isAdmin: true,
+        });
         const mockAdminUser = createMockUser({
           id: userId,
           roleId: roleId,
@@ -103,8 +111,16 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
       });
 
       it('should handle user with mixed admin and non-admin roles', async () => {
-        const adminRole = createMockRole({ id: 'admin-role', name: 'Admin', isAdmin: true });
-        const userRole = createMockRole({ id: 'user-role', name: 'User', isAdmin: false });
+        const adminRole = createMockRole({
+          id: 'admin-role',
+          name: 'Admin',
+          isAdmin: true,
+        });
+        const userRole = createMockRole({
+          id: 'user-role',
+          name: 'User',
+          isAdmin: false,
+        });
         const mockUser = createMockUser({
           id: userId,
           roleId: roleId,
@@ -128,7 +144,11 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
     });
 
     it('should successfully return server when user has READ permission', async () => {
-      const mockRole = createMockRole({ id: roleId, name: 'User', isAdmin: false });
+      const mockRole = createMockRole({
+        id: roleId,
+        name: 'User',
+        isAdmin: false,
+      });
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,
@@ -208,7 +228,11 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
     });
 
     it('should throw ForbiddenException when user has no READ permission for the server', async () => {
-      const mockRole = createMockRole({ id: roleId, name: 'User', isAdmin: false });
+      const mockRole = createMockRole({
+        id: roleId,
+        name: 'User',
+        isAdmin: false,
+      });
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,
@@ -244,7 +268,11 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
     });
 
     it('should throw NotFoundException when server does not exist', async () => {
-      const mockRole = createMockRole({ id: roleId, name: 'User', isAdmin: false });
+      const mockRole = createMockRole({
+        id: roleId,
+        name: 'User',
+        isAdmin: false,
+      });
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,
@@ -270,7 +298,11 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
     });
 
     it('should handle user with multiple READ permissions including the requested server', async () => {
-      const mockRole = createMockRole({ id: roleId, name: 'User', isAdmin: false });
+      const mockRole = createMockRole({
+        id: roleId,
+        name: 'User',
+        isAdmin: false,
+      });
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,
@@ -316,7 +348,11 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
     });
 
     it('should throw ForbiddenException when user has empty permissions', async () => {
-      const mockRole = createMockRole({ id: roleId, name: 'Guest', isAdmin: false });
+      const mockRole = createMockRole({
+        id: roleId,
+        name: 'Guest',
+        isAdmin: false,
+      });
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,
@@ -334,7 +370,11 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
     });
 
     it('should handle permissions with null serverId correctly', async () => {
-      const mockRole = createMockRole({ id: roleId, name: 'User', isAdmin: false });
+      const mockRole = createMockRole({
+        id: roleId,
+        name: 'User',
+        isAdmin: false,
+      });
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,
@@ -363,7 +403,11 @@ describe('GetServerByIdWithPermissionCheckUseCase', () => {
     });
 
     it('should handle user with combined READ and WRITE permissions', async () => {
-      const mockRole = createMockRole({ id: roleId, name: 'PowerUser', isAdmin: false });
+      const mockRole = createMockRole({
+        id: roleId,
+        name: 'PowerUser',
+        isAdmin: false,
+      });
       const mockUser = createMockUser({
         id: userId,
         roleId: roleId,

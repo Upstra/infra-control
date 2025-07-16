@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PingService } from '../ping.service';
-import { exec } from 'child_process';
 import { promisify } from 'util';
 
 jest.mock('child_process');
@@ -36,7 +35,8 @@ describe('PingService', () => {
   describe('pingHost', () => {
     it('should return success with response time for successful ping on Linux', async () => {
       mockExecAsync.mockResolvedValue({
-        stdout: 'PING example.com (93.184.216.34) 56(84) bytes of data.\n64 bytes from 93.184.216.34: icmp_seq=1 ttl=56 time=10.5 ms\n\n--- example.com ping statistics ---\n1 packets transmitted, 1 received, 0% packet loss, time 0ms',
+        stdout:
+          'PING example.com (93.184.216.34) 56(84) bytes of data.\n64 bytes from 93.184.216.34: icmp_seq=1 ttl=56 time=10.5 ms\n\n--- example.com ping statistics ---\n1 packets transmitted, 1 received, 0% packet loss, time 0ms',
         stderr: '',
       });
 
@@ -56,7 +56,8 @@ describe('PingService', () => {
       });
 
       mockExecAsync.mockResolvedValue({
-        stdout: 'Pinging example.com [93.184.216.34] with 32 bytes of data:\nReply from 93.184.216.34: bytes=32 time=10ms TTL=56\n\nPing statistics for 93.184.216.34:\n    Packets: Sent = 1, Received = 1, Lost = 0 (0% loss)',
+        stdout:
+          'Pinging example.com [93.184.216.34] with 32 bytes of data:\nReply from 93.184.216.34: bytes=32 time=10ms TTL=56\n\nPing statistics for 93.184.216.34:\n    Packets: Sent = 1, Received = 1, Lost = 0 (0% loss)',
         stderr: '',
       });
 
@@ -65,12 +66,15 @@ describe('PingService', () => {
       expect(result.success).toBe(true);
       expect(result.responseTime).toBeDefined();
       expect(result.error).toBeUndefined();
-      expect(mockExecAsync).toHaveBeenCalledWith('ping -n 1 -w 2000 example.com');
+      expect(mockExecAsync).toHaveBeenCalledWith(
+        'ping -n 1 -w 2000 example.com',
+      );
     });
 
     it('should return failure when host is unreachable', async () => {
       mockExecAsync.mockResolvedValue({
-        stdout: 'PING 192.168.1.100 (192.168.1.100) 56(84) bytes of data.\n\n--- 192.168.1.100 ping statistics ---\n1 packets transmitted, 0 received, 100% packet loss, time 0ms',
+        stdout:
+          'PING 192.168.1.100 (192.168.1.100) 56(84) bytes of data.\n\n--- 192.168.1.100 ping statistics ---\n1 packets transmitted, 0 received, 100% packet loss, time 0ms',
         stderr: '',
       });
 
@@ -90,7 +94,9 @@ describe('PingService', () => {
       const result = await service.pingHost('unknown.host');
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('ping: cannot resolve unknown.host: Unknown host');
+      expect(result.error).toBe(
+        'ping: cannot resolve unknown.host: Unknown host',
+      );
       expect(result.responseTime).toBeUndefined();
     });
 
@@ -127,7 +133,8 @@ describe('PingService', () => {
 
     it('should handle IPv6 addresses', async () => {
       mockExecAsync.mockResolvedValue({
-        stdout: 'PING6(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::2\n16 bytes from 2001:db8::2, icmp_seq=0 hlim=64 time=0.123 ms\n\n--- 2001:db8::2 ping6 statistics ---\n1 packets transmitted, 1 packets received, 0.0% packet loss',
+        stdout:
+          'PING6(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::2\n16 bytes from 2001:db8::2, icmp_seq=0 hlim=64 time=0.123 ms\n\n--- 2001:db8::2 ping6 statistics ---\n1 packets transmitted, 1 packets received, 0.0% packet loss',
         stderr: '',
       });
 
@@ -140,7 +147,8 @@ describe('PingService', () => {
 
     it('should handle localhost', async () => {
       mockExecAsync.mockResolvedValue({
-        stdout: 'PING localhost (127.0.0.1): 56 data bytes\n64 bytes from 127.0.0.1: icmp_seq=0 ttl=64 time=0.033 ms\n\n--- localhost ping statistics ---\n1 packets transmitted, 1 packets received, 0.0% packet loss',
+        stdout:
+          'PING localhost (127.0.0.1): 56 data bytes\n64 bytes from 127.0.0.1: icmp_seq=0 ttl=64 time=0.033 ms\n\n--- localhost ping statistics ---\n1 packets transmitted, 1 packets received, 0.0% packet loss',
         stderr: '',
       });
 
@@ -152,7 +160,8 @@ describe('PingService', () => {
 
     it('should handle alternative success pattern with "packets" plural', async () => {
       mockExecAsync.mockResolvedValue({
-        stdout: 'PING test.com (1.2.3.4) 56(84) bytes of data.\n64 bytes from 1.2.3.4: icmp_seq=1 ttl=56 time=10.5 ms\n\n--- test.com ping statistics ---\n1 packets transmitted, 1 packets received, 0% packet loss, time 0ms',
+        stdout:
+          'PING test.com (1.2.3.4) 56(84) bytes of data.\n64 bytes from 1.2.3.4: icmp_seq=1 ttl=56 time=10.5 ms\n\n--- test.com ping statistics ---\n1 packets transmitted, 1 packets received, 0% packet loss, time 0ms',
         stderr: '',
       });
 

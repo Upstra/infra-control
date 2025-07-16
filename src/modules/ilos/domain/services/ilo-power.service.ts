@@ -23,7 +23,7 @@ export class IloPowerService {
   ): Promise<IloPowerResult> {
     const args = this.buildIloArgs(ip, credentials);
     const scriptName =
-      action === IloPowerAction.START ? 'server_start.py' : 'server_stop.py';
+      action === IloPowerAction.START ? 'server_start.sh' : 'server_stop.sh';
 
     try {
       const result = await this.pythonExecutor.executePython(scriptName, args);

@@ -28,6 +28,8 @@ export class UpsDomainService {
     const ups = new Ups();
     ups.name = upsDto.name;
     ups.ip = upsDto.ip;
+    ups.grace_period_on = upsDto.grace_period_on;
+    ups.grace_period_off = upsDto.grace_period_off;
     ups.roomId = upsDto.roomId;
     return ups;
   }
@@ -38,6 +40,8 @@ export class UpsDomainService {
   ): Promise<Ups> {
     ups.name = upsDto.name ?? ups.name;
     ups.ip = upsDto.ip ?? ups.ip;
+    ups.grace_period_on = upsDto.grace_period_on ?? ups.grace_period_on;
+    ups.grace_period_off = upsDto.grace_period_off ?? ups.grace_period_off;
     ups.roomId = upsDto.roomId ?? ups.roomId;
     return ups;
   }

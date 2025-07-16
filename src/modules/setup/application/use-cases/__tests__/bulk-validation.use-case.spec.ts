@@ -57,19 +57,23 @@ describe('BulkValidationUseCase', () => {
           { name: 'Room 2', tempId: 'temp_room_2' },
         ],
         upsList: [
-          { name: 'UPS-01', ip: '192.168.1.100', roomId: 'temp_room_1' },
+          {
+            name: 'UPS-01',
+            ip: '192.168.1.100',
+            grace_period_on: 30,
+            grace_period_off: 30,
+            roomId: 'temp_room_1',
+          },
         ],
         servers: [
           {
             name: 'WEB-01',
             state: 'stopped',
-            grace_period_on: 30,
-            grace_period_off: 30,
             adminUrl: 'https://192.168.1.10',
             ip: '192.168.1.10',
             login: 'admin',
             password: 'password',
-            type: 'physical',
+            type: 'esxi',
             priority: 1,
             roomId: 'temp_room_1',
           },
@@ -143,8 +147,18 @@ describe('BulkValidationUseCase', () => {
         resources: {
           rooms: [],
           upsList: [
-            { name: 'UPS-01', ip: '192.168.1.100' },
-            { name: 'UPS-02', ip: '192.168.1.100' },
+            {
+              name: 'UPS-01',
+              ip: '192.168.1.100',
+              grace_period_on: 30,
+              grace_period_off: 30,
+            },
+            {
+              name: 'UPS-02',
+              ip: '192.168.1.100',
+              grace_period_on: 30,
+              grace_period_off: 30,
+            },
           ],
           servers: [],
         },
@@ -163,6 +177,43 @@ describe('BulkValidationUseCase', () => {
       });
     });
 
+    it('should return errors for invalid UPS grace periods', async () => {
+      const invalidUpsRequest: ValidationRequestDto = {
+        resources: {
+          rooms: [],
+          upsList: [
+            {
+              name: 'UPS-01',
+              ip: '192.168.1.100',
+              grace_period_on: -1,
+              grace_period_off: -1,
+              roomId: 'room-1',
+            },
+          ],
+          servers: [],
+        },
+      };
+
+      jest.spyOn(upsRepository, 'findOneByField').mockResolvedValue(null);
+
+      const result = await useCase.execute(invalidUpsRequest);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(2);
+      expect(result.errors).toContainEqual({
+        resource: 'ups',
+        index: 0,
+        field: 'grace_period_on',
+        message: 'Grace period on must be positive',
+      });
+      expect(result.errors).toContainEqual({
+        resource: 'ups',
+        index: 0,
+        field: 'grace_period_off',
+        message: 'Grace period off must be positive',
+      });
+    });
+
     it('should validate server fields', async () => {
       const invalidServerRequest: ValidationRequestDto = {
         resources: {
@@ -172,13 +223,11 @@ describe('BulkValidationUseCase', () => {
             {
               name: 'WEB-01',
               state: 'stopped',
-              grace_period_on: -1,
-              grace_period_off: -1,
               adminUrl: 'https://192.168.1.10',
               ip: '192.168.1.10',
               login: 'admin',
               password: 'password',
-              type: 'physical',
+              type: 'esxi',
               priority: -1,
             },
           ],
@@ -190,24 +239,12 @@ describe('BulkValidationUseCase', () => {
       const result = await useCase.execute(invalidServerRequest);
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toHaveLength(3);
-      expect(result.errors).toContainEqual({
-        resource: 'server',
-        index: 0,
-        field: 'grace_period_on',
-        message: 'Grace period on must be positive',
-      });
-      expect(result.errors).toContainEqual({
-        resource: 'server',
-        index: 0,
-        field: 'grace_period_off',
-        message: 'Grace period off must be positive',
-      });
+      expect(result.errors).toHaveLength(1);
       expect(result.errors).toContainEqual({
         resource: 'server',
         index: 0,
         field: 'priority',
-        message: 'Priority must be positive',
+        message: 'Priority must be between 1 and 999',
       });
     });
 
@@ -220,13 +257,11 @@ describe('BulkValidationUseCase', () => {
             {
               name: 'WEB-01',
               state: 'stopped',
-              grace_period_on: 30,
-              grace_period_off: 30,
               adminUrl: 'https://192.168.1.10',
               ip: '192.168.1.10',
               login: 'admin',
               password: 'password',
-              type: 'physical',
+              type: 'esxi',
               priority: 15,
             },
           ],
@@ -256,13 +291,11 @@ describe('BulkValidationUseCase', () => {
             {
               name: 'WEB-01',
               state: 'stopped',
-              grace_period_on: 30,
-              grace_period_off: 30,
               adminUrl: 'https://192.168.1.10',
               ip: '192.168.1.10',
               login: 'admin',
               password: 'password',
-              type: 'physical',
+              type: 'esxi',
               priority: 1,
               ilo_ip: '192.168.1.11',
               // Missing ilo_login and ilo_password
@@ -288,18 +321,23 @@ describe('BulkValidationUseCase', () => {
       const connectivityRequest: ValidationRequestDto = {
         resources: {
           rooms: [],
-          upsList: [{ name: 'UPS-01', ip: '192.168.1.100' }],
+          upsList: [
+            {
+              name: 'UPS-01',
+              ip: '192.168.1.100',
+              grace_period_on: 30,
+              grace_period_off: 30,
+            },
+          ],
           servers: [
             {
               name: 'WEB-01',
               state: 'stopped',
-              grace_period_on: 30,
-              grace_period_off: 30,
               adminUrl: 'https://192.168.1.10',
               ip: '192.168.1.10',
               login: 'admin',
               password: 'password',
-              type: 'physical',
+              type: 'esxi',
               priority: 1,
               ilo_ip: '192.168.1.11',
               ilo_login: 'admin',

@@ -34,6 +34,8 @@ describe('GetServerByIdUseCase', () => {
     await expect(useCase.execute('not-found-id')).rejects.toThrow(
       ServerNotFoundException,
     );
-    expect(repo.findServerByIdWithCredentials).toHaveBeenCalledWith('not-found-id');
+    expect(repo.findServerByIdWithCredentials).toHaveBeenCalledWith(
+      'not-found-id',
+    );
   });
 });

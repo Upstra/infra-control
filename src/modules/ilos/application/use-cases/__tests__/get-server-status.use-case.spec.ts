@@ -22,13 +22,14 @@ describe('GetServerStatusUseCase', () => {
       name: 'iLO Server 1',
     },
     name: 'Test Server',
-    grace_period_on: 300,
-    grace_period_off: 300,
-    type: 'physical',
+    type: 'esxi',
     priority: 1,
     state: 'UP',
     roomId: 'room-1',
     vmwareHostMoid: 'host-123',
+    upsId: 'ups-1',
+    groupId: 'group-1',
+    iloId: 'ilo-1',
   };
 
   beforeEach(() => {
@@ -67,6 +68,22 @@ describe('GetServerStatusUseCase', () => {
     expect(result).toEqual({
       status: IloServerStatus.ON,
       ip: '192.168.1.100',
+      serverId: 'server-1',
+      serverName: 'Test Server',
+      serverType: 'esxi',
+      vmwareHostMoid: 'host-123',
+      serverState: 'UP',
+      serverPriority: 1,
+      upsId: 'ups-1',
+      roomId: 'room-1',
+      groupId: 'group-1',
+      iloId: 'ilo-1',
+      metrics: {
+        cpuUsage: 15.5,
+        memoryUsage: 32768,
+        powerState: 'poweredOn',
+        uptime: 86400,
+      },
     });
     expect(mockGetServerWithIloUseCase.execute).toHaveBeenCalledWith(
       'server-1',
@@ -99,18 +116,58 @@ describe('GetServerStatusUseCase', () => {
     expect(result).toEqual({
       status: IloServerStatus.OFF,
       ip: '192.168.1.100',
+      serverId: 'server-1',
+      serverName: 'Test Server',
+      serverType: 'esxi',
+      vmwareHostMoid: 'host-123',
+      serverState: 'UP',
+      serverPriority: 1,
+      upsId: 'ups-1',
+      roomId: 'room-1',
+      groupId: 'group-1',
+      iloId: 'ilo-1',
+      metrics: {
+        cpuUsage: 0,
+        memoryUsage: 0,
+        powerState: 'poweredOff',
+        uptime: 0,
+      },
     });
   });
 
-  it('should return ERROR status when metrics are invalid', async () => {
+  it('should return ERROR status when metrics have standBy power state', async () => {
     mockGetServerWithIloUseCase.execute.mockResolvedValue(mockServer as any);
-    mockVmwareService.getServerMetrics.mockResolvedValue({} as any);
+    mockVmwareService.getServerMetrics.mockResolvedValue({
+      powerState: 'standBy',
+      overallStatus: 'red',
+      rebootRequired: false,
+      cpuUsagePercent: 0,
+      ramUsageMB: 0,
+      uptime: 0,
+      boottime: '2023-01-01',
+    });
 
     const result = await useCase.execute('server-1');
 
     expect(result).toEqual({
       status: IloServerStatus.ERROR,
       ip: '192.168.1.100',
+      serverId: 'server-1',
+      serverName: 'Test Server',
+      serverType: 'esxi',
+      vmwareHostMoid: 'host-123',
+      serverState: 'UP',
+      serverPriority: 1,
+      upsId: 'ups-1',
+      roomId: 'room-1',
+      groupId: 'group-1',
+      iloId: 'ilo-1',
+      metrics: {
+        cpuUsage: 0,
+        memoryUsage: 0,
+        powerState: 'standBy',
+        uptime: 0,
+      },
     });
   });
 

@@ -1,12 +1,7 @@
-import {
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  IsUUID,
-} from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { IloCreationDto } from '../../../ilos/application/dto/ilo.creation.dto';
+import { IsPriority } from '../../../groups/application/validators/priority.validator';
 
 /**
  * DTO utilisé pour la création d'un serveur.
@@ -30,26 +25,6 @@ export class ServerCreationDto {
   @IsNotEmpty()
   @IsString()
   readonly state!: string;
-
-  @ApiProperty({
-    description:
-      'Durée de la période de grâce lorsque le serveur est allumé (en secondes)',
-    example: 10,
-    required: true,
-  })
-  @IsNotEmpty()
-  @IsNumber()
-  readonly grace_period_on!: number;
-
-  @ApiProperty({
-    description:
-      'Durée de la période de grâce lorsque le serveur est éteint (en secondes)',
-    example: 10,
-    required: true,
-  })
-  @IsNotEmpty()
-  @IsNumber()
-  readonly grace_period_off!: number;
 
   @ApiProperty({
     description: 'URL d’administration du serveur',
@@ -88,8 +63,8 @@ export class ServerCreationDto {
   readonly password!: string;
 
   @ApiProperty({
-    description: 'Type de serveur (ex: physical, virtual, cloud, etc.)',
-    example: 'physical',
+    description: 'Type de serveur (ex: esxi, vcenter, etc.)',
+    example: 'esxi',
     required: true,
   })
   @IsNotEmpty()
@@ -103,7 +78,7 @@ export class ServerCreationDto {
     required: true,
   })
   @IsNotEmpty()
-  @IsNumber()
+  @IsPriority()
   readonly priority!: number;
 
   @ApiProperty({
@@ -139,6 +114,6 @@ export class ServerCreationDto {
     type: () => IloCreationDto,
     required: false,
   })
-  @IsNotEmpty()
+  @IsOptional()
   ilo?: IloCreationDto;
 }

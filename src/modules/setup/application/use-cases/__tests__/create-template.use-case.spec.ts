@@ -1,6 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CreateTemplateUseCase } from '../create-template.use-case';
-import { CreateTemplateRequestDto, TemplateType, TemplateResponseDto } from '../../dto';
+import {
+  CreateTemplateRequestDto,
+  TemplateType,
+  TemplateResponseDto,
+} from '../../dto';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { RedisSafeService } from '../../../../redis/application/services/redis-safe.service';
 
@@ -51,18 +55,23 @@ describe('CreateTemplateUseCase', () => {
       description: 'A custom template for testing',
       configuration: {
         rooms: [{ name: 'Custom Room 1' }, { name: 'Custom Room 2' }],
-        upsList: [{ name: 'Custom UPS 1', ip: '192.168.1.200' }],
+        upsList: [
+          {
+            name: 'Custom UPS 1',
+            ip: '192.168.1.200',
+            grace_period_on: 30,
+            grace_period_off: 30,
+          },
+        ],
         servers: [
           {
             name: 'Custom Server 1',
             state: 'stopped',
-            grace_period_on: 30,
-            grace_period_off: 30,
             adminUrl: 'https://192.168.1.20',
             ip: '192.168.1.20',
             login: 'admin',
             password: 'password',
-            type: 'physical',
+            type: 'esxi',
             priority: 1,
           },
         ],
@@ -84,10 +93,12 @@ describe('CreateTemplateUseCase', () => {
       expect(result.createdBy).toBe(currentUser.email);
       expect(result.createdAt).toBeInstanceOf(Date);
 
-      expect(redisService.safeGet).toHaveBeenCalledWith('setup:custom_templates');
+      expect(redisService.safeGet).toHaveBeenCalledWith(
+        'setup:custom_templates',
+      );
       expect(redisService.safeSet).toHaveBeenCalledWith(
         'setup:custom_templates',
-        expect.stringContaining(result.id)
+        expect.stringContaining(result.id),
       );
     });
 
@@ -103,7 +114,7 @@ describe('CreateTemplateUseCase', () => {
           createdBy: 'other@example.com',
         },
       ];
-      
+
       redisService.safeGet.mockResolvedValue(JSON.stringify(existingTemplates));
       redisService.safeSet.mockResolvedValue(undefined);
 
@@ -111,9 +122,9 @@ describe('CreateTemplateUseCase', () => {
 
       expect(redisService.safeSet).toHaveBeenCalledWith(
         'setup:custom_templates',
-        expect.stringContaining('"existing-template-1"')
+        expect.stringContaining('"existing-template-1"'),
       );
-      
+
       const savedData = JSON.parse(redisService.safeSet.mock.calls[0][1]);
       expect(savedData).toHaveLength(2);
       expect(savedData[0].id).toBe('existing-template-1');
@@ -171,7 +182,7 @@ describe('CreateTemplateUseCase', () => {
             {
               name: 'Server 1',
               state: 'stopped',
-              type: 'physical',
+              type: 'esxi',
               // Other fields are optional in the template
             } as any,
           ],
@@ -188,10 +199,7 @@ describe('CreateTemplateUseCase', () => {
         'state',
         'stopped',
       );
-      expect(result.configuration.servers[0]).toHaveProperty(
-        'type',
-        'physical',
-      );
+      expect(result.configuration.servers[0]).toHaveProperty('type', 'esxi');
     });
 
     it('should log template creation', async () => {
@@ -214,7 +222,7 @@ describe('CreateTemplateUseCase', () => {
 
       expect(result).toBeDefined();
       expect(result.name).toBe(validRequest.name);
-      
+
       const savedData = JSON.parse(redisService.safeSet.mock.calls[0][1]);
       expect(savedData).toHaveLength(1);
       expect(savedData[0].id).toBe(result.id);
@@ -224,7 +232,9 @@ describe('CreateTemplateUseCase', () => {
       redisService.safeGet.mockResolvedValue('invalid-json');
       redisService.safeSet.mockResolvedValue(undefined);
 
-      await expect(useCase.execute(validRequest, currentUser)).rejects.toThrow();
+      await expect(
+        useCase.execute(validRequest, currentUser),
+      ).rejects.toThrow();
     });
   });
 });

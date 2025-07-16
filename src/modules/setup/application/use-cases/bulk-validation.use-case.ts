@@ -140,6 +140,42 @@ export class BulkValidationUseCase {
           message: `UPS with name '${ups.name}' already exists`,
         });
       }
+
+      // Check for existing IP in database
+      if (ups.ip) {
+        const existingUpsWithIp = await this.upsRepository.findOneByField({
+          field: 'ip',
+          value: ups.ip,
+          disableThrow: true,
+        });
+
+        if (existingUpsWithIp) {
+          errors.push({
+            resource: 'ups',
+            index: i,
+            field: 'ip',
+            message: `UPS with IP '${ups.ip}' already exists`,
+          });
+        }
+      }
+
+      if (ups.grace_period_on < 0) {
+        errors.push({
+          resource: 'ups',
+          index: i,
+          field: 'grace_period_on',
+          message: 'Grace period on must be positive',
+        });
+      }
+
+      if (ups.grace_period_off < 0) {
+        errors.push({
+          resource: 'ups',
+          index: i,
+          field: 'grace_period_off',
+          message: 'Grace period off must be positive',
+        });
+      }
     }
   }
 
@@ -202,30 +238,27 @@ export class BulkValidationUseCase {
         });
       }
 
-      if (server.grace_period_on < 0) {
+      const existingServerWithIp = await this.serverRepository.findOneByField({
+        field: 'ip',
+        value: server.ip,
+        disableThrow: true,
+      });
+
+      if (existingServerWithIp) {
         errors.push({
           resource: 'server',
           index: i,
-          field: 'grace_period_on',
-          message: 'Grace period on must be positive',
+          field: 'ip',
+          message: `Server with IP '${server.ip}' already exists`,
         });
       }
 
-      if (server.grace_period_off < 0) {
-        errors.push({
-          resource: 'server',
-          index: i,
-          field: 'grace_period_off',
-          message: 'Grace period off must be positive',
-        });
-      }
-
-      if (server.priority < 0) {
+      if (server.priority < 1 || server.priority > 999) {
         errors.push({
           resource: 'server',
           index: i,
           field: 'priority',
-          message: 'Priority must be positive',
+          message: 'Priority must be between 1 and 999',
         });
       }
 
@@ -244,6 +277,47 @@ export class BulkValidationUseCase {
           index: i,
           field: 'ilo_ip',
           message: 'ILO IP provided but credentials are missing',
+        });
+      }
+    }
+
+    await this.validateServerPriorityUniqueness(servers, errors);
+  }
+
+  private async validateServerPriorityUniqueness(
+    servers: any[],
+    errors: ValidationErrorDto[],
+  ): Promise<void> {
+    const prioritiesInBatch = new Set<number>();
+
+    for (let i = 0; i < servers.length; i++) {
+      const server = servers[i];
+
+      if (prioritiesInBatch.has(server.priority)) {
+        errors.push({
+          resource: 'server',
+          index: i,
+          field: 'priority',
+          message: `Priority ${server.priority} is already used by another server in this batch`,
+        });
+      } else {
+        prioritiesInBatch.add(server.priority);
+      }
+    }
+
+    for (let i = 0; i < servers.length; i++) {
+      const server = servers[i];
+      const existingServer = await this.serverRepository.findOneByField({
+        field: 'priority',
+        value: server.priority,
+      });
+
+      if (existingServer) {
+        errors.push({
+          resource: 'server',
+          index: i,
+          field: 'priority',
+          message: `Priority ${server.priority} is already used by an existing server`,
         });
       }
     }

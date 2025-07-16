@@ -18,6 +18,7 @@ import { PermissionServerRepositoryInterface } from '@/modules/permissions/infra
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 import { UpsRepositoryInterface } from '@/modules/ups/domain/interfaces/ups.repository.interface';
 import { RequestContextDto } from '@/core/dto';
+import { DuplicateServerPriorityException } from '@/modules/servers/domain/exceptions/duplicate-priority.exception';
 
 /**
  * Creates a new server record and optionally provisions initial VMs.
@@ -79,14 +80,42 @@ export class CreateServerUseCase {
       group = await this.groupRepository.findById(dto.groupId);
     }
 
-    const ilo = await this.createIloUsecase.execute(dto.ilo);
-    if (!ilo) {
-      throw new NotFoundException(
-        'Failed to create or retrieve the iLO entity',
-      );
+    if (dto.type !== 'vcenter') {
+      const existingServer = await this.serverRepository.findOneByField({
+        field: 'priority',
+        value: dto.priority,
+      });
+
+      if (existingServer) {
+        throw new DuplicateServerPriorityException(dto.priority);
+      }
     }
 
-    const entity = this.serverDomain.createServerEntityFromDto(dto, ilo.id);
+    let ilo = null;
+    let iloId = undefined;
+
+    if (dto.type === 'vcenter') {
+      if (dto.ilo) {
+        throw new BadRequestException(
+          'vCenter servers should not have iLO configuration',
+        );
+      }
+    } else {
+      if (!dto.ilo) {
+        throw new BadRequestException(
+          'iLO configuration is required for ESXi servers',
+        );
+      }
+      ilo = await this.createIloUsecase.execute(dto.ilo);
+      if (!ilo) {
+        throw new NotFoundException(
+          'Failed to create or retrieve the iLO entity',
+        );
+      }
+      iloId = ilo.id;
+    }
+
+    const entity = this.serverDomain.createServerEntityFromDto(dto, iloId);
     const server = await this.serverRepository.save(entity);
 
     const user = await this.userRepository.findOneByField({
@@ -124,14 +153,14 @@ export class CreateServerUseCase {
         groupName: group?.name,
         upsId: server.upsId,
         iloId: server.iloId,
-        iloIpAddress: ilo.ip,
+        iloIpAddress: ilo?.ip,
       },
       metadata: {
-        serverType: 'physical',
+        serverType: dto.type,
         hasUpsConnection: !!dto.upsId,
         assignedToGroup: !!dto.groupId,
         adminRolesGranted: adminRoleIds.length,
-        iloConfigured: true,
+        iloConfigured: !!ilo,
         initialPermissions: ['READ', 'WRITE', 'DELETE', 'SHUTDOWN', 'RESTART'],
       },
       ipAddress: requestContext?.ipAddress,

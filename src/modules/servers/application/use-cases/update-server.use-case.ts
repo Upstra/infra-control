@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 import { UpdateIloUseCase } from '@/modules/ilos/application/use-cases';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
@@ -9,6 +9,7 @@ import { GroupType } from '@/modules/groups/domain/enums/group-type.enum';
 import { ServerUpdateDto } from '../dto/server.update.dto';
 import { ServerResponseDto } from '../dto/server.response.dto';
 import { Server } from '../../domain/entities/server.entity';
+import { DuplicateServerPriorityException } from '../../domain/exceptions/duplicate-priority.exception';
 
 /**
  * Updates metadata or state of an existing server.
@@ -49,6 +50,25 @@ export class UpdateServerUseCase {
       const group = await this.groupRepository.findById(dto.groupId);
       if (group && group.type !== GroupType.SERVER) {
         throw new GroupTypeMismatchException('server', group.type);
+      }
+    }
+
+    if (dto.priority !== undefined) {
+      const currentServer = await this.serverRepository.findServerById(id);
+
+      if (!currentServer) {
+        throw new NotFoundException(`Server with id ${id} not found`);
+      }
+
+      if (currentServer.type !== 'vcenter') {
+        const existingServer = await this.serverRepository.findOneByField({
+          field: 'priority',
+          value: dto.priority,
+        });
+
+        if (existingServer && existingServer.id !== id) {
+          throw new DuplicateServerPriorityException(dto.priority);
+        }
       }
     }
 

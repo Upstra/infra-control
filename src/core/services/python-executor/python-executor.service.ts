@@ -28,7 +28,7 @@ export class PythonExecutorService {
       this.configService.get<string>('PYTHON_SCRIPTS_PATH') ??
       '/home/upstra/ups_manager';
     this.defaultTimeout =
-      this.configService.get<number>('PYTHON_EXECUTION_TIMEOUT') ?? 300000;
+      this.configService.get<number>('PYTHON_TIMEOUT') ?? 300000;
   }
 
   async executePython(
@@ -38,16 +38,18 @@ export class PythonExecutorService {
   ): Promise<any> {
     const startTime = Date.now();
     const timeout = options.timeout ?? this.defaultTimeout;
-    const scriptPath = `${this.scriptsBasePath}/${scriptName}`;
+    const bashScriptName = scriptName.replace('.py', '.sh');
+    const scriptPath = `${this.scriptsBasePath}/${bashScriptName}`;
 
     const maskedArgs = this.maskSensitiveArgs(args);
     this.logger.log(
-      `Executing Python script: ${scriptPath} with args: ${maskedArgs.join(' ')}`,
+      `Executing bash script: ${scriptPath} with args: ${maskedArgs.join(' ')}`,
     );
 
     return new Promise((resolve, reject) => {
-      const pythonProcess = spawn(this.pythonPath, [scriptPath, ...args], {
+      const pythonProcess = spawn('bash', [scriptPath, ...args], {
         env: { ...process.env, ...options.env },
+        cwd: this.scriptsBasePath,
       });
 
       let stdout = '';
@@ -92,12 +94,14 @@ export class PythonExecutorService {
         }
 
         if (code !== 0) {
+          const errorMessage =
+            stderr.trim() ||
+            stdout.trim() ||
+            `Script execution failed with code ${code}`;
           this.logger.error(
-            `Script ${scriptName} failed with code ${code}: ${stderr}`,
+            `Script ${bashScriptName} failed with code ${code}: ${errorMessage}`,
           );
-          reject(
-            new Error(stderr || `Script execution failed with code ${code}`),
-          );
+          reject(new Error(errorMessage));
           return;
         }
 
@@ -130,7 +134,8 @@ export class PythonExecutorService {
   }
 
   async validateScriptExists(scriptName: string): Promise<boolean> {
-    const scriptPath = `${this.scriptsBasePath}/${scriptName}`;
+    const bashScriptName = scriptName.replace('.py', '.sh');
+    const scriptPath = `${this.scriptsBasePath}/${bashScriptName}`;
     try {
       const { promises: fs } = await import('fs');
       await fs.access(scriptPath);

@@ -3,16 +3,24 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { VmwareService } from '../vmware.service';
 import { PythonExecutorService } from '@/core/services/python-executor';
 import { VmwareConnectionDto } from '@/modules/vmware/application/dto';
+import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 
 describe('VmwareService', () => {
   let service: VmwareService;
   let pythonExecutor: jest.Mocked<PythonExecutorService>;
+  let serverRepository: jest.Mocked<ServerRepositoryInterface>;
 
   const mockConnection: VmwareConnectionDto = {
     host: '192.168.1.10',
     user: 'admin',
     password: 'password123',
     port: 443,
+  };
+
+  const mockConnectionWithoutPort: VmwareConnectionDto = {
+    host: '192.168.1.10',
+    user: 'admin',
+    password: 'password123',
   };
 
   beforeEach(async () => {
@@ -25,11 +33,19 @@ describe('VmwareService', () => {
             executePython: jest.fn(),
           },
         },
+        {
+          provide: 'ServerRepositoryInterface',
+          useValue: {
+            findAll: jest.fn(),
+            updateServer: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<VmwareService>(VmwareService);
     pythonExecutor = module.get(PythonExecutorService);
+    serverRepository = module.get('ServerRepositoryInterface');
   });
 
   afterEach(() => {
@@ -44,8 +60,19 @@ describe('VmwareService', () => {
             moid: 'vm-123',
             name: 'Test VM',
             powerState: 'poweredOn',
-            guestOS: 'Ubuntu Linux (64-bit)',
-            ipAddress: '192.168.1.100',
+            guestOs: 'Ubuntu Linux (64-bit)',
+            guestFamily: 'linuxGuest',
+            version: 'vmx-11',
+            createDate: '2025-01-14T12:00:00Z',
+            numCoresPerSocket: 2,
+            esxiHostName: 'esxhost01',
+            esxiHostMoid: 'ha-host',
+            ip: '192.168.1.100',
+            hostname: 'test-vm',
+            numCPU: 4,
+            memoryMB: 8192,
+            toolsStatus: 'toolsOk',
+            annotation: 'Test annotation',
           },
         ],
       };
@@ -59,15 +86,21 @@ describe('VmwareService', () => {
         moid: 'vm-123',
         name: 'Test VM',
         powerState: 'poweredOn',
-        guestOS: 'Ubuntu Linux (64-bit)',
-        ipAddress: '192.168.1.100',
-        hostname: undefined,
-        numCpu: undefined,
-        memoryMB: undefined,
-        toolsStatus: undefined,
-        annotation: undefined,
+        guestOs: 'Ubuntu Linux (64-bit)',
+        guestFamily: 'linuxGuest',
+        version: 'vmx-11',
+        createDate: '2025-01-14T12:00:00Z',
+        numCoresPerSocket: 2,
+        esxiHostName: 'esxhost01',
+        esxiHostMoid: 'ha-host',
+        ip: '192.168.1.100',
+        hostname: 'test-vm',
+        numCPU: 4,
+        memoryMB: 8192,
+        toolsStatus: 'toolsOk',
+        annotation: 'Test annotation',
       });
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.py', [
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.sh', [
         '--ip',
         '192.168.1.10',
         '--user',
@@ -108,7 +141,7 @@ describe('VmwareService', () => {
 
       await service.listVMs(customPortConnection);
 
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.py', [
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.sh', [
         '--ip',
         '192.168.1.10',
         '--user',
@@ -163,7 +196,7 @@ describe('VmwareService', () => {
         totalStorage: 107374182400,
       });
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'vm_metrics.py',
+        'vm_metrics.sh',
         [
           '--moid',
           'vm-123',
@@ -208,7 +241,7 @@ describe('VmwareService', () => {
         message: 'VM has been successfully started',
         newState: 'poweredOn',
       });
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith('vm_start.py', [
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('vm_start.sh', [
         '--moid',
         'vm-123',
         '--ip',
@@ -239,7 +272,7 @@ describe('VmwareService', () => {
         message: 'VM has been successfully stopped',
         newState: 'poweredOff',
       });
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith('vm_stop.py', [
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('vm_stop.sh', [
         '--moid',
         'vm-123',
         '--ip',
@@ -286,7 +319,7 @@ describe('VmwareService', () => {
         newHost: 'host-456',
       });
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'vm_migration.py',
+        'vm_migration.sh',
         [
           '--vm_moid',
           'vm-123',
@@ -386,7 +419,7 @@ describe('VmwareService', () => {
 
       expect(result).toEqual(mockServerInfo);
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'server_info.py',
+        'server_info.sh',
         [
           '--moid',
           'host-123',
@@ -431,7 +464,7 @@ describe('VmwareService', () => {
 
       expect(result).toEqual(mockServerMetrics);
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'server_metrics.py',
+        'server_metrics.sh',
         [
           '--moid',
           'host-123',
@@ -457,6 +490,257 @@ describe('VmwareService', () => {
           'Invalid VMware credentials',
           HttpStatus.UNAUTHORIZED,
         ),
+      );
+    });
+  });
+
+  describe('listServers', () => {
+    it('should return list of servers', async () => {
+      const mockServersResult = {
+        servers: [
+          {
+            name: 'esxi-server-01',
+            vCenterIp: '192.168.1.5',
+            cluster: 'Production-Cluster',
+            vendor: 'HP',
+            model: 'ProLiant DL380 Gen10',
+            ip: '192.168.1.10',
+            cpuCores: 16,
+            cpuThreads: 32,
+            cpuMHz: 2400,
+            ramTotal: 64,
+          },
+          {
+            name: 'esxi-server-02',
+            vCenterIp: '192.168.1.5',
+            cluster: 'Production-Cluster',
+            vendor: 'Dell Inc.',
+            model: 'PowerEdge R740',
+            ip: '192.168.1.11',
+            cpuCores: 24,
+            cpuThreads: 48,
+            cpuMHz: 2600,
+            ramTotal: 128,
+          },
+        ],
+      };
+
+      pythonExecutor.executePython.mockResolvedValue(mockServersResult);
+
+      const result = await service.listServers(mockConnection);
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        name: 'esxi-server-01',
+        vCenterIp: '192.168.1.5',
+        cluster: 'Production-Cluster',
+        vendor: 'HP',
+        model: 'ProLiant DL380 Gen10',
+        ip: '192.168.1.10',
+        cpuCores: 16,
+        cpuThreads: 32,
+        cpuMHz: 2400,
+        ramTotal: 64,
+      });
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
+        'list_server.sh',
+        [
+          '--ip',
+          '192.168.1.10',
+          '--user',
+          'admin',
+          '--password',
+          'password123',
+        ],
+      );
+    });
+
+    it('should handle empty server list', async () => {
+      pythonExecutor.executePython.mockResolvedValue({ servers: [] });
+
+      const result = await service.listServers(mockConnection);
+
+      expect(result).toEqual([]);
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
+        'list_server.sh',
+        [
+          '--ip',
+          '192.168.1.10',
+          '--user',
+          'admin',
+          '--password',
+          'password123',
+        ],
+      );
+    });
+
+    it('should handle error response from script', async () => {
+      const errorResult = {
+        result: {
+          message: 'Invalid credentials',
+          httpCode: 401,
+        },
+      };
+
+      pythonExecutor.executePython.mockResolvedValue(errorResult);
+
+      await expect(service.listServers(mockConnection)).rejects.toThrow(
+        new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED),
+      );
+    });
+
+    it('should handle connection timeout', async () => {
+      pythonExecutor.executePython.mockRejectedValue(
+        new Error('Operation timeout'),
+      );
+
+      await expect(service.listServers(mockConnection)).rejects.toThrow(
+        new HttpException('Operation timeout', HttpStatus.REQUEST_TIMEOUT),
+      );
+    });
+
+    it('should include port in args when not default', async () => {
+      pythonExecutor.executePython.mockResolvedValue({ servers: [] });
+
+      await service.listServers({ ...mockConnection, port: 8443 });
+
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
+        'list_server.sh',
+        [
+          '--ip',
+          '192.168.1.10',
+          '--user',
+          'admin',
+          '--password',
+          'password123',
+          '--port',
+          '8443',
+        ],
+      );
+    });
+
+    it('should update existing servers with VMware host MOID sequentially', async () => {
+      const mockServersResult = {
+        servers: [
+          {
+            name: 'esxi-server-01',
+            vCenterIp: '192.168.1.5',
+            cluster: 'Production-Cluster',
+            vendor: 'HP',
+            model: 'ProLiant DL380 Gen10',
+            ip: '192.168.1.10',
+            moid: 'host-123',
+            cpuCores: 16,
+            cpuThreads: 32,
+            cpuMHz: 2400,
+            ramTotal: 64,
+          },
+          {
+            name: 'esxi-server-02',
+            vCenterIp: '192.168.1.5',
+            cluster: 'Production-Cluster',
+            vendor: 'Dell Inc.',
+            model: 'PowerEdge R740',
+            ip: '192.168.1.11',
+            moid: 'host-456',
+            cpuCores: 24,
+            cpuThreads: 48,
+            cpuMHz: 2600,
+            ramTotal: 128,
+          },
+        ],
+      };
+
+      const mockExistingServers = [
+        {
+          id: 'server-1',
+          name: 'Server 1',
+          ip: '192.168.1.10',
+          vmwareHostMoid: null,
+          state: 'stopped',
+          adminUrl: 'https://192.168.1.10',
+          login: 'admin',
+          password: 'password',
+          type: 'esxi',
+          priority: 1,
+          roomId: 'room-1',
+        } as any,
+        {
+          id: 'server-2',
+          name: 'Server 2',
+          ip: '192.168.1.11',
+          vmwareHostMoid: null,
+          state: 'stopped',
+          adminUrl: 'https://192.168.1.11',
+          login: 'admin',
+          password: 'password',
+          type: 'esxi',
+          priority: 1,
+          roomId: 'room-1',
+        } as any,
+        {
+          id: 'server-3',
+          name: 'Server 3',
+          ip: '192.168.1.12',
+          vmwareHostMoid: 'existing-moid',
+          state: 'stopped',
+          adminUrl: 'https://192.168.1.12',
+          login: 'admin',
+          password: 'password',
+          type: 'esxi',
+          priority: 1,
+          roomId: 'room-1',
+        } as any,
+      ];
+
+      pythonExecutor.executePython.mockResolvedValue(mockServersResult);
+      serverRepository.findAll.mockResolvedValue(mockExistingServers);
+      serverRepository.updateServer.mockResolvedValue(null);
+
+      await service.listServers(mockConnection);
+
+      expect(serverRepository.findAll).toHaveBeenCalledTimes(1);
+      expect(serverRepository.updateServer).toHaveBeenCalledTimes(2);
+      expect(serverRepository.updateServer).toHaveBeenNthCalledWith(
+        1,
+        'server-1',
+        {
+          vmwareHostMoid: 'host-123',
+        },
+      );
+      expect(serverRepository.updateServer).toHaveBeenNthCalledWith(
+        2,
+        'server-2',
+        {
+          vmwareHostMoid: 'host-456',
+        },
+      );
+    });
+
+    it('should handle server repository errors gracefully', async () => {
+      const mockServersResult = {
+        servers: [
+          {
+            name: 'esxi-server-01',
+            vCenterIp: '192.168.1.5',
+            cluster: 'Production-Cluster',
+            vendor: 'HP',
+            model: 'ProLiant DL380 Gen10',
+            ip: '192.168.1.10',
+            moid: 'host-123',
+            cpuCores: 16,
+            cpuThreads: 32,
+            cpuMHz: 2400,
+            ramTotal: 64,
+          },
+        ],
+      };
+
+      pythonExecutor.executePython.mockResolvedValue(mockServersResult);
+      serverRepository.findAll.mockRejectedValue(new Error('Database error'));
+
+      await expect(service.listServers(mockConnection)).rejects.toThrow(
+        new HttpException('Database error', HttpStatus.INTERNAL_SERVER_ERROR),
       );
     });
   });
@@ -537,7 +821,7 @@ describe('VmwareService', () => {
         shutdownSupported: true,
       });
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'server_metrics.py',
+        'server_metrics.sh',
         [
           '--moid',
           'host-123',
@@ -561,7 +845,7 @@ describe('VmwareService', () => {
 
       await service.listVMs(connectionWithoutPort);
 
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.py', [
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.sh', [
         '--ip',
         '192.168.1.10',
         '--user',
@@ -578,7 +862,7 @@ describe('VmwareService', () => {
 
       await service.listVMs(connectionWithCustomPort);
 
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.py', [
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.sh', [
         '--ip',
         '192.168.1.10',
         '--user',
@@ -587,6 +871,304 @@ describe('VmwareService', () => {
         'password123',
         '--port',
         '8443',
+      ]);
+    });
+
+    it('should not include port when port is 443', async () => {
+      pythonExecutor.executePython.mockResolvedValue({ vms: [] });
+
+      await service.listVMs(mockConnection);
+
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.sh', [
+        '--ip',
+        '192.168.1.10',
+        '--user',
+        'admin',
+        '--password',
+        'password123',
+      ]);
+    });
+  });
+
+  describe('edge cases and error handling', () => {
+    it('should handle missing result in response', async () => {
+      pythonExecutor.executePython.mockResolvedValue({});
+
+      const result = await service.controlVMPower(
+        'vm-123',
+        'on',
+        mockConnection,
+      );
+
+      expect(result).toEqual({
+        success: true,
+        message: 'VM started successfully',
+        newState: 'poweredOn',
+      });
+    });
+
+    it('should handle missing newHost in migration response', async () => {
+      pythonExecutor.executePython.mockResolvedValue({
+        result: {
+          message: 'VM migrated successfully',
+          httpCode: 200,
+        },
+      });
+
+      const result = await service.migrateVM(
+        'vm-123',
+        'host-456',
+        mockConnection,
+      );
+
+      expect(result).toEqual({
+        success: true,
+        message: 'VM migrated successfully',
+        newHost: 'host-456',
+      });
+    });
+
+    it('should handle parseVmList with missing fields', async () => {
+      pythonExecutor.executePython.mockResolvedValue({
+        vms: [
+          {
+            moid: 'vm-123',
+            name: 'Test VM',
+          },
+          {
+            moid: 'vm-456',
+          },
+        ],
+      });
+
+      const result = await service.listVMs(mockConnection);
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        moid: 'vm-123',
+        name: 'Test VM',
+        powerState: undefined,
+        guestOs: undefined,
+        guestFamily: undefined,
+        version: undefined,
+        createDate: undefined,
+        numCoresPerSocket: undefined,
+        esxiHostName: undefined,
+        esxiHostMoid: undefined,
+        ip: undefined,
+        hostname: undefined,
+        numCPU: undefined,
+        memoryMB: undefined,
+        toolsStatus: undefined,
+        annotation: undefined,
+      });
+    });
+
+    it('should handle parseVmMetrics with null values', async () => {
+      pythonExecutor.executePython.mockResolvedValue({
+        powerState: null,
+        guestState: null,
+        connectionState: null,
+        guestHeartbeatStatus: null,
+        overallStatus: null,
+        maxCpuUsage: null,
+        maxMemoryUsage: null,
+        bootTime: null,
+        isMigrating: null,
+        overallCpuUsage: null,
+        guestMemoryUsage: null,
+        uptimeSeconds: null,
+        swappedMemory: null,
+        usedStorage: null,
+        totalStorage: null,
+      });
+
+      const result = await service.getVMMetrics('vm-123', mockConnection);
+
+      expect(result).toEqual({
+        powerState: 'poweredOff',
+        guestState: 'unknown',
+        connectionState: 'disconnected',
+        guestHeartbeatStatus: 'gray',
+        overallStatus: 'gray',
+        maxCpuUsage: 0,
+        maxMemoryUsage: 0,
+        bootTime: '',
+        isMigrating: false,
+        overallCpuUsage: 0,
+        guestMemoryUsage: 0,
+        uptimeSeconds: 0,
+        swappedMemory: 0,
+        usedStorage: 0,
+        totalStorage: 0,
+      });
+    });
+
+    it('should handle parseServerInfo with missing fields', async () => {
+      pythonExecutor.executePython.mockResolvedValue({});
+
+      const result = await service.getServerInfo('host-123', mockConnection);
+
+      expect(result).toEqual({
+        name: 'Unknown',
+        vCenterIp: '',
+        cluster: '',
+        vendor: 'Unknown',
+        model: 'Unknown',
+        ip: '',
+        cpuCores: 0,
+        cpuThreads: 0,
+        cpuMHz: 0,
+        ramTotal: 0,
+      });
+    });
+
+    it('should handle parseServerMetrics with missing fields', async () => {
+      pythonExecutor.executePython.mockResolvedValue({});
+
+      const result = await service.getServerMetrics('host-123', mockConnection);
+
+      expect(result).toEqual({
+        powerState: 'poweredOff',
+        overallStatus: 'gray',
+        rebootRequired: false,
+        cpuUsagePercent: 0,
+        ramUsageMB: 0,
+        uptime: 0,
+        boottime: '',
+      });
+    });
+
+    it('should handle parseHostMetrics with default values', async () => {
+      pythonExecutor.executePython.mockResolvedValue({
+        name: 'Test Host',
+        ip: '192.168.1.1',
+        vCenterIp: '192.168.1.5',
+      });
+
+      const result = await service.getHostMetrics('host-123', mockConnection);
+
+      expect(result).toEqual({
+        name: 'Test Host',
+        ip: '192.168.1.1',
+        powerState: 'poweredOff',
+        vCenterIp: '192.168.1.5',
+        overallStatus: 'gray',
+        cpuCores: 0,
+        ramTotal: 0,
+        rebootRequired: false,
+        cpuUsageMHz: 0,
+        ramUsageMB: 0,
+        uptime: 0,
+        boottime: '',
+        cluster: '',
+        cpuHz: 0,
+        numCpuCores: 0,
+        numCpuThreads: 0,
+        model: 'Unknown',
+        vendor: 'Unknown',
+        biosVendor: 'Unknown',
+        firewall: 'Unknown',
+        maxHostRunningVms: 0,
+        maxHostSupportedVcpus: 0,
+        maxMemMBPerFtVm: 0,
+        maxNumDisksSVMotion: 0,
+        maxRegisteredVMs: 0,
+        maxRunningVMs: 0,
+        maxSupportedVcpus: 0,
+        maxSupportedVmMemory: 0,
+        maxVcpusPerFtVm: 0,
+        quickBootSupported: false,
+        rebootSupported: false,
+        shutdownSupported: false,
+      });
+    });
+
+    it('should handle error when empty password provided', async () => {
+      const connectionWithEmptyPassword = {
+        ...mockConnection,
+        password: '',
+      };
+
+      pythonExecutor.executePython.mockResolvedValue({ vms: [] });
+
+      await service.listVMs(connectionWithEmptyPassword);
+
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.sh', [
+        '--ip',
+        '192.168.1.10',
+        '--user',
+        'admin',
+        '--password',
+        '',
+      ]);
+    });
+
+    it('should log debug information when building connection args', async () => {
+      const loggerSpy = jest.spyOn(service['logger'], 'debug');
+      pythonExecutor.executePython.mockResolvedValue({ vms: [] });
+
+      await service.listVMs(mockConnection);
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        'Building connection args for 192.168.1.10:',
+      );
+      expect(loggerSpy).toHaveBeenCalledWith('- User: admin');
+      expect(loggerSpy).toHaveBeenCalledWith('- Password exists: true');
+      expect(loggerSpy).toHaveBeenCalledWith('- Password length: 11');
+    });
+
+    it('should log when no VMs found', async () => {
+      const loggerSpy = jest.spyOn(service['logger'], 'warn');
+      pythonExecutor.executePython.mockResolvedValue(null);
+
+      const result = await service.listVMs(mockConnection);
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        'Invalid result format or empty vms array',
+      );
+      expect(result).toEqual([]);
+    });
+
+    it('should log when parsing VMs', async () => {
+      const loggerSpy = jest.spyOn(service['logger'], 'debug');
+      pythonExecutor.executePython.mockResolvedValue({
+        vms: [{ moid: 'vm-1' }, { moid: 'vm-2' }],
+      });
+
+      await service.listVMs(mockConnection);
+
+      expect(loggerSpy).toHaveBeenCalledWith('Found 2 VMs to parse');
+      expect(loggerSpy).toHaveBeenCalledWith('Parsed 2 VMs');
+    });
+
+    it('should handle generic error appropriately', async () => {
+      pythonExecutor.executePython.mockRejectedValue(
+        new Error('Unknown error'),
+      );
+
+      await expect(service.listVMs(mockConnection)).rejects.toThrow(
+        new HttpException('Unknown error', HttpStatus.INTERNAL_SERVER_ERROR),
+      );
+    });
+
+    it('should handle connection with undefined port', async () => {
+      const connectionWithUndefinedPort = {
+        ...mockConnection,
+        port: undefined,
+      };
+
+      pythonExecutor.executePython.mockResolvedValue({ vms: [] });
+
+      await service.listVMs(connectionWithUndefinedPort);
+
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('list_vm.sh', [
+        '--ip',
+        '192.168.1.10',
+        '--user',
+        'admin',
+        '--password',
+        'password123',
       ]);
     });
   });

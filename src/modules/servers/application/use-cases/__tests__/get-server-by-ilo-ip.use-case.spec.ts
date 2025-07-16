@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
-import { GetServerByIloIpUseCase } from './get-server-by-ilo-ip.use-case';
-import { ServerRepositoryInterface } from '../../domain/interfaces/server.repository.interface';
-import { Server } from '../../domain/entities/server.entity';
+import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
+import { Server } from '@/modules/servers/domain/entities/server.entity';
+import { GetServerByIloIpUseCase } from '../get-server-by-ilo-ip.use-case';
 
 describe('GetServerByIloIpUseCase', () => {
   let useCase: GetServerByIloIpUseCase;
@@ -26,10 +26,8 @@ describe('GetServerByIloIpUseCase', () => {
     login: 'root',
     password: 'password',
     state: 'active',
-    type: 'physical',
+    type: 'esxi',
     priority: 1,
-    grace_period_on: 300,
-    grace_period_off: 120,
     adminUrl: 'https://192.168.1.10',
     ilo: mockIlo,
     iloId: 'ilo-1',

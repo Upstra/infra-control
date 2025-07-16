@@ -29,7 +29,9 @@ describe('EncryptionInitProvider', () => {
     const factory = (EncryptionInitProvider as any).useFactory as Function;
     const result = factory(encryptionService);
 
-    expect(encryptionTransformer.setEncryptionService).toHaveBeenCalledWith(encryptionService);
+    expect(encryptionTransformer.setEncryptionService).toHaveBeenCalledWith(
+      encryptionService,
+    );
     expect(encryptionTransformer.setEncryptionService).toHaveBeenCalledTimes(1);
     expect(result).toBe(true);
   });
@@ -53,19 +55,23 @@ describe('EncryptionInitProvider', () => {
     }).compile();
 
     const initToken = module.get<boolean>('ENCRYPTION_INIT');
-    
+
     expect(initToken).toBe(true);
-    expect(encryptionTransformer.setEncryptionService).toHaveBeenCalledWith(encryptionService);
+    expect(encryptionTransformer.setEncryptionService).toHaveBeenCalledWith(
+      encryptionService,
+    );
   });
 
   it('should handle factory execution multiple times', () => {
     const factory = (EncryptionInitProvider as any).useFactory as Function;
-    
+
     factory(encryptionService);
     factory(encryptionService);
     factory(encryptionService);
 
     expect(encryptionTransformer.setEncryptionService).toHaveBeenCalledTimes(3);
-    expect(encryptionTransformer.setEncryptionService).toHaveBeenCalledWith(encryptionService);
+    expect(encryptionTransformer.setEncryptionService).toHaveBeenCalledWith(
+      encryptionService,
+    );
   });
 });

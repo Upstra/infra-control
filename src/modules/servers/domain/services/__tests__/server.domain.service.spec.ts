@@ -20,8 +20,6 @@ describe('ServerDomainService', () => {
       expect(server).toMatchObject({
         name: dto.name,
         state: dto.state,
-        grace_period_on: dto.grace_period_on,
-        grace_period_off: dto.grace_period_off,
         adminUrl: dto.adminUrl,
         ip: dto.ip,
         login: dto.login,

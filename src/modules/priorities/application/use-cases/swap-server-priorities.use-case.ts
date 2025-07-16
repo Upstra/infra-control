@@ -1,65 +1,69 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { DataSource } from 'typeorm';
 import { Server } from '../../../servers/domain/entities/server.entity';
 import { SwapServerResponseDto } from '../dto/swap-response.dto';
-import { GetUserServerPermissionsUseCase } from '../../../permissions/application/use-cases/permission-server';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
-import { SwapPrioritiesBaseUseCase } from './base/swap-priorities-base.use-case';
+import { GenerateMigrationPlanUseCase } from './generate-migration-plan.use-case';
 
 @Injectable()
-export class SwapServerPrioritiesUseCase extends SwapPrioritiesBaseUseCase<
-  Server,
-  { serverId?: string; bitmask: number },
-  SwapServerResponseDto
-> {
+export class SwapServerPrioritiesUseCase {
   constructor(
-    @InjectRepository(Server)
-    private readonly serverRepository: Repository<Server>,
-    private readonly getUserPermissionServer: GetUserServerPermissionsUseCase,
-    protected readonly logHistory: LogHistoryUseCase,
-    protected readonly dataSource: DataSource,
-  ) {
-    super(dataSource, logHistory);
-  }
+    private readonly logHistory: LogHistoryUseCase,
+    private readonly generateMigrationPlan: GenerateMigrationPlanUseCase,
+    private readonly dataSource: DataSource,
+  ) {}
 
-  protected getEntityRepository(): Repository<Server> {
-    return this.serverRepository;
-  }
+  async execute(
+    server1Id: string,
+    server2Id: string,
+    userId: string,
+  ): Promise<SwapServerResponseDto> {
+    return await this.dataSource.transaction(async (manager) => {
+      const serverRepo = manager.getRepository(Server);
 
-  protected getEntityName(): string {
-    return 'Server';
-  }
+      const server1 = await serverRepo.findOne({
+        where: { id: server1Id },
+      });
+      const server2 = await serverRepo.findOne({
+        where: { id: server2Id },
+      });
 
-  protected getEntityNamePlural(): string {
-    return 'servers';
-  }
+      if (!server1) {
+        throw new NotFoundException(`Server with id ${server1Id} not found`);
+      }
+      if (!server2) {
+        throw new NotFoundException(`Server with id ${server2Id} not found`);
+      }
 
-  protected async getUserPermissions(userId: string) {
-    return this.getUserPermissionServer.execute(userId);
-  }
+      if (server1.type === 'vcenter' || server2.type === 'vcenter') {
+        throw new BadRequestException(
+          'Cannot swap priorities for vCenter servers',
+        );
+      }
 
-  protected getPermissionId(permission: {
-    serverId?: string;
-    bitmask: number;
-  }): string {
-    return permission.serverId ?? '';
-  }
+      const temp = server1.priority;
+      server1.priority = server2.priority;
+      server2.priority = temp;
 
-  protected getLogMetadata(
-    _entity: Server,
-    _swapPartner: Server,
-  ): Record<string, any> {
-    return {};
-  }
+      await serverRepo.save([server1, server2]);
 
-  protected formatResult(
-    entity1: Server,
-    entity2: Server,
-  ): SwapServerResponseDto {
-    return {
-      server1: { id: entity1.id, priority: entity1.priority },
-      server2: { id: entity2.id, priority: entity2.priority },
-    };
+      await this.logHistory.execute(
+        'server',
+        `${server1Id}-${server2Id}`,
+        'SWAP_PRIORITY',
+        userId,
+      );
+
+      await this.generateMigrationPlan.execute();
+
+      return {
+        server1: { id: server1.id, priority: server1.priority },
+        server2: { id: server2.id, priority: server2.priority },
+      };
+    });
   }
 }

@@ -38,7 +38,9 @@ describe('PingController', () => {
 
     it('should call pingHostnameUseCase with correct hostname', async () => {
       const hostname = '192.168.1.100';
-      jest.spyOn(pingHostnameUseCase, 'execute').mockResolvedValue(mockPingResponse);
+      jest
+        .spyOn(pingHostnameUseCase, 'execute')
+        .mockResolvedValue(mockPingResponse);
 
       const result = await controller.pingHostname(hostname);
 
@@ -53,7 +55,9 @@ describe('PingController', () => {
         ...mockPingResponse,
         host: hostname,
       };
-      jest.spyOn(pingHostnameUseCase, 'execute').mockResolvedValue(domainResponse);
+      jest
+        .spyOn(pingHostnameUseCase, 'execute')
+        .mockResolvedValue(domainResponse);
 
       const result = await controller.pingHostname(hostname);
 
@@ -68,7 +72,9 @@ describe('PingController', () => {
         host: hostname,
         responseTime: 1,
       };
-      jest.spyOn(pingHostnameUseCase, 'execute').mockResolvedValue(localhostResponse);
+      jest
+        .spyOn(pingHostnameUseCase, 'execute')
+        .mockResolvedValue(localhostResponse);
 
       const result = await controller.pingHostname(hostname);
 
@@ -83,7 +89,9 @@ describe('PingController', () => {
         accessible: false,
         error: 'Host unreachable',
       };
-      jest.spyOn(pingHostnameUseCase, 'execute').mockResolvedValue(unreachableResponse);
+      jest
+        .spyOn(pingHostnameUseCase, 'execute')
+        .mockResolvedValue(unreachableResponse);
 
       const result = await controller.pingHostname(hostname);
 
@@ -106,7 +114,9 @@ describe('PingController', () => {
         ...mockPingResponse,
         host: hostname,
       };
-      jest.spyOn(pingHostnameUseCase, 'execute').mockResolvedValue(ipv6Response);
+      jest
+        .spyOn(pingHostnameUseCase, 'execute')
+        .mockResolvedValue(ipv6Response);
 
       const result = await controller.pingHostname(hostname);
 
@@ -120,7 +130,9 @@ describe('PingController', () => {
         ...mockPingResponse,
         host: hostname,
       };
-      jest.spyOn(pingHostnameUseCase, 'execute').mockResolvedValue(specialResponse);
+      jest
+        .spyOn(pingHostnameUseCase, 'execute')
+        .mockResolvedValue(specialResponse);
 
       const result = await controller.pingHostname(hostname);
 

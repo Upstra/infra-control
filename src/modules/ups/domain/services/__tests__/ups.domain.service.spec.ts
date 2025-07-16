@@ -15,6 +15,8 @@ describe('UpsDomainService', () => {
       const dto: UpsCreationDto = {
         name: 'UPS-1',
         ip: '192.168.1.1',
+        grace_period_on: 30,
+        grace_period_off: 30,
         roomId: 'room-uuid',
       };
 

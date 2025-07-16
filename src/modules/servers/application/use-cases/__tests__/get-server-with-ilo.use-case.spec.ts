@@ -21,10 +21,8 @@ describe('GetServerWithIloUseCase', () => {
     name: 'Test Server',
     ip: '192.168.1.10',
     state: 'UP',
-    type: 'physical',
+    type: 'esxi',
     priority: 1,
-    grace_period_on: 300,
-    grace_period_off: 300,
     ilo: mockIlo as Ilo,
   };
 
@@ -33,10 +31,8 @@ describe('GetServerWithIloUseCase', () => {
     name: 'Test Server 2',
     ip: '192.168.1.11',
     state: 'UP',
-    type: 'physical',
+    type: 'esxi',
     priority: 2,
-    grace_period_on: 300,
-    grace_period_off: 300,
     ilo: null,
   };
 

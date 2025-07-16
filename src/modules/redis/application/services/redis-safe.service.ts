@@ -98,6 +98,18 @@ export class RedisSafeService {
     }
   }
 
+  async safeSetEx(key: string, seconds: number, value: string) {
+    const client = this.redisClient;
+    if (!client) return;
+    try {
+      await client.setex(key, seconds, value);
+    } catch (e) {
+      this.online = false;
+      this.logger.error('Erreur Redis: ' + e.message);
+      this.scheduleReconnect();
+    }
+  }
+
   /**
    * Retrieve all keys matching the provided pattern.
    *
@@ -109,6 +121,23 @@ export class RedisSafeService {
     if (!client) return [];
     try {
       return await client.keys(pattern);
+    } catch (e) {
+      this.online = false;
+      this.logger.error('Erreur Redis: ' + e.message);
+      this.scheduleReconnect();
+      return [];
+    }
+  }
+
+  async safeLRange(
+    key: string,
+    start: number,
+    stop: number,
+  ): Promise<string[]> {
+    const client = this.redisClient;
+    if (!client) return [];
+    try {
+      return await client.lrange(key, start, stop);
     } catch (e) {
       this.online = false;
       this.logger.error('Erreur Redis: ' + e.message);

@@ -5,7 +5,11 @@ import { SetMetadata } from '@nestjs/common';
 
 jest.mock('@nestjs/common', () => ({
   SetMetadata: jest.fn((key, value) => {
-    return (target: any, propertyKey?: string, descriptor?: PropertyDescriptor) => {
+    return (
+      target: any,
+      propertyKey?: string,
+      descriptor?: PropertyDescriptor,
+    ) => {
       Reflect.defineMetadata(key, value, descriptor?.value ?? target);
     };
   }),
@@ -18,27 +22,33 @@ describe('IloPermission Decorator', () => {
 
   it('should call SetMetadata with correct key and permission bit', () => {
     const permissionBit = PermissionBit.READ;
-    
+
     IloPermission(permissionBit);
 
-    expect(SetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, { requiredBit: permissionBit });
+    expect(SetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, {
+      requiredBit: permissionBit,
+    });
     expect(SetMetadata).toHaveBeenCalledTimes(1);
   });
 
   it('should work with WRITE permission', () => {
     const permissionBit = PermissionBit.WRITE;
-    
+
     IloPermission(permissionBit);
 
-    expect(SetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, { requiredBit: permissionBit });
+    expect(SetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, {
+      requiredBit: permissionBit,
+    });
   });
 
   it('should work with SHUTDOWN permission', () => {
     const permissionBit = PermissionBit.SHUTDOWN;
-    
+
     IloPermission(permissionBit);
 
-    expect(SetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, { requiredBit: permissionBit });
+    expect(SetMetadata).toHaveBeenCalledWith(ILO_PERMISSION_KEY, {
+      requiredBit: permissionBit,
+    });
   });
 
   it('should be applicable to a method', () => {
@@ -49,8 +59,11 @@ describe('IloPermission Decorator', () => {
       }
     }
 
-    const metadata = Reflect.getMetadata(ILO_PERMISSION_KEY, TestController.prototype.testMethod);
-    
+    const metadata = Reflect.getMetadata(
+      ILO_PERMISSION_KEY,
+      TestController.prototype.testMethod,
+    );
+
     expect(metadata).toEqual({ requiredBit: PermissionBit.READ });
   });
 
@@ -72,10 +85,19 @@ describe('IloPermission Decorator', () => {
       }
     }
 
-    const readMetadata = Reflect.getMetadata(ILO_PERMISSION_KEY, TestController.prototype.readMethod);
-    const writeMetadata = Reflect.getMetadata(ILO_PERMISSION_KEY, TestController.prototype.writeMethod);
-    const executeMetadata = Reflect.getMetadata(ILO_PERMISSION_KEY, TestController.prototype.executeMethod);
-    
+    const readMetadata = Reflect.getMetadata(
+      ILO_PERMISSION_KEY,
+      TestController.prototype.readMethod,
+    );
+    const writeMetadata = Reflect.getMetadata(
+      ILO_PERMISSION_KEY,
+      TestController.prototype.writeMethod,
+    );
+    const executeMetadata = Reflect.getMetadata(
+      ILO_PERMISSION_KEY,
+      TestController.prototype.executeMethod,
+    );
+
     expect(readMetadata).toEqual({ requiredBit: PermissionBit.READ });
     expect(writeMetadata).toEqual({ requiredBit: PermissionBit.WRITE });
     expect(executeMetadata).toEqual({ requiredBit: PermissionBit.SHUTDOWN });

@@ -6,10 +6,12 @@ import {
   VmwareServerInfo,
   VmwareServerMetrics,
   VmwarePowerState,
+  VmwareServer,
 } from './vmware-vm.interface';
 
 export interface IVmwareService {
   listVMs(connection: VmwareConnectionDto): Promise<VmwareVm[]>;
+  listServers(connection: VmwareConnectionDto): Promise<VmwareServer[]>;
   getVMMetrics(
     moid: string,
     connection: VmwareConnectionDto,

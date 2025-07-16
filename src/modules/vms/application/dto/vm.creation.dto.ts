@@ -8,6 +8,7 @@ import {
   IsDateString,
   IsInt,
 } from 'class-validator';
+import { IsPriority } from '../../../groups/application/validators/priority.validator';
 
 export class VmCreationDto {
   @ApiProperty()
@@ -100,9 +101,13 @@ export class VmCreationDto {
   @IsString()
   readonly password?: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'VM priority (1-999). Must be unique within the same server',
+    example: 1,
+    required: true,
+  })
   @IsNotEmpty()
-  @IsNumber()
+  @IsPriority()
   readonly priority!: number;
 
   @ApiProperty()

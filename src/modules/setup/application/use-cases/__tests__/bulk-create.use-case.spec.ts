@@ -81,6 +81,8 @@ describe('BulkCreateUseCase', () => {
         {
           name: 'UPS-01',
           ip: '192.168.1.100',
+          grace_period_on: 30,
+          grace_period_off: 30,
           roomId: 'temp_room_1',
           tempId: 'temp_ups_1',
         },
@@ -89,16 +91,18 @@ describe('BulkCreateUseCase', () => {
         {
           name: 'WEB-01',
           state: 'stopped',
-          grace_period_on: 30,
-          grace_period_off: 30,
           adminUrl: 'https://192.168.1.10',
           ip: '192.168.1.10',
           login: 'admin',
           password: 'password',
-          type: 'physical',
+          type: 'esxi',
           priority: 1,
           roomId: 'temp_room_1',
           upsId: 'temp_ups_1',
+          ilo_name: 'ILO-WEB-01',
+          ilo_ip: '192.168.1.11',
+          ilo_login: 'admin',
+          ilo_password: 'ilopassword',
         },
       ],
     };
@@ -194,7 +198,14 @@ describe('BulkCreateUseCase', () => {
     it('should throw error if UPS missing required IP', async () => {
       const invalidRequest: BulkCreateRequestDto = {
         rooms: [{ name: 'Room 1' }],
-        upsList: [{ name: 'UPS-01', roomId: 'room-uuid-1' }],
+        upsList: [
+          {
+            name: 'UPS-01',
+            roomId: 'room-uuid-1',
+            grace_period_on: 30,
+            grace_period_off: 30,
+          },
+        ],
         servers: [],
       };
 
@@ -217,13 +228,11 @@ describe('BulkCreateUseCase', () => {
           {
             name: 'WEB-01',
             state: 'stopped',
-            grace_period_on: 30,
-            grace_period_off: 30,
             adminUrl: 'https://192.168.1.10',
             ip: '192.168.1.10',
             login: 'admin',
             password: 'password',
-            type: 'physical',
+            type: 'vcenter',
             priority: 1,
           },
         ],
@@ -281,6 +290,74 @@ describe('BulkCreateUseCase', () => {
           upsId: 'ups-uuid-1',
         }),
       );
+    });
+
+    it('should handle frontend payload with id fields instead of tempId', async () => {
+      const mockRoom = { id: 'room-uuid-1', name: 'Main Room' };
+      const mockUps = { id: 'ups-uuid-1', name: 'UPS-Second' };
+      const mockServer = { id: 'server-uuid-1', name: 'ESXSRV11' };
+
+      const frontendRequest = {
+        rooms: [
+          {
+            name: 'Main Room',
+            id: 'temp_1752408362050_0', // Frontend uses id instead of tempId
+          },
+        ],
+        upsList: [
+          {
+            name: 'UPS-Second',
+            roomId: 'temp_1752408362050_0',
+            ip: '192.168.1.102',
+            grace_period_on: 30,
+            grace_period_off: 30,
+            id: 'temp_1752408362050_1', // Frontend uses id instead of tempId
+          },
+        ],
+        servers: [
+          {
+            name: 'ESXSRV11',
+            state: 'active',
+            adminUrl: 'https://192.168.1.10',
+            ip: '172.23.10.11',
+            login: 'admin',
+            password: 'sdf99GHJ',
+            type: 'esxi',
+            priority: 1,
+            roomId: 'temp_1752408362050_0',
+            upsId: 'temp_1752408362050_1',
+            ilo_name: 'ILO-ESXSRV11',
+            ilo_ip: '172.23.30.11',
+            ilo_login: 'Admin',
+            ilo_password: '5EcUr3D',
+            id: 'temp_1752408362050_3', // Frontend uses id instead of tempId
+          },
+        ],
+      };
+
+      queryRunner.manager.save = jest
+        .fn()
+        .mockResolvedValueOnce(mockRoom)
+        .mockResolvedValueOnce(mockUps)
+        .mockResolvedValueOnce(mockServer);
+
+      const result = await useCase.execute(frontendRequest);
+
+      expect(result.success).toBe(true);
+      expect(result.created.rooms).toHaveLength(1);
+      expect(result.created.upsList).toHaveLength(1);
+      expect(result.created.servers).toHaveLength(1);
+
+      // Verify that the frontend id fields are used as tempId in the response
+      expect(result.created.rooms[0].tempId).toBe('temp_1752408362050_0');
+      expect(result.created.upsList[0].tempId).toBe('temp_1752408362050_1');
+      expect(result.created.servers[0].tempId).toBe('temp_1752408362050_3');
+
+      // Verify ID mapping uses frontend id fields
+      expect(result.idMapping.rooms['temp_1752408362050_0']).toBe(
+        'room-uuid-1',
+      );
+      expect(result.idMapping.ups['temp_1752408362050_1']).toBe('ups-uuid-1');
     });
   });
 });

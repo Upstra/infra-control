@@ -39,6 +39,10 @@ import {
   IpValidationResponseDto,
   NameValidationResponseDto,
 } from './ip-validation.dto';
+import {
+  BulkCreateWithDiscoveryRequestDto,
+  BulkCreateWithDiscoveryResponseDto,
+} from './bulk-create-with-discovery.dto';
 
 export {
   CompleteSetupStepDto,
@@ -72,4 +76,6 @@ export {
   NameValidationRequestDto,
   IpValidationResponseDto,
   NameValidationResponseDto,
+  BulkCreateWithDiscoveryRequestDto,
+  BulkCreateWithDiscoveryResponseDto,
 };

@@ -1,4 +1,10 @@
-import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  HttpException,
+  HttpStatus,
+  Inject,
+} from '@nestjs/common';
 import { PythonExecutorService } from '@/core/services/python-executor';
 import { VmwareConnectionDto } from '@/modules/vmware/application/dto';
 import {
@@ -13,23 +19,62 @@ import {
   VmwareGuestState,
   VmwareConnectionState,
   VmwareHealthStatus,
+  VmwareServer,
 } from '../interfaces';
+import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
+
+interface RawVmwareServer {
+  name?: string;
+  vCenterIp?: string;
+  cluster?: string;
+  vendor?: string;
+  model?: string;
+  ip?: string;
+  moid?: string;
+  cpuCores?: number;
+  cpuThreads?: number;
+  cpuMHz?: number;
+  ramTotal?: number;
+}
 
 @Injectable()
 export class VmwareService implements IVmwareService {
   private readonly logger = new Logger(VmwareService.name);
 
-  constructor(private readonly pythonExecutor: PythonExecutorService) {}
+  constructor(
+    private readonly pythonExecutor: PythonExecutorService,
+    @Inject('ServerRepositoryInterface')
+    private readonly serverRepository: ServerRepositoryInterface,
+  ) {}
 
   async listVMs(connection: VmwareConnectionDto): Promise<VmwareVm[]> {
     const args = this.buildConnectionArgs(connection);
 
     try {
       const result = await this.pythonExecutor.executePython(
-        'list_vm.py',
+        'list_vm.sh',
         args,
       );
-      return this.parseVmList(result);
+      this.logger.debug('Raw script output:', JSON.stringify(result));
+
+      if (result?.result?.httpCode && result.result.httpCode !== 200) {
+        const errorMessage = result.result.message || 'Unknown error';
+        this.logger.error(
+          `Script returned error: ${errorMessage} (HTTP ${result.result.httpCode})`,
+        );
+
+        if (result.result.httpCode === 401) {
+          throw new HttpException(
+            'Invalid credentials',
+            HttpStatus.UNAUTHORIZED,
+          );
+        }
+        throw new HttpException(errorMessage, result.result.httpCode);
+      }
+
+      const parsedVms = this.parseVmList(result);
+      this.logger.debug(`Parsed ${parsedVms.length} VMs`);
+      return parsedVms;
     } catch (error) {
       this.logger.error('Failed to list VMs:', error);
       throw this.handlePythonError(error, 'Failed to retrieve VM list');
@@ -44,7 +89,7 @@ export class VmwareService implements IVmwareService {
 
     try {
       const result = await this.pythonExecutor.executePython(
-        'vm_metrics.py',
+        'vm_metrics.sh',
         args,
       );
       return this.parseVmMetrics(result);
@@ -63,7 +108,7 @@ export class VmwareService implements IVmwareService {
     message: string;
     newState: VmwarePowerState;
   }> {
-    const scriptName = action === 'on' ? 'vm_start.py' : 'vm_stop.py';
+    const scriptName = action === 'on' ? 'vm_start.sh' : 'vm_stop.sh';
     const args = ['--moid', moid, ...this.buildConnectionArgs(connection)];
 
     try {
@@ -98,9 +143,24 @@ export class VmwareService implements IVmwareService {
 
     try {
       const result = await this.pythonExecutor.executePython(
-        'vm_migration.py',
+        'vm_migration.sh',
         args,
       );
+
+      this.logger.debug('Migration result:', JSON.stringify(result));
+
+      // Check if the result indicates an error
+      if (result?.result?.httpCode && result.result.httpCode !== 200) {
+        this.logger.error(
+          `Migration failed with HTTP ${result.result.httpCode}:`,
+          JSON.stringify(result, null, 2),
+        );
+        throw new HttpException(
+          result.result.message || 'Migration failed',
+          result.result.httpCode,
+        );
+      }
+
       return {
         success: true,
         message: result.result?.message ?? 'VM migrated successfully',
@@ -108,6 +168,15 @@ export class VmwareService implements IVmwareService {
       };
     } catch (error) {
       this.logger.error(`Failed to migrate VM ${vmMoid}:`, error);
+
+      // If error has a result object, log it
+      if (error?.result) {
+        this.logger.error(
+          'Migration error details:',
+          JSON.stringify(error.result, null, 2),
+        );
+      }
+
       throw this.handlePythonError(error, 'Failed to migrate VM');
     }
   }
@@ -120,7 +189,7 @@ export class VmwareService implements IVmwareService {
 
     try {
       const result = await this.pythonExecutor.executePython(
-        'server_info.py',
+        'server_info.sh',
         args,
       );
       return this.parseServerInfo(result);
@@ -138,7 +207,7 @@ export class VmwareService implements IVmwareService {
 
     try {
       const result = await this.pythonExecutor.executePython(
-        'server_metrics.py',
+        'server_metrics.sh',
         args,
       );
       return this.parseServerMetrics(result);
@@ -156,7 +225,7 @@ export class VmwareService implements IVmwareService {
 
     try {
       const result = await this.pythonExecutor.executePython(
-        'server_metrics.py',
+        'server_metrics.sh',
         args,
       );
       return this.parseHostMetrics(result);
@@ -166,7 +235,67 @@ export class VmwareService implements IVmwareService {
     }
   }
 
+  async listServers(connection: VmwareConnectionDto): Promise<VmwareServer[]> {
+    const args = this.buildConnectionArgs(connection);
+
+    try {
+      const result = await this.pythonExecutor.executePython(
+        'list_server.sh',
+        args,
+      );
+      this.logger.debug('Raw servers output:', JSON.stringify(result));
+
+      if (result?.result?.httpCode && result.result.httpCode !== 200) {
+        const errorMessage = result.result.message || 'Unknown error';
+        this.logger.error(
+          `Script returned error: ${errorMessage} (HTTP ${result.result.httpCode})`,
+        );
+
+        if (result.result.httpCode === 401) {
+          throw new HttpException(
+            'Invalid credentials',
+            HttpStatus.UNAUTHORIZED,
+          );
+        }
+        throw new HttpException(errorMessage, result.result.httpCode);
+      }
+
+      const parsedServers = this.parseServerList(result);
+      this.logger.debug(`Parsed ${parsedServers.length} servers`);
+
+      const existingServers = await this.serverRepository.findAll();
+
+      for (const server of parsedServers) {
+        const existing = existingServers.find((s) => s.ip === server.ip);
+        if (existing) {
+          if (existing.vmwareHostMoid !== server.moid) {
+            this.logger.debug(
+              `Updating existing server ${existing.id} with new VMware host MOID: ${server.moid} (was: ${existing.vmwareHostMoid || 'null'})`,
+            );
+            await this.serverRepository.updateServer(existing.id, {
+              vmwareHostMoid: server.moid,
+            });
+          } else {
+            this.logger.debug(
+              `Server ${existing.id} already has correct VMware host MOID: ${server.moid}`,
+            );
+          }
+        }
+      }
+
+      return parsedServers;
+    } catch (error) {
+      this.logger.error('Failed to list servers:', error);
+      throw this.handlePythonError(error, 'Failed to retrieve server list');
+    }
+  }
+
   private buildConnectionArgs(connection: VmwareConnectionDto): string[] {
+    this.logger.debug(`Building connection args for ${connection.host}:`);
+    this.logger.debug(`- User: ${connection.user}`);
+    this.logger.debug(`- Password exists: ${!!connection.password}`);
+    this.logger.debug(`- Password length: ${connection.password?.length ?? 0}`);
+
     const args = [
       '--ip',
       connection.host,
@@ -184,18 +313,29 @@ export class VmwareService implements IVmwareService {
   }
 
   private parseVmList(result: any): VmwareVm[] {
+    this.logger.debug('parseVmList input:', JSON.stringify(result));
+
     if (!result || !Array.isArray(result.vms)) {
+      this.logger.warn('Invalid result format or empty vms array');
       return [];
     }
+
+    this.logger.debug(`Found ${result.vms.length} VMs to parse`);
 
     return result.vms.map((vm: any) => ({
       moid: vm.moid,
       name: vm.name,
       powerState: vm.powerState,
-      guestOS: vm.guestOS,
-      ipAddress: vm.ipAddress,
+      guestOs: vm.guestOs,
+      guestFamily: vm.guestFamily,
+      version: vm.version,
+      createDate: vm.createDate,
+      numCoresPerSocket: vm.numCoresPerSocket,
+      esxiHostName: vm.esxiHostName,
+      esxiHostMoid: vm.esxiHostMoid,
+      ip: vm.ip,
       hostname: vm.hostname,
-      numCpu: vm.numCpu,
+      numCPU: vm.numCPU,
       memoryMB: vm.memoryMB,
       toolsStatus: vm.toolsStatus,
       annotation: vm.annotation,
@@ -312,5 +452,31 @@ export class VmwareService implements IVmwareService {
     }
 
     return new HttpException(message, HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  private parseServerList(result: {
+    servers?: RawVmwareServer[];
+  }): VmwareServer[] {
+    this.logger.debug('parseServerList input:', JSON.stringify(result));
+
+    if (!result || !Array.isArray(result.servers)) {
+      this.logger.warn('Invalid result format or empty servers array');
+      return [];
+    }
+
+    this.logger.debug(`Found ${result.servers.length} servers to parse`);
+    return result.servers.map((server) => ({
+      name: server.name ?? 'Unknown',
+      vCenterIp: server.vCenterIp ?? '',
+      cluster: server.cluster ?? '',
+      vendor: server.vendor ?? 'Unknown',
+      model: server.model ?? 'Unknown',
+      ip: server.ip ?? '',
+      moid: server.moid ?? '',
+      cpuCores: server.cpuCores ?? 0,
+      cpuThreads: server.cpuThreads ?? 0,
+      cpuMHz: server.cpuMHz ?? 0,
+      ramTotal: server.ramTotal ?? 0,
+    }));
   }
 }

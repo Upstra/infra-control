@@ -28,6 +28,7 @@ import {
   GetSetupProgressUseCase,
   GetSetupStatusUseCase,
   BulkCreateUseCase,
+  BulkCreateWithDiscoveryUseCase,
   BulkValidationUseCase,
   GetTemplatesUseCase,
   CreateTemplateUseCase,
@@ -50,6 +51,8 @@ import {
   SetupProgressEnhancedDto,
   IpValidationResponseDto,
   NameValidationResponseDto,
+  BulkCreateWithDiscoveryRequestDto,
+  BulkCreateWithDiscoveryResponseDto,
 } from '../dto';
 
 @ApiTags('Setup')
@@ -61,6 +64,7 @@ export class SetupController {
     private readonly completeStep: CompleteSetupStepUseCase,
     private readonly getProgress: GetSetupProgressUseCase,
     private readonly bulkCreateUseCase: BulkCreateUseCase,
+    private readonly bulkCreateWithDiscoveryUseCase: BulkCreateWithDiscoveryUseCase,
     private readonly bulkValidationUseCase: BulkValidationUseCase,
     private readonly getTemplatesUseCase: GetTemplatesUseCase,
     private readonly createTemplateUseCase: CreateTemplateUseCase,
@@ -164,9 +168,42 @@ export class SetupController {
   })
   async bulkCreate(
     @Body() dto: BulkCreateRequestDto,
-    @CurrentUser() currentUser: JwtPayload,
   ): Promise<BulkCreateResponseDto> {
-    return this.bulkCreateUseCase.execute(dto, currentUser.userId);
+    return this.bulkCreateUseCase.execute(dto);
+  }
+
+  @Post('bulk-create-with-discovery')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Create resources with automatic VMware discovery',
+    description:
+      'Create rooms, UPS, and servers in a single transaction, then automatically discover VMs from VMware servers',
+  })
+  @ApiBody({ type: BulkCreateWithDiscoveryRequestDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Resources created and discovery initiated',
+    type: BulkCreateWithDiscoveryResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation error or transaction failed',
+  })
+  async bulkCreateWithDiscovery(
+    @Body() dto: BulkCreateWithDiscoveryRequestDto,
+  ): Promise<BulkCreateWithDiscoveryResponseDto> {
+    const {
+      enableDiscovery = true,
+      discoverySessionId,
+      ...bulkCreateData
+    } = dto;
+    return this.bulkCreateWithDiscoveryUseCase.execute({
+      ...bulkCreateData,
+      enableDiscovery,
+      discoverySessionId,
+    });
   }
 
   @Post('validate')

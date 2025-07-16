@@ -32,6 +32,10 @@ export class GetUpsByIdUseCase {
     if (!result) {
       throw new UpsNotFoundException(id);
     }
-    return new UpsResponseDto(result.ups, result.serverCount);
+    const serverCount =
+      result.ups.servers && result.ups.servers.length > 0
+        ? result.ups.servers.length
+        : result.serverCount;
+    return new UpsResponseDto(result.ups, serverCount);
   }
 }

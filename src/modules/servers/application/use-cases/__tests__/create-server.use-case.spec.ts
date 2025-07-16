@@ -385,7 +385,7 @@ describe('CreateServerUseCase', () => {
           iloIpAddress: mockIloDto.ip,
         },
         metadata: {
-          serverType: 'physical',
+          serverType: 'esxi',
           hasUpsConnection: !!dto.upsId,
           assignedToGroup: !!dto.groupId,
           adminRolesGranted: 1,
@@ -446,7 +446,7 @@ describe('CreateServerUseCase', () => {
           iloIpAddress: mockIloDto.ip,
         },
         metadata: {
-          serverType: 'physical',
+          serverType: 'esxi',
           hasUpsConnection: false,
           assignedToGroup: false,
           adminRolesGranted: 0,

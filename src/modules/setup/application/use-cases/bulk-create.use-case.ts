@@ -8,13 +8,11 @@ import { DataSource, QueryRunner } from 'typeorm';
 import { RoomRepositoryInterface } from '../../../rooms/domain/interfaces/room.repository.interface';
 import { UpsRepositoryInterface } from '../../../ups/domain/interfaces/ups.repository.interface';
 import { ServerRepositoryInterface } from '../../../servers/domain/interfaces/server.repository.interface';
-import { CompleteSetupStepUseCase } from './complete-setup-step.use-case';
 import {
   BulkCreateRequestDto,
   BulkCreateResponseDto,
   BulkCreateErrorDto,
   CreatedResourceDto,
-  SetupStep,
   BulkRoomDto,
   BulkUpsDto,
   BulkServerDto,
@@ -36,13 +34,9 @@ export class BulkCreateUseCase {
     private readonly upsRepository: UpsRepositoryInterface,
     @Inject('ServerRepositoryInterface')
     private readonly serverRepository: ServerRepositoryInterface,
-    private readonly completeSetupStepUseCase: CompleteSetupStepUseCase,
   ) {}
 
-  async execute(
-    dto: BulkCreateRequestDto,
-    userId?: string,
-  ): Promise<BulkCreateResponseDto> {
+  async execute(dto: BulkCreateRequestDto): Promise<BulkCreateResponseDto> {
     this.validateDependencies(dto);
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -64,7 +58,8 @@ export class BulkCreateUseCase {
       for (const roomData of dto.rooms) {
         const room = await this.createRoom(queryRunner, roomData);
 
-        const tempId = roomData.tempId || `room_${room.id}`;
+        const tempId =
+          roomData.tempId ?? (roomData as any).id ?? `room_${room.id}`;
 
         created.rooms.push({
           id: room.id,
@@ -79,7 +74,7 @@ export class BulkCreateUseCase {
         const roomId = this.resolveId(upsData.roomId, idMapping.rooms);
         const ups = await this.createUps(queryRunner, upsData, roomId);
 
-        const tempId = upsData.tempId || `ups_${ups.id}`;
+        const tempId = upsData.tempId ?? (upsData as any).id ?? `ups_${ups.id}`;
 
         created.upsList.push({
           id: ups.id,
@@ -100,7 +95,8 @@ export class BulkCreateUseCase {
           upsId,
         );
 
-        const tempId = serverData.tempId || `server_${server.id}`;
+        const tempId =
+          serverData.tempId ?? (serverData as any).id ?? `server_${server.id}`;
 
         created.servers.push({
           id: server.id,
@@ -110,10 +106,6 @@ export class BulkCreateUseCase {
       }
 
       await queryRunner.commitTransaction();
-
-      if (userId) {
-        await this.completeSetupStepUseCase.execute(SetupStep.REVIEW, userId);
-      }
 
       this.logger.log(
         `Bulk creation completed: ${created.rooms.length} rooms, ${created.upsList.length} UPS, ${created.servers.length} servers`,
@@ -125,12 +117,28 @@ export class BulkCreateUseCase {
         idMapping,
       };
     } catch (error) {
-      await queryRunner.rollbackTransaction();
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction();
+      }
       this.logger.error('Bulk creation failed', error);
 
-      // If it's already a BadRequestException, re-throw it
       if (error instanceof BadRequestException) {
         throw error;
+      }
+
+      if (error.code && typeof error.code === 'string') {
+        const errorMessage = this.parseDbError(error);
+
+        throw new BadRequestException({
+          success: false,
+          errors: [
+            {
+              resource: this.getResourceFromError(error) as any,
+              name: this.getResourceNameFromError(error),
+              error: errorMessage,
+            },
+          ] as BulkCreateErrorDto[],
+        });
       }
 
       throw new BadRequestException({
@@ -139,7 +147,7 @@ export class BulkCreateUseCase {
           {
             resource: 'room' as const,
             name: 'transaction',
-            error: error.message,
+            error: error.message || 'An unexpected error occurred',
           },
         ] as BulkCreateErrorDto[],
       });
@@ -178,6 +186,8 @@ export class BulkCreateUseCase {
     const ups = new Ups();
     ups.name = upsData.name;
     ups.ip = upsData.ip;
+    ups.grace_period_on = upsData.grace_period_on;
+    ups.grace_period_off = upsData.grace_period_off;
     ups.roomId = roomId;
 
     return await queryRunner.manager.save(Ups, ups);
@@ -198,8 +208,6 @@ export class BulkCreateUseCase {
     const server = new Server();
     server.name = serverData.name;
     server.state = serverData.state;
-    server.grace_period_on = serverData.grace_period_on;
-    server.grace_period_off = serverData.grace_period_off;
     server.adminUrl = serverData.adminUrl;
     server.ip = serverData.ip;
     server.login = serverData.login;
@@ -210,12 +218,29 @@ export class BulkCreateUseCase {
     server.upsId = upsId ?? undefined;
     server.groupId = serverData.groupId ?? undefined;
 
-    if (
-      serverData.ilo_name &&
-      serverData.ilo_ip &&
-      serverData.ilo_login &&
-      serverData.ilo_password
-    ) {
+    if (serverData.type === 'vcenter') {
+      if (
+        serverData.ilo_name ||
+        serverData.ilo_ip ||
+        serverData.ilo_login ||
+        serverData.ilo_password
+      ) {
+        throw new BadRequestException(
+          `vCenter server ${serverData.name} should not have iLO configuration`,
+        );
+      }
+    } else {
+      if (
+        !serverData.ilo_name ||
+        !serverData.ilo_ip ||
+        !serverData.ilo_login ||
+        !serverData.ilo_password
+      ) {
+        throw new BadRequestException(
+          `iLO configuration (name, IP, login, password) is required for ESXi server ${serverData.name}`,
+        );
+      }
+
       const ilo = new Ilo();
       ilo.name = serverData.ilo_name;
       ilo.ip = serverData.ilo_ip;
@@ -237,7 +262,6 @@ export class BulkCreateUseCase {
       return null;
     }
 
-    // Check if it's a temporary ID that needs mapping
     if (id.startsWith('temp_')) {
       const mappedId = idMapping[id];
       if (!mappedId) {
@@ -255,9 +279,11 @@ export class BulkCreateUseCase {
    * Validate that all referenced tempIds exist in the request
    */
   private validateDependencies(dto: BulkCreateRequestDto): void {
-    const roomTempIds = new Set(dto.rooms.map((r) => r.tempId).filter(Boolean));
+    const roomTempIds = new Set(
+      dto.rooms.map((r) => r.tempId ?? (r as any).id).filter(Boolean),
+    );
     const upsTempIds = new Set(
-      dto.upsList.map((u) => u.tempId).filter(Boolean),
+      dto.upsList.map((u) => u.tempId ?? (u as any).id).filter(Boolean),
     );
 
     for (const ups of dto.upsList) {
@@ -292,5 +318,56 @@ export class BulkCreateUseCase {
         );
       }
     }
+  }
+
+  private parseDbError(error: any): string {
+    if (error.code === '23505') {
+      if (error.detail) {
+        const match = error.detail.match(/Key \((\w+)\)=\(([^)]+)\)/);
+        if (match) {
+          const field = match[1];
+          const value = match[2];
+          return `${field.toUpperCase()} '${value}' already exists`;
+        }
+      }
+      return 'This resource already exists (duplicate value)';
+    }
+
+    if (error.code === '23502') {
+      return 'Required field is missing';
+    }
+
+    if (error.code === '23503') {
+      return 'Invalid reference to related resource';
+    }
+
+    if (error.code === '22001') {
+      return 'One or more values are too long';
+    }
+
+    return error.message || 'An unexpected error occurred during creation';
+  }
+
+  private getResourceFromError(error: any): string {
+    if (error.table) {
+      return error.table;
+    }
+
+    if (error.query && typeof error.query === 'string') {
+      const match = error.query.match(/INSERT INTO "(\w+)"/);
+      if (match) {
+        return match[1];
+      }
+    }
+
+    return 'unknown';
+  }
+
+  private getResourceNameFromError(error: any): string {
+    if (error.parameters && error.parameters[0]) {
+      return error.parameters[0];
+    }
+
+    return 'unknown';
   }
 }

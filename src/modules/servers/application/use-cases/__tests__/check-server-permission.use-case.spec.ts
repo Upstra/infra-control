@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
-import { CheckServerPermissionUseCase } from './check-server-permission.use-case';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
-import { ServerRepositoryInterface } from '../../domain/interfaces/server.repository.interface';
 import { PermissionResolver } from '@/modules/permissions/application/utils/permission-resolver.util';
-import { Server } from '../../domain/entities/server.entity';
 import { User } from '@/modules/users/domain/entities/user.entity';
 import { Role } from '@/modules/roles/domain/entities/role.entity';
 import { PermissionServer } from '@/modules/permissions/domain/entities/permission.server.entity';
+import { CheckServerPermissionUseCase } from '../check-server-permission.use-case';
+import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
+import { Server } from '@/modules/servers/domain/entities/server.entity';
 
 jest.mock('@/modules/permissions/application/utils/permission-resolver.util');
 

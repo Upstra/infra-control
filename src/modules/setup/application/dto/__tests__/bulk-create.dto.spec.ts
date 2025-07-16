@@ -45,6 +45,8 @@ describe('BulkCreateDto', () => {
         name: 'UPS-01',
         roomId: 'temp_room_1',
         ip: '192.168.1.100',
+        grace_period_on: 30,
+        grace_period_off: 30,
         tempId: 'temp_ups_1',
       });
 
@@ -56,6 +58,8 @@ describe('BulkCreateDto', () => {
       const dto = plainToInstance(BulkUpsDto, {
         roomId: 'temp_room_1',
         ip: '192.168.1.100',
+        grace_period_on: 30,
+        grace_period_off: 30,
       });
 
       const errors = await validate(dto);
@@ -67,6 +71,8 @@ describe('BulkCreateDto', () => {
       const dto = plainToInstance(BulkUpsDto, {
         name: 'UPS-01',
         ip: 'invalid-ip',
+        grace_period_on: 30,
+        grace_period_off: 30,
       });
 
       const errors = await validate(dto);
@@ -77,6 +83,8 @@ describe('BulkCreateDto', () => {
     it('should validate without optional fields', async () => {
       const dto = plainToInstance(BulkUpsDto, {
         name: 'UPS-01',
+        grace_period_on: 30,
+        grace_period_off: 30,
       });
 
       const errors = await validate(dto);
@@ -89,13 +97,11 @@ describe('BulkCreateDto', () => {
       const dto = plainToInstance(BulkServerDto, {
         name: 'WEB-01',
         state: 'stopped',
-        grace_period_on: 30,
-        grace_period_off: 30,
         adminUrl: 'https://192.168.1.10',
         ip: '192.168.1.10',
         login: 'admin',
         password: 'password',
-        type: 'physical',
+        type: 'esxi',
         priority: 1,
         roomId: 'temp_room_1',
         upsId: 'temp_ups_1',
@@ -109,13 +115,11 @@ describe('BulkCreateDto', () => {
       const dto = plainToInstance(BulkServerDto, {
         name: 'WEB-01',
         state: 'stopped',
-        grace_period_on: 30,
-        grace_period_off: 30,
         adminUrl: 'https://192.168.1.10',
         ip: '192.168.1.10',
         login: 'admin',
         password: 'password',
-        type: 'physical',
+        type: 'esxi',
         priority: 1,
         ilo_name: 'ILO-WEB-01',
         ilo_ip: '192.168.1.11',
@@ -133,11 +137,9 @@ describe('BulkCreateDto', () => {
       });
 
       const errors = await validate(dto);
-      expect(errors).toBeGreaterThan(0);
+      expect(errors.length).toBeGreaterThan(0);
       const propertyNames = errors.map((e) => e.property);
       expect(propertyNames).toContain('state');
-      expect(propertyNames).toContain('grace_period_on');
-      expect(propertyNames).toContain('grace_period_off');
       expect(propertyNames).toContain('adminUrl');
       expect(propertyNames).toContain('ip');
       expect(propertyNames).toContain('login');
@@ -152,19 +154,23 @@ describe('BulkCreateDto', () => {
       const dto = plainToInstance(BulkCreateRequestDto, {
         rooms: [{ name: 'Room 1' }, { name: 'Room 2' }],
         upsList: [
-          { name: 'UPS-01', roomId: 'temp_room_1', ip: '192.168.1.100' },
+          {
+            name: 'UPS-01',
+            roomId: 'temp_room_1',
+            ip: '192.168.1.100',
+            grace_period_on: 30,
+            grace_period_off: 30,
+          },
         ],
         servers: [
           {
             name: 'WEB-01',
             state: 'stopped',
-            grace_period_on: 30,
-            grace_period_off: 30,
             adminUrl: 'https://192.168.1.10',
             ip: '192.168.1.10',
             login: 'admin',
             password: 'password',
-            type: 'physical',
+            type: 'esxi',
             priority: 1,
             roomId: 'temp_room_1',
             upsId: 'temp_ups_1',
@@ -195,7 +201,7 @@ describe('BulkCreateDto', () => {
       const dto = plainToInstance(BulkCreateRequestDto, {});
 
       const errors = await validate(dto);
-      expect(errors).toBeGreaterThan(0);
+      expect(errors.length).toBeGreaterThan(0);
       const propertyNames = errors.map((e) => e.property);
       expect(propertyNames).toContain('rooms');
       expect(propertyNames).toContain('upsList');

@@ -20,6 +20,11 @@ export interface VmwareVm {
   numCPU: number;
   esxiHostName: string;
   esxiHostMoid: string;
+  powerState?: string;
+  memoryMB?: number;
+  hostname?: string;
+  toolsStatus?: string;
+  annotation?: string;
 }
 
 export interface VmwareVmMetrics {
@@ -96,4 +101,18 @@ export interface VmwareHost {
   quickBootSupported: boolean;
   rebootSupported: boolean;
   shutdownSupported: boolean;
+}
+
+export interface VmwareServer {
+  moid: string;
+  name: string;
+  vCenterIp: string;
+  cluster: string;
+  vendor: string;
+  model: string;
+  ip: string;
+  cpuCores: number;
+  cpuThreads: number;
+  cpuMHz: number;
+  ramTotal: number;
 }
