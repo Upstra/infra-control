@@ -28,10 +28,19 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
 
   async executeMigrationPlan(planPath: string): Promise<void> {
     const currentState = await this.getState();
-    if (currentState !== MigrationState.IDLE) {
+    if (
+      currentState !== MigrationState.IDLE &&
+      currentState !== MigrationState.FAILED
+    ) {
       throw new BadRequestException(
-        `Cannot start migration. Current state: ${currentState}`,
+        `Cannot start migration. Current state: ${currentState}. Clear migration data first if needed.`,
       );
+    }
+
+    if (currentState === MigrationState.FAILED) {
+      this.logger.log('Clearing previous failed migration data before retry');
+      await this.clearEvents();
+      await this.redis.safeDel(this.REDIS_ERROR_KEY);
     }
 
     try {
@@ -52,7 +61,7 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
       );
 
       this.logger.debug('Migration result:', JSON.stringify(result));
-      
+
       if (result?.result?.httpCode === 200) {
         await this.setState(MigrationState.MIGRATED);
         this.logger.log('Migration plan executed successfully');
@@ -201,6 +210,10 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
 
   private async getCurrentOperation(): Promise<string | undefined> {
     return await this.redis.safeGet(this.REDIS_CURRENT_OP_KEY);
+  }
+
+  private async clearEvents(): Promise<void> {
+    await this.redis.safeDel(this.REDIS_EVENTS_KEY);
   }
 
   private async setCurrentOperation(operation: string): Promise<void> {
