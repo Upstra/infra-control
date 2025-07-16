@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Server } from '../../../../modules/servers/domain/entities/server.entity';
 import { Vm } from '../../../../modules/vms/domain/entities/vm.entity';
 import { Ilo } from '../../../../modules/ilos/domain/entities/ilo.entity';
@@ -14,6 +14,8 @@ import { YamlFileRepository } from '../infrastructure/yaml-file.repository';
 
 @Injectable()
 export class YamlConfigService implements IYamlConfigService {
+  private readonly logger = new Logger(YamlConfigService.name);
+
   constructor(
     private readonly yamlParser: YamlParserService,
     private readonly planBuilder: MigrationPlanBuilderService,
@@ -33,6 +35,10 @@ export class YamlConfigService implements IYamlConfigService {
       port: 443,
     };
 
+    this.logger.debug(
+      `Generating migration plan with vcenter config: ${JSON.stringify(config)} with a password length of ${vCenterConfig.password.length}`,
+    );
+
     const migrationPlan = this.planBuilder.buildMigrationPlan(
       servers,
       vms,
@@ -46,6 +52,9 @@ export class YamlConfigService implements IYamlConfigService {
   }
 
   generateMigrationPlanContent(config: MigrationPlanConfig): string {
+    this.logger.debug(
+      `Generating migration plan content with Vcenter config: ${JSON.stringify(config.vCenter)}`,
+    );
     return this.yamlParser.generateYaml(config);
   }
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   MigrationPlanConfig,
   ServerMigrationConfig,
@@ -11,6 +11,7 @@ import { Ilo } from '@/modules/ilos/domain/entities/ilo.entity';
 
 @Injectable()
 export class MigrationPlanBuilderService {
+  private readonly logger = new Logger(MigrationPlanBuilderService.name);
   buildMigrationPlan(
     servers: Server[],
     vms: Vm[],
@@ -21,6 +22,10 @@ export class MigrationPlanBuilderService {
   ): MigrationPlanConfig {
     const serverConfigs = servers.map((server) =>
       this.buildServerConfig(server, vms, ilos, destinationServers),
+    );
+
+    this.logger.debug(
+      `Building migration plan with ${serverConfigs.length} servers and vCenter config: ${JSON.stringify(vCenterConfig)} with a password length of ${vCenterConfig.password.length}`,
     );
 
     return {

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Server } from '../../../servers/domain/entities/server.entity';
@@ -10,6 +10,8 @@ import { UpsConfig } from '@/core/services/yaml-config/domain/interfaces/yaml-co
 
 @Injectable()
 export class GenerateMigrationPlanUseCase {
+  private readonly logger = new Logger(GenerateMigrationPlanUseCase.name);
+
   constructor(
     @InjectRepository(Server)
     private readonly serverRepository: Repository<Server>,
@@ -51,6 +53,10 @@ export class GenerateMigrationPlanUseCase {
       user: vCenterServer.login,
       password: vCenterServer.password,
     };
+
+    this.logger.debug(
+      `Generating migration plan with vCenter config: ${JSON.stringify(vCenterConfig)} with a password length of ${vCenterServer.password.length}`,
+    );
 
     const serverWithUps = servers.find((server) => server.ups);
     if (!serverWithUps || !serverWithUps.ups) {
