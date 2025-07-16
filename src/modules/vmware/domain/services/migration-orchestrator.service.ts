@@ -51,10 +51,16 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
         { timeout: 600000 }, // 10 minutes timeout
       );
 
+      this.logger.debug('Migration result:', JSON.stringify(result));
+      
       if (result?.result?.httpCode === 200) {
         await this.setState(MigrationState.MIGRATED);
         this.logger.log('Migration plan executed successfully');
       } else {
+        this.logger.error(
+          'Migration failed with result:',
+          JSON.stringify(result, null, 2),
+        );
         throw new Error(result?.result?.message || 'Migration failed');
       }
     } catch (error) {

@@ -1,13 +1,15 @@
 export enum MigrationState {
   IDLE = 'idle',
-  IN_MIGRATION = 'in migration',
+  GRACE_SHUTDOWN = 'grace_shutdown',
+  SHUTTING_DOWN = 'shutting_down',
+  IN_MIGRATION = 'in_migration',
   MIGRATED = 'migrated',
   RESTARTING = 'restarting',
   FAILED = 'failed',
 }
 
 export interface MigrationEvent {
-  type: 'vm_migration' | 'vm_shutdown' | 'server_shutdown';
+  type: 'vm_migration' | 'vm_shutdown' | 'vm_started' | 'server_shutdown' | 'grace_period' | 'start_shutdown' | 'finish_shutdown';
   timestamp: string;
   vmName?: string;
   vmMoid?: string;
@@ -17,6 +19,7 @@ export interface MigrationEvent {
   serverName?: string;
   success: boolean;
   error?: string;
+  message?: string;
 }
 
 export interface MigrationStatus {
