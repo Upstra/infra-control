@@ -1,20 +1,22 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { YamlConfigService } from '@/core/services/yaml-config/application/yaml-config.service';
 import { MigrationDestinationResponseDto } from '../dto/migration-destination.dto';
 
 @Injectable()
 export class GetMigrationDestinationsUseCase {
-  constructor(
-    private readonly yamlConfigService: YamlConfigService,
-  ) {}
+  constructor(private readonly yamlConfigService: YamlConfigService) {}
 
-  async execute(): Promise<{ destinations: MigrationDestinationResponseDto[]; yamlPath: string }> {
+  async execute(): Promise<{
+    destinations: MigrationDestinationResponseDto[];
+    yamlPath: string;
+  }> {
     try {
       // Lire le fichier YAML actuel
-      const migrationPlan = await this.yamlConfigService.readMigrationPlan('migration.yml');
-      
+      const migrationPlan =
+        await this.yamlConfigService.readMigrationPlan('migration.yml');
+
       const destinations: MigrationDestinationResponseDto[] = [];
-      
+
       // Parcourir les serveurs dans le plan YAML
       for (const serverConfig of migrationPlan.servers) {
         const sourceServer = {

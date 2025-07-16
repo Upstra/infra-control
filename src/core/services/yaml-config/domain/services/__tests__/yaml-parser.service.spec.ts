@@ -26,6 +26,10 @@ describe('YamlParserService', () => {
           password: 'password',
           port: 443,
         },
+        ups: {
+          shutdownGrace: 300,
+          restartGrace: 60,
+        },
         servers: [],
       };
 
@@ -53,6 +57,10 @@ describe('YamlParserService', () => {
           user: 'admin',
           password: 'password',
           port: 443,
+        },
+        ups: {
+          shutdownGrace: 300,
+          restartGrace: 60,
         },
         servers: [],
       };

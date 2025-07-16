@@ -1,10 +1,4 @@
-import {
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  IsUUID,
-} from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { IloCreationDto } from '../../../ilos/application/dto/ilo.creation.dto';
 import { IsPriority } from '../../../groups/application/validators/priority.validator';

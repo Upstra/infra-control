@@ -125,7 +125,6 @@ export class BulkServerDto {
   @IsNotEmpty()
   state: string;
 
-
   @ApiProperty({
     description: 'Administration URL',
     example: 'https://192.168.1.10:443',

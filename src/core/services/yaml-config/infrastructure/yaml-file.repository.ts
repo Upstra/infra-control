@@ -63,7 +63,7 @@ export class YamlFileRepository {
     try {
       await this.ensureDirectoryExists();
       const files = await fs.readdir(this.upsManagerPath);
-      return files.filter(file => this.isYamlFile(file));
+      return files.filter((file) => this.isYamlFile(file));
     } catch (error) {
       this.logger.error(`Failed to list files: ${error.message}`);
       return [];

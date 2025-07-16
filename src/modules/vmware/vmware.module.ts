@@ -24,6 +24,7 @@ import { ClearMigrationDataUseCase } from './application/use-cases/clear-migrati
 import { GenerateMigrationPlanWithDestinationUseCase } from './application/use-cases/generate-migration-plan-with-destination.use-case';
 import { GetMigrationDestinationsUseCase } from './application/use-cases/get-migration-destinations.use-case';
 import { RemoveMigrationDestinationUseCase } from './application/use-cases/remove-migration-destination.use-case';
+import { GetVmsForMigrationUseCase } from './application/use-cases/get-vms-for-migration.use-case';
 import { VmwareDiscoveryGateway } from './application/gateway/vmware-discovery.gateway';
 import { MigrationGateway } from './application/gateway/migration.gateway';
 import { VmwareDiscoveryService } from './domain/services/vmware-discovery.service';
@@ -33,6 +34,7 @@ import { VmModule } from '@/modules/vms/vm.module';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
 import { Vm } from '@/modules/vms/domain/entities/vm.entity';
 import { Ilo } from '@/modules/ilos/domain/entities/ilo.entity';
+import { Ups } from '@/modules/ups/domain/entities/ups.entity';
 import { PermissionModule } from '@/modules/permissions/permission.module';
 import { RedisModule } from '@/modules/redis/redis.module';
 import { PresenceModule } from '@/modules/presence/presence.module';
@@ -43,7 +45,7 @@ import { PresenceModule } from '@/modules/presence/presence.module';
     EventEmitterModule.forRoot(),
     PythonExecutorModule,
     YamlConfigModule,
-    TypeOrmModule.forFeature([Server, Vm, Ilo]),
+    TypeOrmModule.forFeature([Server, Vm, Ilo, Ups]),
     forwardRef(() => ServerModule),
     forwardRef(() => VmModule),
     PermissionModule,
@@ -74,7 +76,13 @@ import { PresenceModule } from '@/modules/presence/presence.module';
     GenerateMigrationPlanWithDestinationUseCase,
     GetMigrationDestinationsUseCase,
     RemoveMigrationDestinationUseCase,
+    GetVmsForMigrationUseCase,
   ],
-  exports: [VmwareService, VmwareDiscoveryService, VmwareDiscoveryGateway, MigrationOrchestratorService],
+  exports: [
+    VmwareService,
+    VmwareDiscoveryService,
+    VmwareDiscoveryGateway,
+    MigrationOrchestratorService,
+  ],
 })
 export class VmwareModule {}

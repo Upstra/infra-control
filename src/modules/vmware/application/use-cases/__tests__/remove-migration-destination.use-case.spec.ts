@@ -56,12 +56,16 @@ describe('RemoveMigrationDestinationUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<RemoveMigrationDestinationUseCase>(RemoveMigrationDestinationUseCase);
-    serverRepository = module.get<Repository<Server>>(getRepositoryToken(Server));
+    useCase = module.get<RemoveMigrationDestinationUseCase>(
+      RemoveMigrationDestinationUseCase,
+    );
+    serverRepository = module.get<Repository<Server>>(
+      getRepositoryToken(Server),
+    );
     vmRepository = module.get<Repository<Vm>>(getRepositoryToken(Vm));
     iloRepository = module.get<Repository<Ilo>>(getRepositoryToken(Ilo));
     yamlConfigService = module.get<YamlConfigService>(YamlConfigService);
-    
+
     jest.clearAllMocks();
   });
 
@@ -92,8 +96,12 @@ describe('RemoveMigrationDestinationUseCase', () => {
       mockServerRepository.find.mockResolvedValue(allServers);
       mockVmRepository.find.mockResolvedValue(vms);
       mockIloRepository.find.mockResolvedValue(ilos);
-      mockYamlConfigService.generateMigrationPlan.mockResolvedValue('yaml-content');
-      mockYamlConfigService.writeMigrationPlan.mockResolvedValue('/path/to/file');
+      mockYamlConfigService.generateMigrationPlan.mockResolvedValue(
+        'yaml-content',
+      );
+      mockYamlConfigService.writeMigrationPlan.mockResolvedValue(
+        '/path/to/file',
+      );
 
       await useCase.execute(sourceServerId);
 

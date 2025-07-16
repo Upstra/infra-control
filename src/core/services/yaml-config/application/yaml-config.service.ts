@@ -6,6 +6,7 @@ import {
   IYamlConfigService,
   MigrationPlanConfig,
   VCenterConfig,
+  UpsConfig,
 } from '../domain/interfaces/yaml-config.interface';
 import { YamlParserService } from '../domain/services/yaml-parser.service';
 import { MigrationPlanBuilderService } from '../domain/services/migration-plan-builder.service';
@@ -24,6 +25,7 @@ export class YamlConfigService implements IYamlConfigService {
     vms: Vm[],
     ilos: Map<string, Ilo>,
     vCenterConfig: { ip: string; user: string; password: string },
+    upsConfig: UpsConfig,
     destinationServers?: Map<string, Server>,
   ): Promise<string> {
     const config: VCenterConfig = {
@@ -36,6 +38,7 @@ export class YamlConfigService implements IYamlConfigService {
       vms,
       ilos,
       config,
+      upsConfig,
       destinationServers,
     );
 

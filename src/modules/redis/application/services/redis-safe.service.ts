@@ -129,7 +129,11 @@ export class RedisSafeService {
     }
   }
 
-  async safeLRange(key: string, start: number, stop: number): Promise<string[]> {
+  async safeLRange(
+    key: string,
+    start: number,
+    stop: number,
+  ): Promise<string[]> {
     const client = this.redisClient;
     if (!client) return [];
     try {

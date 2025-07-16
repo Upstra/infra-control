@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Delete, Body, Param, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -18,15 +28,17 @@ import {
 import { GenerateMigrationPlanWithDestinationUseCase } from '../use-cases/generate-migration-plan-with-destination.use-case';
 import { GetMigrationDestinationsUseCase } from '../use-cases/get-migration-destinations.use-case';
 import { RemoveMigrationDestinationUseCase } from '../use-cases/remove-migration-destination.use-case';
+import { GetVmsForMigrationUseCase } from '../use-cases/get-vms-for-migration.use-case';
 import {
   SetMigrationDestinationsDto,
   MigrationDestinationsResponseDto,
   SetDestinationsResponseDto,
   RemoveDestinationResponseDto,
+  VmsForMigrationResponseDto,
 } from '../dto/migration-destination.dto';
 
 @ApiTags('vmware-migration-destinations')
-@Controller('vmware/servers/migration/destinations')
+@Controller('vmware/migration')
 @UseGuards(JwtAuthGuard, RoleGuard)
 @ApiBearerAuth()
 @RequireRole({ isAdmin: true })
@@ -35,12 +47,14 @@ export class MigrationDestinationsController {
     private readonly generateMigrationPlanWithDestination: GenerateMigrationPlanWithDestinationUseCase,
     private readonly getMigrationDestinations: GetMigrationDestinationsUseCase,
     private readonly removeMigrationDestinationUseCase: RemoveMigrationDestinationUseCase,
+    private readonly getVmsForMigrationUseCase: GetVmsForMigrationUseCase,
   ) {}
 
-  @Get()
+  @Get('destinations')
   @ApiOperation({
     summary: 'Get current migration destinations (Admin only)',
-    description: 'Returns all configured migration destinations from the current YAML file.',
+    description:
+      'Returns all configured migration destinations from the current YAML file.',
   })
   @ApiResponse({
     status: 200,
@@ -61,10 +75,11 @@ export class MigrationDestinationsController {
     return this.getMigrationDestinations.execute();
   }
 
-  @Post()
+  @Post('destinations')
   @ApiOperation({
     summary: 'Configure migration destinations (Admin only)',
-    description: 'Configure migration destinations for servers and generate the YAML file.',
+    description:
+      'Configure migration destinations for servers and generate the YAML file.',
   })
   @ApiResponse({
     status: 200,
@@ -91,18 +106,19 @@ export class MigrationDestinationsController {
     @CurrentUser() user: JwtPayload,
   ): Promise<SetDestinationsResponseDto> {
     await this.generateMigrationPlanWithDestination.execute(dto.destinations);
-    
+
     return {
       message: 'Migration destinations configured successfully',
       yamlPath: '/home/upstra/ups_manager/plans/migration.yml',
     };
   }
 
-  @Delete(':sourceServerId')
+  @Delete('destinations/:sourceServerId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Remove migration destination (Admin only)',
-    description: 'Remove the migration destination for a specific source server.',
+    description:
+      'Remove the migration destination for a specific source server.',
   })
   @ApiParam({
     name: 'sourceServerId',
@@ -133,10 +149,35 @@ export class MigrationDestinationsController {
     @CurrentUser() user: JwtPayload,
   ): Promise<RemoveDestinationResponseDto> {
     await this.removeMigrationDestinationUseCase.execute(sourceServerId);
-    
+
     return {
       message: 'Migration destination removed successfully',
       sourceServerId,
     };
+  }
+
+  @Get('vms')
+  @ApiOperation({
+    summary: 'Get all VMs grouped by ESXi servers for migration (Admin only)',
+    description:
+      'Returns all VMs from all ESXi servers, grouped by server, with VMware MOIDs for migration planning.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of all VMs grouped by ESXi servers',
+    type: VmsForMigrationResponseDto,
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin privileges required',
+  })
+  @UseLoggingContext({
+    entityType: 'migration-vms',
+    action: 'LIST',
+  })
+  async getVmsForMigration(
+    @CurrentUser() user: JwtPayload,
+  ): Promise<VmsForMigrationResponseDto> {
+    return this.getVmsForMigrationUseCase.execute();
   }
 }

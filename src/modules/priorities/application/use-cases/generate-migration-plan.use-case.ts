@@ -4,7 +4,9 @@ import { Repository } from 'typeorm';
 import { Server } from '../../../servers/domain/entities/server.entity';
 import { Vm } from '../../../vms/domain/entities/vm.entity';
 import { Ilo } from '../../../ilos/domain/entities/ilo.entity';
+import { Ups } from '../../../ups/domain/entities/ups.entity';
 import { YamlConfigService } from '@/core/services/yaml-config/application/yaml-config.service';
+import { UpsConfig } from '@/core/services/yaml-config/domain/interfaces/yaml-config.interface';
 
 @Injectable()
 export class GenerateMigrationPlanUseCase {
@@ -15,6 +17,8 @@ export class GenerateMigrationPlanUseCase {
     private readonly vmRepository: Repository<Vm>,
     @InjectRepository(Ilo)
     private readonly iloRepository: Repository<Ilo>,
+    @InjectRepository(Ups)
+    private readonly upsRepository: Repository<Ups>,
     private readonly yamlConfigService: YamlConfigService,
   ) {}
 
@@ -30,6 +34,7 @@ export class GenerateMigrationPlanUseCase {
     const servers = await this.serverRepository.find({
       where: { type: 'esxi' },
       order: { priority: 'ASC' },
+      relations: ['ups'],
     });
 
     const vms = await this.vmRepository.find({
@@ -37,7 +42,7 @@ export class GenerateMigrationPlanUseCase {
     });
 
     const ilos = await this.iloRepository.find();
-    const iloMap = new Map(ilos.map(ilo => [ilo.id, ilo]));
+    const iloMap = new Map(ilos.map((ilo) => [ilo.id, ilo]));
 
     const vCenterConfig = {
       ip: vCenterServer.ip,
@@ -45,11 +50,24 @@ export class GenerateMigrationPlanUseCase {
       password: vCenterServer.password,
     };
 
+    const serverWithUps = servers.find((server) => server.ups);
+    if (!serverWithUps || !serverWithUps.ups) {
+      throw new NotFoundException(
+        'No UPS found for the servers. A UPS is required for migration planning.',
+      );
+    }
+
+    const upsConfig: UpsConfig = {
+      shutdownGrace: serverWithUps.ups.grace_period_off,
+      restartGrace: serverWithUps.ups.grace_period_on,
+    };
+
     const yamlContent = await this.yamlConfigService.generateMigrationPlan(
       servers,
       vms,
       iloMap,
       vCenterConfig,
+      upsConfig,
     );
 
     const filename = 'migration.yml';

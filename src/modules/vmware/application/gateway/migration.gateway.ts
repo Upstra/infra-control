@@ -11,7 +11,10 @@ import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { MigrationOrchestratorService } from '../../domain/services/migration-orchestrator.service';
-import { MigrationEvent, MigrationState } from '../../domain/interfaces/migration-orchestrator.interface';
+import {
+  MigrationEvent,
+  MigrationState,
+} from '../../domain/interfaces/migration-orchestrator.interface';
 
 @WebSocketGateway({
   namespace: 'migration',

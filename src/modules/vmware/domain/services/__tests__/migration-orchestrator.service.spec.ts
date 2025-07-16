@@ -180,14 +180,14 @@ describe('MigrationOrchestratorService', () => {
         0,
         -1,
       );
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'migration.event',
-        { type: 'vm_migration', success: true },
-      );
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'migration.event',
-        { type: 'vm_shutdown', success: true },
-      );
+      expect(eventEmitter.emit).toHaveBeenCalledWith('migration.event', {
+        type: 'vm_migration',
+        success: true,
+      });
+      expect(eventEmitter.emit).toHaveBeenCalledWith('migration.event', {
+        type: 'vm_shutdown',
+        success: true,
+      });
     });
   });
 
@@ -274,14 +274,14 @@ describe('MigrationOrchestratorService', () => {
       const mockEvents = [
         JSON.stringify({ type: 'vm_migration', success: true }),
       ];
-      
+
       redisSafeService.safeGet
         .mockResolvedValueOnce(MigrationState.IN_MIGRATION)
         .mockResolvedValueOnce('Current operation')
         .mockResolvedValueOnce('2023-01-01T00:00:00.000Z')
         .mockResolvedValueOnce('2023-01-01T01:00:00.000Z')
         .mockResolvedValueOnce('Some error');
-      
+
       redisSafeService.safeLRange.mockResolvedValue(mockEvents);
 
       const status = await service.getMigrationStatus();

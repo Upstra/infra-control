@@ -154,9 +154,13 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
 
   private async pollRedisEvents(): Promise<void> {
     try {
-      const rawEvents = await this.redis.safeLRange(this.REDIS_EVENTS_KEY, 0, -1);
+      const rawEvents = await this.redis.safeLRange(
+        this.REDIS_EVENTS_KEY,
+        0,
+        -1,
+      );
       const events = rawEvents.map((e) => JSON.parse(e));
-      
+
       for (const event of events) {
         this.eventEmitter.emit('migration.event', event);
       }
@@ -177,7 +181,11 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
 
   private async getEvents(): Promise<MigrationEvent[]> {
     try {
-      const rawEvents = await this.redis.safeLRange(this.REDIS_EVENTS_KEY, 0, -1);
+      const rawEvents = await this.redis.safeLRange(
+        this.REDIS_EVENTS_KEY,
+        0,
+        -1,
+      );
       return rawEvents.map((e) => JSON.parse(e));
     } catch (error) {
       this.logger.error('Failed to get events:', error);
@@ -199,7 +207,10 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
   }
 
   private async setStartTime(): Promise<void> {
-    await this.redis.safeSet(this.REDIS_START_TIME_KEY, new Date().toISOString());
+    await this.redis.safeSet(
+      this.REDIS_START_TIME_KEY,
+      new Date().toISOString(),
+    );
   }
 
   private async getEndTime(): Promise<string | undefined> {

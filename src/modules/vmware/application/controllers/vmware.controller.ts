@@ -35,7 +35,10 @@ import {
   ClearMigrationDataUseCase,
 } from '../use-cases';
 import { VmPowerActionDto, VmMigrateDto } from '../dto';
-import { ExecuteMigrationPlanDto, MigrationStatusResponseDto } from '../dto/migration-plan.dto';
+import {
+  ExecuteMigrationPlanDto,
+  MigrationStatusResponseDto,
+} from '../dto/migration-plan.dto';
 
 @ApiTags('VMware')
 @ApiBearerAuth()

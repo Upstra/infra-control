@@ -2,7 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
-import { GenerateMigrationPlanWithDestinationUseCase, MigrationDestination } from '../generate-migration-plan-with-destination.use-case';
+import {
+  GenerateMigrationPlanWithDestinationUseCase,
+  MigrationDestination,
+} from '../generate-migration-plan-with-destination.use-case';
 import { Server } from '../../../../servers/domain/entities/server.entity';
 import { Vm } from '../../../../vms/domain/entities/vm.entity';
 import { Ilo } from '../../../../ilos/domain/entities/ilo.entity';
@@ -59,11 +62,13 @@ describe('GenerateMigrationPlanWithDestinationUseCase', () => {
     useCase = module.get<GenerateMigrationPlanWithDestinationUseCase>(
       GenerateMigrationPlanWithDestinationUseCase,
     );
-    serverRepository = module.get<Repository<Server>>(getRepositoryToken(Server));
+    serverRepository = module.get<Repository<Server>>(
+      getRepositoryToken(Server),
+    );
     vmRepository = module.get<Repository<Vm>>(getRepositoryToken(Vm));
     iloRepository = module.get<Repository<Ilo>>(getRepositoryToken(Ilo));
     yamlConfigService = module.get<YamlConfigService>(YamlConfigService);
-    
+
     jest.clearAllMocks();
   });
 
@@ -111,15 +116,22 @@ describe('GenerateMigrationPlanWithDestinationUseCase', () => {
       mockServerRepository.findByIds.mockResolvedValue(servers);
       mockVmRepository.find.mockResolvedValue(vms);
       mockIloRepository.find.mockResolvedValue(ilos);
-      mockYamlConfigService.generateMigrationPlan.mockResolvedValue('yaml-content');
-      mockYamlConfigService.writeMigrationPlan.mockResolvedValue('/path/to/file');
+      mockYamlConfigService.generateMigrationPlan.mockResolvedValue(
+        'yaml-content',
+      );
+      mockYamlConfigService.writeMigrationPlan.mockResolvedValue(
+        '/path/to/file',
+      );
 
       await useCase.execute(destinations);
 
       expect(mockServerRepository.findOne).toHaveBeenCalledWith({
         where: { type: 'vcenter' },
       });
-      expect(mockServerRepository.findByIds).toHaveBeenCalledWith(['esxi-1', 'esxi-2']);
+      expect(mockServerRepository.findByIds).toHaveBeenCalledWith([
+        'esxi-1',
+        'esxi-2',
+      ]);
       expect(mockVmRepository.find).toHaveBeenCalledWith({
         where: [{ serverId: 'esxi-1' }],
         order: { serverId: 'ASC', priority: 'ASC' },
@@ -187,8 +199,12 @@ describe('GenerateMigrationPlanWithDestinationUseCase', () => {
       mockServerRepository.findByIds.mockResolvedValue(servers);
       mockVmRepository.find.mockResolvedValue([]);
       mockIloRepository.find.mockResolvedValue([]);
-      mockYamlConfigService.generateMigrationPlan.mockResolvedValue('yaml-content');
-      mockYamlConfigService.writeMigrationPlan.mockResolvedValue('/path/to/file');
+      mockYamlConfigService.generateMigrationPlan.mockResolvedValue(
+        'yaml-content',
+      );
+      mockYamlConfigService.writeMigrationPlan.mockResolvedValue(
+        '/path/to/file',
+      );
 
       await useCase.execute(destinations);
 
@@ -208,7 +224,9 @@ describe('GenerateMigrationPlanWithDestinationUseCase', () => {
       ];
 
       await expect(useCase.execute(destinations)).rejects.toThrow(
-        new BadRequestException('Each source server can have at most one destination'),
+        new BadRequestException(
+          'Each source server can have at most one destination',
+        ),
       );
     });
 
@@ -218,7 +236,9 @@ describe('GenerateMigrationPlanWithDestinationUseCase', () => {
       ];
 
       await expect(useCase.execute(destinations)).rejects.toThrow(
-        new BadRequestException('Source and destination server cannot be the same'),
+        new BadRequestException(
+          'Source and destination server cannot be the same',
+        ),
       );
     });
   });

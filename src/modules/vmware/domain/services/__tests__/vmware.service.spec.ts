@@ -633,7 +633,11 @@ describe('VmwareService', () => {
     it('should handle missing result in response', async () => {
       pythonExecutor.executePython.mockResolvedValue({});
 
-      const result = await service.controlVMPower('vm-123', 'on', mockConnection);
+      const result = await service.controlVMPower(
+        'vm-123',
+        'on',
+        mockConnection,
+      );
 
       expect(result).toEqual({
         success: true,
@@ -650,7 +654,11 @@ describe('VmwareService', () => {
         },
       });
 
-      const result = await service.migrateVM('vm-123', 'host-456', mockConnection);
+      const result = await service.migrateVM(
+        'vm-123',
+        'host-456',
+        mockConnection,
+      );
 
       expect(result).toEqual({
         success: true,
@@ -874,7 +882,9 @@ describe('VmwareService', () => {
     });
 
     it('should handle generic error appropriately', async () => {
-      pythonExecutor.executePython.mockRejectedValue(new Error('Unknown error'));
+      pythonExecutor.executePython.mockRejectedValue(
+        new Error('Unknown error'),
+      );
 
       await expect(service.listVMs(mockConnection)).rejects.toThrow(
         new HttpException('Unknown error', HttpStatus.INTERNAL_SERVER_ERROR),

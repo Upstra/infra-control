@@ -45,7 +45,8 @@ export class PriorityController {
   @Get('servers')
   @ApiOperation({
     summary: 'Get all servers with priorities (Admin only)',
-    description: 'Returns all servers with their priorities. Requires admin privileges.',
+    description:
+      'Returns all servers with their priorities. Requires admin privileges.',
   })
   @ApiResponse({
     status: 200,
@@ -69,7 +70,8 @@ export class PriorityController {
   @Get('vms')
   @ApiOperation({
     summary: 'Get all VMs with priorities (Admin only)',
-    description: 'Returns all VMs with their priorities. Requires admin privileges.',
+    description:
+      'Returns all VMs with their priorities. Requires admin privileges.',
   })
   @ApiResponse({
     status: 200,
@@ -93,7 +95,8 @@ export class PriorityController {
   @Post('servers/swap')
   @ApiOperation({
     summary: 'Swap priorities between two servers (Admin only)',
-    description: 'Atomically exchanges priority values between two servers. Requires admin privileges.',
+    description:
+      'Atomically exchanges priority values between two servers. Requires admin privileges.',
   })
   @ApiResponse({
     status: 200,
@@ -138,7 +141,8 @@ export class PriorityController {
   @Post('vms/swap')
   @ApiOperation({
     summary: 'Swap priorities between two VMs (Admin only)',
-    description: 'Atomically exchanges priority values between two VMs. Requires admin privileges.',
+    description:
+      'Atomically exchanges priority values between two VMs. Requires admin privileges.',
   })
   @ApiResponse({
     status: 200,
