@@ -83,7 +83,6 @@ export class VmwareDiscoveryService {
         totalServers: vmwareServers.length,
       };
 
-      // Update session in Redis
       await this.discoverySessionService.updateSession(sessionId, progressData);
 
       this.emitProgress(sessionId, progressData);
@@ -111,7 +110,6 @@ export class VmwareDiscoveryService {
           .map((r) => r.serverId),
       };
 
-      // Update session with results
       await this.discoverySessionService.updateSession(sessionId, updateData);
 
       this.emitProgress(sessionId, {
@@ -143,7 +141,6 @@ export class VmwareDiscoveryService {
     if (allDiscoveredVms.length > 0) {
       this.logger.log('Saving discovered VMs to database...');
 
-      // Log all discovered VMs before saving
       this.logger.log(`Discovered ${allDiscoveredVms.length} VMs to save:`);
       allDiscoveredVms.forEach((vm, index) => {
         this.logger.log(`VM ${index + 1}/${allDiscoveredVms.length}:`);
