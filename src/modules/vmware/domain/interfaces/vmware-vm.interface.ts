@@ -104,6 +104,7 @@ export interface VmwareHost {
 }
 
 export interface VmwareServer {
+  moid: string;
   name: string;
   vCenterIp: string;
   cluster: string;

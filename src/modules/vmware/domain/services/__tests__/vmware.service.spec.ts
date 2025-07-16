@@ -3,10 +3,12 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { VmwareService } from '../vmware.service';
 import { PythonExecutorService } from '@/core/services/python-executor';
 import { VmwareConnectionDto } from '@/modules/vmware/application/dto';
+import { ServerRepository } from '@/modules/servers/infrastructure/repositories/server.repository';
 
 describe('VmwareService', () => {
   let service: VmwareService;
   let pythonExecutor: jest.Mocked<PythonExecutorService>;
+  let serverRepository: jest.Mocked<ServerRepository>;
 
   const mockConnection: VmwareConnectionDto = {
     host: '192.168.1.10',
@@ -31,11 +33,19 @@ describe('VmwareService', () => {
             executePython: jest.fn(),
           },
         },
+        {
+          provide: ServerRepository,
+          useValue: {
+            findAll: jest.fn(),
+            updateServer: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<VmwareService>(VmwareService);
     pythonExecutor = module.get(PythonExecutorService);
+    serverRepository = module.get(ServerRepository);
   });
 
   afterEach(() => {
@@ -606,6 +616,99 @@ describe('VmwareService', () => {
           '--port',
           '8443',
         ],
+      );
+    });
+
+    it('should update existing servers with VMware host MOID sequentially', async () => {
+      const mockServersResult = {
+        servers: [
+          {
+            name: 'esxi-server-01',
+            vCenterIp: '192.168.1.5',
+            cluster: 'Production-Cluster',
+            vendor: 'HP',
+            model: 'ProLiant DL380 Gen10',
+            ip: '192.168.1.10',
+            moid: 'host-123',
+            cpuCores: 16,
+            cpuThreads: 32,
+            cpuMHz: 2400,
+            ramTotal: 64,
+          },
+          {
+            name: 'esxi-server-02',
+            vCenterIp: '192.168.1.5',
+            cluster: 'Production-Cluster',
+            vendor: 'Dell Inc.',
+            model: 'PowerEdge R740',
+            ip: '192.168.1.11',
+            moid: 'host-456',
+            cpuCores: 24,
+            cpuThreads: 48,
+            cpuMHz: 2600,
+            ramTotal: 128,
+          },
+        ],
+      };
+
+      const mockExistingServers = [
+        {
+          id: 'server-1',
+          ip: '192.168.1.10',
+          vmwareHostMoid: null,
+        },
+        {
+          id: 'server-2',
+          ip: '192.168.1.11',
+          vmwareHostMoid: null,
+        },
+        {
+          id: 'server-3',
+          ip: '192.168.1.12',
+          vmwareHostMoid: 'existing-moid',
+        },
+      ];
+
+      pythonExecutor.executePython.mockResolvedValue(mockServersResult);
+      serverRepository.findAll.mockResolvedValue(mockExistingServers);
+      serverRepository.updateServer.mockResolvedValue(null);
+
+      await service.listServers(mockConnection);
+
+      expect(serverRepository.findAll).toHaveBeenCalledTimes(1);
+      expect(serverRepository.updateServer).toHaveBeenCalledTimes(2);
+      expect(serverRepository.updateServer).toHaveBeenNthCalledWith(1, 'server-1', {
+        vmwareHostMoid: 'host-123',
+      });
+      expect(serverRepository.updateServer).toHaveBeenNthCalledWith(2, 'server-2', {
+        vmwareHostMoid: 'host-456',
+      });
+    });
+
+    it('should handle server repository errors gracefully', async () => {
+      const mockServersResult = {
+        servers: [
+          {
+            name: 'esxi-server-01',
+            vCenterIp: '192.168.1.5',
+            cluster: 'Production-Cluster',
+            vendor: 'HP',
+            model: 'ProLiant DL380 Gen10',
+            ip: '192.168.1.10',
+            moid: 'host-123',
+            cpuCores: 16,
+            cpuThreads: 32,
+            cpuMHz: 2400,
+            ramTotal: 64,
+          },
+        ],
+      };
+
+      pythonExecutor.executePython.mockResolvedValue(mockServersResult);
+      serverRepository.findAll.mockRejectedValue(new Error('Database error'));
+
+      await expect(service.listServers(mockConnection)).rejects.toThrow(
+        new HttpException('Database error', HttpStatus.INTERNAL_SERVER_ERROR),
       );
     });
   });

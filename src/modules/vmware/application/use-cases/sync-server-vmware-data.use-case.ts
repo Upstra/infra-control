@@ -27,19 +27,24 @@ export class SyncServerVmwareDataUseCase {
 
     for (const existingServer of existingServers) {
       const discoveredServer = discoveredServers.find(
-        (ds) => ds.ip === existingServer.ip || ds.name === existingServer.name,
+        (ds) => ds.moid === existingServer.vmwareHostMoid,
       );
 
       if (discoveredServer) {
         await this.serverRepository.update(existingServer.id, {
-          vmwareVCenterIp: discoveredServer.vCenterIp,
-          vmwareCluster: discoveredServer.cluster,
-          vmwareVendor: discoveredServer.vendor,
-          vmwareModel: discoveredServer.model,
-          vmwareCpuCores: discoveredServer.cpuCores,
-          vmwareCpuThreads: discoveredServer.cpuThreads,
-          vmwareCpuMHz: discoveredServer.cpuMHz,
-          vmwareRamTotal: discoveredServer.ramTotal,
+          vmwareVCenterIp:
+            discoveredServer.vCenterIp || existingServer.vmwareVCenterIp,
+          vmwareCluster:
+            discoveredServer.cluster || existingServer.vmwareCluster,
+          vmwareVendor: discoveredServer.vendor || existingServer.vmwareVendor,
+          vmwareModel: discoveredServer.model || existingServer.vmwareModel,
+          vmwareCpuCores:
+            discoveredServer.cpuCores || existingServer.vmwareCpuCores,
+          vmwareCpuThreads:
+            discoveredServer.cpuThreads || existingServer.vmwareCpuThreads,
+          vmwareCpuMHz: discoveredServer.cpuMHz || existingServer.vmwareCpuMHz,
+          vmwareRamTotal:
+            discoveredServer.ramTotal || existingServer.vmwareRamTotal,
         });
         synchronized++;
       } else {

@@ -56,7 +56,6 @@ export class VmwareDiscoveryService {
       return this.createEmptyResults();
     }
 
-    // Create session in Redis
     await this.discoverySessionService.createSession(
       sessionId,
       vmwareServers.length,
@@ -92,10 +91,6 @@ export class VmwareDiscoveryService {
 
       if (result.success) {
         allDiscoveredVms = [...allDiscoveredVms, ...result.vms];
-
-        if (result.hostMoid && !server.vmwareHostMoid) {
-          await this.updateServerHostMoid(server.id, result.hostMoid);
-        }
       }
 
       const updateData = {
@@ -209,13 +204,6 @@ export class VmwareDiscoveryService {
       result.vmCount = result.vms.length;
       result.success = true;
 
-      if (vmwareVms.length > 0 && vmwareVms[0].esxiHostMoid) {
-        result.hostMoid = vmwareVms[0].esxiHostMoid;
-        this.logger.debug(
-          `Discovered host moid ${result.hostMoid} for server ${server.name}`,
-        );
-      }
-
       this.logger.debug(
         `Successfully discovered ${result.vmCount} VMs from ${server.name}`,
       );
@@ -235,9 +223,7 @@ export class VmwareDiscoveryService {
   }
 
   private filterVmwareServers(servers: Server[]): Server[] {
-    return servers.filter(
-      (server) => server.type === 'vmware' || server.type === 'esxi',
-    );
+    return servers.filter((server) => server.type === 'esxi');
   }
 
   private buildVmwareConnection(server: Server): VmwareConnectionDto {

@@ -1,4 +1,10 @@
-import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  HttpException,
+  HttpStatus,
+  Inject,
+} from '@nestjs/common';
 import { PythonExecutorService } from '@/core/services/python-executor';
 import { VmwareConnectionDto } from '@/modules/vmware/application/dto';
 import {
@@ -15,12 +21,17 @@ import {
   VmwareHealthStatus,
   VmwareServer,
 } from '../interfaces';
+import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 
 @Injectable()
 export class VmwareService implements IVmwareService {
   private readonly logger = new Logger(VmwareService.name);
 
-  constructor(private readonly pythonExecutor: PythonExecutorService) {}
+  constructor(
+    private readonly pythonExecutor: PythonExecutorService,
+    @Inject('ServerRepositoryInterface')
+    private readonly serverRepository: ServerRepositoryInterface,
+  ) {}
 
   async listVMs(connection: VmwareConnectionDto): Promise<VmwareVm[]> {
     const args = this.buildConnectionArgs(connection);
@@ -32,7 +43,6 @@ export class VmwareService implements IVmwareService {
       );
       this.logger.debug('Raw script output:', JSON.stringify(result));
 
-      // Check if the result contains an error
       if (result?.result?.httpCode && result.result.httpCode !== 200) {
         const errorMessage = result.result.message || 'Unknown error';
         this.logger.error(
@@ -214,6 +224,25 @@ export class VmwareService implements IVmwareService {
 
       const parsedServers = this.parseServerList(result);
       this.logger.debug(`Parsed ${parsedServers.length} servers`);
+
+      const existingServers = await this.serverRepository.findAll();
+      const existingServersWithoutHostMoid = existingServers.filter(
+        (s) => !s.vmwareHostMoid,
+      );
+      for (const server of parsedServers) {
+        const existing = existingServersWithoutHostMoid.find(
+          (s) => s.ip === server.ip,
+        );
+        if (existing) {
+          this.logger.debug(
+            `Updating existing server ${existing.id} with new VMware host MOID: ${server.moid}`,
+          );
+          await this.serverRepository.updateServer(existing.id, {
+            vmwareHostMoid: server.moid,
+          });
+        }
+      }
+
       return parsedServers;
     } catch (error) {
       this.logger.error('Failed to list servers:', error);
