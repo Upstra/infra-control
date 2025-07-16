@@ -167,6 +167,60 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
     this.logger.log('Migration data cleared');
   }
 
+  private mapVmwareEventToMigrationEvent(vmwareEvent: any): MigrationEvent {
+    // Map des événements VMware vers les types attendus
+    const eventTypeMap: Record<string, MigrationEvent['type']> = {
+      'VMStartedEvent': 'vm_started',
+      'VMMigrationEvent': 'vm_migration',
+      'VMShutdownEvent': 'vm_shutdown',
+      'ServerShutdownEvent': 'server_shutdown',
+    };
+
+    // Déterminer le type d'événement
+    const eventType = eventTypeMap[vmwareEvent.type] || vmwareEvent.type;
+
+    // Construire l'événement au format attendu
+    const migrationEvent: MigrationEvent = {
+      type: eventType,
+      timestamp: vmwareEvent.timestamp || new Date().toISOString(),
+      success: vmwareEvent.success ?? true,
+    };
+
+    // Ajouter les champs spécifiques selon le type d'événement
+    switch (eventType) {
+      case 'vm_started':
+      case 'vm_shutdown':
+        migrationEvent.vmName = vmwareEvent.vm || vmwareEvent.vmName;
+        migrationEvent.vmMoid = vmwareEvent.vmMoid || vmwareEvent.moid;
+        break;
+      
+      case 'vm_migration':
+        migrationEvent.vmName = vmwareEvent.vm || vmwareEvent.vmName;
+        migrationEvent.vmMoid = vmwareEvent.vmMoid || vmwareEvent.moid;
+        migrationEvent.sourceMoid = vmwareEvent.source || vmwareEvent.sourceMoid;
+        migrationEvent.destinationMoid = vmwareEvent.destination || vmwareEvent.destinationMoid;
+        break;
+      
+      case 'server_shutdown':
+        migrationEvent.serverName = vmwareEvent.server || vmwareEvent.serverName;
+        migrationEvent.serverMoid = vmwareEvent.serverMoid || vmwareEvent.moid;
+        break;
+    }
+
+    // Ajouter le message d'erreur si présent
+    if (vmwareEvent.error) {
+      migrationEvent.error = vmwareEvent.error;
+      migrationEvent.success = false;
+    }
+
+    // Ajouter le message descriptif si présent
+    if (vmwareEvent.message) {
+      migrationEvent.message = vmwareEvent.message;
+    }
+
+    return migrationEvent;
+  }
+
   private async pollRedisEvents(): Promise<void> {
     try {
       const rawEvents = await this.redis.safeLRange(
@@ -174,7 +228,16 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
         0,
         -1,
       );
-      const events = rawEvents.map((e) => JSON.parse(e));
+      
+      const events = rawEvents.map((e) => {
+        const parsedEvent = JSON.parse(e);
+        // Si c'est un événement VMware natif, le transformer
+        if (parsedEvent.type && parsedEvent.type.endsWith('Event')) {
+          return this.mapVmwareEventToMigrationEvent(parsedEvent);
+        }
+        // Sinon, le retourner tel quel (déjà au bon format)
+        return parsedEvent;
+      });
 
       for (const event of events) {
         this.eventEmitter.emit('migration.event', event);
@@ -201,7 +264,15 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
         0,
         -1,
       );
-      return rawEvents.map((e) => JSON.parse(e));
+      return rawEvents.map((e) => {
+        const parsedEvent = JSON.parse(e);
+        // Si c'est un événement VMware natif, le transformer
+        if (parsedEvent.type && parsedEvent.type.endsWith('Event')) {
+          return this.mapVmwareEventToMigrationEvent(parsedEvent);
+        }
+        // Sinon, le retourner tel quel (déjà au bon format)
+        return parsedEvent;
+      });
     } catch (error) {
       this.logger.error('Failed to get events:', error);
       return [];
