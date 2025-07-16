@@ -102,8 +102,7 @@ export class BulkCreateWithDiscoveryUseCase {
         this.logger.log(
           `Discovery completed: ${results.totalVmsDiscovered} VMs discovered`,
         );
-        
-        // After VM discovery, update server MOIDs
+
         this.updateServerMoids(vmwareServers);
       })
       .catch((error) => {
@@ -142,24 +141,44 @@ export class BulkCreateWithDiscoveryUseCase {
 
   private updateServerMoids(vmwareServers: Server[]): void {
     this.logger.log('Starting server MOID update process');
-    
-    vmwareServers.forEach((server) => {
+
+    const vCenterServers = vmwareServers.filter(
+      (server) => server.type?.toLowerCase() === 'vcenter',
+    );
+
+    if (vCenterServers.length === 0) {
+      this.logger.warn('No vCenter servers found, skipping MOID update');
+      return;
+    }
+
+    vCenterServers.forEach((vCenter) => {
       const connection = {
-        host: server.ip,
-        user: server.login,
-        password: server.password,
+        host: vCenter.ip,
+        user: vCenter.login,
+        password: vCenter.password,
         port: 443,
       };
 
+      this.logger.log(
+        `Calling listServers on vCenter ${vCenter.name} (${vCenter.ip})`,
+      );
+
       this.vmwareService
         .listServers(connection)
-        .then((servers) => {
+        .then((discoveredServers) => {
           this.logger.log(
-            `Server MOID update completed for ${server.name}: ${servers?.length ?? 0} servers processed`,
+            `vCenter ${vCenter.name} returned ${discoveredServers?.length ?? 0} servers with MOIDs`,
+          );
+
+          this.logger.log(
+            'Server MOIDs updated successfully from vCenter data',
           );
         })
         .catch((error) => {
-          this.logger.error(`Server MOID update failed for ${server.name}:`, error);
+          this.logger.error(
+            `Failed to get server list from vCenter ${vCenter.name}:`,
+            error,
+          );
         });
     });
   }

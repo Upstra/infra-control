@@ -430,7 +430,9 @@ export class VmwareService implements IVmwareService {
     return new HttpException(message, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
-  private parseServerList(result: { servers?: RawVmwareServer[] }): VmwareServer[] {
+  private parseServerList(result: {
+    servers?: RawVmwareServer[];
+  }): VmwareServer[] {
     this.logger.debug('parseServerList input:', JSON.stringify(result));
 
     if (!result || !Array.isArray(result.servers)) {
@@ -439,9 +441,6 @@ export class VmwareService implements IVmwareService {
     }
 
     this.logger.debug(`Found ${result.servers.length} servers to parse`);
-    //[Nest] 125845  - 07/16/2025, 8:14:52 PM   DEBUG [VmwareService] parseServerList input:
-    //[Nest] 125845  - 07/16/2025, 8:14:52 PM   DEBUG [VmwareService] {"servers":[{"name":"esxsrv11.eurialys.local","moid":"ha-host","vCenterIp":"172.23.20.14","cluster":"esxsrv11.eurialys.local","vendor":"HP","model":"ProLiant DL360 Gen9","ip":"172.23.10.11","cpuCores":20,"cpuThreads":40,"cpuMHz":2397.223438,"ramTotal":127}]}
-
     return result.servers.map((server) => ({
       name: server.name ?? 'Unknown',
       vCenterIp: server.vCenterIp ?? '',
