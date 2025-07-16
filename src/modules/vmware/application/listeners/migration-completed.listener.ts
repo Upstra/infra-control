@@ -42,13 +42,10 @@ export class MigrationCompletedListener {
         return;
       }
 
-      const vmwareInfo = await this.vmwareService.getVmInfo(vmMoid);
-      if (!vmwareInfo || !vmwareInfo.runtime?.host) {
-        this.logger.warn(`Could not get host info for VM ${vmMoid} from vCenter`);
-        return;
-      }
-
-      const newHostMoid = vmwareInfo.runtime.host.value;
+      // TODO: For now, skip VM host update as we need VMware connection details
+      // This would require getting connection info from the server entity
+      this.logger.warn(`VM host update not implemented yet for ${vmMoid}`);
+      return;
       
       if (vm.serverMoid === newHostMoid) {
         this.logger.debug(`VM ${vm.name} already on correct host`);
