@@ -135,9 +135,17 @@ describe('GetServerStatusUseCase', () => {
     });
   });
 
-  it('should return ERROR status when metrics are invalid', async () => {
+  it('should return ERROR status when metrics have standBy power state', async () => {
     mockGetServerWithIloUseCase.execute.mockResolvedValue(mockServer as any);
-    mockVmwareService.getServerMetrics.mockResolvedValue({} as any);
+    mockVmwareService.getServerMetrics.mockResolvedValue({
+      powerState: 'standBy',
+      overallStatus: 'red',
+      rebootRequired: false,
+      cpuUsagePercent: 0,
+      ramUsageMB: 0,
+      uptime: 0,
+      boottime: '2023-01-01',
+    });
 
     const result = await useCase.execute('server-1');
 
@@ -154,7 +162,12 @@ describe('GetServerStatusUseCase', () => {
       roomId: 'room-1',
       groupId: 'group-1',
       iloId: 'ilo-1',
-      metrics: undefined,
+      metrics: {
+        cpuUsage: 0,
+        memoryUsage: 0,
+        powerState: 'standBy',
+        uptime: 0,
+      },
     });
   });
 

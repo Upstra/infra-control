@@ -46,10 +46,9 @@ export class IloStatusResponseDto {
 
   @ApiProperty({
     description: 'Power metrics from VMware',
-    required: false,
     type: ServerMetricsDto,
   })
-  metrics?: ServerMetricsDto;
+  metrics: ServerMetricsDto;
 }
 
 export class IloPowerResponseDto {

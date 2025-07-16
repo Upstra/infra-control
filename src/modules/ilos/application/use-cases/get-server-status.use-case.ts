@@ -60,12 +60,8 @@ export class GetServerStatusUseCase {
   }
 
   private mapMetricsToDto(
-    metrics: VmwareServerMetrics | null,
-  ): ServerMetricsDto | undefined {
-    if (!metrics?.powerState) {
-      return undefined;
-    }
-
+    metrics: VmwareServerMetrics,
+  ): ServerMetricsDto {
     return {
       cpuUsage: metrics.cpuUsagePercent,
       memoryUsage: metrics.ramUsageMB,
@@ -75,17 +71,15 @@ export class GetServerStatusUseCase {
   }
 
   private extractStatusFromMetrics(
-    metrics: VmwareServerMetrics | null,
+    metrics: VmwareServerMetrics,
   ): IloServerStatus {
-    if (!metrics?.powerState) {
-      return IloServerStatus.ERROR;
-    }
-
     const powerState = metrics.powerState.toLowerCase();
     if (powerState === 'poweredon' || powerState === 'on') {
       return IloServerStatus.ON;
     } else if (powerState === 'poweredoff' || powerState === 'off') {
       return IloServerStatus.OFF;
+    } else if (powerState === 'standby') {
+      return IloServerStatus.ERROR;
     }
 
     return IloServerStatus.ERROR;
