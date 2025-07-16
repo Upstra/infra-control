@@ -31,9 +31,18 @@ export interface MigrationStatus {
   error?: string;
 }
 
+import { RequestContextDto } from '@/core/dto/request-context.dto';
+
 export interface IMigrationOrchestrator {
-  executeMigrationPlan(planPath: string): Promise<void>;
-  executeRestartPlan(): Promise<void>;
+  executeMigrationPlan(
+    planPath: string,
+    userId?: string,
+    requestContext?: RequestContextDto,
+  ): Promise<void>;
+  executeRestartPlan(
+    userId?: string,
+    requestContext?: RequestContextDto,
+  ): Promise<void>;
   getMigrationStatus(): Promise<MigrationStatus>;
   cancelMigration(): Promise<void>;
   clearMigrationData(): Promise<void>;

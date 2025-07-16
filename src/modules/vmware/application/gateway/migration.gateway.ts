@@ -88,7 +88,7 @@ export class MigrationGateway
       const requestContext = RequestContextDto.fromSocket(client);
       const sessionId = client.id;
 
-      await this.logHistoryUseCase.executeStructured({
+      this.logHistoryUseCase.executeStructured({
         entity: 'migration',
         entityId: sessionId,
         action: 'START_MIGRATION',
@@ -99,7 +99,7 @@ export class MigrationGateway
         },
         ipAddress: requestContext.ipAddress,
         userAgent: requestContext.userAgent,
-      });
+      }).catch(error => this.logger.error('Failed to log migration start:', error));
 
       await this.migrationOrchestrator.executeMigrationPlan(
         data.planPath,
@@ -127,7 +127,7 @@ export class MigrationGateway
       const requestContext = RequestContextDto.fromSocket(client);
       const sessionId = client.id;
 
-      await this.logHistoryUseCase.executeStructured({
+      this.logHistoryUseCase.executeStructured({
         entity: 'migration',
         entityId: sessionId,
         action: 'START_RESTART',
@@ -137,7 +137,7 @@ export class MigrationGateway
         },
         ipAddress: requestContext.ipAddress,
         userAgent: requestContext.userAgent,
-      });
+      }).catch(error => this.logger.error('Failed to log restart start:', error));
 
       await this.migrationOrchestrator.executeRestartPlan(
         userId,
@@ -164,7 +164,7 @@ export class MigrationGateway
       const requestContext = RequestContextDto.fromSocket(client);
       const sessionId = client.id;
 
-      await this.logHistoryUseCase.executeStructured({
+      this.logHistoryUseCase.executeStructured({
         entity: 'migration',
         entityId: sessionId,
         action: 'CANCEL_MIGRATION',
@@ -172,7 +172,7 @@ export class MigrationGateway
         metadata: {},
         ipAddress: requestContext.ipAddress,
         userAgent: requestContext.userAgent,
-      });
+      }).catch(error => this.logger.error('Failed to log migration cancel:', error));
 
       await this.migrationOrchestrator.cancelMigration();
       client.emit('migration:cancelled', { success: true });
