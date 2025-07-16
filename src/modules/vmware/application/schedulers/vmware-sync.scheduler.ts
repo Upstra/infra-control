@@ -4,7 +4,6 @@ import { ConfigService } from '@nestjs/config';
 import { SyncServerVmwareDataUseCase } from '../use-cases/sync-server-vmware-data.use-case';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
-import { EmailService } from '@/modules/email/application/services/email.service';
 
 @Injectable()
 export class VmwareSyncScheduler {
@@ -80,7 +79,6 @@ export class VmwareSyncScheduler {
 
   private async sendSyncReport(report: any, duration: number): Promise<void> {
     try {
-      // Get admin users from database
       const adminUsers = await this.userRepository.findAll({
         relations: ['role'],
         where: {
@@ -89,8 +87,8 @@ export class VmwareSyncScheduler {
       });
 
       const adminEmails = adminUsers
-        .filter(user => user.role?.isAdmin === true)
-        .map(user => user.email);
+        .filter((user) => user.role?.isAdmin === true)
+        .map((user) => user.email);
 
       if (adminEmails.length === 0) {
         this.logger.warn('No admin users found to send sync report');
