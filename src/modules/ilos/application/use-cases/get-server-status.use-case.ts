@@ -43,6 +43,22 @@ export class GetServerStatusUseCase {
     return {
       status,
       ip: server.ilo.ip,
+      serverId: server.id,
+      serverName: server.name,
+      serverType: server.type,
+      vmwareHostMoid: server.vmwareHostMoid,
+      serverState: server.state,
+      serverPriority: server.priority,
+      upsId: server.upsId,
+      roomId: server.roomId,
+      groupId: server.groupId,
+      iloId: server.iloId,
+      metrics: metrics && metrics.powerState ? {
+        cpuUsage: metrics.cpuUsagePercent,
+        memoryUsage: metrics.ramUsageMB,
+        powerState: metrics.powerState,
+        uptime: metrics.uptime,
+      } : undefined,
     };
   }
 

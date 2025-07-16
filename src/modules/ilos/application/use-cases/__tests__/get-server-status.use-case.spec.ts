@@ -27,6 +27,9 @@ describe('GetServerStatusUseCase', () => {
     state: 'UP',
     roomId: 'room-1',
     vmwareHostMoid: 'host-123',
+    upsId: 'ups-1',
+    groupId: 'group-1',
+    iloId: 'ilo-1',
   };
 
   beforeEach(() => {
@@ -65,6 +68,22 @@ describe('GetServerStatusUseCase', () => {
     expect(result).toEqual({
       status: IloServerStatus.ON,
       ip: '192.168.1.100',
+      serverId: 'server-1',
+      serverName: 'Test Server',
+      serverType: 'esxi',
+      vmwareHostMoid: 'host-123',
+      serverState: 'UP',
+      serverPriority: 1,
+      upsId: 'ups-1',
+      roomId: 'room-1',
+      groupId: 'group-1',
+      iloId: 'ilo-1',
+      metrics: {
+        cpuUsage: 15.5,
+        memoryUsage: 32768,
+        powerState: 'poweredOn',
+        uptime: 86400,
+      },
     });
     expect(mockGetServerWithIloUseCase.execute).toHaveBeenCalledWith(
       'server-1',
@@ -97,6 +116,22 @@ describe('GetServerStatusUseCase', () => {
     expect(result).toEqual({
       status: IloServerStatus.OFF,
       ip: '192.168.1.100',
+      serverId: 'server-1',
+      serverName: 'Test Server',
+      serverType: 'esxi',
+      vmwareHostMoid: 'host-123',
+      serverState: 'UP',
+      serverPriority: 1,
+      upsId: 'ups-1',
+      roomId: 'room-1',
+      groupId: 'group-1',
+      iloId: 'ilo-1',
+      metrics: {
+        cpuUsage: 0,
+        memoryUsage: 0,
+        powerState: 'poweredOff',
+        uptime: 0,
+      },
     });
   });
 
@@ -109,6 +144,17 @@ describe('GetServerStatusUseCase', () => {
     expect(result).toEqual({
       status: IloServerStatus.ERROR,
       ip: '192.168.1.100',
+      serverId: 'server-1',
+      serverName: 'Test Server',
+      serverType: 'esxi',
+      vmwareHostMoid: 'host-123',
+      serverState: 'UP',
+      serverPriority: 1,
+      upsId: 'ups-1',
+      roomId: 'room-1',
+      groupId: 'group-1',
+      iloId: 'ilo-1',
+      metrics: undefined,
     });
   });
 

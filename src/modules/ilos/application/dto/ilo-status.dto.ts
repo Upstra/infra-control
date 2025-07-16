@@ -12,6 +12,44 @@ export class IloStatusResponseDto {
 
   @ApiProperty({ description: 'Server IP address' })
   ip: string;
+
+  @ApiProperty({ description: 'Server ID' })
+  serverId: string;
+
+  @ApiProperty({ description: 'Server name' })
+  serverName: string;
+
+  @ApiProperty({ description: 'Server type (esxi, vcenter, etc.)' })
+  serverType: string;
+
+  @ApiProperty({ description: 'VMware host MOID' })
+  vmwareHostMoid: string;
+
+  @ApiProperty({ description: 'Server state from database' })
+  serverState: string;
+
+  @ApiProperty({ description: 'Server priority' })
+  serverPriority: number;
+
+  @ApiProperty({ description: 'UPS ID if assigned', required: false })
+  upsId?: string;
+
+  @ApiProperty({ description: 'Room ID' })
+  roomId: string;
+
+  @ApiProperty({ description: 'Group ID if assigned', required: false })
+  groupId?: string;
+
+  @ApiProperty({ description: 'iLO ID', required: false })
+  iloId?: string;
+
+  @ApiProperty({ description: 'Power metrics from VMware', required: false })
+  metrics?: {
+    cpuUsage?: number;
+    memoryUsage?: number;
+    powerState?: string;
+    uptime?: number;
+  };
 }
 
 export class IloPowerResponseDto {
