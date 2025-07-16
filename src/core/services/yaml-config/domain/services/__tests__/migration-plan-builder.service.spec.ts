@@ -2,7 +2,10 @@ import { Server } from '@/modules/servers/domain/entities/server.entity';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MigrationPlanBuilderService } from '../migration-plan-builder.service';
 import { Ilo } from '@/modules/ilos/domain/entities/ilo.entity';
-import { VCenterConfig, UpsConfig } from '../../interfaces/yaml-config.interface';
+import {
+  VCenterConfig,
+  UpsConfig,
+} from '../../interfaces/yaml-config.interface';
 import { Vm } from '@/modules/vms/domain/entities/vm.entity';
 
 describe('MigrationPlanBuilderService', () => {

@@ -4,7 +4,10 @@ import { YamlParserService } from '../../domain/services/yaml-parser.service';
 import { MigrationPlanBuilderService } from '../../domain/services/migration-plan-builder.service';
 import { YamlFileRepository } from '../../infrastructure/yaml-file.repository';
 import { Vm } from '@/modules/vms/domain/entities/vm.entity';
-import { MigrationPlanConfig, UpsConfig } from '../../domain/interfaces/yaml-config.interface';
+import {
+  MigrationPlanConfig,
+  UpsConfig,
+} from '../../domain/interfaces/yaml-config.interface';
 import { Ilo } from '@/modules/ilos/domain/entities/ilo.entity';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
 

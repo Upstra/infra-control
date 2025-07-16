@@ -2,7 +2,9 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { GetServerWithIloUseCase } from '@/modules/servers/application/use-cases/get-server-with-ilo.use-case';
 import { VmwareService } from '@/modules/vmware/domain/services/vmware.service';
 import { IloStatusResponseDto, IloServerStatus } from '../dto/ilo-status.dto';
+import { ServerMetricsDto } from '../dto/server-metrics.dto';
 import { VmwareConnectionDto } from '@/modules/vmware/application/dto';
+import { VmwareServerMetrics } from '@/modules/vmware/domain/interfaces/vmware-vm.interface';
 
 @Injectable()
 export class GetServerStatusUseCase {
@@ -53,16 +55,28 @@ export class GetServerStatusUseCase {
       roomId: server.roomId,
       groupId: server.groupId,
       iloId: server.iloId,
-      metrics: metrics && metrics.powerState ? {
-        cpuUsage: metrics.cpuUsagePercent,
-        memoryUsage: metrics.ramUsageMB,
-        powerState: metrics.powerState,
-        uptime: metrics.uptime,
-      } : undefined,
+      metrics: this.mapMetricsToDto(metrics),
     };
   }
 
-  private extractStatusFromMetrics(metrics: any): IloServerStatus {
+  private mapMetricsToDto(
+    metrics: VmwareServerMetrics | null,
+  ): ServerMetricsDto | undefined {
+    if (!metrics?.powerState) {
+      return undefined;
+    }
+
+    return {
+      cpuUsage: metrics.cpuUsagePercent,
+      memoryUsage: metrics.ramUsageMB,
+      powerState: metrics.powerState,
+      uptime: metrics.uptime,
+    };
+  }
+
+  private extractStatusFromMetrics(
+    metrics: VmwareServerMetrics | null,
+  ): IloServerStatus {
     if (!metrics?.powerState) {
       return IloServerStatus.ERROR;
     }

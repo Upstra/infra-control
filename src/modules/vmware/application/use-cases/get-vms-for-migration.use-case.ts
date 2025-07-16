@@ -6,8 +6,6 @@ import { Vm } from '../../../vms/domain/entities/vm.entity';
 import {
   VmsForMigrationResponseDto,
   ServerVmsDto,
-  VmMigrationInfoDto,
-  ServerInfoDto,
 } from '../dto/migration-destination.dto';
 
 @Injectable()
@@ -42,7 +40,7 @@ export class GetVmsForMigrationUseCase {
 
     const servers: ServerVmsDto[] = esxiServers.map((server) => {
       const serverVms = vmsByServer.get(server.id) || [];
-      
+
       return {
         server: {
           id: server.id,

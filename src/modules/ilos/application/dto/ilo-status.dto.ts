@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { ServerMetricsDto } from './server-metrics.dto';
 
 export enum IloServerStatus {
   ON = 'ON',
@@ -43,13 +44,12 @@ export class IloStatusResponseDto {
   @ApiProperty({ description: 'iLO ID', required: false })
   iloId?: string;
 
-  @ApiProperty({ description: 'Power metrics from VMware', required: false })
-  metrics?: {
-    cpuUsage?: number;
-    memoryUsage?: number;
-    powerState?: string;
-    uptime?: number;
-  };
+  @ApiProperty({
+    description: 'Power metrics from VMware',
+    required: false,
+    type: ServerMetricsDto,
+  })
+  metrics?: ServerMetricsDto;
 }
 
 export class IloPowerResponseDto {

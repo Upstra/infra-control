@@ -34,7 +34,9 @@ describe('GetVmsForMigrationUseCase', () => {
     }).compile();
 
     useCase = module.get<GetVmsForMigrationUseCase>(GetVmsForMigrationUseCase);
-    serverRepository = module.get<Repository<Server>>(getRepositoryToken(Server));
+    serverRepository = module.get<Repository<Server>>(
+      getRepositoryToken(Server),
+    );
     vmRepository = module.get<Repository<Vm>>(getRepositoryToken(Vm));
 
     jest.clearAllMocks();
