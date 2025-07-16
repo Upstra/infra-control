@@ -1,4 +1,4 @@
-import { IsUUID, IsOptional, ValidateNested, IsArray } from 'class-validator';
+import { IsUUID, IsOptional, ValidateNested, IsArray, IsString, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -104,4 +104,82 @@ export class RemoveDestinationResponseDto {
     example: 'server-uuid-1',
   })
   sourceServerId: string;
+}
+
+export class VmMigrationInfoDto {
+  @ApiProperty({
+    description: 'VM ID',
+    example: 'vm-uuid-1',
+  })
+  id: string;
+
+  @ApiProperty({
+    description: 'VM name',
+    example: 'web-server-01',
+  })
+  name: string;
+
+  @ApiPropertyOptional({
+    description: 'VMware managed object ID',
+    example: 'vm-1001',
+  })
+  moid?: string;
+
+  @ApiProperty({
+    description: 'VM state',
+    example: 'powered_on',
+  })
+  state: string;
+
+  @ApiProperty({
+    description: 'Shutdown priority (lower = higher priority)',
+    example: 1,
+  })
+  priority: number;
+
+  @ApiProperty({
+    description: 'Grace period for startup in seconds',
+    example: 30,
+  })
+  grace_period_on: number;
+
+  @ApiProperty({
+    description: 'Grace period for shutdown in seconds',
+    example: 60,
+  })
+  grace_period_off: number;
+}
+
+export class ServerVmsDto {
+  @ApiProperty({
+    description: 'Server information',
+    type: ServerInfoDto,
+  })
+  server: ServerInfoDto;
+
+  @ApiProperty({
+    description: 'List of VMs on this server',
+    type: [VmMigrationInfoDto],
+  })
+  vms: VmMigrationInfoDto[];
+}
+
+export class VmsForMigrationResponseDto {
+  @ApiProperty({
+    description: 'Servers with their VMs grouped',
+    type: [ServerVmsDto],
+  })
+  servers: ServerVmsDto[];
+
+  @ApiProperty({
+    description: 'Total number of servers',
+    example: 5,
+  })
+  totalServers: number;
+
+  @ApiProperty({
+    description: 'Total number of VMs across all servers',
+    example: 25,
+  })
+  totalVms: number;
 }

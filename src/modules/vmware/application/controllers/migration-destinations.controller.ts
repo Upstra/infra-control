@@ -28,11 +28,13 @@ import {
 import { GenerateMigrationPlanWithDestinationUseCase } from '../use-cases/generate-migration-plan-with-destination.use-case';
 import { GetMigrationDestinationsUseCase } from '../use-cases/get-migration-destinations.use-case';
 import { RemoveMigrationDestinationUseCase } from '../use-cases/remove-migration-destination.use-case';
+import { GetVmsForMigrationUseCase } from '../use-cases/get-vms-for-migration.use-case';
 import {
   SetMigrationDestinationsDto,
   MigrationDestinationsResponseDto,
   SetDestinationsResponseDto,
   RemoveDestinationResponseDto,
+  VmsForMigrationResponseDto,
 } from '../dto/migration-destination.dto';
 
 @ApiTags('vmware-migration-destinations')
@@ -45,6 +47,7 @@ export class MigrationDestinationsController {
     private readonly generateMigrationPlanWithDestination: GenerateMigrationPlanWithDestinationUseCase,
     private readonly getMigrationDestinations: GetMigrationDestinationsUseCase,
     private readonly removeMigrationDestinationUseCase: RemoveMigrationDestinationUseCase,
+    private readonly getVmsForMigrationUseCase: GetVmsForMigrationUseCase,
   ) {}
 
   @Get()
@@ -151,5 +154,30 @@ export class MigrationDestinationsController {
       message: 'Migration destination removed successfully',
       sourceServerId,
     };
+  }
+
+  @Get('vms')
+  @ApiOperation({
+    summary: 'Get all VMs grouped by ESXi servers for migration (Admin only)',
+    description:
+      'Returns all VMs from all ESXi servers, grouped by server, with VMware MOIDs for migration planning.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of all VMs grouped by ESXi servers',
+    type: VmsForMigrationResponseDto,
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin privileges required',
+  })
+  @UseLoggingContext({
+    entityType: 'migration-vms',
+    action: 'LIST',
+  })
+  async getVmsForMigration(
+    @CurrentUser() user: JwtPayload,
+  ): Promise<VmsForMigrationResponseDto> {
+    return this.getVmsForMigrationUseCase.execute();
   }
 }

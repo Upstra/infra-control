@@ -24,6 +24,7 @@ import { ClearMigrationDataUseCase } from './application/use-cases/clear-migrati
 import { GenerateMigrationPlanWithDestinationUseCase } from './application/use-cases/generate-migration-plan-with-destination.use-case';
 import { GetMigrationDestinationsUseCase } from './application/use-cases/get-migration-destinations.use-case';
 import { RemoveMigrationDestinationUseCase } from './application/use-cases/remove-migration-destination.use-case';
+import { GetVmsForMigrationUseCase } from './application/use-cases/get-vms-for-migration.use-case';
 import { VmwareDiscoveryGateway } from './application/gateway/vmware-discovery.gateway';
 import { MigrationGateway } from './application/gateway/migration.gateway';
 import { VmwareDiscoveryService } from './domain/services/vmware-discovery.service';
@@ -75,6 +76,7 @@ import { PresenceModule } from '@/modules/presence/presence.module';
     GenerateMigrationPlanWithDestinationUseCase,
     GetMigrationDestinationsUseCase,
     RemoveMigrationDestinationUseCase,
+    GetVmsForMigrationUseCase,
   ],
   exports: [
     VmwareService,
