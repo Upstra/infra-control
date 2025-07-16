@@ -38,7 +38,7 @@ import {
 } from '../dto/migration-destination.dto';
 
 @ApiTags('vmware-migration-destinations')
-@Controller('vmware/servers/migration/destinations')
+@Controller('vmware/migration')
 @UseGuards(JwtAuthGuard, RoleGuard)
 @ApiBearerAuth()
 @RequireRole({ isAdmin: true })
@@ -50,7 +50,7 @@ export class MigrationDestinationsController {
     private readonly getVmsForMigrationUseCase: GetVmsForMigrationUseCase,
   ) {}
 
-  @Get()
+  @Get('destinations')
   @ApiOperation({
     summary: 'Get current migration destinations (Admin only)',
     description:
@@ -75,7 +75,7 @@ export class MigrationDestinationsController {
     return this.getMigrationDestinations.execute();
   }
 
-  @Post()
+  @Post('destinations')
   @ApiOperation({
     summary: 'Configure migration destinations (Admin only)',
     description:
@@ -113,7 +113,7 @@ export class MigrationDestinationsController {
     };
   }
 
-  @Delete(':sourceServerId')
+  @Delete('destinations/:sourceServerId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Remove migration destination (Admin only)',
