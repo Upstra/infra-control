@@ -170,6 +170,12 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
           moid: 'host-123',
           vendor: 'VMware',
           model: 'ESXi',
+          vCenterIp: mockVmwareServer.ip,
+          cluster: 'Cluster-1',
+          cpuCores: 16,
+          cpuThreads: 32,
+          cpuMHz: 2400,
+          ramTotal: 65536,
         },
       ]);
       serverRepository.updateServer.mockResolvedValue(undefined);
@@ -336,16 +342,30 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       serverRepository.findServerByIdWithCredentials
         .mockResolvedValueOnce(mockVmwareServer)
         .mockResolvedValueOnce(mockEsxiServer);
-      vmwareDiscoveryService.discoverVmsFromServers.mockResolvedValue(
+      vmwareDiscoveryService.discoverVmsFromVCenter.mockResolvedValue(
         mockDiscoveryResults,
       );
+      vmwareService.listServers.mockResolvedValue([{
+        name: 'ESXi Server 1',
+        ip: '192.168.1.20',
+        moid: 'host-123',
+        vendor: 'VMware',
+        model: 'ESXi',
+        vCenterIp: mockVmwareServer.ip,
+        cluster: 'Cluster-1',
+        cpuCores: 16,
+        cpuThreads: 32,
+        cpuMHz: 2400,
+        ramTotal: 65536,
+      }]);
+      serverRepository.updateServer.mockResolvedValue(undefined);
 
       const result = await useCase.execute(requestWithSessionId);
 
       expect(result.discoverySessionId).toBe(customSessionId);
       expect(
-        vmwareDiscoveryService.discoverVmsFromServers,
-      ).toHaveBeenCalledWith(expect.any(Array), customSessionId);
+        vmwareDiscoveryService.discoverVmsFromVCenter,
+      ).toHaveBeenCalledWith(mockVmwareServer, [mockEsxiServer], customSessionId);
     });
 
     it('should handle discovery service errors gracefully', async () => {
@@ -353,9 +373,23 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       serverRepository.findServerByIdWithCredentials
         .mockResolvedValueOnce(mockVmwareServer)
         .mockResolvedValueOnce(mockEsxiServer);
-      vmwareDiscoveryService.discoverVmsFromServers.mockRejectedValue(
+      vmwareDiscoveryService.discoverVmsFromVCenter.mockRejectedValue(
         new Error('Discovery failed'),
       );
+      vmwareService.listServers.mockResolvedValue([{
+        name: 'ESXi Server 1',
+        ip: '192.168.1.20',
+        moid: 'host-123',
+        vendor: 'VMware',
+        model: 'ESXi',
+        vCenterIp: mockVmwareServer.ip,
+        cluster: 'Cluster-1',
+        cpuCores: 16,
+        cpuThreads: 32,
+        cpuMHz: 2400,
+        ramTotal: 65536,
+      }]);
+      serverRepository.updateServer.mockResolvedValue(undefined);
 
       const result = await useCase.execute(mockRequest);
 
@@ -409,8 +443,32 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
         mockDiscoveryResults,
       );
       vmwareService.listServers.mockResolvedValue([
-        { name: 'ESXi Server 1', ip: '192.168.1.20', moid: 'host-123' },
-        { name: 'ESXi Server', ip: esxiServer.ip, moid: 'host-124' },
+        { 
+          name: 'ESXi Server 1',
+          ip: '192.168.1.20',
+          moid: 'host-123',
+          vendor: 'VMware',
+          model: 'ESXi',
+          vCenterIp: vcenterServer.ip,
+          cluster: 'Cluster-1',
+          cpuCores: 16,
+          cpuThreads: 32,
+          cpuMHz: 2400,
+          ramTotal: 65536,
+        },
+        { 
+          name: 'ESXi Server',
+          ip: esxiServer.ip,
+          moid: 'host-124',
+          vendor: 'VMware',
+          model: 'ESXi',
+          vCenterIp: vcenterServer.ip,
+          cluster: 'Cluster-1',
+          cpuCores: 16,
+          cpuThreads: 32,
+          cpuMHz: 2400,
+          ramTotal: 65536,
+        },
       ]);
       serverRepository.updateServer.mockResolvedValue(undefined);
 
@@ -421,11 +479,12 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       expect(
         vmwareDiscoveryService.discoverVmsFromVCenter,
       ).toHaveBeenCalledTimes(1);
+      // The vCenter is actually mockVmwareServer which has type 'vcenter'
       expect(
         vmwareDiscoveryService.discoverVmsFromVCenter,
       ).toHaveBeenCalledWith(
-        vcenterServer,
-        [mockEsxiServer, esxiServer],
+        expect.objectContaining({ type: 'vcenter' }),
+        expect.arrayContaining([mockEsxiServer, esxiServer]),
         expect.any(String),
       );
     });

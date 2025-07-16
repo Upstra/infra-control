@@ -146,6 +146,7 @@ describe('VmwareDiscoveryService - vCenter Discovery', () => {
       saveDiscoveredVmsUseCase.execute.mockResolvedValue({
         savedCount: 2,
         failedCount: 0,
+        savedVms: [],
         errors: [],
       });
 
@@ -227,10 +228,12 @@ describe('VmwareDiscoveryService - vCenter Discovery', () => {
       saveDiscoveredVmsUseCase.execute.mockResolvedValue({
         savedCount: 2,
         failedCount: 0,
+        savedVms: [],
         errors: [],
       });
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      // Spy on logger.warn instead of console.log
+      const loggerSpy = jest.spyOn(service['logger'], 'warn');
 
       await service.discoverVmsFromVCenter(
         mockVCenterServer,
@@ -239,11 +242,11 @@ describe('VmwareDiscoveryService - vCenter Discovery', () => {
       );
 
       // Should log warning about orphan VM
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(loggerSpy).toHaveBeenCalledWith(
         expect.stringContaining('Found 1 VMs without matching ESXi servers'),
       );
 
-      consoleSpy.mockRestore();
+      loggerSpy.mockRestore();
     });
 
     it('should handle vCenter connection failure', async () => {
@@ -310,6 +313,7 @@ describe('VmwareDiscoveryService - vCenter Discovery', () => {
       saveDiscoveredVmsUseCase.execute.mockResolvedValue({
         savedCount: 1,
         failedCount: 0,
+        savedVms: [],
         errors: [],
       });
 
@@ -336,10 +340,12 @@ describe('VmwareDiscoveryService - vCenter Discovery', () => {
       saveDiscoveredVmsUseCase.execute.mockResolvedValue({
         savedCount: 1,
         failedCount: 1,
-        errors: ['Failed to save VM: UPS-APPSRV01'],
+        savedVms: [],
+        errors: [{ vm: 'UPS-APPSRV01', error: 'Failed to save VM' }],
       });
 
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      // Spy on logger.warn
+      const loggerSpy = jest.spyOn(service['logger'], 'warn');
 
       const result = await service.discoverVmsFromVCenter(
         mockVCenterServer,
@@ -348,12 +354,12 @@ describe('VmwareDiscoveryService - vCenter Discovery', () => {
       );
 
       expect(result.totalVmsDiscovered).toBe(2);
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(loggerSpy).toHaveBeenCalledWith(
         'Some VMs failed to save:',
-        expect.arrayContaining(['Failed to save VM: UPS-APPSRV01']),
+        expect.arrayContaining([{ vm: 'UPS-APPSRV01', error: 'Failed to save VM' }]),
       );
 
-      consoleSpy.mockRestore();
+      loggerSpy.mockRestore();
     });
 
     it('should correctly map VM data from vCenter format', async () => {
@@ -361,6 +367,7 @@ describe('VmwareDiscoveryService - vCenter Discovery', () => {
       saveDiscoveredVmsUseCase.execute.mockResolvedValue({
         savedCount: 1,
         failedCount: 0,
+        savedVms: [],
         errors: [],
       });
 
