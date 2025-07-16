@@ -2,8 +2,7 @@ import { Injectable, Logger, Inject } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { SyncServerVmwareDataUseCase } from '../use-cases/sync-server-vmware-data.use-case';
-import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server-repository.interface';
-import { EmailService } from '@/modules/email/application/services/email.service';
+import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 
 @Injectable()
 export class VmwareSyncScheduler {
@@ -17,7 +16,8 @@ export class VmwareSyncScheduler {
     private readonly emailService: EmailService,
     private readonly configService: ConfigService,
   ) {
-    this.isEnabled = this.configService.get('VMWARE_SYNC_ENABLED', 'true') === 'true';
+    this.isEnabled =
+      this.configService.get('VMWARE_SYNC_ENABLED', 'true') === 'true';
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
@@ -47,7 +47,7 @@ export class VmwareSyncScheduler {
       for (const server of servers) {
         try {
           this.logger.log(`Syncing server ${server.name} (${server.id})`);
-          
+
           const result = await this.syncServerVmwareData.execute({
             serverId: server.id,
             fullSync: true,
@@ -55,7 +55,6 @@ export class VmwareSyncScheduler {
 
           report.successfulServers++;
           report.vmsUpdated += result.vmsUpdated || 0;
-          
         } catch (error) {
           report.failedServers++;
           const errorMsg = `Failed to sync server ${server.name}: ${error.message}`;
@@ -70,7 +69,6 @@ export class VmwareSyncScheduler {
       if (report.errors.length > 0) {
         await this.sendSyncReport(report, duration);
       }
-
     } catch (error) {
       this.logger.error('VMware sync scheduler failed:', error);
     }
@@ -78,7 +76,10 @@ export class VmwareSyncScheduler {
 
   private async sendSyncReport(report: any, duration: number): Promise<void> {
     try {
-      const adminEmails = this.configService.get('ADMIN_EMAILS', '').split(',').filter(Boolean);
+      const adminEmails = this.configService
+        .get('ADMIN_EMAILS', '')
+        .split(',')
+        .filter(Boolean);
       if (adminEmails.length === 0) return;
 
       await this.emailService.sendEmail({
@@ -99,7 +100,7 @@ export class VmwareSyncScheduler {
           
           <h3>Errors</h3>
           <ul>
-            ${report.errors.map(err => `<li>${err}</li>`).join('')}
+            ${report.errors.map((err) => `<li>${err}</li>`).join('')}
           </ul>
         `,
       });
