@@ -15,6 +15,7 @@ import {
 } from '../interfaces/migration-orchestrator.interface';
 import { MigrationPlanAnalysis } from '../interfaces/migration-plan-analysis.interface';
 import type { VmInfo } from '../interfaces/migration-plan-analysis.interface';
+import { MigrationCompletedEvent } from '../interfaces/migration-completed-event.interface';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as fs from 'fs/promises';
 import * as yaml from 'js-yaml';
@@ -125,6 +126,16 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
         const endTime = new Date();
         const events = await this.getEvents();
 
+        const successfulVmEvents = events.filter(
+          (e) =>
+            e.type === 'vm_migration' && e.success && e.vmMoid,
+        );
+
+        const successfulVmMoids = successfulVmEvents.map((e) => e.vmMoid!);
+        const failedVmMoids = events
+          .filter((e) => e.type === 'vm_migration' && !e.success && e.vmMoid)
+          .map((e) => e.vmMoid!);
+
         const successfulVms = events.filter(
           (e) =>
             (e.type === 'vm_migration' || e.type === 'vm_shutdown') &&
@@ -152,6 +163,16 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
           ipAddress: requestContext?.ipAddress,
           userAgent: requestContext?.userAgent,
         });
+
+        this.eventEmitter.emit('migration.completed', {
+          sessionId,
+          userId,
+          migrationType: planAnalysis?.migrationType || 'migration',
+          events,
+          affectedVms: planAnalysis?.affectedVms || [],
+          successfulVms: successfulVmMoids,
+          failedVms: failedVmMoids,
+        } as MigrationCompletedEvent);
       }
     } catch (error) {
       await this.setState(MigrationState.FAILED);
