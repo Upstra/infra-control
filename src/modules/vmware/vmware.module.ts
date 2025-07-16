@@ -3,12 +3,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { JwtModule } from '@nestjs/jwt';
+import { ScheduleModule } from '@nestjs/schedule';
 import { PythonExecutorModule } from '@/core/services/python-executor/python-executor.module';
 import { YamlConfigModule } from '@/core/services/yaml-config/yaml-config.module';
 import { VmwareController } from './application/controllers/vmware.controller';
 import { MigrationDestinationsController } from './application/controllers/migration-destinations.controller';
 import { VmwareService } from './domain/services/vmware.service';
 import { MigrationOrchestratorService } from './domain/services/migration-orchestrator.service';
+import { MigrationCompletedListener } from './application/listeners/migration-completed.listener';
+import { VmwareSyncScheduler } from './application/schedulers/vmware-sync.scheduler';
 import { ListVmsUseCase } from './application/use-cases/list-vms.use-case';
 import { ListServersUseCase } from './application/use-cases/list-servers.use-case';
 import { GetVmMetricsUseCase } from './application/use-cases/get-vm-metrics.use-case';
@@ -42,11 +45,14 @@ import { PermissionModule } from '@/modules/permissions/permission.module';
 import { RedisModule } from '@/modules/redis/redis.module';
 import { PresenceModule } from '@/modules/presence/presence.module';
 import { HistoryModule } from '@/modules/history/history.module';
+import { EmailModule } from '@/modules/email/email.module';
+import { UserModule } from '@/modules/users/user.module';
 
 @Module({
   imports: [
     ConfigModule,
     EventEmitterModule.forRoot(),
+    ScheduleModule.forRoot(),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -62,10 +68,12 @@ import { HistoryModule } from '@/modules/history/history.module';
     TypeOrmModule.forFeature([Server, Vm, Ilo, Ups]),
     forwardRef(() => ServerModule),
     forwardRef(() => VmModule),
+    forwardRef(() => UserModule),
     PermissionModule,
     RedisModule,
     PresenceModule,
     HistoryModule,
+    EmailModule,
   ],
   controllers: [VmwareController, MigrationDestinationsController],
   providers: [
@@ -73,6 +81,8 @@ import { HistoryModule } from '@/modules/history/history.module';
     VmwareDiscoveryService,
     DiscoverySessionService,
     MigrationOrchestratorService,
+    MigrationCompletedListener,
+    VmwareSyncScheduler,
     VmwareDiscoveryGateway,
     MigrationGateway,
     ListVmsUseCase,
