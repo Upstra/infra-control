@@ -76,7 +76,7 @@ describe('VmwareService', () => {
         moid: 'vm-123',
         name: 'Test VM',
         powerState: 'poweredOn',
-        guestOS: 'Ubuntu Linux (64-bit)',
+        guestOs: 'Ubuntu Linux (64-bit)',
         guestFamily: 'linuxGuest',
         version: 'vmx-11',
         createDate: '2025-01-14T12:00:00Z',
@@ -484,6 +484,132 @@ describe('VmwareService', () => {
     });
   });
 
+  describe('listServers', () => {
+    it('should return list of servers', async () => {
+      const mockServersResult = {
+        servers: [
+          {
+            name: 'esxi-server-01',
+            vCenterIp: '192.168.1.5',
+            cluster: 'Production-Cluster',
+            vendor: 'HP',
+            model: 'ProLiant DL380 Gen10',
+            ip: '192.168.1.10',
+            cpuCores: 16,
+            cpuThreads: 32,
+            cpuMHz: 2400,
+            ramTotal: 64,
+          },
+          {
+            name: 'esxi-server-02',
+            vCenterIp: '192.168.1.5',
+            cluster: 'Production-Cluster',
+            vendor: 'Dell Inc.',
+            model: 'PowerEdge R740',
+            ip: '192.168.1.11',
+            cpuCores: 24,
+            cpuThreads: 48,
+            cpuMHz: 2600,
+            ramTotal: 128,
+          },
+        ],
+      };
+
+      pythonExecutor.executePython.mockResolvedValue(mockServersResult);
+
+      const result = await service.listServers(mockConnection);
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        name: 'esxi-server-01',
+        vCenterIp: '192.168.1.5',
+        cluster: 'Production-Cluster',
+        vendor: 'HP',
+        model: 'ProLiant DL380 Gen10',
+        ip: '192.168.1.10',
+        cpuCores: 16,
+        cpuThreads: 32,
+        cpuMHz: 2400,
+        ramTotal: 64,
+      });
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
+        'list_server.sh',
+        [
+          '--ip',
+          '192.168.1.10',
+          '--user',
+          'admin',
+          '--password',
+          'password123',
+        ],
+      );
+    });
+
+    it('should handle empty server list', async () => {
+      pythonExecutor.executePython.mockResolvedValue({ servers: [] });
+
+      const result = await service.listServers(mockConnection);
+
+      expect(result).toEqual([]);
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
+        'list_server.sh',
+        [
+          '--ip',
+          '192.168.1.10',
+          '--user',
+          'admin',
+          '--password',
+          'password123',
+        ],
+      );
+    });
+
+    it('should handle error response from script', async () => {
+      const errorResult = {
+        result: {
+          message: 'Invalid credentials',
+          httpCode: 401,
+        },
+      };
+
+      pythonExecutor.executePython.mockResolvedValue(errorResult);
+
+      await expect(service.listServers(mockConnection)).rejects.toThrow(
+        new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED),
+      );
+    });
+
+    it('should handle connection timeout', async () => {
+      pythonExecutor.executePython.mockRejectedValue(
+        new Error('Operation timeout'),
+      );
+
+      await expect(service.listServers(mockConnection)).rejects.toThrow(
+        new HttpException('Operation timeout', HttpStatus.REQUEST_TIMEOUT),
+      );
+    });
+
+    it('should include port in args when not default', async () => {
+      pythonExecutor.executePython.mockResolvedValue({ servers: [] });
+
+      await service.listServers({ ...mockConnection, port: 8443 });
+
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
+        'list_server.sh',
+        [
+          '--ip',
+          '192.168.1.10',
+          '--user',
+          'admin',
+          '--password',
+          'password123',
+          '--port',
+          '8443',
+        ],
+      );
+    });
+  });
+
   describe('getHostMetrics', () => {
     it('should return host metrics', async () => {
       const mockHostMetrics = {
@@ -804,10 +930,10 @@ describe('VmwareService', () => {
         cpuHz: 0,
         numCpuCores: 0,
         numCpuThreads: 0,
-        model: '',
-        vendor: '',
-        biosVendor: '',
-        firewall: '',
+        model: 'Unknown',
+        vendor: 'Unknown',
+        biosVendor: 'Unknown',
+        firewall: 'Unknown',
         maxHostRunningVms: 0,
         maxHostSupportedVcpus: 0,
         maxMemMBPerFtVm: 0,

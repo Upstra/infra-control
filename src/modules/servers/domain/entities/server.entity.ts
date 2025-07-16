@@ -107,6 +107,38 @@ export class Server extends BaseEntity {
   @Column({ nullable: true })
   vmwareHostMoid?: string;
 
+  @ApiProperty({ required: false })
+  @Column({ nullable: true })
+  vmwareVCenterIp?: string;
+
+  @ApiProperty({ required: false })
+  @Column({ nullable: true })
+  vmwareCluster?: string;
+
+  @ApiProperty({ required: false })
+  @Column({ nullable: true })
+  vmwareVendor?: string;
+
+  @ApiProperty({ required: false })
+  @Column({ nullable: true })
+  vmwareModel?: string;
+
+  @ApiProperty({ required: false })
+  @Column({ nullable: true })
+  vmwareCpuCores?: number;
+
+  @ApiProperty({ required: false })
+  @Column({ nullable: true })
+  vmwareCpuThreads?: number;
+
+  @ApiProperty({ required: false })
+  @Column({ type: 'float', nullable: true })
+  vmwareCpuMHz?: number;
+
+  @ApiProperty({ required: false })
+  @Column({ nullable: true })
+  vmwareRamTotal?: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

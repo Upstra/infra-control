@@ -1,4 +1,5 @@
 export * from './list-vms.use-case';
+export * from './list-servers.use-case';
 export * from './get-vm-metrics.use-case';
 export * from './control-vm-power.use-case';
 export * from './migrate-vm.use-case';
@@ -13,3 +14,4 @@ export * from './clear-migration-data.use-case';
 export * from './generate-migration-plan-with-destination.use-case';
 export * from './get-migration-destinations.use-case';
 export * from './remove-migration-destination.use-case';
+export * from './sync-server-vmware-data.use-case';

@@ -102,3 +102,16 @@ export interface VmwareHost {
   rebootSupported: boolean;
   shutdownSupported: boolean;
 }
+
+export interface VmwareServer {
+  name: string;
+  vCenterIp: string;
+  cluster: string;
+  vendor: string;
+  model: string;
+  ip: string;
+  cpuCores: number;
+  cpuThreads: number;
+  cpuMHz: number;
+  ramTotal: number;
+}

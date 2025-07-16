@@ -5,3 +5,5 @@ export * from './discovery-progress.dto';
 export * from './discovery-results.dto';
 export * from './discovered-vm.dto';
 export * from './migration-plan.dto';
+export * from './list-servers-response.dto';
+export * from './sync-server-response.dto';

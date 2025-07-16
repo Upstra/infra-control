@@ -9,6 +9,7 @@ import { MigrationDestinationsController } from './application/controllers/migra
 import { VmwareService } from './domain/services/vmware.service';
 import { MigrationOrchestratorService } from './domain/services/migration-orchestrator.service';
 import { ListVmsUseCase } from './application/use-cases/list-vms.use-case';
+import { ListServersUseCase } from './application/use-cases/list-servers.use-case';
 import { GetVmMetricsUseCase } from './application/use-cases/get-vm-metrics.use-case';
 import { ControlVmPowerUseCase } from './application/use-cases/control-vm-power.use-case';
 import { MigrateVmUseCase } from './application/use-cases/migrate-vm.use-case';
@@ -25,6 +26,7 @@ import { GenerateMigrationPlanWithDestinationUseCase } from './application/use-c
 import { GetMigrationDestinationsUseCase } from './application/use-cases/get-migration-destinations.use-case';
 import { RemoveMigrationDestinationUseCase } from './application/use-cases/remove-migration-destination.use-case';
 import { GetVmsForMigrationUseCase } from './application/use-cases/get-vms-for-migration.use-case';
+import { SyncServerVmwareDataUseCase } from './application/use-cases/sync-server-vmware-data.use-case';
 import { VmwareDiscoveryGateway } from './application/gateway/vmware-discovery.gateway';
 import { MigrationGateway } from './application/gateway/migration.gateway';
 import { VmwareDiscoveryService } from './domain/services/vmware-discovery.service';
@@ -61,6 +63,7 @@ import { PresenceModule } from '@/modules/presence/presence.module';
     VmwareDiscoveryGateway,
     MigrationGateway,
     ListVmsUseCase,
+    ListServersUseCase,
     GetVmMetricsUseCase,
     ControlVmPowerUseCase,
     MigrateVmUseCase,
@@ -77,6 +80,7 @@ import { PresenceModule } from '@/modules/presence/presence.module';
     GetMigrationDestinationsUseCase,
     RemoveMigrationDestinationUseCase,
     GetVmsForMigrationUseCase,
+    SyncServerVmwareDataUseCase,
   ],
   exports: [
     VmwareService,

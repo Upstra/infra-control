@@ -2,23 +2,44 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { VmwareController } from '../vmware.controller';
 import {
   ListVmsUseCase,
+  ListServersUseCase,
   GetVmMetricsUseCase,
   ControlVmPowerUseCase,
   MigrateVmUseCase,
   GetHostMetricsUseCase,
+  StartVMDiscoveryUseCase,
+  GetActiveDiscoverySessionUseCase,
+  GetDiscoverySessionUseCase,
+  ExecuteMigrationPlanUseCase,
+  ExecuteRestartPlanUseCase,
+  GetMigrationStatusUseCase,
+  ClearMigrationDataUseCase,
 } from '../../use-cases';
-import { VmPowerActionDto, VmPowerAction, VmMigrateDto } from '../../dto';
-import { VmwareVm, VmwareHost } from '../../../domain/interfaces';
+import {
+  VmPowerActionDto,
+  VmPowerAction,
+  VmMigrateDto,
+  VmwareConnectionDto,
+} from '../../dto';
+import { VmwareVm, VmwareHost, VmwareServer } from '../../../domain/interfaces';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
 
 describe('VmwareController', () => {
   let controller: VmwareController;
   let listVmsUseCase: jest.Mocked<ListVmsUseCase>;
+  let listServersUseCase: jest.Mocked<ListServersUseCase>;
   let getVmMetricsUseCase: jest.Mocked<GetVmMetricsUseCase>;
   let controlVmPowerUseCase: jest.Mocked<ControlVmPowerUseCase>;
   let migrateVmUseCase: jest.Mocked<MigrateVmUseCase>;
   let getHostMetricsUseCase: jest.Mocked<GetHostMetricsUseCase>;
+  let startVMDiscoveryUseCase: jest.Mocked<StartVMDiscoveryUseCase>;
+  let getActiveDiscoverySessionUseCase: jest.Mocked<GetActiveDiscoverySessionUseCase>;
+  let getDiscoverySessionUseCase: jest.Mocked<GetDiscoverySessionUseCase>;
+  let executeMigrationPlanUseCase: jest.Mocked<ExecuteMigrationPlanUseCase>;
+  let executeRestartPlanUseCase: jest.Mocked<ExecuteRestartPlanUseCase>;
+  let getMigrationStatusUseCase: jest.Mocked<GetMigrationStatusUseCase>;
+  let clearMigrationDataUseCase: jest.Mocked<ClearMigrationDataUseCase>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -26,6 +47,12 @@ describe('VmwareController', () => {
       providers: [
         {
           provide: ListVmsUseCase,
+          useValue: {
+            execute: jest.fn(),
+          },
+        },
+        {
+          provide: ListServersUseCase,
           useValue: {
             execute: jest.fn(),
           },
@@ -54,6 +81,48 @@ describe('VmwareController', () => {
             execute: jest.fn(),
           },
         },
+        {
+          provide: StartVMDiscoveryUseCase,
+          useValue: {
+            execute: jest.fn(),
+          },
+        },
+        {
+          provide: GetActiveDiscoverySessionUseCase,
+          useValue: {
+            execute: jest.fn(),
+          },
+        },
+        {
+          provide: GetDiscoverySessionUseCase,
+          useValue: {
+            execute: jest.fn(),
+          },
+        },
+        {
+          provide: ExecuteMigrationPlanUseCase,
+          useValue: {
+            execute: jest.fn(),
+          },
+        },
+        {
+          provide: ExecuteRestartPlanUseCase,
+          useValue: {
+            execute: jest.fn(),
+          },
+        },
+        {
+          provide: GetMigrationStatusUseCase,
+          useValue: {
+            execute: jest.fn(),
+          },
+        },
+        {
+          provide: ClearMigrationDataUseCase,
+          useValue: {
+            execute: jest.fn(),
+          },
+        },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -64,10 +133,20 @@ describe('VmwareController', () => {
 
     controller = module.get<VmwareController>(VmwareController);
     listVmsUseCase = module.get(ListVmsUseCase);
+    listServersUseCase = module.get(ListServersUseCase);
     getVmMetricsUseCase = module.get(GetVmMetricsUseCase);
     controlVmPowerUseCase = module.get(ControlVmPowerUseCase);
     migrateVmUseCase = module.get(MigrateVmUseCase);
     getHostMetricsUseCase = module.get(GetHostMetricsUseCase);
+    startVMDiscoveryUseCase = module.get(StartVMDiscoveryUseCase);
+    getActiveDiscoverySessionUseCase = module.get(
+      GetActiveDiscoverySessionUseCase,
+    );
+    getDiscoverySessionUseCase = module.get(GetDiscoverySessionUseCase);
+    executeMigrationPlanUseCase = module.get(ExecuteMigrationPlanUseCase);
+    executeRestartPlanUseCase = module.get(ExecuteRestartPlanUseCase);
+    getMigrationStatusUseCase = module.get(GetMigrationStatusUseCase);
+    clearMigrationDataUseCase = module.get(ClearMigrationDataUseCase);
   });
 
   it('should be defined', () => {
@@ -236,6 +315,84 @@ describe('VmwareController', () => {
       await expect(controller.getHostMetrics('server-1')).rejects.toThrow(
         'VMware connection failed',
       );
+    });
+  });
+
+  describe('listServers', () => {
+    it('should return list of servers', async () => {
+      const mockConnection: VmwareConnectionDto = {
+        host: '192.168.1.10',
+        user: 'admin',
+        password: 'password123',
+        port: 443,
+      };
+
+      const mockServers: VmwareServer[] = [
+        {
+          name: 'esxi-server-01',
+          vCenterIp: '192.168.1.5',
+          cluster: 'Production-Cluster',
+          vendor: 'HP',
+          model: 'ProLiant DL380 Gen10',
+          ip: '192.168.1.10',
+          cpuCores: 16,
+          cpuThreads: 32,
+          cpuMHz: 2400,
+          ramTotal: 64,
+        },
+        {
+          name: 'esxi-server-02',
+          vCenterIp: '192.168.1.5',
+          cluster: 'Production-Cluster',
+          vendor: 'Dell Inc.',
+          model: 'PowerEdge R740',
+          ip: '192.168.1.11',
+          cpuCores: 24,
+          cpuThreads: 48,
+          cpuMHz: 2600,
+          ramTotal: 128,
+        },
+      ];
+
+      listServersUseCase.execute.mockResolvedValue(mockServers);
+
+      const result = await controller.listServers(mockConnection);
+
+      expect(result).toEqual({ servers: mockServers });
+      expect(listServersUseCase.execute).toHaveBeenCalledWith(mockConnection);
+    });
+
+    it('should handle empty server list', async () => {
+      const mockConnection: VmwareConnectionDto = {
+        host: '192.168.1.10',
+        user: 'admin',
+        password: 'password123',
+      };
+
+      listServersUseCase.execute.mockResolvedValue([]);
+
+      const result = await controller.listServers(mockConnection);
+
+      expect(result).toEqual({ servers: [] });
+      expect(listServersUseCase.execute).toHaveBeenCalledWith(mockConnection);
+    });
+
+    it('should handle authentication errors', async () => {
+      const mockConnection: VmwareConnectionDto = {
+        host: '192.168.1.10',
+        user: 'admin',
+        password: 'wrong-password',
+        port: 443,
+      };
+
+      listServersUseCase.execute.mockRejectedValue(
+        new Error('Invalid credentials'),
+      );
+
+      await expect(controller.listServers(mockConnection)).rejects.toThrow(
+        'Invalid credentials',
+      );
+      expect(listServersUseCase.execute).toHaveBeenCalledWith(mockConnection);
     });
   });
 });

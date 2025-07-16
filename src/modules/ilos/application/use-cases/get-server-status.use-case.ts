@@ -59,9 +59,7 @@ export class GetServerStatusUseCase {
     };
   }
 
-  private mapMetricsToDto(
-    metrics: VmwareServerMetrics,
-  ): ServerMetricsDto {
+  private mapMetricsToDto(metrics: VmwareServerMetrics): ServerMetricsDto {
     return {
       cpuUsage: metrics.cpuUsagePercent,
       memoryUsage: metrics.ramUsageMB,

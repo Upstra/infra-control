@@ -13,6 +13,7 @@ import {
   VmwareGuestState,
   VmwareConnectionState,
   VmwareHealthStatus,
+  VmwareServer,
 } from '../interfaces';
 
 @Injectable()
@@ -186,6 +187,40 @@ export class VmwareService implements IVmwareService {
     }
   }
 
+  async listServers(connection: VmwareConnectionDto): Promise<VmwareServer[]> {
+    const args = this.buildConnectionArgs(connection);
+
+    try {
+      const result = await this.pythonExecutor.executePython(
+        'list_server.sh',
+        args,
+      );
+      this.logger.debug('Raw servers output:', JSON.stringify(result));
+
+      if (result?.result?.httpCode && result.result.httpCode !== 200) {
+        const errorMessage = result.result.message || 'Unknown error';
+        this.logger.error(
+          `Script returned error: ${errorMessage} (HTTP ${result.result.httpCode})`,
+        );
+
+        if (result.result.httpCode === 401) {
+          throw new HttpException(
+            'Invalid credentials',
+            HttpStatus.UNAUTHORIZED,
+          );
+        }
+        throw new HttpException(errorMessage, result.result.httpCode);
+      }
+
+      const parsedServers = this.parseServerList(result);
+      this.logger.debug(`Parsed ${parsedServers.length} servers`);
+      return parsedServers;
+    } catch (error) {
+      this.logger.error('Failed to list servers:', error);
+      throw this.handlePythonError(error, 'Failed to retrieve server list');
+    }
+  }
+
   private buildConnectionArgs(connection: VmwareConnectionDto): string[] {
     this.logger.debug(`Building connection args for ${connection.host}:`);
     this.logger.debug(`- User: ${connection.user}`);
@@ -348,5 +383,29 @@ export class VmwareService implements IVmwareService {
     }
 
     return new HttpException(message, HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  private parseServerList(result: any): VmwareServer[] {
+    this.logger.debug('parseServerList input:', JSON.stringify(result));
+
+    if (!result || !Array.isArray(result.servers)) {
+      this.logger.warn('Invalid result format or empty servers array');
+      return [];
+    }
+
+    this.logger.debug(`Found ${result.servers.length} servers to parse`);
+
+    return result.servers.map((server: any) => ({
+      name: server.name ?? 'Unknown',
+      vCenterIp: server.vCenterIp ?? '',
+      cluster: server.cluster ?? '',
+      vendor: server.vendor ?? 'Unknown',
+      model: server.model ?? 'Unknown',
+      ip: server.ip ?? '',
+      cpuCores: server.cpuCores ?? 0,
+      cpuThreads: server.cpuThreads ?? 0,
+      cpuMHz: server.cpuMHz ?? 0,
+      ramTotal: server.ramTotal ?? 0,
+    }));
   }
 }
