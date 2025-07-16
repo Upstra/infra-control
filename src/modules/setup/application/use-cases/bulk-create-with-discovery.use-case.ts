@@ -96,7 +96,19 @@ export class BulkCreateWithDiscoveryUseCase {
       this.logger.debug(`- Password length: ${server.password?.length ?? 0}`);
     });
 
-    this.startDiscoveryProcess(vmwareServers, sessionId);
+    this.vmwareDiscoveryService
+      .discoverVmsFromServers(vmwareServers, sessionId)
+      .then((results) => {
+        this.logger.log(
+          `Discovery completed: ${results.totalVmsDiscovered} VMs discovered`,
+        );
+        
+        // After VM discovery, update server MOIDs
+        this.updateServerMoids(vmwareServers);
+      })
+      .catch((error) => {
+        this.logger.error('Discovery failed:', error);
+      });
 
     return {
       ...bulkCreateResult,
@@ -128,41 +140,27 @@ export class BulkCreateWithDiscoveryUseCase {
     return vmwareServers;
   }
 
-  private startDiscoveryProcess(vmwareServers: Server[], sessionId: string): void {
-    this.logger.log(`Starting background discovery for ${vmwareServers.length} VMware servers`);
-
+  private updateServerMoids(vmwareServers: Server[]): void {
+    this.logger.log('Starting server MOID update process');
+    
     vmwareServers.forEach((server) => {
-      this.processServerDiscovery(server, sessionId);
+      const connection = {
+        host: server.ip,
+        user: server.login,
+        password: server.password,
+        port: 443,
+      };
+
+      this.vmwareService
+        .listServers(connection)
+        .then((servers) => {
+          this.logger.log(
+            `Server MOID update completed for ${server.name}: ${servers?.length ?? 0} servers processed`,
+          );
+        })
+        .catch((error) => {
+          this.logger.error(`Server MOID update failed for ${server.name}:`, error);
+        });
     });
-  }
-
-  private processServerDiscovery(server: Server, sessionId: string): void {
-    const connection = {
-      host: server.ip,
-      user: server.login,
-      password: server.password,
-      port: 443,
-    };
-
-    this.logger.debug(`Starting discovery for server ${server.name} (${server.ip})`);
-
-    this.vmwareDiscoveryService
-      .discoverVmsFromServers([server], sessionId)
-      .then((results) => {
-        this.logger.log(
-          `VM discovery completed for ${server.name}: ${results.totalVmsDiscovered} VMs discovered`,
-        );
-        
-        return this.vmwareService.listServers(connection);
-      })
-      .then((servers) => {
-        this.logger.log(
-          `Server discovery completed for ${server.name}: ${servers?.length ?? 0} servers processed`,
-        );
-        this.logger.debug(`Server MOIDs updated for ${server.name}`);
-      })
-      .catch((error) => {
-        this.logger.error(`Discovery failed for server ${server.name} (${server.ip}):`, error);
-      });
   }
 }

@@ -226,20 +226,24 @@ export class VmwareService implements IVmwareService {
       this.logger.debug(`Parsed ${parsedServers.length} servers`);
 
       const existingServers = await this.serverRepository.findAll();
-      const existingServersWithoutHostMoid = existingServers.filter(
-        (s) => !s.vmwareHostMoid,
-      );
+      
       for (const server of parsedServers) {
-        const existing = existingServersWithoutHostMoid.find(
+        const existing = existingServers.find(
           (s) => s.ip === server.ip,
         );
         if (existing) {
-          this.logger.debug(
-            `Updating existing server ${existing.id} with new VMware host MOID: ${server.moid}`,
-          );
-          await this.serverRepository.updateServer(existing.id, {
-            vmwareHostMoid: server.moid,
-          });
+          if (existing.vmwareHostMoid !== server.moid) {
+            this.logger.debug(
+              `Updating existing server ${existing.id} with new VMware host MOID: ${server.moid} (was: ${existing.vmwareHostMoid || 'null'})`,
+            );
+            await this.serverRepository.updateServer(existing.id, {
+              vmwareHostMoid: server.moid,
+            });
+          } else {
+            this.logger.debug(
+              `Server ${existing.id} already has correct VMware host MOID: ${server.moid}`,
+            );
+          }
         }
       }
 
