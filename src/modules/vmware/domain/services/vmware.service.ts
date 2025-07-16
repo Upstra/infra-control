@@ -23,6 +23,20 @@ import {
 } from '../interfaces';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 
+interface RawVmwareServer {
+  name?: string;
+  vCenterIp?: string;
+  cluster?: string;
+  vendor?: string;
+  model?: string;
+  ip?: string;
+  moid?: string;
+  cpuCores?: number;
+  cpuThreads?: number;
+  cpuMHz?: number;
+  ramTotal?: number;
+}
+
 @Injectable()
 export class VmwareService implements IVmwareService {
   private readonly logger = new Logger(VmwareService.name);
@@ -226,11 +240,9 @@ export class VmwareService implements IVmwareService {
       this.logger.debug(`Parsed ${parsedServers.length} servers`);
 
       const existingServers = await this.serverRepository.findAll();
-      
+
       for (const server of parsedServers) {
-        const existing = existingServers.find(
-          (s) => s.ip === server.ip,
-        );
+        const existing = existingServers.find((s) => s.ip === server.ip);
         if (existing) {
           if (existing.vmwareHostMoid !== server.moid) {
             this.logger.debug(
@@ -418,7 +430,7 @@ export class VmwareService implements IVmwareService {
     return new HttpException(message, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
-  private parseServerList(result: any): VmwareServer[] {
+  private parseServerList(result: { servers?: RawVmwareServer[] }): VmwareServer[] {
     this.logger.debug('parseServerList input:', JSON.stringify(result));
 
     if (!result || !Array.isArray(result.servers)) {
@@ -427,14 +439,17 @@ export class VmwareService implements IVmwareService {
     }
 
     this.logger.debug(`Found ${result.servers.length} servers to parse`);
+    //[Nest] 125845  - 07/16/2025, 8:14:52 PM   DEBUG [VmwareService] parseServerList input:
+    //[Nest] 125845  - 07/16/2025, 8:14:52 PM   DEBUG [VmwareService] {"servers":[{"name":"esxsrv11.eurialys.local","moid":"ha-host","vCenterIp":"172.23.20.14","cluster":"esxsrv11.eurialys.local","vendor":"HP","model":"ProLiant DL360 Gen9","ip":"172.23.10.11","cpuCores":20,"cpuThreads":40,"cpuMHz":2397.223438,"ramTotal":127}]}
 
-    return result.servers.map((server: any) => ({
+    return result.servers.map((server) => ({
       name: server.name ?? 'Unknown',
       vCenterIp: server.vCenterIp ?? '',
       cluster: server.cluster ?? '',
       vendor: server.vendor ?? 'Unknown',
       model: server.model ?? 'Unknown',
       ip: server.ip ?? '',
+      moid: server.moid ?? '',
       cpuCores: server.cpuCores ?? 0,
       cpuThreads: server.cpuThreads ?? 0,
       cpuMHz: server.cpuMHz ?? 0,
