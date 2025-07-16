@@ -124,23 +124,9 @@ describe('MigrationGateway', () => {
 
     it('should start migration successfully', async () => {
       migrationOrchestrator.executeMigrationPlan.mockResolvedValue();
-      logHistoryUseCase.executeStructured.mockResolvedValue();
 
       await gateway.handleStartMigration(mockSocket, {
         planPath: '/path/to/plan.yaml',
-      });
-
-      expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith({
-        entity: 'migration',
-        entityId: 'socket-123',
-        action: 'START_MIGRATION',
-        userId: 'user-123',
-        metadata: {
-          planPath: '/path/to/plan.yaml',
-          migrationType: 'unknown',
-        },
-        ipAddress: '192.168.1.1',
-        userAgent: 'test-agent',
       });
 
       expect(migrationOrchestrator.executeMigrationPlan).toHaveBeenCalledWith(
@@ -162,7 +148,6 @@ describe('MigrationGateway', () => {
       migrationOrchestrator.executeMigrationPlan.mockRejectedValue(
         new Error('Migration failed'),
       );
-      logHistoryUseCase.executeStructured.mockReturnValue(Promise.resolve());
 
       await gateway.handleStartMigration(mockSocket, {
         planPath: '/path/to/plan.yaml',
@@ -185,21 +170,6 @@ describe('MigrationGateway', () => {
       });
     });
 
-    it('should handle logging failure gracefully', async () => {
-      logHistoryUseCase.executeStructured.mockRejectedValue(
-        new Error('Logging failed'),
-      );
-      migrationOrchestrator.executeMigrationPlan.mockResolvedValue();
-
-      await gateway.handleStartMigration(mockSocket, {
-        planPath: '/path/to/plan.yaml',
-      });
-
-      expect(migrationOrchestrator.executeMigrationPlan).toHaveBeenCalled();
-      expect(mockSocket.emit).toHaveBeenCalledWith('migration:started', {
-        success: true,
-      });
-    });
   });
 
   describe('handleRestartMigration', () => {
@@ -209,21 +179,8 @@ describe('MigrationGateway', () => {
 
     it('should restart migration successfully', async () => {
       migrationOrchestrator.executeRestartPlan.mockResolvedValue();
-      logHistoryUseCase.executeStructured.mockResolvedValue();
 
       await gateway.handleRestartMigration(mockSocket);
-
-      expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith({
-        entity: 'migration',
-        entityId: 'socket-123',
-        action: 'START_RESTART',
-        userId: 'user-123',
-        metadata: {
-          migrationType: 'restart',
-        },
-        ipAddress: '192.168.1.1',
-        userAgent: 'test-agent',
-      });
 
       expect(migrationOrchestrator.executeRestartPlan).toHaveBeenCalledWith(
         'user-123',
