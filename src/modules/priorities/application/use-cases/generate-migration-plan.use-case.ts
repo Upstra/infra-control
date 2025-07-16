@@ -23,9 +23,11 @@ export class GenerateMigrationPlanUseCase {
   ) {}
 
   async execute(): Promise<void> {
-    const vCenterServer = await this.serverRepository.findOne({
-      where: { type: 'vcenter' },
-    });
+    const vCenterServer = await this.serverRepository
+      .createQueryBuilder('server')
+      .addSelect('server.password')
+      .where('server.type = :type', { type: 'vcenter' })
+      .getOne();
 
     if (!vCenterServer) {
       throw new NotFoundException('vCenter server not found in database');
