@@ -2,6 +2,7 @@ import { Injectable, Logger, Inject } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { BulkCreateUseCase } from './bulk-create.use-case';
 import { VmwareDiscoveryService } from '../../../vmware/domain/services/vmware-discovery.service';
+import { VmwareService } from '../../../vmware/domain/services/vmware.service';
 import { ServerRepositoryInterface } from '../../../servers/domain/interfaces/server.repository.interface';
 import { BulkCreateRequestDto } from '../dto';
 import { Server } from '../../../servers/domain/entities/server.entity';
@@ -35,6 +36,7 @@ export class BulkCreateWithDiscoveryUseCase {
   constructor(
     private readonly bulkCreateUseCase: BulkCreateUseCase,
     private readonly vmwareDiscoveryService: VmwareDiscoveryService,
+    private readonly vmwareService: VmwareService,
     @Inject('ServerRepositoryInterface')
     private readonly serverRepository: ServerRepositoryInterface,
   ) {}
@@ -94,16 +96,7 @@ export class BulkCreateWithDiscoveryUseCase {
       this.logger.debug(`- Password length: ${server.password?.length ?? 0}`);
     });
 
-    this.vmwareDiscoveryService
-      .discoverVmsFromServers(vmwareServers, sessionId)
-      .then((results) => {
-        this.logger.log(
-          `Discovery completed: ${results.totalVmsDiscovered} VMs discovered`,
-        );
-      })
-      .catch((error) => {
-        this.logger.error('Discovery failed:', error);
-      });
+    this.startDiscoveryProcess(vmwareServers, sessionId);
 
     return {
       ...bulkCreateResult,
@@ -133,5 +126,43 @@ export class BulkCreateWithDiscoveryUseCase {
     }
 
     return vmwareServers;
+  }
+
+  private startDiscoveryProcess(vmwareServers: Server[], sessionId: string): void {
+    this.logger.log(`Starting background discovery for ${vmwareServers.length} VMware servers`);
+
+    vmwareServers.forEach((server) => {
+      this.processServerDiscovery(server, sessionId);
+    });
+  }
+
+  private processServerDiscovery(server: Server, sessionId: string): void {
+    const connection = {
+      host: server.ip,
+      user: server.login,
+      password: server.password,
+      port: 443,
+    };
+
+    this.logger.debug(`Starting discovery for server ${server.name} (${server.ip})`);
+
+    this.vmwareDiscoveryService
+      .discoverVmsFromServers([server], sessionId)
+      .then((results) => {
+        this.logger.log(
+          `VM discovery completed for ${server.name}: ${results.totalVmsDiscovered} VMs discovered`,
+        );
+        
+        return this.vmwareService.listServers(connection);
+      })
+      .then((servers) => {
+        this.logger.log(
+          `Server discovery completed for ${server.name}: ${servers?.length ?? 0} servers processed`,
+        );
+        this.logger.debug(`Server MOIDs updated for ${server.name}`);
+      })
+      .catch((error) => {
+        this.logger.error(`Discovery failed for server ${server.name} (${server.ip}):`, error);
+      });
   }
 }

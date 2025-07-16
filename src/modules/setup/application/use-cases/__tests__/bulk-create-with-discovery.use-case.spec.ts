@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BulkCreateWithDiscoveryUseCase } from '../bulk-create-with-discovery.use-case';
 import { BulkCreateUseCase } from '../bulk-create.use-case';
 import { VmwareDiscoveryService } from '../../../../vmware/domain/services/vmware-discovery.service';
+import { VmwareService } from '../../../../vmware/domain/services/vmware.service';
 import { ServerRepositoryInterface } from '../../../../servers/domain/interfaces/server.repository.interface';
 import { Server } from '../../../../servers/domain/entities/server.entity';
 
@@ -9,6 +10,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
   let useCase: BulkCreateWithDiscoveryUseCase;
   let bulkCreateUseCase: jest.Mocked<BulkCreateUseCase>;
   let vmwareDiscoveryService: jest.Mocked<VmwareDiscoveryService>;
+  let vmwareService: jest.Mocked<VmwareService>;
   let serverRepository: jest.Mocked<ServerRepositoryInterface>;
 
   const mockBulkCreateResult = {
@@ -30,7 +32,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
   const mockVmwareServer = {
     id: 'server-1',
     name: 'VMware Server 1',
-    type: 'vmware',
+    type: 'vcenter',
     ip: '192.168.1.10',
     login: 'admin',
     password: 'password',
@@ -79,6 +81,12 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
           },
         },
         {
+          provide: VmwareService,
+          useValue: {
+            listServers: jest.fn(),
+          },
+        },
+        {
           provide: 'ServerRepositoryInterface',
           useValue: {
             findServerById: jest.fn(),
@@ -93,6 +101,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
     );
     bulkCreateUseCase = module.get(BulkCreateUseCase);
     vmwareDiscoveryService = module.get(VmwareDiscoveryService);
+    vmwareService = module.get(VmwareService);
     serverRepository = module.get('ServerRepositoryInterface');
   });
 
@@ -152,6 +161,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       vmwareDiscoveryService.discoverVmsFromServers.mockResolvedValue(
         mockDiscoveryResults,
       );
+      vmwareService.listServers.mockResolvedValue([]);
 
       const result = await useCase.execute(mockRequest);
 
@@ -336,16 +346,26 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       vmwareDiscoveryService.discoverVmsFromServers.mockResolvedValue(
         mockDiscoveryResults,
       );
+      vmwareService.listServers.mockResolvedValue([]);
 
       const result = await useCase.execute(mockRequest);
 
       expect(result.vmwareServerCount).toBe(4);
       expect(
         vmwareDiscoveryService.discoverVmsFromServers,
-      ).toHaveBeenCalledWith(
-        [mockVmwareServer, mockEsxiServer, esxiServer, vcenterServer],
-        expect.any(String),
-      );
+      ).toHaveBeenCalledTimes(4);
+      expect(
+        vmwareDiscoveryService.discoverVmsFromServers,
+      ).toHaveBeenCalledWith([mockVmwareServer], expect.any(String));
+      expect(
+        vmwareDiscoveryService.discoverVmsFromServers,
+      ).toHaveBeenCalledWith([mockEsxiServer], expect.any(String));
+      expect(
+        vmwareDiscoveryService.discoverVmsFromServers,
+      ).toHaveBeenCalledWith([esxiServer], expect.any(String));
+      expect(
+        vmwareDiscoveryService.discoverVmsFromServers,
+      ).toHaveBeenCalledWith([vcenterServer], expect.any(String));
     });
 
     it('should handle case-insensitive server type matching', async () => {
