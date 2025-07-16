@@ -47,6 +47,17 @@ export class VmwareService implements IVmwareService {
     private readonly serverRepository: ServerRepositoryInterface,
   ) {}
 
+  async getVmInfo(vmMoid: string): Promise<any> {
+    try {
+      // TODO: Implement actual vCenter connection and VM info retrieval
+      this.logger.warn(`getVmInfo not yet implemented for VM ${vmMoid}`);
+      return null;
+    } catch (error) {
+      this.logger.error(`Failed to get VM info for ${vmMoid}:`, error);
+      throw error;
+    }
+  }
+
   async listVMs(connection: VmwareConnectionDto): Promise<VmwareVm[]> {
     const args = this.buildConnectionArgs(connection);
 
