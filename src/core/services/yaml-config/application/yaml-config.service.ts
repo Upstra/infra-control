@@ -36,7 +36,7 @@ export class YamlConfigService implements IYamlConfigService {
     };
 
     this.logger.debug(
-      `Generating migration plan with vcenter config: ${JSON.stringify(config)} with a password length of ${vCenterConfig.password.length}`,
+      `Generating migration plan with vcenter config: ${JSON.stringify(config)} with a password length of ${vCenterConfig.password?.length ?? 0}`,
     );
 
     const migrationPlan = this.planBuilder.buildMigrationPlan(

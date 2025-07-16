@@ -35,6 +35,10 @@ export class GenerateMigrationPlanUseCase {
       throw new NotFoundException('vCenter server not found in database');
     }
 
+    if (!vCenterServer.password) {
+      throw new NotFoundException('vCenter server password not found. Please ensure the vCenter server has a password configured.');
+    }
+
     const servers = await this.serverRepository.find({
       where: { type: 'esxi' },
       order: { priority: 'ASC' },
@@ -55,7 +59,7 @@ export class GenerateMigrationPlanUseCase {
     };
 
     this.logger.debug(
-      `Generating migration plan with vCenter config: ${JSON.stringify(vCenterConfig)} with a password length of ${vCenterServer.password.length}`,
+      `Generating migration plan with vCenter config: ${JSON.stringify(vCenterConfig)} with a password length of ${vCenterServer.password?.length ?? 0}`,
     );
 
     const serverWithUps = servers.find((server) => server.ups);

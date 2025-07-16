@@ -34,12 +34,18 @@ export class GenerateMigrationPlanWithDestinationUseCase {
   async execute(destinations: MigrationDestination[]): Promise<void> {
     this.validateDestinations(destinations);
 
-    const vCenterServer = await this.serverRepository.findOne({
-      where: { type: 'vcenter' },
-    });
+    const vCenterServer = await this.serverRepository
+      .createQueryBuilder('server')
+      .addSelect('server.password')
+      .where('server.type = :type', { type: 'vcenter' })
+      .getOne();
 
     if (!vCenterServer) {
       throw new NotFoundException('vCenter server not found in database');
+    }
+
+    if (!vCenterServer.password) {
+      throw new NotFoundException('vCenter server password not found. Please ensure the vCenter server has a password configured.');
     }
 
     const sourceServerIds = destinations.map((d) => d.sourceServerId);

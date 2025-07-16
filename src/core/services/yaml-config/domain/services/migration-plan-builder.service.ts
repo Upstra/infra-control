@@ -25,7 +25,7 @@ export class MigrationPlanBuilderService {
     );
 
     this.logger.debug(
-      `Building migration plan with ${serverConfigs.length} servers and vCenter config: ${JSON.stringify(vCenterConfig)} with a password length of ${vCenterConfig.password.length}`,
+      `Building migration plan with ${serverConfigs.length} servers and vCenter config: ${JSON.stringify(vCenterConfig)} with a password length of ${vCenterConfig.password?.length ?? 0}`,
     );
 
     return {
