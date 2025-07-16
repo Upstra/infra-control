@@ -88,18 +88,22 @@ export class MigrationGateway
       const requestContext = RequestContextDto.fromSocket(client);
       const sessionId = client.id;
 
-      this.logHistoryUseCase.executeStructured({
-        entity: 'migration',
-        entityId: sessionId,
-        action: 'START_MIGRATION',
-        userId,
-        metadata: {
-          planPath: data.planPath,
-          migrationType: 'unknown',
-        },
-        ipAddress: requestContext.ipAddress,
-        userAgent: requestContext.userAgent,
-      }).catch(error => this.logger.error('Failed to log migration start:', error));
+      this.logHistoryUseCase
+        .executeStructured({
+          entity: 'migration',
+          entityId: sessionId,
+          action: 'START_MIGRATION',
+          userId,
+          metadata: {
+            planPath: data.planPath,
+            migrationType: 'unknown',
+          },
+          ipAddress: requestContext.ipAddress,
+          userAgent: requestContext.userAgent,
+        })
+        .catch((error) =>
+          this.logger.error('Failed to log migration start:', error),
+        );
 
       await this.migrationOrchestrator.executeMigrationPlan(
         data.planPath,
@@ -127,17 +131,21 @@ export class MigrationGateway
       const requestContext = RequestContextDto.fromSocket(client);
       const sessionId = client.id;
 
-      this.logHistoryUseCase.executeStructured({
-        entity: 'migration',
-        entityId: sessionId,
-        action: 'START_RESTART',
-        userId,
-        metadata: {
-          migrationType: 'restart',
-        },
-        ipAddress: requestContext.ipAddress,
-        userAgent: requestContext.userAgent,
-      }).catch(error => this.logger.error('Failed to log restart start:', error));
+      this.logHistoryUseCase
+        .executeStructured({
+          entity: 'migration',
+          entityId: sessionId,
+          action: 'START_RESTART',
+          userId,
+          metadata: {
+            migrationType: 'restart',
+          },
+          ipAddress: requestContext.ipAddress,
+          userAgent: requestContext.userAgent,
+        })
+        .catch((error) =>
+          this.logger.error('Failed to log restart start:', error),
+        );
 
       await this.migrationOrchestrator.executeRestartPlan(
         userId,
@@ -164,15 +172,19 @@ export class MigrationGateway
       const requestContext = RequestContextDto.fromSocket(client);
       const sessionId = client.id;
 
-      this.logHistoryUseCase.executeStructured({
-        entity: 'migration',
-        entityId: sessionId,
-        action: 'CANCEL_MIGRATION',
-        userId,
-        metadata: {},
-        ipAddress: requestContext.ipAddress,
-        userAgent: requestContext.userAgent,
-      }).catch(error => this.logger.error('Failed to log migration cancel:', error));
+      this.logHistoryUseCase
+        .executeStructured({
+          entity: 'migration',
+          entityId: sessionId,
+          action: 'CANCEL_MIGRATION',
+          userId,
+          metadata: {},
+          ipAddress: requestContext.ipAddress,
+          userAgent: requestContext.userAgent,
+        })
+        .catch((error) =>
+          this.logger.error('Failed to log migration cancel:', error),
+        );
 
       await this.migrationOrchestrator.cancelMigration();
       client.emit('migration:cancelled', { success: true });

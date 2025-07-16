@@ -1,4 +1,10 @@
-import { Injectable, Logger, BadRequestException, Inject, Optional } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  Inject,
+  Optional,
+} from '@nestjs/common';
 import { RedisSafeService } from '@/modules/redis/application/services/redis-safe.service';
 import { PythonExecutorService } from '@/core/services/python-executor';
 import {
@@ -32,7 +38,9 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
     private readonly pythonExecutor: PythonExecutorService,
     private readonly eventEmitter: EventEmitter2,
     @Optional() private readonly logHistoryUseCase?: LogHistoryUseCase,
-    @Optional() @Inject('VmRepositoryInterface') private readonly vmRepository?: VmRepositoryInterface,
+    @Optional()
+    @Inject('VmRepositoryInterface')
+    private readonly vmRepository?: VmRepositoryInterface,
   ) {}
 
   async executeMigrationPlan(
@@ -63,14 +71,15 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
     }
 
     this.logger.log(`Starting migration plan: ${planPath}`);
-    
-    const sessionId = requestContext?.correlationId || `migration-${Date.now()}`;
+
+    const sessionId =
+      requestContext?.correlationId || `migration-${Date.now()}`;
     const startTime = new Date();
     let planAnalysis: MigrationPlanAnalysis | undefined;
 
     try {
       planAnalysis = await this.analyzeMigrationPlan(planPath);
-      
+
       if (this.logHistoryUseCase && userId) {
         await this.logHistoryUseCase.executeStructured({
           entity: 'migration',
@@ -115,12 +124,16 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
       if (this.logHistoryUseCase && userId) {
         const endTime = new Date();
         const events = await this.getEvents();
-        
-        const successfulVms = events.filter(e => 
-          (e.type === 'vm_migration' || e.type === 'vm_shutdown') && e.success
+
+        const successfulVms = events.filter(
+          (e) =>
+            (e.type === 'vm_migration' || e.type === 'vm_shutdown') &&
+            e.success,
         ).length;
-        const failedVms = events.filter(e => 
-          (e.type === 'vm_migration' || e.type === 'vm_shutdown') && !e.success
+        const failedVms = events.filter(
+          (e) =>
+            (e.type === 'vm_migration' || e.type === 'vm_shutdown') &&
+            !e.success,
         ).length;
 
         await this.logHistoryUseCase.executeStructured({
@@ -144,7 +157,7 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
       await this.setState(MigrationState.FAILED);
       await this.setError(error.message);
       this.logger.error('Migration plan failed:', error);
-      
+
       if (this.logHistoryUseCase && userId) {
         const endTime = new Date();
         await this.logHistoryUseCase.executeStructured({
@@ -162,7 +175,7 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
           userAgent: requestContext?.userAgent,
         });
       }
-      
+
       throw error;
     } finally {
       await this.setEndTime();
@@ -236,7 +249,7 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
       await this.setState(MigrationState.FAILED);
       await this.setError(error.message);
       this.logger.error('Restart plan failed:', error);
-      
+
       if (this.logHistoryUseCase && userId) {
         const endTime = new Date();
         await this.logHistoryUseCase.executeStructured({
@@ -254,7 +267,7 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
           userAgent: requestContext?.userAgent,
         });
       }
-      
+
       throw error;
     }
   }
@@ -485,7 +498,9 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
     await this.redis.safeSet(this.REDIS_ERROR_KEY, error);
   }
 
-  private async analyzeMigrationPlan(planPath: string): Promise<MigrationPlanAnalysis> {
+  private async analyzeMigrationPlan(
+    planPath: string,
+  ): Promise<MigrationPlanAnalysis> {
     const planContent = await fs.readFile(planPath, 'utf-8');
     const plan: any = yaml.load(planContent);
 
@@ -515,7 +530,9 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
     if (this.vmRepository) {
       for (const vm of affectedVms) {
         try {
-          const vmEntity = await this.vmRepository.findOne({ where: { moid: vm.moid } });
+          const vmEntity = await this.vmRepository.findOne({
+            where: { moid: vm.moid },
+          });
           if (vmEntity) {
             vm.name = vmEntity.name;
           }

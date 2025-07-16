@@ -164,7 +164,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
         mockDiscoveryResults,
       );
       vmwareService.listServers.mockResolvedValue([
-        { 
+        {
           name: 'ESXi Server 1',
           ip: '192.168.1.20',
           moid: 'host-123',
@@ -220,8 +220,9 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       };
 
       bulkCreateUseCase.execute.mockResolvedValue(esxiOnlyResult);
-      serverRepository.findServerByIdWithCredentials
-        .mockResolvedValueOnce(mockEsxiServer);
+      serverRepository.findServerByIdWithCredentials.mockResolvedValueOnce(
+        mockEsxiServer,
+      );
       vmwareDiscoveryService.discoverVmsFromServers.mockResolvedValue(
         mockDiscoveryResults,
       );
@@ -243,10 +244,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       expect(vmwareService.listServers).not.toHaveBeenCalled();
       expect(
         vmwareDiscoveryService.discoverVmsFromServers,
-      ).toHaveBeenCalledWith(
-        [mockEsxiServer],
-        expect.any(String),
-      );
+      ).toHaveBeenCalledWith([mockEsxiServer], expect.any(String));
       expect(
         vmwareDiscoveryService.discoverVmsFromVCenter,
       ).not.toHaveBeenCalled();
@@ -345,19 +343,21 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       vmwareDiscoveryService.discoverVmsFromVCenter.mockResolvedValue(
         mockDiscoveryResults,
       );
-      vmwareService.listServers.mockResolvedValue([{
-        name: 'ESXi Server 1',
-        ip: '192.168.1.20',
-        moid: 'host-123',
-        vendor: 'VMware',
-        model: 'ESXi',
-        vCenterIp: mockVmwareServer.ip,
-        cluster: 'Cluster-1',
-        cpuCores: 16,
-        cpuThreads: 32,
-        cpuMHz: 2400,
-        ramTotal: 65536,
-      }]);
+      vmwareService.listServers.mockResolvedValue([
+        {
+          name: 'ESXi Server 1',
+          ip: '192.168.1.20',
+          moid: 'host-123',
+          vendor: 'VMware',
+          model: 'ESXi',
+          vCenterIp: mockVmwareServer.ip,
+          cluster: 'Cluster-1',
+          cpuCores: 16,
+          cpuThreads: 32,
+          cpuMHz: 2400,
+          ramTotal: 65536,
+        },
+      ]);
       serverRepository.updateServer.mockResolvedValue(undefined);
 
       const result = await useCase.execute(requestWithSessionId);
@@ -365,7 +365,11 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       expect(result.discoverySessionId).toBe(customSessionId);
       expect(
         vmwareDiscoveryService.discoverVmsFromVCenter,
-      ).toHaveBeenCalledWith(mockVmwareServer, [mockEsxiServer], customSessionId);
+      ).toHaveBeenCalledWith(
+        mockVmwareServer,
+        [mockEsxiServer],
+        customSessionId,
+      );
     });
 
     it('should handle discovery service errors gracefully', async () => {
@@ -376,19 +380,21 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       vmwareDiscoveryService.discoverVmsFromVCenter.mockRejectedValue(
         new Error('Discovery failed'),
       );
-      vmwareService.listServers.mockResolvedValue([{
-        name: 'ESXi Server 1',
-        ip: '192.168.1.20',
-        moid: 'host-123',
-        vendor: 'VMware',
-        model: 'ESXi',
-        vCenterIp: mockVmwareServer.ip,
-        cluster: 'Cluster-1',
-        cpuCores: 16,
-        cpuThreads: 32,
-        cpuMHz: 2400,
-        ramTotal: 65536,
-      }]);
+      vmwareService.listServers.mockResolvedValue([
+        {
+          name: 'ESXi Server 1',
+          ip: '192.168.1.20',
+          moid: 'host-123',
+          vendor: 'VMware',
+          model: 'ESXi',
+          vCenterIp: mockVmwareServer.ip,
+          cluster: 'Cluster-1',
+          cpuCores: 16,
+          cpuThreads: 32,
+          cpuMHz: 2400,
+          ramTotal: 65536,
+        },
+      ]);
       serverRepository.updateServer.mockResolvedValue(undefined);
 
       const result = await useCase.execute(mockRequest);
@@ -443,7 +449,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
         mockDiscoveryResults,
       );
       vmwareService.listServers.mockResolvedValue([
-        { 
+        {
           name: 'ESXi Server 1',
           ip: '192.168.1.20',
           moid: 'host-123',
@@ -456,7 +462,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
           cpuMHz: 2400,
           ramTotal: 65536,
         },
-        { 
+        {
           name: 'ESXi Server',
           ip: esxiServer.ip,
           moid: 'host-124',

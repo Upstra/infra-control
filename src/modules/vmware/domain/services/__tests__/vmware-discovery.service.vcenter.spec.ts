@@ -356,7 +356,9 @@ describe('VmwareDiscoveryService - vCenter Discovery', () => {
       expect(result.totalVmsDiscovered).toBe(2);
       expect(loggerSpy).toHaveBeenCalledWith(
         'Some VMs failed to save:',
-        expect.arrayContaining([{ vm: 'UPS-APPSRV01', error: 'Failed to save VM' }]),
+        expect.arrayContaining([
+          { vm: 'UPS-APPSRV01', error: 'Failed to save VM' },
+        ]),
       );
 
       loggerSpy.mockRestore();

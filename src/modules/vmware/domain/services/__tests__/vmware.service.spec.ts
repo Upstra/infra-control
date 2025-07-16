@@ -701,12 +701,20 @@ describe('VmwareService', () => {
 
       expect(serverRepository.findAll).toHaveBeenCalledTimes(1);
       expect(serverRepository.updateServer).toHaveBeenCalledTimes(2);
-      expect(serverRepository.updateServer).toHaveBeenNthCalledWith(1, 'server-1', {
-        vmwareHostMoid: 'host-123',
-      });
-      expect(serverRepository.updateServer).toHaveBeenNthCalledWith(2, 'server-2', {
-        vmwareHostMoid: 'host-456',
-      });
+      expect(serverRepository.updateServer).toHaveBeenNthCalledWith(
+        1,
+        'server-1',
+        {
+          vmwareHostMoid: 'host-123',
+        },
+      );
+      expect(serverRepository.updateServer).toHaveBeenNthCalledWith(
+        2,
+        'server-2',
+        {
+          vmwareHostMoid: 'host-456',
+        },
+      );
     });
 
     it('should handle server repository errors gracefully', async () => {

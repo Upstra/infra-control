@@ -4,7 +4,10 @@ import { ControlServerPowerUseCase } from '../../use-cases/control-server-power.
 import { GetServerStatusUseCase } from '../../use-cases/get-server-status.use-case';
 import { PingIloUseCase } from '../../use-cases/ping-ilo.use-case';
 import { IloPowerAction } from '../../dto/ilo-power-action.dto';
-import { IloServerStatus, IloStatusResponseDto } from '../../dto/ilo-status.dto';
+import {
+  IloServerStatus,
+  IloStatusResponseDto,
+} from '../../dto/ilo-status.dto';
 import { PingRequestDto } from '@/core/dto/ping.dto';
 
 describe('IloPowerController', () => {

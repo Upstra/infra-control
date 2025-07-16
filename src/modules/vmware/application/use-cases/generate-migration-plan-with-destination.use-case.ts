@@ -45,7 +45,9 @@ export class GenerateMigrationPlanWithDestinationUseCase {
     }
 
     if (!vCenterServer.password) {
-      throw new NotFoundException('vCenter server password not found. Please ensure the vCenter server has a password configured.');
+      throw new NotFoundException(
+        'vCenter server password not found. Please ensure the vCenter server has a password configured.',
+      );
     }
 
     const sourceServerIds = destinations.map((d) => d.sourceServerId);

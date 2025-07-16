@@ -37,7 +37,12 @@ import {
   ClearMigrationDataUseCase,
   SyncServerVmwareDataUseCase,
 } from '../use-cases';
-import { VmPowerActionDto, VmMigrateDto, VmwareConnectionDto, ListServersResponseDto } from '../dto';
+import {
+  VmPowerActionDto,
+  VmMigrateDto,
+  VmwareConnectionDto,
+  ListServersResponseDto,
+} from '../dto';
 import { SyncServerVmwareDataResponseDto } from '../dto/sync-server-response.dto';
 import {
   ExecuteMigrationPlanDto,
@@ -84,7 +89,9 @@ export class VmwareController {
     status: 401,
     description: 'Unauthorized - Invalid vCenter credentials',
   })
-  async listServers(@Body() connection: VmwareConnectionDto): Promise<ListServersResponseDto> {
+  async listServers(
+    @Body() connection: VmwareConnectionDto,
+  ): Promise<ListServersResponseDto> {
     const servers = await this.listServersUseCase.execute(connection);
     return { servers };
   }
@@ -107,7 +114,9 @@ export class VmwareController {
     status: 401,
     description: 'Unauthorized - Invalid vCenter credentials',
   })
-  async syncServerVmwareData(@Body() connection: VmwareConnectionDto): Promise<SyncServerVmwareDataResponseDto> {
+  async syncServerVmwareData(
+    @Body() connection: VmwareConnectionDto,
+  ): Promise<SyncServerVmwareDataResponseDto> {
     return this.syncServerVmwareDataUseCase.execute(connection);
   }
 

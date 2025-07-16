@@ -36,7 +36,9 @@ export class GenerateMigrationPlanUseCase {
     }
 
     if (!vCenterServer.password) {
-      throw new NotFoundException('vCenter server password not found. Please ensure the vCenter server has a password configured.');
+      throw new NotFoundException(
+        'vCenter server password not found. Please ensure the vCenter server has a password configured.',
+      );
     }
 
     const servers = await this.serverRepository.find({

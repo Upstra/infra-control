@@ -8,7 +8,8 @@ export class SyncServerVmwareDataResponseDto {
   synchronized: number;
 
   @ApiProperty({
-    description: 'List of servers discovered in VMware but not found in database',
+    description:
+      'List of servers discovered in VMware but not found in database',
     type: [VmwareServerDto],
   })
   discovered: VmwareServerDto[];

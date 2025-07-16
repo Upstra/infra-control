@@ -9,7 +9,14 @@ export enum MigrationState {
 }
 
 export interface MigrationEvent {
-  type: 'vm_migration' | 'vm_shutdown' | 'vm_started' | 'server_shutdown' | 'grace_period' | 'start_shutdown' | 'finish_shutdown';
+  type:
+    | 'vm_migration'
+    | 'vm_shutdown'
+    | 'vm_started'
+    | 'server_shutdown'
+    | 'grace_period'
+    | 'start_shutdown'
+    | 'finish_shutdown';
   timestamp: string;
   vmName?: string;
   vmMoid?: string;

@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as fs from 'fs/promises';
 import * as yaml from 'js-yaml';
@@ -27,7 +26,7 @@ describe('MigrationOrchestratorService', () => {
 
   beforeEach(async () => {
     jest.useFakeTimers();
-    
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MigrationOrchestratorService,
@@ -67,7 +66,9 @@ describe('MigrationOrchestratorService', () => {
       ],
     }).compile();
 
-    service = module.get<MigrationOrchestratorService>(MigrationOrchestratorService);
+    service = module.get<MigrationOrchestratorService>(
+      MigrationOrchestratorService,
+    );
     redis = module.get(RedisSafeService);
     pythonExecutor = module.get(PythonExecutorService);
     eventEmitter = module.get(EventEmitter2);
@@ -122,7 +123,7 @@ describe('MigrationOrchestratorService', () => {
         .mockResolvedValueOnce({ name: 'VM-App' } as any);
 
       await service.executeMigrationPlan(planPath, userId, requestContext);
-      
+
       jest.runAllTimers();
 
       expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith({
@@ -136,9 +137,24 @@ describe('MigrationOrchestratorService', () => {
           sourceServers: ['ESXi-01', 'ESXi-02'],
           destinationServers: ['ESXi-03'],
           affectedVms: [
-            { moid: 'vm-123', name: 'VM-Web', sourceServer: 'ESXi-01', destinationServer: 'ESXi-03' },
-            { moid: 'vm-456', name: 'VM-DB', sourceServer: 'ESXi-01', destinationServer: 'ESXi-03' },
-            { moid: 'vm-789', name: 'VM-App', sourceServer: 'ESXi-02', destinationServer: undefined },
+            {
+              moid: 'vm-123',
+              name: 'VM-Web',
+              sourceServer: 'ESXi-01',
+              destinationServer: 'ESXi-03',
+            },
+            {
+              moid: 'vm-456',
+              name: 'VM-DB',
+              sourceServer: 'ESXi-01',
+              destinationServer: 'ESXi-03',
+            },
+            {
+              moid: 'vm-789',
+              name: 'VM-App',
+              sourceServer: 'ESXi-02',
+              destinationServer: undefined,
+            },
           ],
           totalVmsCount: 3,
           hasDestination: true,
@@ -158,7 +174,7 @@ describe('MigrationOrchestratorService', () => {
       redis.safeLRange.mockResolvedValue(mockEvents);
 
       await service.executeMigrationPlan(planPath, userId, requestContext);
-      
+
       jest.runAllTimers();
 
       expect(logHistoryUseCase.executeStructured).toHaveBeenLastCalledWith(
@@ -178,12 +194,14 @@ describe('MigrationOrchestratorService', () => {
     });
 
     it('should log failed migration', async () => {
-      pythonExecutor.executePython.mockRejectedValue(new Error('Python script failed'));
-
-      await expect(service.executeMigrationPlan(planPath, userId, requestContext)).rejects.toThrow(
-        'Python script failed',
+      pythonExecutor.executePython.mockRejectedValue(
+        new Error('Python script failed'),
       );
-      
+
+      await expect(
+        service.executeMigrationPlan(planPath, userId, requestContext),
+      ).rejects.toThrow('Python script failed');
+
       jest.runAllTimers();
 
       expect(logHistoryUseCase.executeStructured).toHaveBeenLastCalledWith(
@@ -213,7 +231,7 @@ describe('MigrationOrchestratorService', () => {
       mockYaml.load.mockReturnValue(shutdownPlan);
 
       await service.executeMigrationPlan(planPath, userId, requestContext);
-      
+
       jest.runAllTimers();
 
       expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith(
@@ -233,7 +251,7 @@ describe('MigrationOrchestratorService', () => {
       });
 
       await service.executeMigrationPlan(planPath, userId, requestContext);
-      
+
       jest.runAllTimers();
 
       expect(pythonExecutor.executePython).toHaveBeenCalled();
@@ -246,8 +264,12 @@ describe('MigrationOrchestratorService', () => {
         eventEmitter as any,
       );
 
-      await serviceWithoutLogging.executeMigrationPlan(planPath, userId, requestContext);
-      
+      await serviceWithoutLogging.executeMigrationPlan(
+        planPath,
+        userId,
+        requestContext,
+      );
+
       jest.runAllTimers();
 
       expect(logHistoryUseCase.executeStructured).not.toHaveBeenCalled();
@@ -266,7 +288,7 @@ describe('MigrationOrchestratorService', () => {
 
     it('should log restart start and completion', async () => {
       await service.executeRestartPlan(userId, requestContext);
-      
+
       jest.runAllTimers();
 
       expect(logHistoryUseCase.executeStructured).toHaveBeenCalledTimes(2);
@@ -299,12 +321,14 @@ describe('MigrationOrchestratorService', () => {
     });
 
     it('should log failed restart', async () => {
-      pythonExecutor.executePython.mockRejectedValue(new Error('Restart failed'));
-
-      await expect(service.executeRestartPlan(userId, requestContext)).rejects.toThrow(
-        'Restart failed',
+      pythonExecutor.executePython.mockRejectedValue(
+        new Error('Restart failed'),
       );
-      
+
+      await expect(
+        service.executeRestartPlan(userId, requestContext),
+      ).rejects.toThrow('Restart failed');
+
       jest.runAllTimers();
 
       expect(logHistoryUseCase.executeStructured).toHaveBeenLastCalledWith(
@@ -334,7 +358,8 @@ describe('MigrationOrchestratorService', () => {
       mockYaml.load.mockReturnValue(yaml.load(planContent));
       vmRepository.findOne.mockResolvedValue({ name: 'TestVM' } as any);
 
-      const result = await service['analyzeMigrationPlan']('/path/to/plan.yaml');
+      const result =
+        await service['analyzeMigrationPlan']('/path/to/plan.yaml');
 
       expect(result.affectedVms[0]).toEqual({
         moid: 'vm-123',
@@ -357,7 +382,8 @@ describe('MigrationOrchestratorService', () => {
       mockYaml.load.mockReturnValue(yaml.load(planContent));
       vmRepository.findOne.mockRejectedValue(new Error('DB error'));
 
-      const result = await service['analyzeMigrationPlan']('/path/to/plan.yaml');
+      const result =
+        await service['analyzeMigrationPlan']('/path/to/plan.yaml');
 
       expect(result.affectedVms[0].name).toBeUndefined();
     });

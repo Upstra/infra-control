@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { MigrationGateway } from './migration.gateway';
 import { MigrationOrchestratorService } from '../../domain/services/migration-orchestrator.service';
@@ -127,7 +126,9 @@ describe('MigrationGateway', () => {
       migrationOrchestrator.executeMigrationPlan.mockResolvedValue();
       logHistoryUseCase.executeStructured.mockResolvedValue();
 
-      await gateway.handleStartMigration(mockSocket, { planPath: '/path/to/plan.yaml' });
+      await gateway.handleStartMigration(mockSocket, {
+        planPath: '/path/to/plan.yaml',
+      });
 
       expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith({
         entity: 'migration',
@@ -152,14 +153,20 @@ describe('MigrationGateway', () => {
         }),
       );
 
-      expect(mockSocket.emit).toHaveBeenCalledWith('migration:started', { success: true });
+      expect(mockSocket.emit).toHaveBeenCalledWith('migration:started', {
+        success: true,
+      });
     });
 
     it('should handle migration error', async () => {
-      migrationOrchestrator.executeMigrationPlan.mockRejectedValue(new Error('Migration failed'));
+      migrationOrchestrator.executeMigrationPlan.mockRejectedValue(
+        new Error('Migration failed'),
+      );
       logHistoryUseCase.executeStructured.mockReturnValue(Promise.resolve());
 
-      await gateway.handleStartMigration(mockSocket, { planPath: '/path/to/plan.yaml' });
+      await gateway.handleStartMigration(mockSocket, {
+        planPath: '/path/to/plan.yaml',
+      });
 
       expect(mockSocket.emit).toHaveBeenCalledWith('migration:error', {
         message: 'Migration failed',
@@ -169,7 +176,9 @@ describe('MigrationGateway', () => {
     it('should handle unauthorized access', async () => {
       gateway['userSessions'].clear();
 
-      await gateway.handleStartMigration(mockSocket, { planPath: '/path/to/plan.yaml' });
+      await gateway.handleStartMigration(mockSocket, {
+        planPath: '/path/to/plan.yaml',
+      });
 
       expect(mockSocket.emit).toHaveBeenCalledWith('migration:error', {
         message: 'Le token fourni est invalide ou manquant',
@@ -177,13 +186,19 @@ describe('MigrationGateway', () => {
     });
 
     it('should handle logging failure gracefully', async () => {
-      logHistoryUseCase.executeStructured.mockRejectedValue(new Error('Logging failed'));
+      logHistoryUseCase.executeStructured.mockRejectedValue(
+        new Error('Logging failed'),
+      );
       migrationOrchestrator.executeMigrationPlan.mockResolvedValue();
 
-      await gateway.handleStartMigration(mockSocket, { planPath: '/path/to/plan.yaml' });
+      await gateway.handleStartMigration(mockSocket, {
+        planPath: '/path/to/plan.yaml',
+      });
 
       expect(migrationOrchestrator.executeMigrationPlan).toHaveBeenCalled();
-      expect(mockSocket.emit).toHaveBeenCalledWith('migration:started', { success: true });
+      expect(mockSocket.emit).toHaveBeenCalledWith('migration:started', {
+        success: true,
+      });
     });
   });
 
@@ -219,7 +234,9 @@ describe('MigrationGateway', () => {
         }),
       );
 
-      expect(mockSocket.emit).toHaveBeenCalledWith('migration:restarted', { success: true });
+      expect(mockSocket.emit).toHaveBeenCalledWith('migration:restarted', {
+        success: true,
+      });
     });
   });
 
@@ -245,7 +262,9 @@ describe('MigrationGateway', () => {
       });
 
       expect(migrationOrchestrator.cancelMigration).toHaveBeenCalled();
-      expect(mockSocket.emit).toHaveBeenCalledWith('migration:cancelled', { success: true });
+      expect(mockSocket.emit).toHaveBeenCalledWith('migration:cancelled', {
+        success: true,
+      });
     });
   });
 
@@ -263,13 +282,17 @@ describe('MigrationGateway', () => {
         throw new Error('Invalid token');
       });
 
-      expect(() => gateway['extractUserIdFromToken'](mockSocket)).toThrow(JwtNotValid);
+      expect(() => gateway['extractUserIdFromToken'](mockSocket)).toThrow(
+        JwtNotValid,
+      );
     });
 
     it('should throw JwtNotValid for missing token', () => {
       mockSocket.handshake.auth = {};
 
-      expect(() => gateway['extractUserIdFromToken'](mockSocket)).toThrow(JwtNotValid);
+      expect(() => gateway['extractUserIdFromToken'](mockSocket)).toThrow(
+        JwtNotValid,
+      );
     });
   });
 
@@ -277,9 +300,12 @@ describe('MigrationGateway', () => {
     it('should handle state change events', () => {
       gateway.handleStateChange({ state: MigrationState.IN_MIGRATION });
 
-      expect(gateway.server.emit).toHaveBeenCalledWith('migration:stateChange', {
-        state: MigrationState.IN_MIGRATION,
-      });
+      expect(gateway.server.emit).toHaveBeenCalledWith(
+        'migration:stateChange',
+        {
+          state: MigrationState.IN_MIGRATION,
+        },
+      );
     });
 
     it('should handle migration events', () => {
@@ -292,15 +318,21 @@ describe('MigrationGateway', () => {
 
       gateway.handleMigrationEvent(event);
 
-      expect(gateway.server.emit).toHaveBeenCalledWith('migration:event', event);
+      expect(gateway.server.emit).toHaveBeenCalledWith(
+        'migration:event',
+        event,
+      );
     });
 
     it('should handle operation change events', () => {
       gateway.handleOperationChange({ operation: 'Shutting down VMs' });
 
-      expect(gateway.server.emit).toHaveBeenCalledWith('migration:operationChange', {
-        operation: 'Shutting down VMs',
-      });
+      expect(gateway.server.emit).toHaveBeenCalledWith(
+        'migration:operationChange',
+        {
+          operation: 'Shutting down VMs',
+        },
+      );
     });
   });
 });

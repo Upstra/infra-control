@@ -146,9 +146,9 @@ export class VmwareService implements IVmwareService {
         'vm_migration.sh',
         args,
       );
-      
+
       this.logger.debug('Migration result:', JSON.stringify(result));
-      
+
       // Check if the result indicates an error
       if (result?.result?.httpCode && result.result.httpCode !== 200) {
         this.logger.error(
@@ -160,7 +160,7 @@ export class VmwareService implements IVmwareService {
           result.result.httpCode,
         );
       }
-      
+
       return {
         success: true,
         message: result.result?.message ?? 'VM migrated successfully',
@@ -168,7 +168,7 @@ export class VmwareService implements IVmwareService {
       };
     } catch (error) {
       this.logger.error(`Failed to migrate VM ${vmMoid}:`, error);
-      
+
       // If error has a result object, log it
       if (error?.result) {
         this.logger.error(
@@ -176,7 +176,7 @@ export class VmwareService implements IVmwareService {
           JSON.stringify(error.result, null, 2),
         );
       }
-      
+
       throw this.handlePythonError(error, 'Failed to migrate VM');
     }
   }
