@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
-import { GetServerByIloIpUseCase } from './get-server-by-ilo-ip.use-case';
-import { ServerRepositoryInterface } from '../../domain/interfaces/server.repository.interface';
-import { Server } from '../../domain/entities/server.entity';
+import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
+import { Server } from '@/modules/servers/domain/entities/server.entity';
+import { GetServerByIloIpUseCase } from '../get-server-by-ilo-ip.use-case';
 
 describe('GetServerByIloIpUseCase', () => {
   let useCase: GetServerByIloIpUseCase;
