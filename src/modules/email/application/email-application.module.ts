@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { SendAccountCreatedEmailUseCase } from './use-cases/send-account-created-email.use-case';
 import { SendResetPasswordEmailUseCase } from './use-cases/send-reset-password-email.use-case';
 import { SendPasswordChangedEmailUseCase } from './use-cases/send-password-changed-email.use-case';
+import { SendVmwareSyncReportEmailUseCase } from './use-cases/send-vmware-sync-report-email.use-case';
 import { EmailInfrastructureModule } from '../infrastructure/email-infrastructure.module';
 import { MAIL_SERVICE_TOKEN } from '../domain/constants/injection-tokens';
 import { ZohoMailAdapter } from '../adapters/zoho-mail.adapter';
@@ -16,11 +17,13 @@ import { ZohoMailAdapter } from '../adapters/zoho-mail.adapter';
     SendAccountCreatedEmailUseCase,
     SendResetPasswordEmailUseCase,
     SendPasswordChangedEmailUseCase,
+    SendVmwareSyncReportEmailUseCase,
   ],
   exports: [
     SendAccountCreatedEmailUseCase,
     SendResetPasswordEmailUseCase,
     SendPasswordChangedEmailUseCase,
+    SendVmwareSyncReportEmailUseCase,
   ],
 })
 export class EmailApplicationModule {}

@@ -1,9 +1,14 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SyncServerVmwareDataUseCase } from '../use-cases/sync-server-vmware-data.use-case';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
+import {
+  EmailEventType,
+  VmwareSyncReportEvent,
+} from '@/modules/email/domain/events/email.events';
 
 @Injectable()
 export class VmwareSyncScheduler {
@@ -16,8 +21,8 @@ export class VmwareSyncScheduler {
     private readonly serverRepository: ServerRepositoryInterface,
     @Inject('UserRepositoryInterface')
     private readonly userRepository: UserRepositoryInterface,
-    private readonly emailService: EmailService,
     private readonly configService: ConfigService,
+    private readonly eventEmitter: EventEmitter2,
   ) {
     this.isEnabled =
       this.configService.get('VMWARE_SYNC_ENABLED', 'true') === 'true';
@@ -41,13 +46,14 @@ export class VmwareSyncScheduler {
     };
 
     try {
-      const servers = await this.serverRepository.findAll({
-        where: { type: 'vmware' },
-      });
+      const servers = await this.serverRepository.findAll();
 
-      report.totalServers = servers.length;
+      const vmwareServers = servers.filter(
+        (server) => server.type === 'vcenter' || server.type === 'esxi',
+      );
+      report.totalServers = vmwareServers.length;
 
-      for (const server of servers) {
+      for (const server of vmwareServers) {
         try {
           this.logger.log(`Syncing server ${server.name} (${server.id})`);
 
@@ -79,15 +85,13 @@ export class VmwareSyncScheduler {
 
   private async sendSyncReport(report: any, duration: number): Promise<void> {
     try {
-      const adminUsers = await this.userRepository.findAll({
-        relations: ['role'],
-        where: {
-          active: true,
-        },
-      });
+      const adminUsers = await this.userRepository.findAll(['roles']);
 
       const adminEmails = adminUsers
-        .filter((user) => user.role?.isAdmin === true)
+        .filter(
+          (user) =>
+            user.isActive && user.roles?.some((role) => role.isAdmin === true),
+        )
         .map((user) => user.email);
 
       if (adminEmails.length === 0) {
@@ -95,21 +99,18 @@ export class VmwareSyncScheduler {
         return;
       }
 
-      await this.emailService.sendEmail({
-        to: adminEmails,
-        subject: 'VMware Sync Report - Errors Detected',
-        template: 'vmware-sync-report',
-        context: {
-          date: new Date().toLocaleString('fr-FR'),
-          duration: (duration / 1000).toFixed(2),
-          totalServers: report.totalServers,
-          successfulServers: report.successfulServers,
-          failedServers: report.failedServers,
-          vmsUpdated: report.vmsUpdated,
-          errors: report.errors,
-          currentYear: new Date().getFullYear(),
-        },
-      });
+      const event: VmwareSyncReportEvent = {
+        adminEmails,
+        date: new Date().toLocaleString('fr-FR'),
+        duration: (duration / 1000).toFixed(2),
+        totalServers: report.totalServers,
+        successfulServers: report.successfulServers,
+        failedServers: report.failedServers,
+        vmsUpdated: report.vmsUpdated,
+        errors: report.errors,
+      };
+
+      this.eventEmitter.emit(EmailEventType.VMWARE_SYNC_REPORT, event);
     } catch (error) {
       this.logger.error('Failed to send sync report email:', error);
     }

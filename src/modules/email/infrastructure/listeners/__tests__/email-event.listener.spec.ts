@@ -2,12 +2,14 @@ import { EmailEventListener } from '../email-event.listener';
 import { SendAccountCreatedEmailUseCase } from '../../../application/use-cases/send-account-created-email.use-case';
 import { SendPasswordChangedEmailUseCase } from '../../../application/use-cases/send-password-changed-email.use-case';
 import { SendResetPasswordEmailUseCase } from '../../../application/use-cases/send-reset-password-email.use-case';
+import { SendVmwareSyncReportEmailUseCase } from '../../../application/use-cases/send-vmware-sync-report-email.use-case';
 
 describe('EmailEventListener', () => {
   let listener: EmailEventListener;
   let sendAccountCreated: jest.Mocked<SendAccountCreatedEmailUseCase>;
   let sendPasswordChanged: jest.Mocked<SendPasswordChangedEmailUseCase>;
   let sendResetPassword: jest.Mocked<SendResetPasswordEmailUseCase>;
+  let sendVmwareSyncReport: jest.Mocked<SendVmwareSyncReportEmailUseCase>;
 
   beforeEach(() => {
     sendAccountCreated = {
@@ -22,10 +24,15 @@ describe('EmailEventListener', () => {
       execute: jest.fn(),
     } as any;
 
+    sendVmwareSyncReport = {
+      execute: jest.fn(),
+    } as any;
+
     listener = new EmailEventListener(
       sendAccountCreated,
       sendPasswordChanged,
       sendResetPassword,
+      sendVmwareSyncReport,
     );
 
     jest.spyOn(listener['logger'], 'log').mockImplementation();

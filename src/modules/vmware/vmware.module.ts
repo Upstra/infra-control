@@ -9,6 +9,7 @@ import { YamlConfigModule } from '@/core/services/yaml-config/yaml-config.module
 import { VmwareController } from './application/controllers/vmware.controller';
 import { MigrationDestinationsController } from './application/controllers/migration-destinations.controller';
 import { VmwareService } from './domain/services/vmware.service';
+import { VmwareConnectionService } from './domain/services/vmware-connection.service';
 import { MigrationOrchestratorService } from './domain/services/migration-orchestrator.service';
 import { MigrationCompletedListener } from './application/listeners/migration-completed.listener';
 import { VmwareSyncScheduler } from './application/schedulers/vmware-sync.scheduler';
@@ -78,6 +79,7 @@ import { UserModule } from '@/modules/users/user.module';
   controllers: [VmwareController, MigrationDestinationsController],
   providers: [
     VmwareService,
+    VmwareConnectionService,
     VmwareDiscoveryService,
     DiscoverySessionService,
     MigrationOrchestratorService,

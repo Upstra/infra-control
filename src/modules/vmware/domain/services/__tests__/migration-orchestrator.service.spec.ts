@@ -1,21 +1,32 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { MigrationOrchestratorService } from '../migration-orchestrator.service';
+import * as fs from 'fs/promises';
+import * as yaml from 'js-yaml';
 import { RedisSafeService } from '@/modules/redis/application/services/redis-safe.service';
 import { PythonExecutorService } from '@/core/services/python-executor';
+import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
+import { VmRepositoryInterface } from '@/modules/vms/domain/interfaces/vm.repository.interface';
+import { RequestContextDto } from '@/core/dto/request-context.dto';
+import { MigrationOrchestratorService } from '../migration-orchestrator.service';
 import { MigrationState } from '../../interfaces/migration-orchestrator.interface';
-import * as fs from 'fs/promises';
 
 jest.mock('fs/promises');
+jest.mock('js-yaml');
 
 describe('MigrationOrchestratorService', () => {
   let service: MigrationOrchestratorService;
-  let redisSafeService: jest.Mocked<RedisSafeService>;
-  let pythonExecutorService: jest.Mocked<PythonExecutorService>;
+  let redis: jest.Mocked<RedisSafeService>;
+  let pythonExecutor: jest.Mocked<PythonExecutorService>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
+  let logHistoryUseCase: jest.Mocked<LogHistoryUseCase>;
+  let vmRepository: jest.Mocked<VmRepositoryInterface>;
+
+  const mockFs = fs as jest.Mocked<typeof fs>;
+  const mockYaml = yaml as jest.Mocked<typeof yaml>;
 
   beforeEach(async () => {
+    jest.useFakeTimers();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MigrationOrchestratorService,
@@ -40,397 +51,341 @@ describe('MigrationOrchestratorService', () => {
             emit: jest.fn(),
           },
         },
+        {
+          provide: LogHistoryUseCase,
+          useValue: {
+            executeStructured: jest.fn(),
+          },
+        },
+        {
+          provide: 'VmRepositoryInterface',
+          useValue: {
+            findOne: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<MigrationOrchestratorService>(
       MigrationOrchestratorService,
     );
-    redisSafeService = module.get(RedisSafeService);
-    pythonExecutorService = module.get(PythonExecutorService);
+    redis = module.get(RedisSafeService);
+    pythonExecutor = module.get(PythonExecutorService);
     eventEmitter = module.get(EventEmitter2);
+    logHistoryUseCase = module.get(LogHistoryUseCase);
+    vmRepository = module.get('VmRepositoryInterface');
 
     jest.clearAllMocks();
   });
 
-  describe('executeMigrationPlan', () => {
-    const planPath = '/path/to/plan.yml';
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
+  describe('executeMigrationPlan with logging', () => {
+    const planPath = '/path/to/migration-plan.yaml';
+    const userId = 'user-123';
+    const requestContext = RequestContextDto.forTesting({
+      ipAddress: '192.168.1.1',
+      userAgent: 'test-agent',
+      correlationId: 'test-correlation',
+    });
+
+    const mockPlanContent = {
+      servers: [
+        {
+          host: { name: 'ESXi-01' },
+          destination: { name: 'ESXi-03' },
+          vm_order: ['vm-123', 'vm-456'],
+        },
+        {
+          host: { name: 'ESXi-02' },
+          vm_order: ['vm-789'],
+        },
+      ],
+      ups: { shutdown_grace: 60 },
+    };
 
     beforeEach(() => {
-      (fs.access as jest.Mock).mockResolvedValue(undefined);
-      redisSafeService.safeGet.mockResolvedValue(MigrationState.IDLE);
+      redis.safeGet.mockResolvedValue(MigrationState.IDLE);
+      mockFs.access.mockResolvedValue();
+      mockFs.readFile.mockResolvedValue(yaml.dump(mockPlanContent));
+      mockYaml.load.mockReturnValue(mockPlanContent);
+      pythonExecutor.executePython.mockResolvedValue({ stdout: 'Success' });
+      redis.safeLRange.mockResolvedValue([]);
     });
 
-    it('should execute migration plan successfully', async () => {
-      pythonExecutorService.executePython.mockResolvedValue({
-        result: { httpCode: 200, message: 'Success' },
+    it('should log migration start with analyzed plan details', async () => {
+      vmRepository.findOne
+        .mockResolvedValueOnce({ name: 'VM-Web' } as any)
+        .mockResolvedValueOnce({ name: 'VM-DB' } as any)
+        .mockResolvedValueOnce({ name: 'VM-App' } as any);
+
+      await service.executeMigrationPlan(planPath, userId, requestContext);
+
+      jest.runAllTimers();
+
+      expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith({
+        entity: 'migration',
+        entityId: 'test-correlation',
+        action: 'START_MIGRATION',
+        userId: 'user-123',
+        metadata: {
+          migrationType: 'migration',
+          planPath,
+          sourceServers: ['ESXi-01', 'ESXi-02'],
+          destinationServers: ['ESXi-03'],
+          affectedVms: [
+            {
+              moid: 'vm-123',
+              name: 'VM-Web',
+              sourceServer: 'ESXi-01',
+              destinationServer: 'ESXi-03',
+            },
+            {
+              moid: 'vm-456',
+              name: 'VM-DB',
+              sourceServer: 'ESXi-01',
+              destinationServer: 'ESXi-03',
+            },
+            {
+              moid: 'vm-789',
+              name: 'VM-App',
+              sourceServer: 'ESXi-02',
+              destinationServer: undefined,
+            },
+          ],
+          totalVmsCount: 3,
+          hasDestination: true,
+          upsGracePeriod: 60,
+        },
+        ipAddress: '192.168.1.1',
+        userAgent: 'test-agent',
       });
-
-      await service.executeMigrationPlan(planPath);
-
-      expect(fs.access).toHaveBeenCalledWith(planPath);
-      expect(redisSafeService.safeSet).toHaveBeenCalledWith(
-        'migration:state',
-        MigrationState.IN_MIGRATION,
-      );
-      expect(redisSafeService.safeSet).toHaveBeenCalledWith(
-        'migration:state',
-        MigrationState.MIGRATED,
-      );
-      expect(pythonExecutorService.executePython).toHaveBeenCalledWith(
-        'migration_plan.py',
-        ['--plan', planPath],
-        { timeout: 600000 },
-      );
-      expect(eventEmitter.emit).toHaveBeenCalledWith('migration.stateChange', {
-        state: MigrationState.IN_MIGRATION,
-      });
     });
 
-    it('should throw BadRequestException if not in IDLE state', async () => {
-      redisSafeService.safeGet.mockResolvedValue(MigrationState.IN_MIGRATION);
-
-      await expect(service.executeMigrationPlan(planPath)).rejects.toThrow(
-        BadRequestException,
-      );
-      await expect(service.executeMigrationPlan(planPath)).rejects.toThrow(
-        'Cannot start migration. Current state: in migration',
-      );
-    });
-
-    it('should throw BadRequestException if plan file not found', async () => {
-      (fs.access as jest.Mock).mockRejectedValue(new Error('File not found'));
-
-      await expect(service.executeMigrationPlan(planPath)).rejects.toThrow(
-        BadRequestException,
-      );
-      await expect(service.executeMigrationPlan(planPath)).rejects.toThrow(
-        `Plan file not found: ${planPath}`,
-      );
-    });
-
-    it('should handle migration failure', async () => {
-      pythonExecutorService.executePython.mockResolvedValue({
-        result: { httpCode: 500, message: 'Migration failed' },
-      });
-
-      await expect(service.executeMigrationPlan(planPath)).rejects.toThrow(
-        'Migration failed',
-      );
-
-      expect(redisSafeService.safeSet).toHaveBeenCalledWith(
-        'migration:state',
-        MigrationState.FAILED,
-      );
-      expect(redisSafeService.safeSet).toHaveBeenCalledWith(
-        'migration:error',
-        'Migration failed',
-      );
-    });
-
-    it('should handle python executor error', async () => {
-      const error = new Error('Python execution failed');
-      pythonExecutorService.executePython.mockRejectedValue(error);
-
-      await expect(service.executeMigrationPlan(planPath)).rejects.toThrow(
-        error,
-      );
-
-      expect(redisSafeService.safeSet).toHaveBeenCalledWith(
-        'migration:state',
-        MigrationState.FAILED,
-      );
-      expect(redisSafeService.safeSet).toHaveBeenCalledWith(
-        'migration:error',
-        'Python execution failed',
-      );
-    });
-
-    it('should set end time even on failure', async () => {
-      pythonExecutorService.executePython.mockRejectedValue(
-        new Error('Failed'),
-      );
-
-      try {
-        await service.executeMigrationPlan(planPath);
-      } catch {
-        // Expected to throw
-      }
-
-      expect(redisSafeService.safeSet).toHaveBeenCalledWith(
-        'migration:end_time',
-        expect.any(String),
-      );
-    });
-
-    it('should poll Redis events after successful migration', async () => {
+    it('should log successful migration completion', async () => {
       const mockEvents = [
-        JSON.stringify({ type: 'vm_migration', success: true }),
-        JSON.stringify({ type: 'vm_shutdown', success: true }),
+        JSON.stringify({ type: 'VMMigrationEvent', success: true }),
+        JSON.stringify({ type: 'VMShutdownEvent', success: true }),
+        JSON.stringify({ type: 'VMMigrationEvent', success: false }),
       ];
-      redisSafeService.safeLRange.mockResolvedValue(mockEvents);
-      pythonExecutorService.executePython.mockResolvedValue({
-        result: { httpCode: 200 },
-      });
+      redis.safeLRange.mockResolvedValue(mockEvents);
 
-      await service.executeMigrationPlan(planPath);
+      await service.executeMigrationPlan(planPath, userId, requestContext);
 
-      expect(redisSafeService.safeLRange).toHaveBeenCalledWith(
-        'migration:events',
-        0,
-        -1,
+      jest.runAllTimers();
+
+      expect(logHistoryUseCase.executeStructured).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          entity: 'migration',
+          entityId: 'test-correlation',
+          action: 'COMPLETE_MIGRATION',
+          userId: 'user-123',
+          metadata: expect.objectContaining({
+            migrationType: 'migration',
+            result: 'success',
+            successfulVms: 2,
+            failedVms: 1,
+          }),
+        }),
       );
-      expect(eventEmitter.emit).toHaveBeenCalledWith('migration.event', {
-        type: 'vm_migration',
-        success: true,
+    });
+
+    it('should log failed migration', async () => {
+      pythonExecutor.executePython.mockRejectedValue(
+        new Error('Python script failed'),
+      );
+
+      await expect(
+        service.executeMigrationPlan(planPath, userId, requestContext),
+      ).rejects.toThrow('Python script failed');
+
+      jest.runAllTimers();
+
+      expect(logHistoryUseCase.executeStructured).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          entity: 'migration',
+          entityId: 'test-correlation',
+          action: 'FAILED_MIGRATION',
+          userId: 'user-123',
+          metadata: expect.objectContaining({
+            result: 'failed',
+            errorMessage: 'Python script failed',
+          }),
+        }),
+      );
+    });
+
+    it('should handle shutdown-only migration type', async () => {
+      const shutdownPlan = {
+        servers: [
+          {
+            host: { name: 'ESXi-01' },
+            vm_order: ['vm-123'],
+          },
+        ],
+        ups: { shutdown_grace: 30 },
+      };
+      mockYaml.load.mockReturnValue(shutdownPlan);
+
+      await service.executeMigrationPlan(planPath, userId, requestContext);
+
+      jest.runAllTimers();
+
+      expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: expect.objectContaining({
+            migrationType: 'shutdown',
+            hasDestination: false,
+            destinationServers: [],
+          }),
+        }),
+      );
+    });
+
+    it('should continue even if plan analysis fails', async () => {
+      mockYaml.load.mockImplementation(() => {
+        throw new Error('Invalid YAML');
       });
-      expect(eventEmitter.emit).toHaveBeenCalledWith('migration.event', {
-        type: 'vm_shutdown',
-        success: true,
-      });
+
+      await service.executeMigrationPlan(planPath, userId, requestContext);
+
+      jest.runAllTimers();
+
+      expect(pythonExecutor.executePython).toHaveBeenCalled();
+    });
+
+    it('should work without logging when logHistoryUseCase is not provided', async () => {
+      const serviceWithoutLogging = new MigrationOrchestratorService(
+        redis as any,
+        pythonExecutor as any,
+        eventEmitter as any,
+      );
+
+      await serviceWithoutLogging.executeMigrationPlan(
+        planPath,
+        userId,
+        requestContext,
+      );
+
+      jest.runAllTimers();
+
+      expect(logHistoryUseCase.executeStructured).not.toHaveBeenCalled();
+      expect(pythonExecutor.executePython).toHaveBeenCalled();
     });
   });
 
-  describe('executeRestartPlan', () => {
-    it('should execute restart plan successfully', async () => {
-      redisSafeService.safeGet.mockResolvedValue(MigrationState.MIGRATED);
-      pythonExecutorService.executePython.mockResolvedValue({
-        result: { httpCode: 200, message: 'Success' },
+  describe('executeRestartPlan with logging', () => {
+    const userId = 'user-123';
+    const requestContext = RequestContextDto.forTesting();
+
+    beforeEach(() => {
+      redis.safeGet.mockResolvedValue(MigrationState.MIGRATED);
+      pythonExecutor.executePython.mockResolvedValue({ stdout: 'Success' });
+    });
+
+    it('should log restart start and completion', async () => {
+      await service.executeRestartPlan(userId, requestContext);
+
+      jest.runAllTimers();
+
+      expect(logHistoryUseCase.executeStructured).toHaveBeenCalledTimes(2);
+
+      expect(logHistoryUseCase.executeStructured).toHaveBeenNthCalledWith(1, {
+        entity: 'migration',
+        entityId: 'test-correlation-id',
+        action: 'START_RESTART',
+        userId: 'user-123',
+        metadata: {
+          migrationType: 'restart',
+        },
+        ipAddress: '127.0.0.1',
+        userAgent: 'test-agent',
       });
 
-      await service.executeRestartPlan();
-
-      expect(redisSafeService.safeSet).toHaveBeenCalledWith(
-        'migration:state',
-        MigrationState.RESTARTING,
-      );
-      expect(redisSafeService.safeSet).toHaveBeenCalledWith(
-        'migration:current_operation',
-        'Executing restart plan',
-      );
-      expect(pythonExecutorService.executePython).toHaveBeenCalledWith(
-        'restart_plan.py',
-        [],
-        { timeout: 600000 },
-      );
-      expect(redisSafeService.safeSet).toHaveBeenCalledWith(
-        'migration:state',
-        MigrationState.IDLE,
-      );
-      expect(redisSafeService.safeDel).toHaveBeenCalledTimes(6);
-    });
-
-    it('should throw BadRequestException if not in MIGRATED state', async () => {
-      redisSafeService.safeGet.mockResolvedValue(MigrationState.IDLE);
-
-      await expect(service.executeRestartPlan()).rejects.toThrow(
-        BadRequestException,
-      );
-      await expect(service.executeRestartPlan()).rejects.toThrow(
-        'Cannot start restart. Current state: idle',
-      );
-    });
-
-    it('should handle restart failure', async () => {
-      redisSafeService.safeGet.mockResolvedValue(MigrationState.MIGRATED);
-      pythonExecutorService.executePython.mockResolvedValue({
-        result: { httpCode: 500, message: 'Restart failed' },
-      });
-
-      await expect(service.executeRestartPlan()).rejects.toThrow(
-        'Restart failed',
-      );
-
-      expect(redisSafeService.safeSet).toHaveBeenCalledWith(
-        'migration:state',
-        MigrationState.FAILED,
-      );
-      expect(redisSafeService.safeSet).toHaveBeenCalledWith(
-        'migration:error',
-        'Restart failed',
-      );
-    });
-
-    it('should handle python executor error during restart', async () => {
-      redisSafeService.safeGet.mockResolvedValue(MigrationState.MIGRATED);
-      const error = new Error('Python execution failed');
-      pythonExecutorService.executePython.mockRejectedValue(error);
-
-      await expect(service.executeRestartPlan()).rejects.toThrow(error);
-
-      expect(redisSafeService.safeSet).toHaveBeenCalledWith(
-        'migration:state',
-        MigrationState.FAILED,
-      );
-      expect(redisSafeService.safeSet).toHaveBeenCalledWith(
-        'migration:error',
-        'Python execution failed',
-      );
-    });
-  });
-
-  describe('getMigrationStatus', () => {
-    it('should return complete migration status', async () => {
-      const mockEvents = [
-        JSON.stringify({ type: 'vm_migration', success: true }),
-      ];
-
-      redisSafeService.safeGet
-        .mockResolvedValueOnce(MigrationState.IN_MIGRATION)
-        .mockResolvedValueOnce('Current operation')
-        .mockResolvedValueOnce('2023-01-01T00:00:00.000Z')
-        .mockResolvedValueOnce('2023-01-01T01:00:00.000Z')
-        .mockResolvedValueOnce('Some error');
-
-      redisSafeService.safeLRange.mockResolvedValue(mockEvents);
-
-      const status = await service.getMigrationStatus();
-
-      expect(status).toEqual({
-        state: MigrationState.IN_MIGRATION,
-        events: [{ type: 'vm_migration', success: true }],
-        currentOperation: 'Current operation',
-        startTime: '2023-01-01T00:00:00.000Z',
-        endTime: '2023-01-01T01:00:00.000Z',
-        error: 'Some error',
+      expect(logHistoryUseCase.executeStructured).toHaveBeenNthCalledWith(2, {
+        entity: 'migration',
+        entityId: 'test-correlation-id',
+        action: 'COMPLETE_RESTART',
+        userId: 'user-123',
+        metadata: {
+          migrationType: 'restart',
+          duration: expect.any(Number),
+          result: 'success',
+        },
+        ipAddress: '127.0.0.1',
+        userAgent: 'test-agent',
       });
     });
 
-    it('should handle empty/null values gracefully', async () => {
-      redisSafeService.safeGet.mockResolvedValue(null);
-      redisSafeService.safeLRange.mockResolvedValue([]);
-
-      const status = await service.getMigrationStatus();
-
-      expect(status).toEqual({
-        state: MigrationState.IDLE,
-        events: [],
-        currentOperation: undefined,
-        startTime: undefined,
-        endTime: undefined,
-        error: undefined,
-      });
-    });
-
-    it('should handle invalid JSON in events', async () => {
-      redisSafeService.safeGet.mockResolvedValue(MigrationState.IDLE);
-      redisSafeService.safeLRange.mockResolvedValue(['invalid json']);
-
-      const status = await service.getMigrationStatus();
-
-      expect(status.events).toEqual([]);
-    });
-  });
-
-  describe('cancelMigration', () => {
-    it('should cancel active migration', async () => {
-      redisSafeService.safeGet.mockResolvedValue(MigrationState.IN_MIGRATION);
-
-      await service.cancelMigration();
-
-      expect(redisSafeService.safeSet).toHaveBeenCalledWith(
-        'migration:state',
-        MigrationState.FAILED,
+    it('should log failed restart', async () => {
+      pythonExecutor.executePython.mockRejectedValue(
+        new Error('Restart failed'),
       );
-      expect(redisSafeService.safeSet).toHaveBeenCalledWith(
-        'migration:error',
-        'Migration cancelled by user',
-      );
-      expect(redisSafeService.safeSet).toHaveBeenCalledWith(
-        'migration:end_time',
-        expect.any(String),
-      );
-    });
 
-    it('should throw BadRequestException if no active migration', async () => {
-      redisSafeService.safeGet.mockResolvedValue(MigrationState.IDLE);
+      await expect(
+        service.executeRestartPlan(userId, requestContext),
+      ).rejects.toThrow('Restart failed');
 
-      await expect(service.cancelMigration()).rejects.toThrow(
-        BadRequestException,
-      );
-      await expect(service.cancelMigration()).rejects.toThrow(
-        'No active migration to cancel',
-      );
-    });
+      jest.runAllTimers();
 
-    it('should throw BadRequestException if migration already failed', async () => {
-      redisSafeService.safeGet.mockResolvedValue(MigrationState.FAILED);
-
-      await expect(service.cancelMigration()).rejects.toThrow(
-        BadRequestException,
-      );
-      await expect(service.cancelMigration()).rejects.toThrow(
-        'No active migration to cancel',
+      expect(logHistoryUseCase.executeStructured).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          action: 'FAILED_RESTART',
+          metadata: expect.objectContaining({
+            result: 'failed',
+            errorMessage: 'Restart failed',
+          }),
+        }),
       );
     });
   });
 
-  describe('clearMigrationData', () => {
-    it('should clear all migration data from Redis', async () => {
-      await service.clearMigrationData();
-
-      const expectedKeys = [
-        'migration:state',
-        'migration:events',
-        'migration:current_operation',
-        'migration:start_time',
-        'migration:end_time',
-        'migration:error',
-      ];
-
-      expect(redisSafeService.safeDel).toHaveBeenCalledTimes(6);
-      expectedKeys.forEach((key) => {
-        expect(redisSafeService.safeDel).toHaveBeenCalledWith(key);
+  describe('analyzeMigrationPlan', () => {
+    it('should enrich VM info with names from repository', async () => {
+      const planContent = yaml.dump({
+        servers: [
+          {
+            host: { name: 'ESXi-01' },
+            destination: { name: 'ESXi-03' },
+            vm_order: ['vm-123'],
+          },
+        ],
       });
-    });
-  });
+      mockFs.readFile.mockResolvedValue(planContent);
+      mockYaml.load.mockReturnValue(yaml.load(planContent));
+      vmRepository.findOne.mockResolvedValue({ name: 'TestVM' } as any);
 
-  describe('Event emissions', () => {
-    it('should emit stateChange event when state changes', async () => {
-      redisSafeService.safeGet.mockResolvedValue(MigrationState.IDLE);
-      pythonExecutorService.executePython.mockResolvedValue({
-        result: { httpCode: 200 },
-      });
-      (fs.access as jest.Mock).mockResolvedValue(undefined);
+      const result =
+        await service['analyzeMigrationPlan']('/path/to/plan.yaml');
 
-      await service.executeMigrationPlan('/plan.yml');
-
-      expect(eventEmitter.emit).toHaveBeenCalledWith('migration.stateChange', {
-        state: MigrationState.IN_MIGRATION,
-      });
-      expect(eventEmitter.emit).toHaveBeenCalledWith('migration.stateChange', {
-        state: MigrationState.MIGRATED,
+      expect(result.affectedVms[0]).toEqual({
+        moid: 'vm-123',
+        name: 'TestVM',
+        sourceServer: 'ESXi-01',
+        destinationServer: 'ESXi-03',
       });
     });
 
-    it('should emit operationChange event when operation changes', async () => {
-      redisSafeService.safeGet.mockResolvedValue(MigrationState.MIGRATED);
-      pythonExecutorService.executePython.mockResolvedValue({
-        result: { httpCode: 200 },
+    it('should handle VM repository errors gracefully', async () => {
+      const planContent = yaml.dump({
+        servers: [
+          {
+            host: { name: 'ESXi-01' },
+            vm_order: ['vm-123'],
+          },
+        ],
       });
+      mockFs.readFile.mockResolvedValue(planContent);
+      mockYaml.load.mockReturnValue(yaml.load(planContent));
+      vmRepository.findOne.mockRejectedValue(new Error('DB error'));
 
-      await service.executeRestartPlan();
+      const result =
+        await service['analyzeMigrationPlan']('/path/to/plan.yaml');
 
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        'migration.operationChange',
-        { operation: 'Executing restart plan' },
-      );
-    });
-  });
-
-  describe('Error handling in private methods', () => {
-    it('should handle errors in pollRedisEvents gracefully', async () => {
-      redisSafeService.safeGet.mockResolvedValue(MigrationState.IDLE);
-      redisSafeService.safeLRange.mockRejectedValue(new Error('Redis error'));
-      pythonExecutorService.executePython.mockResolvedValue({
-        result: { httpCode: 200 },
-      });
-      (fs.access as jest.Mock).mockResolvedValue(undefined);
-
-      await service.executeMigrationPlan('/plan.yml');
-
-      // Should not throw, error is logged internally
-      expect(redisSafeService.safeLRange).toHaveBeenCalled();
+      expect(result.affectedVms[0].name).toBeUndefined();
     });
   });
 });

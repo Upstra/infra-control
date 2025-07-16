@@ -1,5 +1,6 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { VmwareService } from './vmware.service';
+import { VmwareConnectionService } from './vmware-connection.service';
 import { VmwareDiscoveryGateway } from '../../application/gateway/vmware-discovery.gateway';
 import { Server } from '../../../servers/domain/entities/server.entity';
 import { ServerRepositoryInterface } from '../../../servers/domain/interfaces/server.repository.interface';
@@ -29,6 +30,7 @@ export class VmwareDiscoveryService {
 
   constructor(
     private readonly vmwareService: VmwareService,
+    private readonly vmwareConnectionService: VmwareConnectionService,
     private readonly discoveryGateway: VmwareDiscoveryGateway,
     @Inject('ServerRepositoryInterface')
     private readonly serverRepository: ServerRepositoryInterface,
@@ -185,7 +187,7 @@ export class VmwareDiscoveryService {
         `Discovering VMs from server: ${server.name} (${server.ip})`,
       );
 
-      const connection = this.buildVmwareConnection(server);
+      const connection = this.vmwareConnectionService.buildVmwareConnection(server);
 
       const vmwareVms = await this.vmwareService.listVMs(connection);
 
@@ -213,15 +215,6 @@ export class VmwareDiscoveryService {
 
   private filterVmwareServers(servers: Server[]): Server[] {
     return servers.filter((server) => server.type === 'esxi');
-  }
-
-  private buildVmwareConnection(server: Server): VmwareConnectionDto {
-    return {
-      host: server.ip,
-      user: server.login,
-      password: server.password,
-      port: 443,
-    };
   }
 
   private mapToDiscoveredVm(vmwareVm: any, server: Server): DiscoveredVmDto {
@@ -322,7 +315,7 @@ export class VmwareDiscoveryService {
         totalServers: 1,
       });
 
-      const connection = this.buildVmwareConnection(vCenterServer);
+      const connection = this.vmwareConnectionService.buildVmwareConnection(vCenterServer);
       const allVms = await this.vmwareService.listVMs(connection);
       this.logger.log(`vCenter returned ${allVms.length} VMs total`);
 

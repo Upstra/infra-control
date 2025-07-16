@@ -2,7 +2,9 @@ import { Injectable, Logger, Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { MigrationCompletedEvent } from '../../domain/interfaces/migration-completed-event.interface';
 import { VmwareService } from '../../domain/services/vmware.service';
+import { VmwareConnectionService } from '../../domain/services/vmware-connection.service';
 import { VmRepositoryInterface } from '@/modules/vms/domain/interfaces/vm.repository.interface';
+import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
 
 @Injectable()
@@ -11,14 +13,21 @@ export class MigrationCompletedListener {
 
   constructor(
     private readonly vmwareService: VmwareService,
+    private readonly vmwareConnectionService: VmwareConnectionService,
     @Inject('VmRepositoryInterface')
     private readonly vmRepository: VmRepositoryInterface,
+    @Inject('ServerRepositoryInterface')
+    private readonly serverRepository: ServerRepositoryInterface,
     private readonly logHistory: LogHistoryUseCase,
   ) {}
 
   @OnEvent('migration.completed', { async: true })
-  async handleMigrationCompleted(event: MigrationCompletedEvent): Promise<void> {
-    this.logger.log(`Processing migration completed event for session ${event.sessionId}`);
+  async handleMigrationCompleted(
+    event: MigrationCompletedEvent,
+  ): Promise<void> {
+    this.logger.log(
+      `Processing migration completed event for session ${event.sessionId}`,
+    );
 
     if (event.migrationType === 'shutdown') {
       this.logger.log('Shutdown migration, no VM updates needed');
@@ -34,7 +43,10 @@ export class MigrationCompletedListener {
     }
   }
 
-  private async updateVmLocation(vmMoid: string, userId?: string): Promise<void> {
+  private async updateVmLocation(
+    vmMoid: string,
+    userId?: string,
+  ): Promise<void> {
     try {
       const vm = await this.vmRepository.findOne({ where: { moid: vmMoid } });
       if (!vm) {
@@ -42,39 +54,93 @@ export class MigrationCompletedListener {
         return;
       }
 
-      // TODO: For now, skip VM host update as we need VMware connection details
-      // This would require getting connection info from the server entity
-      this.logger.warn(`VM host update not implemented yet for ${vmMoid}`);
-      return;
-      
-      if (vm.serverMoid === newHostMoid) {
-        this.logger.debug(`VM ${vm.name} already on correct host`);
+      if (!vm.serverId) {
+        this.logger.warn(`VM ${vmMoid} has no associated server`);
         return;
       }
 
-      const oldHostMoid = vm.serverMoid;
-      
-      await this.vmRepository.update(vm.id, { serverMoid: newHostMoid });
+      const server = await this.serverRepository.findOneByField({
+        field: 'id',
+        value: vm.serverId,
+      });
 
-      if (userId) {
-        await this.logHistory.executeStructured({
-          entity: 'vm',
-          entityId: vm.id,
-          action: 'UPDATE_HOST',
-          userId,
-          oldValue: { serverMoid: oldHostMoid },
-          newValue: { serverMoid: newHostMoid },
-          metadata: {
-            reason: 'migration_completed',
-            vmName: vm.name,
-            vmMoid: vmMoid,
-          },
-        });
+      if (!server || server.type !== 'vcenter') {
+        this.logger.warn(`Server ${vm.serverId} not found or is not a vCenter`);
+        return;
       }
 
-      this.logger.log(`Updated VM ${vm.name} from host ${oldHostMoid} to ${newHostMoid}`);
+      try {
+        const connection =
+          this.vmwareConnectionService.buildVmwareConnection(server);
+
+        const vmList = await this.vmwareService.listVMs(connection);
+        const vmInfo = vmList.find(v => v.moid === vmMoid);
+        
+        if (!vmInfo) {
+          this.logger.warn(`VM ${vmMoid} not found in vCenter`);
+          return;
+        }
+
+        const newHostMoid = vmInfo.esxiHostMoid;
+
+        if (vm.serverMoid !== newHostMoid) {
+          const oldHostMoid = vm.serverMoid;
+
+          await this.vmRepository.update(vm.id, {
+            serverMoid: newHostMoid,
+          });
+
+          this.logger.log(
+            `Updated VM ${vm.name} from host ${oldHostMoid} to ${newHostMoid}`,
+          );
+
+          if (userId) {
+            await this.logHistory.executeStructured({
+              entity: 'vm',
+              entityId: vm.id,
+              action: 'UPDATE_HOST',
+              userId,
+              oldValue: { serverMoid: oldHostMoid },
+              newValue: { serverMoid: newHostMoid },
+              metadata: {
+                reason: 'migration_completed',
+                vmName: vm.name,
+                vmMoid: vmMoid,
+                vCenterIp: server.ip,
+              },
+            });
+          }
+        } else {
+          this.logger.debug(
+            `VM ${vm.name} already on correct host ${newHostMoid}`,
+          );
+        }
+      } catch (vmwareError) {
+        this.logger.error(
+          `Failed to connect to vCenter or get VM info:`,
+          vmwareError,
+        );
+        if (userId) {
+          await this.logHistory.executeStructured({
+            entity: 'vm',
+            entityId: vm.id,
+            action: 'MIGRATION_COMPLETED',
+            userId,
+            metadata: {
+              reason: 'migration_completed',
+              vmName: vm.name,
+              vmMoid: vmMoid,
+              note: 'Could not verify new host - will update on next sync',
+              error: vmwareError.message,
+            },
+          });
+        }
+      }
     } catch (error) {
-      this.logger.error(`Error updating VM ${vmMoid}:`, error);
+      this.logger.error(
+        `Error processing VM migration completion for ${vmMoid}:`,
+        error,
+      );
       throw error;
     }
   }
