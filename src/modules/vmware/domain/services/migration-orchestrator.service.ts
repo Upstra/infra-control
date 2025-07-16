@@ -19,6 +19,7 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
   private readonly REDIS_START_TIME_KEY = 'migration:start_time';
   private readonly REDIS_END_TIME_KEY = 'migration:end_time';
   private readonly REDIS_ERROR_KEY = 'migration:error';
+  private pollingInterval: NodeJS.Timeout | null = null;
 
   constructor(
     private readonly redis: RedisSafeService,
@@ -61,17 +62,11 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
       );
 
       this.logger.debug('Migration result:', JSON.stringify(result));
+      this.logger.debug('Migration script output:', result);
+      this.startEventPolling();
 
-      if (result?.result?.httpCode === 200) {
-        await this.setState(MigrationState.MIGRATED);
-        this.logger.log('Migration plan executed successfully');
-      } else {
-        this.logger.error(
-          'Migration failed with result:',
-          JSON.stringify(result, null, 2),
-        );
-        throw new Error(result?.result?.message || 'Migration failed');
-      }
+      await this.setState(MigrationState.MIGRATED);
+      this.logger.log('Migration plan executed successfully');
     } catch (error) {
       await this.setState(MigrationState.FAILED);
       await this.setError(error.message);
@@ -79,7 +74,8 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
       throw error;
     } finally {
       await this.setEndTime();
-      this.pollRedisEvents();
+      this.stopEventPolling();
+      await this.pollRedisEvents();
     }
   }
 
@@ -102,13 +98,11 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
         { timeout: 600000 }, // 10 minutes timeout
       );
 
-      if (result?.result?.httpCode === 200) {
-        await this.setState(MigrationState.IDLE);
-        await this.clearMigrationData();
-        this.logger.log('Restart plan executed successfully');
-      } else {
-        throw new Error(result?.result?.message || 'Restart failed');
-      }
+      this.logger.debug('Restart script output:', result);
+      this.startEventPolling();
+      await this.setState(MigrationState.IDLE);
+      await this.clearMigrationData();
+      this.logger.log('Restart plan executed successfully');
     } catch (error) {
       await this.setState(MigrationState.FAILED);
       await this.setError(error.message);
@@ -170,10 +164,10 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
   private mapVmwareEventToMigrationEvent(vmwareEvent: any): MigrationEvent {
     // Map des événements VMware vers les types attendus
     const eventTypeMap: Record<string, MigrationEvent['type']> = {
-      'VMStartedEvent': 'vm_started',
-      'VMMigrationEvent': 'vm_migration',
-      'VMShutdownEvent': 'vm_shutdown',
-      'ServerShutdownEvent': 'server_shutdown',
+      VMStartedEvent: 'vm_started',
+      VMMigrationEvent: 'vm_migration',
+      VMShutdownEvent: 'vm_shutdown',
+      ServerShutdownEvent: 'server_shutdown',
     };
 
     // Déterminer le type d'événement
@@ -193,16 +187,19 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
         migrationEvent.vmName = vmwareEvent.vm || vmwareEvent.vmName;
         migrationEvent.vmMoid = vmwareEvent.vmMoid || vmwareEvent.moid;
         break;
-      
+
       case 'vm_migration':
         migrationEvent.vmName = vmwareEvent.vm || vmwareEvent.vmName;
         migrationEvent.vmMoid = vmwareEvent.vmMoid || vmwareEvent.moid;
-        migrationEvent.sourceMoid = vmwareEvent.source || vmwareEvent.sourceMoid;
-        migrationEvent.destinationMoid = vmwareEvent.destination || vmwareEvent.destinationMoid;
+        migrationEvent.sourceMoid =
+          vmwareEvent.source || vmwareEvent.sourceMoid;
+        migrationEvent.destinationMoid =
+          vmwareEvent.destination || vmwareEvent.destinationMoid;
         break;
-      
+
       case 'server_shutdown':
-        migrationEvent.serverName = vmwareEvent.server || vmwareEvent.serverName;
+        migrationEvent.serverName =
+          vmwareEvent.server || vmwareEvent.serverName;
         migrationEvent.serverMoid = vmwareEvent.serverMoid || vmwareEvent.moid;
         break;
     }
@@ -228,18 +225,28 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
         0,
         -1,
       );
-      
+
+      if (rawEvents.length > 0) {
+        this.logger.debug(`Found ${rawEvents.length} events in Redis`);
+      }
+
       const events = rawEvents.map((e) => {
         const parsedEvent = JSON.parse(e);
+        this.logger.debug('Raw event from Redis:', parsedEvent);
+
         // Si c'est un événement VMware natif, le transformer
         if (parsedEvent.type && parsedEvent.type.endsWith('Event')) {
-          return this.mapVmwareEventToMigrationEvent(parsedEvent);
+          const transformedEvent =
+            this.mapVmwareEventToMigrationEvent(parsedEvent);
+          this.logger.debug('Transformed event:', transformedEvent);
+          return transformedEvent;
         }
         // Sinon, le retourner tel quel (déjà au bon format)
         return parsedEvent;
       });
 
       for (const event of events) {
+        this.logger.log(`Emitting migration event: ${event.type}`);
         this.eventEmitter.emit('migration.event', event);
       }
     } catch (error) {
@@ -285,6 +292,33 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
 
   private async clearEvents(): Promise<void> {
     await this.redis.safeDel(this.REDIS_EVENTS_KEY);
+  }
+
+  private startEventPolling(): void {
+    // Si un polling est déjà en cours, l'arrêter
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+    }
+
+    // Polling immédiat
+    this.pollRedisEvents();
+
+    // Puis toutes les 2 secondes
+    this.pollingInterval = setInterval(() => {
+      this.pollRedisEvents();
+    }, 2000);
+
+    // Arrêter le polling après 10 minutes (timeout de migration)
+    setTimeout(() => {
+      this.stopEventPolling();
+    }, 600000);
+  }
+
+  private stopEventPolling(): void {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+    }
   }
 
   private async setCurrentOperation(operation: string): Promise<void> {
