@@ -303,4 +303,169 @@ export class VmwareDiscoveryService {
       allDiscoveredVms: [],
     };
   }
+
+  async discoverVmsFromVCenter(
+    vCenterServer: Server,
+    esxiServers: Server[],
+    sessionId: string,
+  ): Promise<DiscoveryResultsDto> {
+    this.logger.log(
+      `Starting VM discovery from vCenter ${vCenterServer.name} (session: ${sessionId})`,
+    );
+
+    await this.discoverySessionService.createSession(sessionId, 1);
+
+    this.emitProgress(sessionId, {
+      status: DiscoveryStatus.STARTING,
+      totalServers: 1,
+      serversProcessed: 0,
+      progress: 0,
+    });
+
+    const result: ServerDiscoveryResult = {
+      serverId: vCenterServer.id,
+      serverName: vCenterServer.name,
+      success: false,
+      vmCount: 0,
+      vms: [],
+    };
+
+    try {
+      this.emitProgress(sessionId, {
+        status: DiscoveryStatus.DISCOVERING,
+        currentServer: vCenterServer.name,
+        progress: 10,
+        serversProcessed: 0,
+        totalServers: 1,
+      });
+
+      const connection = this.buildVmwareConnection(vCenterServer);
+      const allVms = await this.vmwareService.listVMs(connection);
+      this.logger.log(`vCenter returned ${allVms.length} VMs total`);
+
+      const esxiServerMap = new Map<string, Server>();
+      esxiServers.forEach((server) => {
+        if (server.vmwareHostMoid) {
+          esxiServerMap.set(server.vmwareHostMoid, server);
+        }
+      });
+
+      this.logger.debug(
+        `ESXi server map contains ${esxiServerMap.size} servers with MOIDs`,
+      );
+
+      const discoveredVms: DiscoveredVmDto[] = [];
+      const orphanVms: any[] = [];
+
+      allVms.forEach((vm) => {
+        const esxiServer = esxiServerMap.get(vm.esxiHostMoid);
+        if (esxiServer) {
+          discoveredVms.push(this.mapToDiscoveredVm(vm, esxiServer));
+        } else {
+          orphanVms.push(vm);
+          this.logger.warn(
+            `VM ${vm.name} has esxiHostMoid ${vm.esxiHostMoid} which doesn't match any discovered ESXi server`,
+          );
+        }
+      });
+
+      if (orphanVms.length > 0) {
+        this.logger.warn(
+          `Found ${orphanVms.length} VMs without matching ESXi servers`,
+        );
+      }
+
+      result.vms = discoveredVms;
+      result.vmCount = discoveredVms.length;
+      result.success = true;
+
+      this.emitProgress(sessionId, {
+        status: DiscoveryStatus.COMPLETED,
+        currentServer: vCenterServer.name,
+        progress: 90,
+        serversProcessed: 1,
+        totalServers: 1,
+        discoveredVms: result.vmCount,
+      });
+
+      if (discoveredVms.length > 0) {
+        this.logger.log(
+          `Saving ${discoveredVms.length} discovered VMs to database...`,
+        );
+
+        const saveResult =
+          await this.saveDiscoveredVmsUseCase.execute(discoveredVms);
+        this.logger.log(
+          `Saved ${saveResult.savedCount} VMs to database (${saveResult.failedCount} failed)`,
+        );
+
+        if (saveResult.errors.length > 0) {
+          this.logger.warn('Some VMs failed to save:', saveResult.errors);
+        }
+      }
+
+      const finalResults: DiscoveryResultsDto = {
+        totalVmsDiscovered: result.vmCount,
+        totalServersProcessed: 1,
+        successfulServers: 1,
+        failedServers: 0,
+        serverResults: [result],
+        allDiscoveredVms: result.vms,
+      };
+
+      await this.discoverySessionService.completeSession(sessionId, {
+        totalVmsDiscovered: finalResults.totalVmsDiscovered,
+        serversProcessed: 1,
+        successfulServers: 1,
+        failedServers: 0,
+        serverResults: [result],
+        failedServerIds: [],
+      });
+
+      this.discoveryGateway.emitDiscoveryComplete(sessionId, finalResults);
+
+      return finalResults;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
+      result.error = errorMessage;
+      result.success = false;
+
+      this.logger.error(
+        `Failed to discover VMs from vCenter ${vCenterServer.name}:`,
+        error,
+      );
+
+      this.emitProgress(sessionId, {
+        status: DiscoveryStatus.ERROR,
+        currentServer: vCenterServer.name,
+        progress: 100,
+        serversProcessed: 1,
+        totalServers: 1,
+        error: errorMessage,
+      });
+
+      const finalResults: DiscoveryResultsDto = {
+        totalVmsDiscovered: 0,
+        totalServersProcessed: 1,
+        successfulServers: 0,
+        failedServers: 1,
+        serverResults: [result],
+        allDiscoveredVms: [],
+      };
+
+      await this.discoverySessionService.completeSession(sessionId, {
+        totalVmsDiscovered: 0,
+        serversProcessed: 1,
+        successfulServers: 0,
+        failedServers: 1,
+        serverResults: [result],
+        failedServerIds: [vCenterServer.id],
+      });
+
+      this.discoveryGateway.emitDiscoveryComplete(sessionId, finalResults);
+
+      return finalResults;
+    }
+  }
 }

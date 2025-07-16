@@ -83,31 +83,45 @@ export class BulkCreateWithDiscoveryUseCase {
       };
     }
 
-    this.logger.log(
-      `Starting discovery for ${vmwareServers.length} VMware servers`,
+    const vCenterServers = vmwareServers.filter(
+      (server) => server.type?.toLowerCase() === 'vcenter',
+    );
+    const esxiServers = vmwareServers.filter(
+      (server) => server.type?.toLowerCase() === 'esxi',
     );
 
-    vmwareServers.forEach((server) => {
-      this.logger.debug(`VMware server ${server.name}:`);
-      this.logger.debug(`- Type: ${server.type}`);
-      this.logger.debug(`- IP: ${server.ip}`);
-      this.logger.debug(`- Login: ${server.login}`);
-      this.logger.debug(`- Password exists: ${!!server.password}`);
-      this.logger.debug(`- Password length: ${server.password?.length ?? 0}`);
-    });
+    if (vCenterServers.length === 0) {
+      this.logger.warn(
+        'No vCenter server found, falling back to ESXi discovery',
+      );
+      this.vmwareDiscoveryService
+        .discoverVmsFromServers(esxiServers, sessionId)
+        .then((results) => {
+          this.logger.log(
+            `Discovery completed: ${results.totalVmsDiscovered} VMs discovered`,
+          );
+        })
+        .catch((error) => {
+          this.logger.error('Discovery failed:', error);
+        });
+    } else {
+      const vCenter = vCenterServers[0];
+      this.logger.log(
+        `Starting VM discovery from vCenter ${vCenter.name} for ${esxiServers.length} ESXi servers`,
+      );
 
-    this.vmwareDiscoveryService
-      .discoverVmsFromServers(vmwareServers, sessionId)
-      .then((results) => {
-        this.logger.log(
-          `Discovery completed: ${results.totalVmsDiscovered} VMs discovered`,
-        );
-
-        this.updateServerMoids(vmwareServers);
-      })
-      .catch((error) => {
-        this.logger.error('Discovery failed:', error);
-      });
+      await this.updateServerMoidsFromVCenter(vCenter, esxiServers);
+      this.vmwareDiscoveryService
+        .discoverVmsFromVCenter(vCenter, esxiServers, sessionId)
+        .then((results) => {
+          this.logger.log(
+            `Discovery completed: ${results.totalVmsDiscovered} VMs discovered from vCenter`,
+          );
+        })
+        .catch((error) => {
+          this.logger.error('Discovery from vCenter failed:', error);
+        });
+    }
 
     return {
       ...bulkCreateResult,
@@ -139,19 +153,13 @@ export class BulkCreateWithDiscoveryUseCase {
     return vmwareServers;
   }
 
-  private updateServerMoids(vmwareServers: Server[]): void {
-    this.logger.log('Starting server MOID update process');
+  private async updateServerMoidsFromVCenter(
+    vCenter: Server,
+    esxiServers: Server[],
+  ): Promise<void> {
+    this.logger.log(`Updating server MOIDs from vCenter ${vCenter.name}`);
 
-    const vCenterServers = vmwareServers.filter(
-      (server) => server.type?.toLowerCase() === 'vcenter',
-    );
-
-    if (vCenterServers.length === 0) {
-      this.logger.warn('No vCenter servers found, skipping MOID update');
-      return;
-    }
-
-    vCenterServers.forEach((vCenter) => {
+    try {
       const connection = {
         host: vCenter.ip,
         user: vCenter.login,
@@ -159,27 +167,35 @@ export class BulkCreateWithDiscoveryUseCase {
         port: 443,
       };
 
+      const discoveredServers =
+        await this.vmwareService.listServers(connection);
+
       this.logger.log(
-        `Calling listServers on vCenter ${vCenter.name} (${vCenter.ip})`,
+        `vCenter returned ${discoveredServers.length} servers with MOIDs`,
       );
 
-      this.vmwareService
-        .listServers(connection)
-        .then((discoveredServers) => {
-          this.logger.log(
-            `vCenter ${vCenter.name} returned ${discoveredServers?.length ?? 0} servers with MOIDs`,
-          );
+      const esxiByIp = new Map<string, Server>();
+      esxiServers.forEach((server) => {
+        esxiByIp.set(server.ip, server);
+      });
 
-          this.logger.log(
-            'Server MOIDs updated successfully from vCenter data',
+      for (const discoveredServer of discoveredServers) {
+        const esxiServer = esxiByIp.get(discoveredServer.ip);
+        if (esxiServer && discoveredServer.moid) {
+          this.logger.debug(
+            `Updating MOID for server ${esxiServer.name}: ${discoveredServer.moid}`,
           );
-        })
-        .catch((error) => {
-          this.logger.error(
-            `Failed to get server list from vCenter ${vCenter.name}:`,
-            error,
-          );
-        });
-    });
+          await this.serverRepository.updateServer(esxiServer.id, {
+            vmwareHostMoid: discoveredServer.moid,
+          });
+          esxiServer.vmwareHostMoid = discoveredServer.moid;
+        }
+      }
+
+      this.logger.log('Server MOIDs updated successfully');
+    } catch (error) {
+      this.logger.error(`Failed to update server MOIDs from vCenter:`, error);
+      throw error;
+    }
   }
 }

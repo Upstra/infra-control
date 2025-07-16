@@ -78,6 +78,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
           provide: VmwareDiscoveryService,
           useValue: {
             discoverVmsFromServers: jest.fn(),
+            discoverVmsFromVCenter: jest.fn(),
           },
         },
         {
@@ -91,6 +92,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
           useValue: {
             findServerById: jest.fn(),
             findServerByIdWithCredentials: jest.fn(),
+            updateServer: jest.fn(),
           },
         },
       ],
@@ -153,15 +155,24 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       ],
     };
 
-    it('should successfully create resources and trigger discovery for VMware servers', async () => {
+    it('should successfully create resources and trigger discovery via vCenter', async () => {
       bulkCreateUseCase.execute.mockResolvedValue(mockBulkCreateResult);
       serverRepository.findServerByIdWithCredentials
         .mockResolvedValueOnce(mockVmwareServer)
         .mockResolvedValueOnce(mockEsxiServer);
-      vmwareDiscoveryService.discoverVmsFromServers.mockResolvedValue(
+      vmwareDiscoveryService.discoverVmsFromVCenter.mockResolvedValue(
         mockDiscoveryResults,
       );
-      vmwareService.listServers.mockResolvedValue([]);
+      vmwareService.listServers.mockResolvedValue([
+        { 
+          name: 'ESXi Server 1',
+          ip: '192.168.1.20',
+          moid: 'host-123',
+          vendor: 'VMware',
+          model: 'ESXi',
+        },
+      ]);
+      serverRepository.updateServer.mockResolvedValue(undefined);
 
       const result = await useCase.execute(mockRequest);
 
@@ -176,12 +187,63 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
       expect(
         serverRepository.findServerByIdWithCredentials,
       ).toHaveBeenCalledTimes(2);
+      expect(vmwareService.listServers).toHaveBeenCalledWith({
+        host: mockVmwareServer.ip,
+        user: mockVmwareServer.login,
+        password: mockVmwareServer.password,
+        port: 443,
+      });
+      expect(
+        vmwareDiscoveryService.discoverVmsFromVCenter,
+      ).toHaveBeenCalledWith(
+        mockVmwareServer,
+        [mockEsxiServer],
+        expect.any(String),
+      );
+    });
+
+    it('should fall back to ESXi discovery when no vCenter is present', async () => {
+      const esxiOnlyResult = {
+        ...mockBulkCreateResult,
+        created: {
+          ...mockBulkCreateResult.created,
+          servers: [
+            { id: 'server-2', name: 'ESXi Server 1', tempId: 'temp_server_2' },
+          ],
+        },
+      };
+
+      bulkCreateUseCase.execute.mockResolvedValue(esxiOnlyResult);
+      serverRepository.findServerByIdWithCredentials
+        .mockResolvedValueOnce(mockEsxiServer);
+      vmwareDiscoveryService.discoverVmsFromServers.mockResolvedValue(
+        mockDiscoveryResults,
+      );
+
+      const esxiOnlyRequest = {
+        ...mockRequest,
+        servers: [mockRequest.servers[1]], // Only ESXi server
+      };
+
+      const result = await useCase.execute(esxiOnlyRequest);
+
+      expect(result).toEqual({
+        ...esxiOnlyResult,
+        discoverySessionId: expect.any(String),
+        discoveryTriggered: true,
+        vmwareServerCount: 1,
+      });
+
+      expect(vmwareService.listServers).not.toHaveBeenCalled();
       expect(
         vmwareDiscoveryService.discoverVmsFromServers,
       ).toHaveBeenCalledWith(
-        [mockVmwareServer, mockEsxiServer],
+        [mockEsxiServer],
         expect.any(String),
       );
+      expect(
+        vmwareDiscoveryService.discoverVmsFromVCenter,
+      ).not.toHaveBeenCalled();
     });
 
     it('should handle bulk create failure gracefully', async () => {
@@ -301,7 +363,7 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
         ...mockBulkCreateResult,
         discoverySessionId: expect.any(String),
         discoveryTriggered: true,
-        vmwareServerCount: 1,
+        vmwareServerCount: 2,
       });
     });
 
@@ -343,29 +405,29 @@ describe('BulkCreateWithDiscoveryUseCase', () => {
         .mockResolvedValueOnce(mockEsxiServer)
         .mockResolvedValueOnce(esxiServer)
         .mockResolvedValueOnce(vcenterServer);
-      vmwareDiscoveryService.discoverVmsFromServers.mockResolvedValue(
+      vmwareDiscoveryService.discoverVmsFromVCenter.mockResolvedValue(
         mockDiscoveryResults,
       );
-      vmwareService.listServers.mockResolvedValue([]);
+      vmwareService.listServers.mockResolvedValue([
+        { name: 'ESXi Server 1', ip: '192.168.1.20', moid: 'host-123' },
+        { name: 'ESXi Server', ip: esxiServer.ip, moid: 'host-124' },
+      ]);
+      serverRepository.updateServer.mockResolvedValue(undefined);
 
       const result = await useCase.execute(mockRequest);
 
       expect(result.vmwareServerCount).toBe(4);
+      // With vCenter, we should call discoverVmsFromVCenter once instead of multiple discoverVmsFromServers
       expect(
-        vmwareDiscoveryService.discoverVmsFromServers,
-      ).toHaveBeenCalledTimes(4);
+        vmwareDiscoveryService.discoverVmsFromVCenter,
+      ).toHaveBeenCalledTimes(1);
       expect(
-        vmwareDiscoveryService.discoverVmsFromServers,
-      ).toHaveBeenCalledWith([mockVmwareServer], expect.any(String));
-      expect(
-        vmwareDiscoveryService.discoverVmsFromServers,
-      ).toHaveBeenCalledWith([mockEsxiServer], expect.any(String));
-      expect(
-        vmwareDiscoveryService.discoverVmsFromServers,
-      ).toHaveBeenCalledWith([esxiServer], expect.any(String));
-      expect(
-        vmwareDiscoveryService.discoverVmsFromServers,
-      ).toHaveBeenCalledWith([vcenterServer], expect.any(String));
+        vmwareDiscoveryService.discoverVmsFromVCenter,
+      ).toHaveBeenCalledWith(
+        vcenterServer,
+        [mockEsxiServer, esxiServer],
+        expect.any(String),
+      );
     });
 
     it('should handle case-insensitive server type matching', async () => {
