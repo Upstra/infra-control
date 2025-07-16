@@ -1,5 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { JwtModule } from '@nestjs/jwt';
@@ -42,13 +42,21 @@ import { PermissionModule } from '@/modules/permissions/permission.module';
 import { RedisModule } from '@/modules/redis/redis.module';
 import { PresenceModule } from '@/modules/presence/presence.module';
 import { HistoryModule } from '@/modules/history/history.module';
-import { jwtConfig } from '@/core/config/jwt.config';
 
 @Module({
   imports: [
     ConfigModule,
     EventEmitterModule.forRoot(),
-    JwtModule.registerAsync(jwtConfig()),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRATION'),
+        },
+      }),
+    }),
     PythonExecutorModule,
     YamlConfigModule,
     TypeOrmModule.forFeature([Server, Vm, Ilo, Ups]),
