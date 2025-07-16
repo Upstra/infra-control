@@ -4,6 +4,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  IsDateString,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Server } from '../../domain/entities/server.entity';
@@ -74,6 +75,26 @@ export class ServerResponseDto {
   @IsOptional()
   readonly ilo?: IloResponseDto;
 
+  @ApiProperty({ nullable: true })
+  @IsOptional()
+  @IsUUID()
+  readonly iloId?: string;
+
+  @ApiProperty({ nullable: true })
+  @IsOptional()
+  @IsString()
+  readonly vmwareHostMoid?: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsDateString()
+  readonly createdAt!: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsDateString()
+  readonly updatedAt!: string;
+
   constructor(server: Server, ilo?: IloResponseDto) {
     this.id = server.id;
     this.name = server.name;
@@ -88,6 +109,10 @@ export class ServerResponseDto {
     this.login = server.login;
     this.password = server.password;
     this.ilo = ilo;
+    this.iloId = server.iloId;
+    this.vmwareHostMoid = server.vmwareHostMoid;
+    this.createdAt = server.createdAt?.toISOString();
+    this.updatedAt = server.updatedAt?.toISOString();
   }
 
   static fromEntity(s: Server): ServerResponseDto {
