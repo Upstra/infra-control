@@ -108,6 +108,18 @@ describe('IloPowerController', () => {
       const expectedStatus: IloStatusResponseDto = {
         status: IloServerStatus.ON,
         ip: '192.168.1.10',
+        serverId: 'server-1',
+        serverName: 'Test Server',
+        serverType: 'esxi',
+        vmwareHostMoid: 'host-123',
+        serverState: 'running',
+        serverPriority: 1,
+        roomId: 'room-1',
+        metrics: {
+          cpuUsage: 45.5,
+          memoryUsage: 8192,
+          powerState: 'poweredOn',
+        },
       };
 
       getServerStatusUseCase.execute.mockResolvedValue(expectedStatus);

@@ -3,12 +3,12 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { VmwareService } from '../vmware.service';
 import { PythonExecutorService } from '@/core/services/python-executor';
 import { VmwareConnectionDto } from '@/modules/vmware/application/dto';
-import { ServerRepository } from '@/modules/servers/infrastructure/repositories/server.repository';
+import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 
 describe('VmwareService', () => {
   let service: VmwareService;
   let pythonExecutor: jest.Mocked<PythonExecutorService>;
-  let serverRepository: jest.Mocked<ServerRepository>;
+  let serverRepository: jest.Mocked<ServerRepositoryInterface>;
 
   const mockConnection: VmwareConnectionDto = {
     host: '192.168.1.10',
@@ -34,7 +34,7 @@ describe('VmwareService', () => {
           },
         },
         {
-          provide: ServerRepository,
+          provide: 'ServerRepositoryInterface',
           useValue: {
             findAll: jest.fn(),
             updateServer: jest.fn(),
@@ -45,7 +45,7 @@ describe('VmwareService', () => {
 
     service = module.get<VmwareService>(VmwareService);
     pythonExecutor = module.get(PythonExecutorService);
-    serverRepository = module.get(ServerRepository);
+    serverRepository = module.get('ServerRepositoryInterface');
   });
 
   afterEach(() => {
@@ -654,19 +654,43 @@ describe('VmwareService', () => {
       const mockExistingServers = [
         {
           id: 'server-1',
+          name: 'Server 1',
           ip: '192.168.1.10',
           vmwareHostMoid: null,
-        },
+          state: 'stopped',
+          adminUrl: 'https://192.168.1.10',
+          login: 'admin',
+          password: 'password',
+          type: 'esxi',
+          priority: 1,
+          roomId: 'room-1',
+        } as any,
         {
           id: 'server-2',
+          name: 'Server 2',
           ip: '192.168.1.11',
           vmwareHostMoid: null,
-        },
+          state: 'stopped',
+          adminUrl: 'https://192.168.1.11',
+          login: 'admin',
+          password: 'password',
+          type: 'esxi',
+          priority: 1,
+          roomId: 'room-1',
+        } as any,
         {
           id: 'server-3',
+          name: 'Server 3',
           ip: '192.168.1.12',
           vmwareHostMoid: 'existing-moid',
-        },
+          state: 'stopped',
+          adminUrl: 'https://192.168.1.12',
+          login: 'admin',
+          password: 'password',
+          type: 'esxi',
+          priority: 1,
+          roomId: 'room-1',
+        } as any,
       ];
 
       pythonExecutor.executePython.mockResolvedValue(mockServersResult);

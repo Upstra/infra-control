@@ -4,7 +4,7 @@ import { ControlServerPowerUseCase } from '../../use-cases/control-server-power.
 import { GetServerStatusUseCase } from '../../use-cases/get-server-status.use-case';
 import { PingIloUseCase } from '../../use-cases/ping-ilo.use-case';
 import { IloPowerAction } from '../../dto/ilo-power-action.dto';
-import { IloServerStatus } from '../../dto/ilo-status.dto';
+import { IloServerStatus, IloStatusResponseDto } from '../../dto/ilo-status.dto';
 import { PingRequestDto } from '@/core/dto/ping.dto';
 
 describe('IloPowerController', () => {
@@ -96,9 +96,21 @@ describe('IloPowerController', () => {
   describe('getServerStatus', () => {
     it('should get server status successfully', async () => {
       const serverId = 'server-123';
-      const expectedResult = {
+      const expectedResult: IloStatusResponseDto = {
         status: IloServerStatus.ON,
         ip: '192.168.1.100',
+        serverId: 'server-123',
+        serverName: 'Test Server',
+        serverType: 'esxi',
+        vmwareHostMoid: 'host-123',
+        serverState: 'running',
+        serverPriority: 1,
+        roomId: 'room-1',
+        metrics: {
+          cpuUsage: 45.5,
+          memoryUsage: 8192,
+          powerState: 'poweredOn',
+        },
       };
 
       getServerStatusUseCase.execute.mockResolvedValue(expectedResult);
