@@ -2,6 +2,7 @@ import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { JwtModule } from '@nestjs/jwt';
 import { PythonExecutorModule } from '@/core/services/python-executor/python-executor.module';
 import { YamlConfigModule } from '@/core/services/yaml-config/yaml-config.module';
 import { VmwareController } from './application/controllers/vmware.controller';
@@ -40,11 +41,14 @@ import { Ups } from '@/modules/ups/domain/entities/ups.entity';
 import { PermissionModule } from '@/modules/permissions/permission.module';
 import { RedisModule } from '@/modules/redis/redis.module';
 import { PresenceModule } from '@/modules/presence/presence.module';
+import { HistoryModule } from '@/modules/history/history.module';
+import { jwtConfig } from '@/core/config/jwt.config';
 
 @Module({
   imports: [
     ConfigModule,
     EventEmitterModule.forRoot(),
+    JwtModule.registerAsync(jwtConfig()),
     PythonExecutorModule,
     YamlConfigModule,
     TypeOrmModule.forFeature([Server, Vm, Ilo, Ups]),
@@ -53,6 +57,7 @@ import { PresenceModule } from '@/modules/presence/presence.module';
     PermissionModule,
     RedisModule,
     PresenceModule,
+    HistoryModule,
   ],
   controllers: [VmwareController, MigrationDestinationsController],
   providers: [

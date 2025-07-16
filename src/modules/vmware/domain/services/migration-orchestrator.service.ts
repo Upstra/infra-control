@@ -14,7 +14,7 @@ import * as fs from 'fs/promises';
 import * as yaml from 'js-yaml';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
 import { RequestContextDto } from '@/core/dto/request-context.dto';
-import { VM_REPOSITORY } from '@/modules/vms/domain/interfaces/vm-repository.interface';
+import { VmRepositoryInterface } from '@/modules/vms/domain/interfaces/vm.repository.interface';
 
 @Injectable()
 export class MigrationOrchestratorService implements IMigrationOrchestrator {
@@ -32,7 +32,7 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
     private readonly pythonExecutor: PythonExecutorService,
     private readonly eventEmitter: EventEmitter2,
     @Optional() private readonly logHistoryUseCase?: LogHistoryUseCase,
-    @Optional() @Inject(VM_REPOSITORY) private readonly vmRepository?: any,
+    @Optional() @Inject('VmRepositoryInterface') private readonly vmRepository?: VmRepositoryInterface,
   ) {}
 
   async executeMigrationPlan(
