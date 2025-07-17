@@ -135,4 +135,25 @@ describe('RenewTokenUseCase', () => {
       'User not found',
     );
   });
+
+  it('should throw UnauthorizedException when refresh token is null', async () => {
+    await expect(useCase.execute(null as any)).rejects.toThrow(
+      'Invalid refresh token',
+    );
+    expect(jwtService.verify).not.toHaveBeenCalled();
+  });
+
+  it('should throw UnauthorizedException when refresh token is undefined', async () => {
+    await expect(useCase.execute(undefined as any)).rejects.toThrow(
+      'Invalid refresh token',
+    );
+    expect(jwtService.verify).not.toHaveBeenCalled();
+  });
+
+  it('should throw UnauthorizedException when refresh token is not a string', async () => {
+    await expect(useCase.execute(123 as any)).rejects.toThrow(
+      'Invalid refresh token',
+    );
+    expect(jwtService.verify).not.toHaveBeenCalled();
+  });
 });

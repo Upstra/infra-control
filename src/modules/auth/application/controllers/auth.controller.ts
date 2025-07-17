@@ -6,6 +6,7 @@ import {
   Res,
   Req,
   UseGuards,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { ApiBody, ApiOperation, ApiTags, ApiResponse } from '@nestjs/swagger';
@@ -125,6 +126,11 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const refreshToken = req.cookies['refreshToken'];
+    
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token not found');
+    }
+    
     const { accessToken, refreshToken: newRefreshToken } =
       await this.renewTokenUseCase.execute(refreshToken);
     res.cookie('refreshToken', newRefreshToken, {

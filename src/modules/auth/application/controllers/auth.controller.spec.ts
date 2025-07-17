@@ -28,6 +28,8 @@ describe('AuthController', () => {
   const resetPasswordWithTokenUseCase = { execute: jest.fn() };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+    
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
       providers: [
@@ -167,6 +169,16 @@ describe('AuthController', () => {
         path: '/auth/refresh',
       }),
     );
+  });
+
+  it('should throw UnauthorizedException when refresh token is missing', async () => {
+    const mockReq = { cookies: {} } as any;
+    const mockRes = { cookie: jest.fn() } as any;
+
+    await expect(controller.refresh(mockReq, mockRes)).rejects.toThrow(
+      'Refresh token not found',
+    );
+    expect(renewTokenUseCase.execute).not.toHaveBeenCalled();
   });
 
   describe('logout', () => {

@@ -31,6 +31,10 @@ export class RenewTokenUseCase {
   ) {}
 
   async execute(refreshToken: string) {
+    if (!refreshToken || typeof refreshToken !== 'string') {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+    
     try {
       const payload = this.jwtService.verify<ExtendedJwtPayload>(refreshToken);
 
@@ -57,6 +61,7 @@ export class RenewTokenUseCase {
 
       return tokens;
     } catch (error) {
+      console.error('Token renewal failed:', error);
       if (error instanceof UnauthorizedException) {
         throw error;
       }

@@ -23,7 +23,7 @@ describe('EnsureDefaultRoleUseCase', () => {
     useCase = new EnsureDefaultRoleUseCase(roleRepository, getUserCountUseCase);
   });
 
-  it('should create admin if no role and no user', async () => {
+  it('should create admin and guest roles if no role and no user', async () => {
     roleRepository.findAll.mockResolvedValue([]);
     getUserCountUseCase.execute.mockResolvedValue(0);
 
@@ -32,12 +32,31 @@ describe('EnsureDefaultRoleUseCase', () => {
       canCreateServer: false,
       isAdmin: true,
     });
-    roleRepository.createRole.mockResolvedValue(admin);
-    roleRepository.save.mockResolvedValue(admin);
+    const guest = createMockRole({
+      name: 'GUEST',
+      canCreateServer: false,
+      isAdmin: false,
+    });
+    
+    roleRepository.createRole
+      .mockResolvedValueOnce(admin)
+      .mockResolvedValueOnce(guest);
+    
+    const adminWithCanCreateServer = createMockRole({
+      ...admin,
+      canCreateServer: true,
+    });
+    
+    roleRepository.save
+      .mockResolvedValueOnce(adminWithCanCreateServer)
+      .mockResolvedValueOnce(guest);
 
     const result = await useCase.execute();
 
     expect(roleRepository.createRole).toHaveBeenCalledWith('ADMIN');
+    expect(roleRepository.createRole).toHaveBeenCalledWith('GUEST');
+    expect(roleRepository.createRole).toHaveBeenCalledTimes(2);
+    expect(roleRepository.save).toHaveBeenCalledTimes(2);
     expect(result.name).toBe('ADMIN');
     expect(result.canCreateServer).toBe(true);
   });
