@@ -37,16 +37,16 @@ describe('EnsureDefaultRoleUseCase', () => {
       canCreateServer: false,
       isAdmin: false,
     });
-    
+
     roleRepository.createRole
       .mockResolvedValueOnce(admin)
       .mockResolvedValueOnce(guest);
-    
+
     const adminWithCanCreateServer = createMockRole({
       ...admin,
       canCreateServer: true,
     });
-    
+
     roleRepository.save
       .mockResolvedValueOnce(adminWithCanCreateServer)
       .mockResolvedValueOnce(guest);

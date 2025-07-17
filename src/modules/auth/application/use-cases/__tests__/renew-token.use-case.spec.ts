@@ -4,6 +4,8 @@ import { TokenService } from '../../services/token.service';
 import { ExtendedJwtPayload } from '../../../domain/interfaces/extended-jwt-payload.interface';
 import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
+import { InvalidTokenException } from '../../../domain/exceptions/invalid-token.exception';
+import { UnauthorizedException } from '@nestjs/common';
 
 describe('RenewTokenUseCase', () => {
   let useCase: RenewTokenUseCase;
@@ -105,12 +107,32 @@ describe('RenewTokenUseCase', () => {
     });
   });
 
-  it('should throw UnauthorizedException when verification fails', async () => {
+  it('should throw InvalidTokenException when token is malformed', async () => {
+    const error = new Error('jwt malformed');
+    error.name = 'JsonWebTokenError';
     jwtService.verify.mockImplementation(() => {
-      throw new Error('invalid');
+      throw error;
     });
 
     await expect(useCase.execute('bad.token')).rejects.toThrow(
+      InvalidTokenException,
+    );
+    await expect(useCase.execute('bad.token')).rejects.toThrow(
+      'Malformed refresh token',
+    );
+  });
+
+  it('should throw UnauthorizedException when token is expired', async () => {
+    const error = new Error('jwt expired');
+    error.name = 'TokenExpiredError';
+    jwtService.verify.mockImplementation(() => {
+      throw error;
+    });
+
+    await expect(useCase.execute('expired.token')).rejects.toThrow(
+      UnauthorizedException,
+    );
+    await expect(useCase.execute('expired.token')).rejects.toThrow(
       'Invalid or expired refresh token',
     );
   });
@@ -136,23 +158,32 @@ describe('RenewTokenUseCase', () => {
     );
   });
 
-  it('should throw UnauthorizedException when refresh token is null', async () => {
+  it('should throw InvalidTokenException when refresh token is null', async () => {
     await expect(useCase.execute(null as any)).rejects.toThrow(
-      'Invalid refresh token',
+      InvalidTokenException,
+    );
+    await expect(useCase.execute(null as any)).rejects.toThrow(
+      'Refresh token is missing or invalid',
     );
     expect(jwtService.verify).not.toHaveBeenCalled();
   });
 
-  it('should throw UnauthorizedException when refresh token is undefined', async () => {
+  it('should throw InvalidTokenException when refresh token is undefined', async () => {
     await expect(useCase.execute(undefined as any)).rejects.toThrow(
-      'Invalid refresh token',
+      InvalidTokenException,
+    );
+    await expect(useCase.execute(undefined as any)).rejects.toThrow(
+      'Refresh token is missing or invalid',
     );
     expect(jwtService.verify).not.toHaveBeenCalled();
   });
 
-  it('should throw UnauthorizedException when refresh token is not a string', async () => {
+  it('should throw InvalidTokenException when refresh token is not a string', async () => {
     await expect(useCase.execute(123 as any)).rejects.toThrow(
-      'Invalid refresh token',
+      InvalidTokenException,
+    );
+    await expect(useCase.execute(123 as any)).rejects.toThrow(
+      'Refresh token is missing or invalid',
     );
     expect(jwtService.verify).not.toHaveBeenCalled();
   });

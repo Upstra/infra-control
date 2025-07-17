@@ -10,17 +10,23 @@ export class GetVmListWithMetricsUseCase {
     private readonly enrichVmsWithMetricsUseCase: EnrichVmsWithMetricsUseCase,
   ) {}
 
-  async execute(page: number, limit: number, includeMetrics: boolean): Promise<VmListResponseDto> {
+  async execute(
+    page: number,
+    limit: number,
+    includeMetrics: boolean,
+  ): Promise<VmListResponseDto> {
     const result = await this.getVmListUseCase.execute(page, limit);
-    
+
     if (includeMetrics && result.items.length > 0) {
-      const enrichedVms = await this.enrichVmsWithMetricsUseCase.execute(result.items);
+      const enrichedVms = await this.enrichVmsWithMetricsUseCase.execute(
+        result.items,
+      );
       return {
         ...result,
         items: enrichedVms,
       };
     }
-    
+
     return result;
   }
 }

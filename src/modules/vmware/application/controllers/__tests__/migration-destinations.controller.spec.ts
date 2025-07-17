@@ -148,9 +148,8 @@ describe('MigrationDestinationsController', () => {
 
       mockRemoveMigrationDestination.execute.mockResolvedValue(undefined);
 
-      const result = await controller.removeMigrationDestination(
-        sourceServerId,
-      );
+      const result =
+        await controller.removeMigrationDestination(sourceServerId);
 
       expect(mockRemoveMigrationDestination.execute).toHaveBeenCalledWith(
         sourceServerId,

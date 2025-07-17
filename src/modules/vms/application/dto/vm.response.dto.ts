@@ -114,10 +114,10 @@ export class VmResponseDto {
   @IsUUID()
   readonly serverId?: string | null;
 
-  @ApiProperty({ 
-    type: VmMetricsDto, 
-    required: false, 
-    description: 'VMware metrics (only when includeMetrics=true)' 
+  @ApiProperty({
+    type: VmMetricsDto,
+    required: false,
+    description: 'VMware metrics (only when includeMetrics=true)',
   })
   @IsOptional()
   @ValidateNested()

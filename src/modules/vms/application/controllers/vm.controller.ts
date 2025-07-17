@@ -66,7 +66,6 @@ export class VmController implements VmEndpointInterface {
     private readonly getVmListWithMetricsUseCase: GetVmListWithMetricsUseCase,
   ) {}
 
-
   @Get('admin/all')
   @UseFilters(InvalidQueryExceptionFilter)
   @ApiBearerAuth()
@@ -102,7 +101,11 @@ export class VmController implements VmEndpointInterface {
     @Query('limit') limit = '10',
     @Query('includeMetrics') includeMetrics = false,
   ): Promise<VmListResponseDto> {
-    return this.getVmListWithMetricsUseCase.execute(Number(page), Number(limit), includeMetrics);
+    return this.getVmListWithMetricsUseCase.execute(
+      Number(page),
+      Number(limit),
+      includeMetrics,
+    );
   }
 
   @Get('all')

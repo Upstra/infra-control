@@ -6,9 +6,7 @@ import { GetVmMetricsUseCase } from '@/modules/vmware/application/use-cases/get-
 export class EnrichVmsWithMetricsUseCase {
   private readonly logger = new Logger(EnrichVmsWithMetricsUseCase.name);
 
-  constructor(
-    private readonly getVmMetricsUseCase: GetVmMetricsUseCase,
-  ) {}
+  constructor(private readonly getVmMetricsUseCase: GetVmMetricsUseCase) {}
 
   async execute(vms: VmResponseDto[]): Promise<VmResponseDto[]> {
     const enrichedVms: VmResponseDto[] = [];

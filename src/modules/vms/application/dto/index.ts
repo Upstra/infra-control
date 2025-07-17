@@ -4,4 +4,10 @@ import { VmUpdateDto } from './vm.update.dto';
 import { VmListResponseDto } from './vm.list.response.dto';
 import { VmMetricsDto } from './vm-metrics.dto';
 
-export { VmCreationDto, VmResponseDto, VmUpdateDto, VmListResponseDto, VmMetricsDto };
+export {
+  VmCreationDto,
+  VmResponseDto,
+  VmUpdateDto,
+  VmListResponseDto,
+  VmMetricsDto,
+};

@@ -12,11 +12,11 @@ export class GetAllVmsWithMetricsUseCase {
 
   async execute(includeMetrics: boolean): Promise<VmResponseDto[]> {
     const vms = await this.getAllVmsUseCase.execute();
-    
+
     if (includeMetrics) {
       return this.enrichVmsWithMetricsUseCase.execute(vms);
     }
-    
+
     return vms;
   }
 }

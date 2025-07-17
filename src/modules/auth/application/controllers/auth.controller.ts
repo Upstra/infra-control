@@ -63,21 +63,19 @@ export class AuthController {
   ) {
     const requestContext = RequestContextDto.fromRequest(req);
 
-    return this.loginUseCase
-      .execute(dto, requestContext)
-      .then((response) => {
-        if (response.requiresTwoFactor) {
-          return response;
-        }
-        
-        res.cookie('refreshToken', response.refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
-          path: '/auth/refresh',
-        });
-        return { accessToken: response.accessToken };
+    return this.loginUseCase.execute(dto, requestContext).then((response) => {
+      if (response.requiresTwoFactor) {
+        return response;
+      }
+
+      res.cookie('refreshToken', response.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/auth/refresh',
       });
+      return { accessToken: response.accessToken };
+    });
   }
 
   @Post('register')
@@ -126,11 +124,11 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const refreshToken = req.cookies['refreshToken'];
-    
+
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token not found');
     }
-    
+
     const { accessToken, refreshToken: newRefreshToken } =
       await this.renewTokenUseCase.execute(refreshToken);
     res.cookie('refreshToken', newRefreshToken, {

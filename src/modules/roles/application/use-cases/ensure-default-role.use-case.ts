@@ -35,15 +35,15 @@ export class EnsureDefaultRoleUseCase {
 
     if (roles.length === 0 && userCount === 0) {
       this.logger.warn('Création des rôles ADMIN et GUEST par défaut');
-      
+
       const admin = await this.roleRepository.createRole('ADMIN');
       admin.canCreateServer = true;
       admin.isAdmin = true;
       await this.roleRepository.save(admin);
-      
+
       const guest = await this.roleRepository.createRole('GUEST');
       await this.roleRepository.save(guest);
-      
+
       return admin;
     }
 

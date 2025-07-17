@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ExtendedJwtPayload } from '../../domain/interfaces/extended-jwt-payload.interface';
 import { TokenService } from '../services/token.service';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
+import { InvalidTokenException } from '../../domain/exceptions/invalid-token.exception';
 
 /**
  * Validates a refresh token and issues new authentication tokens.
@@ -32,9 +33,9 @@ export class RenewTokenUseCase {
 
   async execute(refreshToken: string) {
     if (!refreshToken || typeof refreshToken !== 'string') {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new InvalidTokenException('Refresh token is missing or invalid');
     }
-    
+
     try {
       const payload = this.jwtService.verify<ExtendedJwtPayload>(refreshToken);
 
@@ -61,10 +62,19 @@ export class RenewTokenUseCase {
 
       return tokens;
     } catch (error) {
-      console.error('Token renewal failed:', error);
       if (error instanceof UnauthorizedException) {
         throw error;
       }
+
+      // Check if it's a JWT format error
+      if (
+        error.name === 'JsonWebTokenError' ||
+        error.message?.includes('malformed')
+      ) {
+        throw new InvalidTokenException('Malformed refresh token');
+      }
+
+      // For other errors (like TokenExpiredError), return 401
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
   }

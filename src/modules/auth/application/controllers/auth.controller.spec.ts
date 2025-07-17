@@ -29,7 +29,7 @@ describe('AuthController', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
       providers: [
@@ -66,7 +66,10 @@ describe('AuthController', () => {
       } as any;
       const result = await controller.login(dto, res, mockReq);
 
-      expect(loginUseCase.execute).toHaveBeenCalledWith(dto, expect.any(Object));
+      expect(loginUseCase.execute).toHaveBeenCalledWith(
+        dto,
+        expect.any(Object),
+      );
       expect(res.cookie).toHaveBeenCalledWith(
         'refreshToken',
         'ref',
@@ -94,7 +97,10 @@ describe('AuthController', () => {
       } as any;
       const result = await controller.login(dto, res, mockReq);
 
-      expect(loginUseCase.execute).toHaveBeenCalledWith(dto, expect.any(Object));
+      expect(loginUseCase.execute).toHaveBeenCalledWith(
+        dto,
+        expect.any(Object),
+      );
       expect(res.cookie).not.toHaveBeenCalled();
       expect(result).toEqual(twoFAResponse);
     });
