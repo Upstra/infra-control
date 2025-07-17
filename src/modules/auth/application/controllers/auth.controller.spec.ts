@@ -49,31 +49,67 @@ describe('AuthController', () => {
     controller = module.get<AuthController>(AuthController);
   });
 
-  it('should call login use case with dto and set cookie', async () => {
-    const dto: LoginDto = { identifier: 'john', password: 'pass' };
-    const res = { cookie: jest.fn() } as any;
-    loginUseCase.execute.mockResolvedValue({
-      accessToken: 'acc',
-      refreshToken: 'ref',
+  describe('login', () => {
+    it('should call login use case with dto and set cookie for successful login without 2FA', async () => {
+      const dto: LoginDto = { identifier: 'john', password: 'pass' };
+      const res = { cookie: jest.fn() } as any;
+      loginUseCase.execute.mockResolvedValue({
+        accessToken: 'acc',
+        refreshToken: 'ref',
+      });
+
+      const mockReq = {
+        ip: '127.0.0.1',
+        get: jest.fn().mockReturnValue('Test-Agent'),
+      } as any;
+      const result = await controller.login(dto, res, mockReq);
+
+      expect(loginUseCase.execute).toHaveBeenCalledWith(dto, expect.any(Object));
+      expect(res.cookie).toHaveBeenCalledWith(
+        'refreshToken',
+        'ref',
+        expect.objectContaining({
+          httpOnly: true,
+          sameSite: 'strict',
+          path: '/auth/refresh',
+        }),
+      );
+      expect(result).toEqual({ accessToken: 'acc' });
     });
 
-    const mockReq = {
-      ip: '127.0.0.1',
-      get: jest.fn().mockReturnValue('Test-Agent'),
-    } as any;
-    const result = await controller.login(dto, res, mockReq);
+    it('should return 2FA response when 2FA is required', async () => {
+      const dto: LoginDto = { identifier: 'john', password: 'pass' };
+      const res = { cookie: jest.fn() } as any;
+      const twoFAResponse = {
+        requiresTwoFactor: true,
+        twoFactorToken: '2fa-temp-token',
+      };
+      loginUseCase.execute.mockResolvedValue(twoFAResponse);
 
-    expect(loginUseCase.execute).toHaveBeenCalledWith(dto, expect.any(Object));
-    expect(res.cookie).toHaveBeenCalledWith(
-      'refreshToken',
-      'ref',
-      expect.objectContaining({
-        httpOnly: true,
-        sameSite: 'strict',
-        path: '/auth/refresh',
-      }),
-    );
-    expect(result).toEqual({ accessToken: 'acc' });
+      const mockReq = {
+        ip: '127.0.0.1',
+        get: jest.fn().mockReturnValue('Test-Agent'),
+      } as any;
+      const result = await controller.login(dto, res, mockReq);
+
+      expect(loginUseCase.execute).toHaveBeenCalledWith(dto, expect.any(Object));
+      expect(res.cookie).not.toHaveBeenCalled();
+      expect(result).toEqual(twoFAResponse);
+    });
+
+    it('should handle login failure', async () => {
+      const dto: LoginDto = { identifier: 'john', password: 'wrongpass' };
+      const res = { cookie: jest.fn() } as any;
+      const mockReq = {
+        ip: '127.0.0.1',
+        get: jest.fn().mockReturnValue('Test-Agent'),
+      } as any;
+      const error = new Error('Invalid credentials');
+      loginUseCase.execute.mockRejectedValue(error);
+
+      await expect(controller.login(dto, res, mockReq)).rejects.toThrow(error);
+      expect(res.cookie).not.toHaveBeenCalled();
+    });
   });
 
   it('should call register use case with dto and set cookie', async () => {
