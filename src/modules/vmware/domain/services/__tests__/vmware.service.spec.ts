@@ -4,11 +4,13 @@ import { VmwareService } from '../vmware.service';
 import { PythonExecutorService } from '@/core/services/python-executor';
 import { VmwareConnectionDto } from '@/modules/vmware/application/dto';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
+import { VmwareCacheService } from '../vmware-cache.service';
 
 describe('VmwareService', () => {
   let service: VmwareService;
   let pythonExecutor: jest.Mocked<PythonExecutorService>;
   let serverRepository: jest.Mocked<ServerRepositoryInterface>;
+  let vmwareCacheService: jest.Mocked<VmwareCacheService>;
 
   const mockConnection: VmwareConnectionDto = {
     host: '192.168.1.10',
@@ -34,12 +36,22 @@ describe('VmwareService', () => {
             updateServer: jest.fn(),
           },
         },
+        {
+          provide: VmwareCacheService,
+          useValue: {
+            getVmMetrics: jest.fn(),
+            getServerMetrics: jest.fn(),
+            initializeIfNeeded: jest.fn(),
+            isVcenterConfigured: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<VmwareService>(VmwareService);
     pythonExecutor = module.get(PythonExecutorService);
     serverRepository = module.get('ServerRepositoryInterface');
+    vmwareCacheService = module.get(VmwareCacheService);
   });
 
   afterEach(() => {
@@ -149,7 +161,81 @@ describe('VmwareService', () => {
   });
 
   describe('getVMMetrics', () => {
-    it('should return VM metrics', async () => {
+    beforeEach(() => {
+      serverRepository.findAll.mockResolvedValue([]);
+      vmwareCacheService.initializeIfNeeded.mockResolvedValue(undefined);
+    });
+
+    it('should return VM metrics from cache when available', async () => {
+      const cachedMetrics = {
+        powerState: 'poweredOn',
+        guestState: 'running',
+        connectionState: 'connected',
+        guestHeartbeatStatus: 'green',
+        overallStatus: 'green',
+        maxCpuUsage: 2400,
+        maxMemoryUsage: 8192,
+        bootTime: '2023-01-01T00:00:00.000Z',
+        isMigrating: false,
+        overallCpuUsage: 1500,
+        guestMemoryUsage: 4096,
+        uptimeSeconds: 86400,
+        swappedMemory: 0,
+        usedStorage: 53687091200,
+        totalStorage: 107374182400,
+      };
+
+      vmwareCacheService.getVmMetrics.mockResolvedValue(cachedMetrics);
+
+      const result = await service.getVMMetrics('vm-123', mockConnection, false);
+
+      expect(result).toEqual(cachedMetrics);
+      expect(vmwareCacheService.getVmMetrics).toHaveBeenCalledWith('vm-123');
+      expect(pythonExecutor.executePython).not.toHaveBeenCalled();
+    });
+
+    it('should fetch VM metrics from Python when cache is empty', async () => {
+      const mockMetrics = {
+        powerState: 'poweredOn',
+        guestState: 'running',
+        connectionState: 'connected',
+        guestHeartbeatStatus: 'green',
+        overallStatus: 'green',
+        maxCpuUsage: 2400,
+        maxMemoryUsage: 8192,
+        bootTime: '2023-01-01T00:00:00.000Z',
+        isMigrating: false,
+        overallCpuUsage: 1500,
+        guestMemoryUsage: 4096,
+        uptimeSeconds: 86400,
+        swappedMemory: 0,
+        usedStorage: 53687091200,
+        totalStorage: 107374182400,
+      };
+
+      vmwareCacheService.getVmMetrics.mockResolvedValue(null);
+      pythonExecutor.executePython.mockResolvedValue(mockMetrics);
+
+      const result = await service.getVMMetrics('vm-123', mockConnection, false);
+
+      expect(result).toEqual(mockMetrics);
+      expect(vmwareCacheService.getVmMetrics).toHaveBeenCalledWith('vm-123');
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
+        'vm_metrics.sh',
+        [
+          '--moid',
+          'vm-123',
+          '--ip',
+          '192.168.1.10',
+          '--user',
+          'admin',
+          '--password',
+          'password123',
+        ],
+      );
+    });
+
+    it('should force fetch from Python when force=true', async () => {
       const mockMetrics = {
         powerState: 'poweredOn',
         guestState: 'running',
@@ -170,7 +256,7 @@ describe('VmwareService', () => {
 
       pythonExecutor.executePython.mockResolvedValue(mockMetrics);
 
-      const result = await service.getVMMetrics('vm-123', mockConnection);
+      const result = await service.getVMMetrics('vm-123', mockConnection, true);
 
       expect(result).toEqual({
         powerState: 'poweredOn',
@@ -441,7 +527,65 @@ describe('VmwareService', () => {
   });
 
   describe('getServerMetrics', () => {
-    it('should return server dynamic metrics', async () => {
+    beforeEach(() => {
+      serverRepository.findAll.mockResolvedValue([]);
+      vmwareCacheService.initializeIfNeeded.mockResolvedValue(undefined);
+    });
+
+    it('should return server metrics from cache when available', async () => {
+      const cachedMetrics = {
+        powerState: 'poweredOn',
+        overallStatus: 'green',
+        rebootRequired: false,
+        cpuUsagePercent: 15.625,
+        ramUsageMB: 32768,
+        uptime: 2592000,
+        boottime: '2023-11-01T12:00:00.000Z',
+      };
+
+      vmwareCacheService.getServerMetrics.mockResolvedValue(cachedMetrics);
+
+      const result = await service.getServerMetrics('host-123', mockConnection, false);
+
+      expect(result).toEqual(cachedMetrics);
+      expect(vmwareCacheService.getServerMetrics).toHaveBeenCalledWith('host-123');
+      expect(pythonExecutor.executePython).not.toHaveBeenCalled();
+    });
+
+    it('should fetch server metrics from Python when cache is empty', async () => {
+      const mockServerMetrics = {
+        powerState: 'poweredOn',
+        overallStatus: 'green',
+        rebootRequired: false,
+        cpuUsagePercent: 15.625,
+        ramUsageMB: 32768,
+        uptime: 2592000,
+        boottime: '2023-11-01T12:00:00.000Z',
+      };
+
+      vmwareCacheService.getServerMetrics.mockResolvedValue(null);
+      pythonExecutor.executePython.mockResolvedValue(mockServerMetrics);
+
+      const result = await service.getServerMetrics('host-123', mockConnection, false);
+
+      expect(result).toEqual(mockServerMetrics);
+      expect(vmwareCacheService.getServerMetrics).toHaveBeenCalledWith('host-123');
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
+        'server_metrics.sh',
+        [
+          '--moid',
+          'host-123',
+          '--ip',
+          '192.168.1.10',
+          '--user',
+          'admin',
+          '--password',
+          'password123',
+        ],
+      );
+    });
+
+    it('should force fetch from Python when force=true', async () => {
       const mockServerMetrics = {
         powerState: 'poweredOn',
         overallStatus: 'green',
@@ -454,7 +598,7 @@ describe('VmwareService', () => {
 
       pythonExecutor.executePython.mockResolvedValue(mockServerMetrics);
 
-      const result = await service.getServerMetrics('host-123', mockConnection);
+      const result = await service.getServerMetrics('host-123', mockConnection, true);
 
       expect(result).toEqual(mockServerMetrics);
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(
