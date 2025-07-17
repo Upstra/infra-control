@@ -531,15 +531,17 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
 
     if (plan.servers) {
       for (const server of plan.servers) {
-        sourceServers.push(server.host.name);
-        if (server.destination) {
+        if (server.host?.name) {
+          sourceServers.push(server.host.name);
+        }
+        if (server.destination?.name) {
           destinationServers.push(server.destination.name);
         }
         if (server.vm_order) {
           for (const vmMoid of server.vm_order) {
             affectedVms.push({
               moid: vmMoid,
-              sourceServer: server.host.name,
+              sourceServer: server.host?.name,
               destinationServer: server.destination?.name,
             });
           }
