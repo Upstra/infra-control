@@ -74,10 +74,16 @@ export class MigrationCompletedListener {
           this.vmwareConnectionService.buildVmwareConnection(server);
 
         const vmList = await this.vmwareService.listVMs(connection);
+        
+        if (!Array.isArray(vmList) || vmList.length === 0) {
+          this.logger.warn(`No VMs found in vCenter for server ${server.name}`);
+          return;
+        }
+
         const vmInfo = vmList.find(v => v.moid === vmMoid);
         
         if (!vmInfo) {
-          this.logger.warn(`VM ${vmMoid} not found in vCenter`);
+          this.logger.warn(`VM ${vmMoid} not found in vCenter among ${vmList.length} VMs`);
           return;
         }
 
