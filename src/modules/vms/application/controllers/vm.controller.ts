@@ -31,13 +31,13 @@ import {
 import {
   CreateVmUseCase,
   DeleteVmUseCase,
-  GetVmListUseCase,
-  GetAllVmsUseCase,
-  GetAllVmsAdminUseCase,
-  GetVmByIdUseCase,
   UpdateVmUseCase,
   UpdateVmPriorityUseCase,
   CheckVmPermissionUseCase,
+  GetAllVmsWithMetricsUseCase,
+  GetAllVmsAdminWithMetricsUseCase,
+  GetVmByIdWithMetricsUseCase,
+  GetVmListWithMetricsUseCase,
 } from '@/modules/vms/application/use-cases';
 import { UpdatePriorityDto } from '../../../priorities/application/dto/update-priority.dto';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
@@ -55,22 +55,24 @@ import { RequireRole } from '@/core/decorators/role.decorator';
 @Controller('vm')
 export class VmController implements VmEndpointInterface {
   constructor(
-    private readonly getAllVmsUseCase: GetAllVmsUseCase,
-    private readonly getAllVmsAdminUseCase: GetAllVmsAdminUseCase,
-    private readonly getVmListUseCase: GetVmListUseCase,
-    private readonly getVmByIdUseCase: GetVmByIdUseCase,
     private readonly createVmUseCase: CreateVmUseCase,
     private readonly updateVmUseCase: UpdateVmUseCase,
     private readonly deleteVmUseCase: DeleteVmUseCase,
     private readonly updateVmPriorityUseCase: UpdateVmPriorityUseCase,
     private readonly checkVmPermissionUseCase: CheckVmPermissionUseCase,
+    private readonly getAllVmsWithMetricsUseCase: GetAllVmsWithMetricsUseCase,
+    private readonly getAllVmsAdminWithMetricsUseCase: GetAllVmsAdminWithMetricsUseCase,
+    private readonly getVmByIdWithMetricsUseCase: GetVmByIdWithMetricsUseCase,
+    private readonly getVmListWithMetricsUseCase: GetVmListWithMetricsUseCase,
   ) {}
+
 
   @Get('admin/all')
   @UseFilters(InvalidQueryExceptionFilter)
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RoleGuard)
   @RequireRole({ isAdmin: true })
+  @ApiQuery({ name: 'includeMetrics', required: false, type: Boolean })
   @ApiOperation({
     summary: 'Lister toutes les VMs',
     description:
@@ -81,8 +83,10 @@ export class VmController implements VmEndpointInterface {
     status: 403,
     description: 'Accès refusé - Rôle admin requis',
   })
-  async getAllVmsAdmin(): Promise<VmResponseDto[]> {
-    return this.getAllVmsAdminUseCase.execute();
+  async getAllVmsAdmin(
+    @Query('includeMetrics') includeMetrics = false,
+  ): Promise<VmResponseDto[]> {
+    return this.getAllVmsAdminWithMetricsUseCase.execute(includeMetrics);
   }
 
   @Get()
@@ -90,22 +94,27 @@ export class VmController implements VmEndpointInterface {
   @ApiBearerAuth()
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'includeMetrics', required: false, type: Boolean })
   @ApiOperation({ summary: 'Lister les VMs paginées' })
   @ApiResponse({ status: 200, type: VmListResponseDto })
   async getVms(
     @Query('page') page = '1',
     @Query('limit') limit = '10',
+    @Query('includeMetrics') includeMetrics = false,
   ): Promise<VmListResponseDto> {
-    return this.getVmListUseCase.execute(Number(page), Number(limit));
+    return this.getVmListWithMetricsUseCase.execute(Number(page), Number(limit), includeMetrics);
   }
 
   @Get('all')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @ApiQuery({ name: 'includeMetrics', required: false, type: Boolean })
   @ApiOperation({ summary: 'Lister toutes les machines virtuelles' })
   @ApiResponse({ status: 200, type: [VmResponseDto] })
-  async getAllVms(): Promise<VmResponseDto[]> {
-    return this.getAllVmsUseCase.execute();
+  async getAllVms(
+    @Query('includeMetrics') includeMetrics = false,
+  ): Promise<VmResponseDto[]> {
+    return this.getAllVmsWithMetricsUseCase.execute(includeMetrics);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -117,6 +126,7 @@ export class VmController implements VmEndpointInterface {
     description: 'UUID ou identifiant unique de la VM à récupérer',
     required: true,
   })
+  @ApiQuery({ name: 'includeMetrics', required: false, type: Boolean })
   @ApiOperation({
     summary: 'Récupérer une VM par ID',
     description:
@@ -125,8 +135,9 @@ export class VmController implements VmEndpointInterface {
   @ApiResponse({ status: 200, type: VmResponseDto })
   async getVmById(
     @Param('id', ParseUUIDPipe) id: string,
+    @Query('includeMetrics') includeMetrics = false,
   ): Promise<VmResponseDto> {
-    return this.getVmByIdUseCase.execute(id);
+    return this.getVmByIdWithMetricsUseCase.execute(id, includeMetrics);
   }
 
   @Post()

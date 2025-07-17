@@ -291,11 +291,6 @@ export class VmwareService implements IVmwareService {
   }
 
   private buildConnectionArgs(connection: VmwareConnectionDto): string[] {
-    this.logger.debug(`Building connection args for ${connection.host}:`);
-    this.logger.debug(`- User: ${connection.user}`);
-    this.logger.debug(`- Password exists: ${!!connection.password}`);
-    this.logger.debug(`- Password length: ${connection.password?.length ?? 0}`);
-
     const args = [
       '--ip',
       connection.host,

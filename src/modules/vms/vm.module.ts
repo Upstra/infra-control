@@ -10,6 +10,7 @@ import { AuditModule } from '../audit/audit.module';
 import { GroupModule } from '../groups/group.module';
 import { UserModule } from '../users/user.module';
 import { PermissionModule } from '../permissions/permission.module';
+import { VmwareModule } from '../vmware/vmware.module';
 
 @Module({
   controllers: [VmController],
@@ -21,6 +22,7 @@ import { PermissionModule } from '../permissions/permission.module';
     GroupModule,
     forwardRef(() => UserModule),
     PermissionModule,
+    VmwareModule,
   ],
   providers: [
     ...VmUseCase,

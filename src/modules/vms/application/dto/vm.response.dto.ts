@@ -7,8 +7,11 @@ import {
   IsOptional,
   IsDateString,
   IsInt,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { Vm } from '../../domain/entities/vm.entity';
+import { VmMetricsDto } from './vm-metrics.dto';
 
 export class VmResponseDto {
   @ApiProperty()
@@ -111,7 +114,17 @@ export class VmResponseDto {
   @IsUUID()
   readonly serverId?: string | null;
 
-  constructor(vm: Vm) {
+  @ApiProperty({ 
+    type: VmMetricsDto, 
+    required: false, 
+    description: 'VMware metrics (only when includeMetrics=true)' 
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => VmMetricsDto)
+  readonly metrics?: VmMetricsDto;
+
+  constructor(vm: Vm, metrics?: VmMetricsDto) {
     this.id = vm.id;
     this.name = vm.name;
     this.moid = vm.moid;
@@ -132,5 +145,6 @@ export class VmResponseDto {
     this.priority = vm.priority;
     this.groupId = vm.groupId;
     this.serverId = vm.serverId;
+    this.metrics = metrics;
   }
 }
