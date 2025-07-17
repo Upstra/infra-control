@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
 import { VmwareService } from '@/modules/vmware/domain/services/vmware.service';
-import { VmwareHost } from '@/modules/vmware/domain/interfaces';
+import { VmwareServerMetrics } from '@/modules/vmware/domain/interfaces';
 
 @Injectable()
 export class GetHostMetricsUseCase {
@@ -13,7 +13,7 @@ export class GetHostMetricsUseCase {
     private readonly serverRepository: Repository<Server>,
   ) {}
 
-  async execute(serverId: string): Promise<VmwareHost> {
+  async execute(serverId: string, force = false): Promise<VmwareServerMetrics> {
     const server = await this.serverRepository.findOne({
       where: { id: serverId },
     });
@@ -29,9 +29,10 @@ export class GetHostMetricsUseCase {
       port: 443,
     };
 
-    return await this.vmwareService.getHostMetrics(
+    return await this.vmwareService.getServerMetrics(
       server.vmwareHostMoid ?? 'host-default',
       connection,
+      force,
     );
   }
 }
