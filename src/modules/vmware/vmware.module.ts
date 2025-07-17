@@ -112,6 +112,7 @@ import { UserModule } from '@/modules/users/user.module';
     VmwareDiscoveryService,
     VmwareDiscoveryGateway,
     MigrationOrchestratorService,
+    GetVmMetricsUseCase,
   ],
 })
 export class VmwareModule {}

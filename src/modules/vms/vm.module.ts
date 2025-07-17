@@ -22,7 +22,7 @@ import { VmwareModule } from '../vmware/vmware.module';
     GroupModule,
     forwardRef(() => UserModule),
     PermissionModule,
-    VmwareModule,
+    forwardRef(() => VmwareModule),
   ],
   providers: [
     ...VmUseCase,
