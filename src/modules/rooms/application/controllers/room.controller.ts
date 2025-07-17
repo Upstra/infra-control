@@ -21,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 
 import { RoomCreationDto, RoomResponseDto, RoomListResponseDto } from '../dto';
+import { RoomTreeListResponseDto } from '../dto/room-tree.dto';
 import {
   CreateRoomUseCase,
   DeleteRoomUseCase,
@@ -28,6 +29,7 @@ import {
   GetAllRoomsUseCase,
   GetRoomByIdUseCase,
   UpdateRoomUseCase,
+  GetRoomTreeListUseCase,
 } from '../use-cases';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
@@ -43,6 +45,7 @@ export class RoomController {
     private readonly createRoomUseCase: CreateRoomUseCase,
     private readonly updateRoomUseCase: UpdateRoomUseCase,
     private readonly deleteRoomUseCase: DeleteRoomUseCase,
+    private readonly getRoomTreeListUseCase: GetRoomTreeListUseCase,
   ) {}
 
   @Get()
@@ -73,6 +76,20 @@ export class RoomController {
   @ApiResponse({ status: 200, type: [RoomResponseDto] })
   async getAllRooms(): Promise<RoomResponseDto[]> {
     return this.getAllRoomsUseCase.execute();
+  }
+
+  @Get('tree')
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOperation({ summary: 'Lister les salles pour navigation arborescente' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiResponse({ status: 200, type: RoomTreeListResponseDto })
+  async getRoomTree(
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+  ): Promise<RoomTreeListResponseDto> {
+    return this.getRoomTreeListUseCase.execute(Number(page), Number(limit));
   }
 
   @Get(':id')
