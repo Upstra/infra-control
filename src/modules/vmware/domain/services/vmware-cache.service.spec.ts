@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { VmwareCacheService } from './vmware-cache.service';
-import { RedisSafeService } from '@modules/redis/redis-safe.service';
-import { EncryptionService } from '@core/services/encryption/encryption.service';
 import { Server } from '@modules/servers/domain/entities/server.entity';
+import { RedisSafeService } from '@/modules/redis/application/services/redis-safe.service';
+import { EncryptionService } from '@/core/services/encryption';
 
 describe('VmwareCacheService', () => {
   let service: VmwareCacheService;
@@ -157,16 +157,15 @@ describe('VmwareCacheService', () => {
       const servers = [
         {
           id: '1',
-          vmwareVcenterIp: '192.168.1.100',
-          vmwareUsername: 'admin',
-          vmwarePassword: 'secret',
-          vmwarePort: 443,
-          vmwareMoid: 'host-123',
-        } as Server,
+          vmwareVCenterIp: '192.168.1.100',
+          login: 'admin',
+          password: 'secret',
+          vmwareHostMoid: 'host-123',
+        } as unknown as Server,
         {
           id: '2',
-          vmwareMoid: 'host-456',
-        } as Server,
+          vmwareHostMoid: 'host-456',
+        } as unknown as Server,
       ];
 
       await service.initializeIfNeeded(servers);
@@ -217,7 +216,10 @@ describe('VmwareCacheService', () => {
 
       const result = await service.getServerMetrics('host-456');
 
-      expect(result).toEqual({ powerState: 'poweredOn', cpuUsagePercent: 15.6 });
+      expect(result).toEqual({
+        powerState: 'poweredOn',
+        cpuUsagePercent: 15.6,
+      });
       expect(redis.safeHGet).toHaveBeenCalledWith(
         'metrics:metrics',
         '{"type":"Server","moid":"host-456"}',

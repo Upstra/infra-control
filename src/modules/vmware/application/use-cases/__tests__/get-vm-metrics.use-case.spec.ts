@@ -48,11 +48,11 @@ describe('GetVmMetricsUseCase', () => {
     } as Server;
 
     const mockMetrics = {
-      powerState: 'poweredOn',
-      guestState: 'running',
-      connectionState: 'connected',
-      guestHeartbeatStatus: 'green',
-      overallStatus: 'green',
+      powerState: 'poweredOn' as const,
+      guestState: 'running' as const,
+      connectionState: 'connected' as const,
+      guestHeartbeatStatus: 'green' as const,
+      overallStatus: 'green' as const,
       maxCpuUsage: 2400,
       maxMemoryUsage: 8192,
       bootTime: '2023-01-01T00:00:00.000Z',

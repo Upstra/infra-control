@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { RedisSafeService } from '@modules/redis/redis-safe.service';
-import { EncryptionService } from '@core/services/encryption/encryption.service';
 import { VmwareCacheServiceInterface } from '../interfaces/vmware-cache.service.interface';
 import { Server } from '@modules/servers/domain/entities/server.entity';
+import { RedisSafeService } from '@/modules/redis/application/services/redis-safe.service';
+import { EncryptionService } from '@/core/services/encryption';
 
 @Injectable()
 export class VmwareCacheService implements VmwareCacheServiceInterface {
@@ -80,17 +80,17 @@ export class VmwareCacheService implements VmwareCacheServiceInterface {
 
     const firstServer = servers[0];
     await this.setVcenterConfig({
-      ip: firstServer.vmwareVcenterIp,
-      user: firstServer.vmwareUsername,
-      password: firstServer.vmwarePassword,
-      port: firstServer.vmwarePort || 443,
+      ip: firstServer.vmwareVCenterIp,
+      user: firstServer.login,
+      password: firstServer.password,
+      port: 443,
     });
 
     const elements: Array<{ type: 'VM' | 'Server'; moid: string }> = [];
 
     for (const server of servers) {
-      if (server.vmwareMoid) {
-        elements.push({ type: 'Server', moid: server.vmwareMoid });
+      if (server.vmwareHostMoid) {
+        elements.push({ type: 'Server', moid: server.vmwareHostMoid });
       }
     }
 

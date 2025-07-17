@@ -145,4 +145,29 @@ export class RedisSafeService {
       return [];
     }
   }
+
+  async safeHGet(key: string, field: string): Promise<string | null> {
+    const client = this.redisClient;
+    if (!client) return null;
+    try {
+      return await client.hget(key, field);
+    } catch (e) {
+      this.online = false;
+      this.logger.error('Erreur Redis: ' + e.message);
+      this.scheduleReconnect();
+      return null;
+    }
+  }
+
+  async safeLPush(key: string, value: string): Promise<void> {
+    const client = this.redisClient;
+    if (!client) return;
+    try {
+      await client.lpush(key, value);
+    } catch (e) {
+      this.online = false;
+      this.logger.error('Erreur Redis: ' + e.message);
+      this.scheduleReconnect();
+    }
+  }
 }

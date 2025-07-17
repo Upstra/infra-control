@@ -14,6 +14,7 @@ import {
   ExecuteRestartPlanUseCase,
   GetMigrationStatusUseCase,
   ClearMigrationDataUseCase,
+  SyncServerVmwareDataUseCase,
 } from '../../use-cases';
 import {
   VmPowerActionDto,
@@ -40,6 +41,7 @@ describe('VmwareController', () => {
   let executeRestartPlanUseCase: jest.Mocked<ExecuteRestartPlanUseCase>;
   let getMigrationStatusUseCase: jest.Mocked<GetMigrationStatusUseCase>;
   let clearMigrationDataUseCase: jest.Mocked<ClearMigrationDataUseCase>;
+  let syncServerVmwareDataUseCase: jest.Mocked<SyncServerVmwareDataUseCase>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -123,6 +125,12 @@ describe('VmwareController', () => {
             execute: jest.fn(),
           },
         },
+        {
+          provide: SyncServerVmwareDataUseCase,
+          useValue: {
+            execute: jest.fn(),
+          },
+        },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -147,6 +155,7 @@ describe('VmwareController', () => {
     executeRestartPlanUseCase = module.get(ExecuteRestartPlanUseCase);
     getMigrationStatusUseCase = module.get(GetMigrationStatusUseCase);
     clearMigrationDataUseCase = module.get(ClearMigrationDataUseCase);
+    syncServerVmwareDataUseCase = module.get(SyncServerVmwareDataUseCase);
   });
 
   it('should be defined', () => {
@@ -202,12 +211,15 @@ describe('VmwareController', () => {
 
       getVmMetricsUseCase.execute.mockResolvedValue(mockMetrics);
 
-      const result = await controller.getVMMetrics('server-1', 'vm-123');
+      const result = await controller.getVMMetrics('server-1', 'vm-123', {
+        force: false,
+      });
 
       expect(result).toEqual(mockMetrics);
       expect(getVmMetricsUseCase.execute).toHaveBeenCalledWith(
         'server-1',
         'vm-123',
+        false,
       );
     });
   });
@@ -299,12 +311,12 @@ describe('VmwareController', () => {
         shutdownSupported: true,
       };
 
-      getHostMetricsUseCase.execute.mockResolvedValue(mockMetrics);
+      getHostMetricsUseCase.execute.mockResolvedValue(mockMetrics as any);
 
-      const result = await controller.getHostMetrics('server-1');
+      const result = await controller.getHostMetrics('server-1', { force: false });
 
       expect(result).toEqual(mockMetrics);
-      expect(getHostMetricsUseCase.execute).toHaveBeenCalledWith('server-1');
+      expect(getHostMetricsUseCase.execute).toHaveBeenCalledWith('server-1', false);
     });
 
     it('should handle getHostMetrics errors', async () => {
@@ -312,7 +324,7 @@ describe('VmwareController', () => {
         new Error('VMware connection failed'),
       );
 
-      await expect(controller.getHostMetrics('server-1')).rejects.toThrow(
+      await expect(controller.getHostMetrics('server-1', { force: false })).rejects.toThrow(
         'VMware connection failed',
       );
     });

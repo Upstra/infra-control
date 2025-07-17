@@ -49,8 +49,8 @@ describe('GetHostMetricsUseCase', () => {
     } as Server;
 
     const mockMetrics = {
-      powerState: 'poweredOn',
-      overallStatus: 'green',
+      powerState: 'poweredOn' as const,
+      overallStatus: 'green' as const,
       rebootRequired: false,
       cpuUsagePercent: 15.625,
       ramUsageMB: 32768,
@@ -100,7 +100,7 @@ describe('GetHostMetricsUseCase', () => {
     });
 
     it('should use default moid when vmwareHostMoid is null', async () => {
-      const serverWithoutMoid = { ...mockServer, vmwareHostMoid: null };
+      const serverWithoutMoid = { ...mockServer, vmwareHostMoid: null } as Server;
       serverRepository.findOne.mockResolvedValue(serverWithoutMoid);
       vmwareService.getServerMetrics.mockResolvedValue(mockMetrics);
 
