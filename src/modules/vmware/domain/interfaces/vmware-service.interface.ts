@@ -15,6 +15,7 @@ export interface IVmwareService {
   getVMMetrics(
     moid: string,
     connection: VmwareConnectionDto,
+    force?: boolean,
   ): Promise<VmwareVmMetrics>;
   controlVMPower(
     moid: string,
@@ -33,6 +34,7 @@ export interface IVmwareService {
   getServerMetrics(
     moid: string,
     connection: VmwareConnectionDto,
+    force?: boolean,
   ): Promise<VmwareServerMetrics>;
   getHostMetrics(
     moid: string,

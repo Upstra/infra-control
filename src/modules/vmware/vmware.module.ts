@@ -9,6 +9,7 @@ import { YamlConfigModule } from '@/core/services/yaml-config/yaml-config.module
 import { VmwareController } from './application/controllers/vmware.controller';
 import { MigrationDestinationsController } from './application/controllers/migration-destinations.controller';
 import { VmwareService } from './domain/services/vmware.service';
+import { VmwareCacheService } from './domain/services/vmware-cache.service';
 import { VmwareConnectionService } from './domain/services/vmware-connection.service';
 import { MigrationOrchestratorService } from './domain/services/migration-orchestrator.service';
 import { MigrationCompletedListener } from './application/listeners/migration-completed.listener';
@@ -48,6 +49,7 @@ import { PresenceModule } from '@/modules/presence/presence.module';
 import { HistoryModule } from '@/modules/history/history.module';
 import { EmailModule } from '@/modules/email/email.module';
 import { UserModule } from '@/modules/users/user.module';
+import { EncryptionModule } from '@/core/services/encryption/encryption.module';
 
 @Module({
   imports: [
@@ -75,10 +77,12 @@ import { UserModule } from '@/modules/users/user.module';
     PresenceModule,
     HistoryModule,
     EmailModule,
+    EncryptionModule,
   ],
   controllers: [VmwareController, MigrationDestinationsController],
   providers: [
     VmwareService,
+    VmwareCacheService,
     VmwareConnectionService,
     VmwareDiscoveryService,
     DiscoverySessionService,

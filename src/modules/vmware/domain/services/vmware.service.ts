@@ -22,6 +22,7 @@ import {
   VmwareServer,
 } from '../interfaces';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
+import { VmwareCacheService } from './vmware-cache.service';
 
 interface RawVmwareServer {
   name?: string;
@@ -40,11 +41,13 @@ interface RawVmwareServer {
 @Injectable()
 export class VmwareService implements IVmwareService {
   private readonly logger = new Logger(VmwareService.name);
+  private vcenterInitialized = false;
 
   constructor(
     private readonly pythonExecutor: PythonExecutorService,
     @Inject('ServerRepositoryInterface')
     private readonly serverRepository: ServerRepositoryInterface,
+    private readonly vmwareCacheService: VmwareCacheService,
   ) {}
 
   async listVMs(connection: VmwareConnectionDto): Promise<VmwareVm[]> {
@@ -84,7 +87,17 @@ export class VmwareService implements IVmwareService {
   async getVMMetrics(
     moid: string,
     connection: VmwareConnectionDto,
+    force = false,
   ): Promise<VmwareVmMetrics> {
+    await this.ensureVcenterInitialized();
+
+    if (!force) {
+      const cached = await this.vmwareCacheService.getVmMetrics(moid);
+      if (cached) {
+        return this.parseVmMetrics(cached);
+      }
+    }
+
     const args = ['--moid', moid, ...this.buildConnectionArgs(connection)];
 
     try {
@@ -202,7 +215,17 @@ export class VmwareService implements IVmwareService {
   async getServerMetrics(
     moid: string,
     connection: VmwareConnectionDto,
+    force = false,
   ): Promise<VmwareServerMetrics> {
+    await this.ensureVcenterInitialized();
+
+    if (!force) {
+      const cached = await this.vmwareCacheService.getServerMetrics(moid);
+      if (cached) {
+        return this.parseServerMetrics(cached);
+      }
+    }
+
     const args = ['--moid', moid, ...this.buildConnectionArgs(connection)];
 
     try {
@@ -473,5 +496,18 @@ export class VmwareService implements IVmwareService {
       cpuMHz: server.cpuMHz ?? 0,
       ramTotal: server.ramTotal ?? 0,
     }));
+  }
+
+  /**
+   * Ensure vCenter is initialized in Redis cache
+   */
+  private async ensureVcenterInitialized(): Promise<void> {
+    if (this.vcenterInitialized) {
+      return;
+    }
+
+    const servers = await this.serverRepository.findAll();
+    await this.vmwareCacheService.initializeIfNeeded(servers);
+    this.vcenterInitialized = true;
   }
 }
