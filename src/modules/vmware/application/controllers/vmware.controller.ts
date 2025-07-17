@@ -8,6 +8,7 @@ import {
   HttpStatus,
   UseGuards,
   Delete,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -16,6 +17,7 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiBody,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
@@ -48,6 +50,7 @@ import {
   ExecuteMigrationPlanDto,
   MigrationStatusResponseDto,
 } from '../dto/migration-plan.dto';
+import { CacheQueryDto } from '../dto/cache-query.dto';
 
 @ApiTags('VMware')
 @ApiBearerAuth()
@@ -162,6 +165,12 @@ export class VmwareController {
   @ApiOperation({ summary: 'Get metrics for a specific VM' })
   @ApiParam({ name: 'serverId', description: 'Server ID' })
   @ApiParam({ name: 'moid', description: 'VM Managed Object ID' })
+  @ApiQuery({
+    name: 'force',
+    required: false,
+    type: Boolean,
+    description: 'Force refresh from vCenter instead of using cache',
+  })
   @ApiResponse({
     status: 200,
     description: 'VM metrics retrieved successfully',
@@ -177,8 +186,9 @@ export class VmwareController {
   async getVMMetrics(
     @Param('serverId') serverId: string,
     @Param('moid') moid: string,
+    @Query() query: CacheQueryDto,
   ) {
-    return this.getVmMetricsUseCase.execute(serverId, moid);
+    return this.getVmMetricsUseCase.execute(serverId, moid, query.force);
   }
 
   @Post(':serverId/vms/:moid/power')
@@ -255,6 +265,12 @@ export class VmwareController {
   })
   @ApiOperation({ summary: 'Get ESXi host metrics' })
   @ApiParam({ name: 'serverId', description: 'Server ID' })
+  @ApiQuery({
+    name: 'force',
+    required: false,
+    type: Boolean,
+    description: 'Force refresh from vCenter instead of using cache',
+  })
   @ApiResponse({
     status: 200,
     description: 'Host metrics retrieved successfully',
@@ -267,8 +283,11 @@ export class VmwareController {
     status: 404,
     description: 'Server not found',
   })
-  async getHostMetrics(@Param('serverId') serverId: string) {
-    return this.getHostMetricsUseCase.execute(serverId);
+  async getHostMetrics(
+    @Param('serverId') serverId: string,
+    @Query() query: CacheQueryDto,
+  ) {
+    return this.getHostMetricsUseCase.execute(serverId, query.force);
   }
 
   @Post('discovery/start')
