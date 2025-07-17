@@ -89,12 +89,11 @@ export class MigrationCompletedListener {
 
         const newHostMoid = vmInfo.esxiHostMoid;
 
-        if (vm.serverMoid !== newHostMoid) {
-          const oldHostMoid = vm.serverMoid;
+        if (vm.esxiHostMoid !== newHostMoid) {
+          const oldHostMoid = vm.esxiHostMoid;
 
-          await this.vmRepository.update(vm.id, {
-            serverMoid: newHostMoid,
-          });
+          vm.esxiHostMoid = newHostMoid;
+          await this.vmRepository.save(vm);
 
           this.logger.log(
             `Updated VM ${vm.name} from host ${oldHostMoid} to ${newHostMoid}`,
@@ -106,8 +105,8 @@ export class MigrationCompletedListener {
               entityId: vm.id,
               action: 'UPDATE_HOST',
               userId,
-              oldValue: { serverMoid: oldHostMoid },
-              newValue: { serverMoid: newHostMoid },
+              oldValue: { esxiHostMoid: oldHostMoid },
+              newValue: { esxiHostMoid: newHostMoid },
               metadata: {
                 reason: 'migration_completed',
                 vmName: vm.name,

@@ -117,7 +117,12 @@ export class VmwareController {
   async syncServerVmwareData(
     @Body() connection: VmwareConnectionDto,
   ): Promise<SyncServerVmwareDataResponseDto> {
-    return this.syncServerVmwareDataUseCase.execute(connection);
+    const result = await this.syncServerVmwareDataUseCase.execute(connection);
+    return {
+      synchronized: result.synchronized ?? 0,
+      discovered: result.discovered ?? [],
+      notFound: result.notFound ?? [],
+    };
   }
 
   @Get(':serverId/vms')
