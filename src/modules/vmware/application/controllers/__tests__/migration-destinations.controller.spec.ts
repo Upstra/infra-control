@@ -107,7 +107,7 @@ describe('MigrationDestinationsController', () => {
 
       mockGetMigrationDestinations.execute.mockResolvedValue(expectedResponse);
 
-      const result = await controller.getMigrationDestinationsList(user);
+      const result = await controller.getMigrationDestinationsList();
 
       expect(mockGetMigrationDestinations.execute).toHaveBeenCalled();
       expect(result).toEqual(expectedResponse);
@@ -129,7 +129,7 @@ describe('MigrationDestinationsController', () => {
         undefined,
       );
 
-      const result = await controller.setMigrationDestinations(dto, user);
+      const result = await controller.setMigrationDestinations(dto);
 
       expect(
         mockGenerateMigrationPlanWithDestination.execute,
@@ -150,7 +150,6 @@ describe('MigrationDestinationsController', () => {
 
       const result = await controller.removeMigrationDestination(
         sourceServerId,
-        user,
       );
 
       expect(mockRemoveMigrationDestination.execute).toHaveBeenCalledWith(
@@ -193,7 +192,7 @@ describe('MigrationDestinationsController', () => {
 
       mockGetVmsForMigration.execute.mockResolvedValue(expectedResponse);
 
-      const result = await controller.getVmsForMigration(user);
+      const result = await controller.getVmsForMigration();
 
       expect(mockGetVmsForMigration.execute).toHaveBeenCalled();
       expect(result).toEqual(expectedResponse);
@@ -209,7 +208,7 @@ describe('MigrationDestinationsController', () => {
 
       mockGetVmsForMigration.execute.mockResolvedValue(expectedResponse);
 
-      const result = await controller.getVmsForMigration(user);
+      const result = await controller.getVmsForMigration();
 
       expect(mockGetVmsForMigration.execute).toHaveBeenCalled();
       expect(result).toEqual(expectedResponse);

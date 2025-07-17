@@ -33,6 +33,13 @@ describe('VmwareController', () => {
   let controlVmPowerUseCase: jest.Mocked<ControlVmPowerUseCase>;
   let migrateVmUseCase: jest.Mocked<MigrateVmUseCase>;
   let getHostMetricsUseCase: jest.Mocked<GetHostMetricsUseCase>;
+  let startVMDiscoveryUseCase: jest.Mocked<StartVMDiscoveryUseCase>;
+  let getActiveDiscoverySessionUseCase: jest.Mocked<GetActiveDiscoverySessionUseCase>;
+  let getDiscoverySessionUseCase: jest.Mocked<GetDiscoverySessionUseCase>;
+  let executeMigrationPlanUseCase: jest.Mocked<ExecuteMigrationPlanUseCase>;
+  let executeRestartPlanUseCase: jest.Mocked<ExecuteRestartPlanUseCase>;
+  let getMigrationStatusUseCase: jest.Mocked<GetMigrationStatusUseCase>;
+  let clearMigrationDataUseCase: jest.Mocked<ClearMigrationDataUseCase>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
