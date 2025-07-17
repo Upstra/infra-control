@@ -1,15 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { GetVmsForMigrationUseCase } from '../get-vms-for-migration.use-case';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
 import { Vm } from '@/modules/vms/domain/entities/vm.entity';
 
 describe('GetVmsForMigrationUseCase', () => {
   let useCase: GetVmsForMigrationUseCase;
-  let serverRepository: Repository<Server>;
-  let vmRepository: Repository<Vm>;
-
   const mockServerRepository = {
     find: jest.fn(),
   };
@@ -20,24 +15,10 @@ describe('GetVmsForMigrationUseCase', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        GetVmsForMigrationUseCase,
-        {
-          provide: getRepositoryToken(Server),
-          useValue: mockServerRepository,
-        },
-        {
-          provide: getRepositoryToken(Vm),
-          useValue: mockVmRepository,
-        },
-      ],
+      providers: [GetVmsForMigrationUseCase],
     }).compile();
 
     useCase = module.get<GetVmsForMigrationUseCase>(GetVmsForMigrationUseCase);
-    serverRepository = module.get<Repository<Server>>(
-      getRepositoryToken(Server),
-    );
-    vmRepository = module.get<Repository<Vm>>(getRepositoryToken(Vm));
 
     jest.clearAllMocks();
   });

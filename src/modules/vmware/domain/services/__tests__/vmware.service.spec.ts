@@ -17,12 +17,6 @@ describe('VmwareService', () => {
     port: 443,
   };
 
-  const mockConnectionWithoutPort: VmwareConnectionDto = {
-    host: '192.168.1.10',
-    user: 'admin',
-    password: 'password123',
-  };
-
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [

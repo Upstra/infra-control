@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { VmwareDiscoveryService } from '../vmware-discovery.service';
 import { VmwareService } from '../vmware.service';
 import { VmwareDiscoveryGateway } from '../../../application/gateway/vmware-discovery.gateway';
-import { ServerRepositoryInterface } from '../../../../servers/domain/interfaces/server.repository.interface';
 import { SaveDiscoveredVmsUseCase } from '../../../application/use-cases/save-discovered-vms.use-case';
 import { DiscoverySessionService } from '../discovery-session.service';
 import { Server } from '../../../../servers/domain/entities/server.entity';
@@ -12,7 +11,6 @@ describe('VmwareDiscoveryService - vCenter Discovery', () => {
   let service: VmwareDiscoveryService;
   let vmwareService: jest.Mocked<VmwareService>;
   let discoveryGateway: jest.Mocked<VmwareDiscoveryGateway>;
-  let serverRepository: jest.Mocked<ServerRepositoryInterface>;
   let saveDiscoveredVmsUseCase: jest.Mocked<SaveDiscoveredVmsUseCase>;
   let discoverySessionService: jest.Mocked<DiscoverySessionService>;
 
@@ -83,7 +81,7 @@ describe('VmwareDiscoveryService - vCenter Discovery', () => {
       numCoresPerSocket: 2,
       numCPU: 2,
       esxiHostName: 'unknown-host.local',
-      esxiHostMoid: 'host-999', // This host doesn't exist in our ESXi servers
+      esxiHostMoid: 'host-999',
       powerState: 'poweredOff',
       memoryMB: 8192,
     },
@@ -133,7 +131,6 @@ describe('VmwareDiscoveryService - vCenter Discovery', () => {
     service = module.get<VmwareDiscoveryService>(VmwareDiscoveryService);
     vmwareService = module.get(VmwareService);
     discoveryGateway = module.get(VmwareDiscoveryGateway);
-    serverRepository = module.get('ServerRepositoryInterface');
     saveDiscoveredVmsUseCase = module.get(SaveDiscoveredVmsUseCase);
     discoverySessionService = module.get(DiscoverySessionService);
   });

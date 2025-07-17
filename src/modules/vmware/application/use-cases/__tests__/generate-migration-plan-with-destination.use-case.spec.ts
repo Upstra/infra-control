@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import {
   GenerateMigrationPlanWithDestinationUseCase,
@@ -13,11 +12,6 @@ import { YamlConfigService } from '@/core/services/yaml-config/application/yaml-
 
 describe('GenerateMigrationPlanWithDestinationUseCase', () => {
   let useCase: GenerateMigrationPlanWithDestinationUseCase;
-  let serverRepository: Repository<Server>;
-  let vmRepository: Repository<Vm>;
-  let iloRepository: Repository<Ilo>;
-  let yamlConfigService: YamlConfigService;
-
   const mockServerRepository = {
     findOne: jest.fn(),
     findByIds: jest.fn(),
@@ -62,13 +56,6 @@ describe('GenerateMigrationPlanWithDestinationUseCase', () => {
     useCase = module.get<GenerateMigrationPlanWithDestinationUseCase>(
       GenerateMigrationPlanWithDestinationUseCase,
     );
-    serverRepository = module.get<Repository<Server>>(
-      getRepositoryToken(Server),
-    );
-    vmRepository = module.get<Repository<Vm>>(getRepositoryToken(Vm));
-    iloRepository = module.get<Repository<Ilo>>(getRepositoryToken(Ilo));
-    yamlConfigService = module.get<YamlConfigService>(YamlConfigService);
-
     jest.clearAllMocks();
   });
 

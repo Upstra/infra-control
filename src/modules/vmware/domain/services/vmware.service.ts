@@ -47,7 +47,6 @@ export class VmwareService implements IVmwareService {
     private readonly serverRepository: ServerRepositoryInterface,
   ) {}
 
-
   async listVMs(connection: VmwareConnectionDto): Promise<VmwareVm[]> {
     const args = this.buildConnectionArgs(connection);
 

@@ -78,7 +78,9 @@ export class EmailEventListener {
   @OnEvent(EmailEventType.VMWARE_SYNC_REPORT, { async: true })
   async handleVmwareSyncReport(payload: VmwareSyncReportEvent) {
     try {
-      this.logger.log(`Sending VMware sync report to ${payload.adminEmails.length} admins`);
+      this.logger.log(
+        `Sending VMware sync report to ${payload.adminEmails.length} admins`,
+      );
       await this.sendVmwareSyncReportEmail.execute(
         payload.adminEmails,
         payload.date,
@@ -90,10 +92,7 @@ export class EmailEventListener {
         payload.errors,
       );
     } catch (error) {
-      this.logger.error(
-        `Failed to send VMware sync report`,
-        error.stack,
-      );
+      this.logger.error(`Failed to send VMware sync report`, error.stack);
     }
   }
 }

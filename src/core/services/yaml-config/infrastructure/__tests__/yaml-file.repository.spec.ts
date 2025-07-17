@@ -8,7 +8,6 @@ jest.mock('fs/promises');
 
 describe('YamlFileRepository', () => {
   let repository: YamlFileRepository;
-  let configService: ConfigService;
 
   const mockConfigService = {
     get: jest.fn().mockReturnValue('/home/upstra/ups_manager'),
@@ -26,7 +25,6 @@ describe('YamlFileRepository', () => {
     }).compile();
 
     repository = module.get<YamlFileRepository>(YamlFileRepository);
-    configService = module.get<ConfigService>(ConfigService);
 
     jest.clearAllMocks();
   });

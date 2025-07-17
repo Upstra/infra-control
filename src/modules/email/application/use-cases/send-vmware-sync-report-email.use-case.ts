@@ -21,7 +21,7 @@ export class SendVmwareSyncReportEmailUseCase {
     vmsUpdated: number,
     errors: string[],
   ): Promise<void> {
-    const sendPromises = adminEmails.map(email => {
+    const sendPromises = adminEmails.map((email) => {
       const dto = new SendEmailDto();
       dto.to = EmailAddressVO.create(email);
       dto.subject = 'VMware Sync Report - Errors Detected';

@@ -11,16 +11,13 @@ export class GetMigrationDestinationsUseCase {
     yamlPath: string;
   }> {
     try {
-      // Lire le fichier YAML actuel
       const migrationPlan =
         await this.yamlConfigService.readMigrationPlan('migration.yml');
 
       const destinations: MigrationDestinationResponseDto[] = [];
-
-      // Parcourir les serveurs dans le plan YAML
       for (const serverConfig of migrationPlan.servers) {
         const sourceServer = {
-          id: '', // Le YAML ne contient pas l'ID, seulement le MOID
+          id: '',
           name: serverConfig.server.host.name,
           vmwareHostMoid: serverConfig.server.host.moid,
         };
@@ -29,10 +26,9 @@ export class GetMigrationDestinationsUseCase {
           sourceServer,
         };
 
-        // Si le serveur a une destination configurée
         if (serverConfig.server.destination) {
           destinationInfo.destinationServer = {
-            id: '', // Le YAML ne contient pas l'ID, seulement le MOID
+            id: '',
             name: serverConfig.server.destination.name,
             vmwareHostMoid: serverConfig.server.destination.moid,
           };
@@ -45,8 +41,7 @@ export class GetMigrationDestinationsUseCase {
         destinations,
         yamlPath: '/home/upstra/ups_manager/plans/migration.yml',
       };
-    } catch (error) {
-      // Si le fichier n'existe pas, retourner une liste vide
+    } catch {
       return {
         destinations: [],
         yamlPath: '/home/upstra/ups_manager/plans/migration.yml',

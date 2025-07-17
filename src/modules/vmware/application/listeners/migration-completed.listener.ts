@@ -7,10 +7,9 @@ import { VmRepositoryInterface } from '@/modules/vms/domain/interfaces/vm.reposi
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
-import { 
-  VmUpdateResult, 
-  VmUpdateResponse, 
-  VmUpdateBatchResults 
+import {
+  VmUpdateResponse,
+  VmUpdateBatchResults,
 } from '../../domain/interfaces/vm-update.interface';
 
 @Injectable()
@@ -85,10 +84,7 @@ export class MigrationCompletedListener {
 
       for (const vmMoid of vmMoids) {
         try {
-          const result = await this.updateSingleVm(
-            vmMoid,
-            allVms,
-          );
+          const result = await this.updateSingleVm(vmMoid, allVms);
           if (result) {
             updateResults[result.status].push(result.data);
           }
@@ -127,10 +123,10 @@ export class MigrationCompletedListener {
       this.logger.warn(`VM ${vmMoid} not found in database`);
       return {
         status: 'failed',
-        data: { 
-          vmMoid, 
+        data: {
+          vmMoid,
           vmName: 'unknown',
-          error: 'VM not found in database' 
+          error: 'VM not found in database',
         },
       };
     }
@@ -156,10 +152,10 @@ export class MigrationCompletedListener {
       );
       return {
         status: 'failed',
-        data: { 
-          vmMoid, 
-          vmName: vm.name, 
-          error: 'VM not found in vCenter' 
+        data: {
+          vmMoid,
+          vmName: vm.name,
+          error: 'VM not found in vCenter',
         },
       };
     }

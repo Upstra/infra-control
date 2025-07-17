@@ -19,8 +19,6 @@ import {
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
 import { RoleGuard } from '@/core/guards/role.guard';
 import { RequireRole } from '@/core/decorators/role.decorator';
-import { CurrentUser } from '@/core/decorators/current-user.decorator';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import {
   UseLoggingContext,
   LogToHistory,
@@ -69,9 +67,7 @@ export class MigrationDestinationsController {
     entityType: 'migration-destination',
     action: 'LIST',
   })
-  async getMigrationDestinationsList(
-    @CurrentUser() user: JwtPayload,
-  ): Promise<MigrationDestinationsResponseDto> {
+  async getMigrationDestinationsList(): Promise<MigrationDestinationsResponseDto> {
     return this.getMigrationDestinations.execute();
   }
 
@@ -95,7 +91,7 @@ export class MigrationDestinationsController {
     description: 'Forbidden - Admin privileges required',
   })
   @LogToHistory('migration-destination', 'SET', {
-    extractEntityId: (data) => 'destinations',
+    extractEntityId: () => 'destinations',
     extractMetadata: (data) => ({
       destinationsCount: data.destinations.length,
       destinations: data.destinations,
@@ -103,7 +99,6 @@ export class MigrationDestinationsController {
   })
   async setMigrationDestinations(
     @Body() dto: SetMigrationDestinationsDto,
-    @CurrentUser() user: JwtPayload,
   ): Promise<SetDestinationsResponseDto> {
     await this.generateMigrationPlanWithDestination.execute(dto.destinations);
 
@@ -146,7 +141,6 @@ export class MigrationDestinationsController {
   })
   async removeMigrationDestination(
     @Param('sourceServerId') sourceServerId: string,
-    @CurrentUser() user: JwtPayload,
   ): Promise<RemoveDestinationResponseDto> {
     await this.removeMigrationDestinationUseCase.execute(sourceServerId);
 
@@ -175,9 +169,7 @@ export class MigrationDestinationsController {
     entityType: 'migration-vms',
     action: 'LIST',
   })
-  async getVmsForMigration(
-    @CurrentUser() user: JwtPayload,
-  ): Promise<VmsForMigrationResponseDto> {
+  async getVmsForMigration(): Promise<VmsForMigrationResponseDto> {
     return this.getVmsForMigrationUseCase.execute();
   }
 }

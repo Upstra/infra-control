@@ -169,7 +169,6 @@ describe('MigrationGateway', () => {
         message: 'Le token fourni est invalide ou manquant',
       });
     });
-
   });
 
   describe('handleRestartMigration', () => {

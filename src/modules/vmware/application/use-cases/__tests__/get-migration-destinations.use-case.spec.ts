@@ -5,7 +5,6 @@ import { MigrationPlanConfig } from '@/core/services/yaml-config/domain/interfac
 
 describe('GetMigrationDestinationsUseCase', () => {
   let useCase: GetMigrationDestinationsUseCase;
-  let yamlConfigService: YamlConfigService;
 
   const mockYamlConfigService = {
     readMigrationPlan: jest.fn(),
@@ -25,8 +24,6 @@ describe('GetMigrationDestinationsUseCase', () => {
     useCase = module.get<GetMigrationDestinationsUseCase>(
       GetMigrationDestinationsUseCase,
     );
-    yamlConfigService = module.get<YamlConfigService>(YamlConfigService);
-
     jest.clearAllMocks();
   });
 

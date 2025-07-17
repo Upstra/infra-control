@@ -6,9 +6,7 @@ import { RedisSafeService } from '@/modules/redis/application/services/redis-saf
 
 describe('MigrationOrchestratorService - Event Mapping', () => {
   let service: MigrationOrchestratorService;
-  let pythonExecutor: jest.Mocked<PythonExecutorService>;
   let redis: jest.Mocked<RedisSafeService>;
-  let eventEmitter: jest.Mocked<EventEmitter2>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -42,9 +40,7 @@ describe('MigrationOrchestratorService - Event Mapping', () => {
     service = module.get<MigrationOrchestratorService>(
       MigrationOrchestratorService,
     );
-    pythonExecutor = module.get(PythonExecutorService);
     redis = module.get(RedisSafeService);
-    eventEmitter = module.get(EventEmitter2);
   });
 
   describe('VMware Event Mapping', () => {

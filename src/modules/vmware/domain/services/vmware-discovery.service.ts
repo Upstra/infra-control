@@ -10,7 +10,6 @@ import {
   DiscoveredVmDto,
   DiscoveryStatus,
 } from '../../application/dto';
-import { VmwareConnectionDto } from '../../application/dto/vmware-connection.dto';
 import { SaveDiscoveredVmsUseCase } from '../../application/use-cases/save-discovered-vms.use-case';
 import { DiscoverySessionService } from './discovery-session.service';
 
@@ -187,7 +186,8 @@ export class VmwareDiscoveryService {
         `Discovering VMs from server: ${server.name} (${server.ip})`,
       );
 
-      const connection = this.vmwareConnectionService.buildVmwareConnection(server);
+      const connection =
+        this.vmwareConnectionService.buildVmwareConnection(server);
 
       const vmwareVms = await this.vmwareService.listVMs(connection);
 
@@ -315,7 +315,8 @@ export class VmwareDiscoveryService {
         totalServers: 1,
       });
 
-      const connection = this.vmwareConnectionService.buildVmwareConnection(vCenterServer);
+      const connection =
+        this.vmwareConnectionService.buildVmwareConnection(vCenterServer);
       const allVms = await this.vmwareService.listVMs(connection);
       this.logger.log(`vCenter returned ${allVms.length} VMs total`);
 

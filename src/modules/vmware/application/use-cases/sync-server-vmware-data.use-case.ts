@@ -14,7 +14,9 @@ export class SyncServerVmwareDataUseCase {
     private readonly serverRepository: Repository<Server>,
   ) {}
 
-  async execute(params: { serverId?: string; fullSync?: boolean } | VmwareConnectionDto): Promise<{
+  async execute(
+    params: { serverId?: string; fullSync?: boolean } | VmwareConnectionDto,
+  ): Promise<{
     synchronized?: number;
     discovered?: VmwareServer[];
     notFound?: string[];

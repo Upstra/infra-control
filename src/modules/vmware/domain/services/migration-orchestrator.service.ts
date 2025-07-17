@@ -127,8 +127,7 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
         const events = await this.getEvents();
 
         const successfulVmEvents = events.filter(
-          (e) =>
-            e.type === 'vm_migration' && e.success && e.vmMoid,
+          (e) => e.type === 'vm_migration' && e.success && e.vmMoid,
         );
 
         const successfulVmMoids = successfulVmEvents.map((e) => e.vmMoid!);

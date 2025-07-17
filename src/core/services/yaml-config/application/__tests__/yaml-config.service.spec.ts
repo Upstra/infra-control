@@ -13,9 +13,6 @@ import { Server } from '@/modules/servers/domain/entities/server.entity';
 
 describe('YamlConfigService', () => {
   let service: YamlConfigService;
-  let yamlParserService: YamlParserService;
-  let planBuilderService: MigrationPlanBuilderService;
-  let fileRepository: YamlFileRepository;
 
   const mockYamlParserService = {
     generateYaml: jest.fn(),
@@ -53,11 +50,6 @@ describe('YamlConfigService', () => {
     }).compile();
 
     service = module.get<YamlConfigService>(YamlConfigService);
-    yamlParserService = module.get<YamlParserService>(YamlParserService);
-    planBuilderService = module.get<MigrationPlanBuilderService>(
-      MigrationPlanBuilderService,
-    );
-    fileRepository = module.get<YamlFileRepository>(YamlFileRepository);
 
     jest.clearAllMocks();
   });

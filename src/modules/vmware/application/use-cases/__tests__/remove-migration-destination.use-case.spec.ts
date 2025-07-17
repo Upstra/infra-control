@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { RemoveMigrationDestinationUseCase } from '../remove-migration-destination.use-case';
 import { Server } from '../../../../servers/domain/entities/server.entity';
@@ -10,11 +9,6 @@ import { YamlConfigService } from '@/core/services/yaml-config/application/yaml-
 
 describe('RemoveMigrationDestinationUseCase', () => {
   let useCase: RemoveMigrationDestinationUseCase;
-  let serverRepository: Repository<Server>;
-  let vmRepository: Repository<Vm>;
-  let iloRepository: Repository<Ilo>;
-  let yamlConfigService: YamlConfigService;
-
   const mockServerRepository = {
     findOne: jest.fn(),
     find: jest.fn(),
@@ -59,12 +53,6 @@ describe('RemoveMigrationDestinationUseCase', () => {
     useCase = module.get<RemoveMigrationDestinationUseCase>(
       RemoveMigrationDestinationUseCase,
     );
-    serverRepository = module.get<Repository<Server>>(
-      getRepositoryToken(Server),
-    );
-    vmRepository = module.get<Repository<Vm>>(getRepositoryToken(Vm));
-    iloRepository = module.get<Repository<Ilo>>(getRepositoryToken(Ilo));
-    yamlConfigService = module.get<YamlConfigService>(YamlConfigService);
 
     jest.clearAllMocks();
   });
