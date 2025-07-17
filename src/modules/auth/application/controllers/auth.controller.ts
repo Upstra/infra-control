@@ -64,14 +64,18 @@ export class AuthController {
 
     return this.loginUseCase
       .execute(dto, requestContext)
-      .then(({ accessToken, refreshToken }) => {
-        res.cookie('refreshToken', refreshToken, {
+      .then((response) => {
+        if (response.requiresTwoFactor) {
+          return response;
+        }
+        
+        res.cookie('refreshToken', response.refreshToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'strict',
           path: '/auth/refresh',
         });
-        return { accessToken };
+        return { accessToken: response.accessToken };
       });
   }
 
