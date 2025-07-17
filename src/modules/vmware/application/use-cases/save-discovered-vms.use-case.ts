@@ -75,6 +75,7 @@ export class SaveDiscoveredVmsUseCase {
               existingVm.numCPU = discoveredVm.numCpu || existingVm.numCPU;
               existingVm.esxiHostMoid =
                 discoveredVm.esxiHostMoid || existingVm.esxiHostMoid;
+              existingVm.lastSyncAt = new Date();
 
               const updatedVm = await this.vmRepository.save(existingVm);
               result.savedVms.push(updatedVm);
@@ -106,6 +107,7 @@ export class SaveDiscoveredVmsUseCase {
           };
 
           const vmEntity = this.vmDomainService.createVmEntity(vmCreationDto);
+          vmEntity.lastSyncAt = new Date();
           const savedVm = await this.vmRepository.save(vmEntity);
 
           result.savedVms.push(savedVm);

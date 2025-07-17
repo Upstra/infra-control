@@ -7,6 +7,11 @@ import { VmRepositoryInterface } from '@/modules/vms/domain/interfaces/vm.reposi
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
+import { 
+  VmUpdateResult, 
+  VmUpdateResponse, 
+  VmUpdateBatchResults 
+} from '../../domain/interfaces/vm-update.interface';
 
 @Injectable()
 export class MigrationCompletedListener {
@@ -58,15 +63,10 @@ export class MigrationCompletedListener {
       return;
     }
 
-    const updateResults = {
-      successful: [] as Array<{
-        vmMoid: string;
-        vmName: string;
-        oldHost: string;
-        newHost: string;
-      }>,
-      failed: [] as Array<{ vmMoid: string; vmName?: string; error: string }>,
-      unchanged: [] as Array<{ vmMoid: string; vmName: string; host: string }>,
+    const updateResults: VmUpdateBatchResults = {
+      successful: [],
+      failed: [],
+      unchanged: [],
     };
 
     try {
@@ -88,7 +88,6 @@ export class MigrationCompletedListener {
           const result = await this.updateSingleVm(
             vmMoid,
             allVms,
-            vCenterServer,
           );
           if (result) {
             updateResults[result.status].push(result.data);
@@ -97,6 +96,7 @@ export class MigrationCompletedListener {
           this.logger.error(`Failed to update VM ${vmMoid}:`, error);
           updateResults.failed.push({
             vmMoid,
+            vmName: 'unknown',
             error: error.message,
           });
         }
@@ -107,6 +107,7 @@ export class MigrationCompletedListener {
       for (const vmMoid of vmMoids) {
         updateResults.failed.push({
           vmMoid,
+          vmName: 'unknown',
           error: `vCenter connection failed: ${vmwareError.message}`,
         });
       }
@@ -120,17 +121,31 @@ export class MigrationCompletedListener {
   private async updateSingleVm(
     vmMoid: string,
     allVms: any[],
-    vCenterServer?: Server,
-  ): Promise<{
-    status: 'successful' | 'failed' | 'unchanged';
-    data: any;
-  } | null> {
+  ): Promise<VmUpdateResponse | null> {
     const vm = await this.vmRepository.findOne({ where: { moid: vmMoid } });
     if (!vm) {
       this.logger.warn(`VM ${vmMoid} not found in database`);
       return {
         status: 'failed',
-        data: { vmMoid, error: 'VM not found in database' },
+        data: { 
+          vmMoid, 
+          vmName: 'unknown',
+          error: 'VM not found in database' 
+        },
+      };
+    }
+
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    if (vm.lastSyncAt && vm.lastSyncAt > fiveMinutesAgo) {
+      this.logger.debug(`VM ${vmMoid} recently synced, skipping`);
+      return {
+        status: 'unchanged',
+        data: {
+          vmMoid,
+          vmName: vm.name,
+          host: vm.esxiHostMoid,
+          reason: 'recently_synced',
+        },
       };
     }
 
@@ -141,7 +156,11 @@ export class MigrationCompletedListener {
       );
       return {
         status: 'failed',
-        data: { vmMoid, vmName: vm.name, error: 'VM not found in vCenter' },
+        data: { 
+          vmMoid, 
+          vmName: vm.name, 
+          error: 'VM not found in vCenter' 
+        },
       };
     }
 
@@ -151,6 +170,7 @@ export class MigrationCompletedListener {
       const oldHostMoid = vm.esxiHostMoid;
 
       vm.esxiHostMoid = newHostMoid;
+      vm.lastSyncAt = new Date();
       await this.vmRepository.save(vm);
 
       this.logger.log(
@@ -167,6 +187,10 @@ export class MigrationCompletedListener {
         },
       };
     } else {
+      // Mettre à jour le timestamp même si pas de changement d'hôte
+      vm.lastSyncAt = new Date();
+      await this.vmRepository.save(vm);
+
       this.logger.debug(`VM ${vm.name} already on correct host ${newHostMoid}`);
       return {
         status: 'unchanged',
@@ -190,16 +214,7 @@ export class MigrationCompletedListener {
   }
 
   private async logBatchUpdateResults(
-    results: {
-      successful: Array<{
-        vmMoid: string;
-        vmName: string;
-        oldHost: string;
-        newHost: string;
-      }>;
-      failed: Array<{ vmMoid: string; vmName?: string; error: string }>;
-      unchanged: Array<{ vmMoid: string; vmName: string; host: string }>;
-    },
+    results: VmUpdateBatchResults,
     userId: string,
     vCenterServer?: Server,
   ): Promise<void> {

@@ -23,7 +23,7 @@ import { join } from 'path';
         template: {
           dir: join(
             process.cwd(),
-            'dist/modules/email/infrastructures/templates',
+            'dist/modules/email/infrastructure/templates',
           ),
           adapter: new HandlebarsAdapter(),
           options: {

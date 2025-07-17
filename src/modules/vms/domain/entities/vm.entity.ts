@@ -117,4 +117,8 @@ export class Vm extends BaseEntity {
   @ApiProperty({ type: () => PermissionVm, isArray: true })
   @OneToMany(() => PermissionVm, (permission) => permission.vm)
   permissions: PermissionVm[];
+
+  @ApiProperty()
+  @Column({ type: 'timestamp', nullable: true })
+  lastSyncAt?: Date;
 }
