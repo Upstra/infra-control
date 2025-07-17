@@ -13,7 +13,11 @@ export class GetVmMetricsUseCase {
     private readonly serverRepository: Repository<Server>,
   ) {}
 
-  async execute(serverId: string, moid: string): Promise<VmwareVmMetrics> {
+  async execute(
+    serverId: string,
+    moid: string,
+    force = false,
+  ): Promise<VmwareVmMetrics> {
     const server = await this.serverRepository.findOne({
       where: { id: serverId },
     });
@@ -29,6 +33,6 @@ export class GetVmMetricsUseCase {
       port: 443,
     };
 
-    return await this.vmwareService.getVMMetrics(moid, connection);
+    return await this.vmwareService.getVMMetrics(moid, connection, force);
   }
 }
