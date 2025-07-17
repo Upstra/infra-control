@@ -56,12 +56,8 @@ export class GetUserServersUseCase {
       return new ServerListResponseDto([], 0, page, limit);
     }
 
-    this.logger.debug(`User ${userId} has roleIds ${roleIds.join(',')}`);
-
     const isAdmin = user?.roles?.some((role) => role.isAdmin) ?? false;
     if (isAdmin) {
-      this.logger.debug(`User ${userId} is admin, returning all servers`);
-
       try {
         const servers = await this.serverRepo.findAll();
         const totalCount = servers.length;

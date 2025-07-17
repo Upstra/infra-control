@@ -66,7 +66,6 @@ export class RenewTokenUseCase {
         throw error;
       }
 
-      // Check if it's a JWT format error
       if (
         error.name === 'JsonWebTokenError' ||
         error.message?.includes('malformed')
@@ -74,7 +73,6 @@ export class RenewTokenUseCase {
         throw new InvalidTokenException('Malformed refresh token');
       }
 
-      // For other errors (like TokenExpiredError), return 401
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
   }

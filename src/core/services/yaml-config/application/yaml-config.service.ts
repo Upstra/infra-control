@@ -25,7 +25,10 @@ export class YamlConfigService implements IYamlConfigService {
   async generateMigrationPlan(
     servers: Server[],
     vms: Vm[],
-    ilos: Map<string, Ilo>,
+    ilos: Map<
+      string,
+      Ilo | { id: string; ip: string; login: string; password: string }
+    >,
     vCenterConfig: { ip: string; user: string; password: string },
     upsConfig: UpsConfig,
     destinationServers?: Map<string, Server>,

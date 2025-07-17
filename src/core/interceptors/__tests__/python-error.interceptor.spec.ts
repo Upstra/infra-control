@@ -1,4 +1,4 @@
-import { PythonErrorInterceptor } from './python-error.interceptor';
+import { PythonErrorInterceptor } from '../python-error.interceptor';
 import { ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 

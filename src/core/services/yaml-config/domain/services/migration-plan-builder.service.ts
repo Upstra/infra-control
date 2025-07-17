@@ -15,7 +15,10 @@ export class MigrationPlanBuilderService {
   buildMigrationPlan(
     servers: Server[],
     vms: Vm[],
-    ilos: Map<string, Ilo>,
+    ilos: Map<
+      string,
+      Ilo | { id: string; ip: string; login: string; password: string }
+    >,
     vCenterConfig: VCenterConfig,
     upsConfig: UpsConfig,
     destinationServers?: Map<string, Server>,
@@ -38,7 +41,10 @@ export class MigrationPlanBuilderService {
   private buildServerConfig(
     server: Server,
     vms: Vm[],
-    ilos: Map<string, Ilo>,
+    ilos: Map<
+      string,
+      Ilo | { id: string; ip: string; login: string; password: string }
+    >,
     destinationServers?: Map<string, Server>,
   ): ServerMigrationConfig {
     const serverVms = this.getServerVms(server, vms);
@@ -91,9 +97,21 @@ export class MigrationPlanBuilderService {
 
   private getServerIlo(
     server: Server | undefined,
-    ilos: Map<string, Ilo>,
-  ): Ilo | null {
+    ilos: Map<
+      string,
+      Ilo | { id: string; ip: string; login: string; password: string }
+    >,
+  ): { id: string; ip: string; login: string; password: string } | null {
     if (!server?.iloId) return null;
-    return ilos.get(server.iloId) || null;
+    const ilo = ilos.get(server.iloId);
+    if (!ilo) return null;
+
+    // Return a normalized object whether it's an Ilo entity or plain object
+    return {
+      id: ilo.id,
+      ip: ilo.ip,
+      login: ilo.login,
+      password: ilo.password,
+    };
   }
 }

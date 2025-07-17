@@ -8,6 +8,7 @@ import {
 import { Server } from '../../../../servers/domain/entities/server.entity';
 import { Vm } from '../../../../vms/domain/entities/vm.entity';
 import { Ilo } from '../../../../ilos/domain/entities/ilo.entity';
+import { Ups } from '../../../../ups/domain/entities/ups.entity';
 import { YamlConfigService } from '@/core/services/yaml-config/application/yaml-config.service';
 
 describe('GenerateMigrationPlanWithDestinationUseCase', () => {
@@ -15,6 +16,8 @@ describe('GenerateMigrationPlanWithDestinationUseCase', () => {
   const mockServerRepository = {
     findOne: jest.fn(),
     findByIds: jest.fn(),
+    find: jest.fn(),
+    createQueryBuilder: jest.fn(),
   };
 
   const mockVmRepository = {
@@ -23,7 +26,10 @@ describe('GenerateMigrationPlanWithDestinationUseCase', () => {
 
   const mockIloRepository = {
     find: jest.fn(),
+    createQueryBuilder: jest.fn(),
   };
+
+  const mockUpsRepository = {};
 
   const mockYamlConfigService = {
     generateMigrationPlan: jest.fn(),
@@ -45,6 +51,10 @@ describe('GenerateMigrationPlanWithDestinationUseCase', () => {
         {
           provide: getRepositoryToken(Ilo),
           useValue: mockIloRepository,
+        },
+        {
+          provide: getRepositoryToken(Ups),
+          useValue: mockUpsRepository,
         },
         {
           provide: YamlConfigService,

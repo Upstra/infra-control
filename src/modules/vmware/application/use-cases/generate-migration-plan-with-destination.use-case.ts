@@ -36,15 +36,14 @@ export class GenerateMigrationPlanWithDestinationUseCase {
 
     const vCenterServer = await this.serverRepository
       .createQueryBuilder('server')
-      .addSelect('server.password')
       .where('server.type = :type', { type: 'vcenter' })
-      .getOne();
+      .getRawOne();
 
     if (!vCenterServer) {
       throw new NotFoundException('vCenter server not found in database');
     }
 
-    if (!vCenterServer.password) {
+    if (!vCenterServer.server_password) {
       throw new NotFoundException(
         'vCenter server password not found. Please ensure the vCenter server has a password configured.',
       );
@@ -84,13 +83,28 @@ export class GenerateMigrationPlanWithDestinationUseCase {
       order: { serverId: 'ASC', priority: 'ASC' },
     });
 
-    const ilos = await this.iloRepository.find();
-    const iloMap = new Map(ilos.map((ilo) => [ilo.id, ilo]));
+    const ilosRaw = await this.iloRepository
+      .createQueryBuilder('ilo')
+      .select(['ilo.id', 'ilo.ip', 'ilo.login'])
+      .addSelect('ilo.password')
+      .getRawMany();
+
+    const iloMap = new Map(
+      ilosRaw.map((ilo) => [
+        ilo.ilo_id,
+        {
+          id: ilo.ilo_id,
+          ip: ilo.ilo_ip,
+          login: ilo.ilo_login,
+          password: ilo.ilo_password,
+        },
+      ]),
+    );
 
     const vCenterConfig = {
-      ip: vCenterServer.ip,
-      user: vCenterServer.login,
-      password: vCenterServer.password,
+      ip: vCenterServer.server_ip,
+      user: vCenterServer.server_login,
+      password: vCenterServer.server_password,
     };
 
     const serverWithUps = sourceServers.find((server) => server.ups);

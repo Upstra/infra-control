@@ -1,8 +1,8 @@
 import { CallHandler, ExecutionContext } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { of } from 'rxjs';
-import { ActiveUserInterceptor } from './active-user.interceptor';
-import { InactiveUserException } from '../exceptions/inactive-user.exception';
+import { ActiveUserInterceptor } from '../active-user.interceptor';
+import { InactiveUserException } from '../../exceptions/inactive-user.exception';
 
 describe('ActiveUserInterceptor', () => {
   let interceptor: ActiveUserInterceptor;
