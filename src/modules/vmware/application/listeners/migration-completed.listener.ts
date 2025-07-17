@@ -6,6 +6,7 @@ import { VmwareConnectionService } from '../../domain/services/vmware-connection
 import { VmRepositoryInterface } from '@/modules/vms/domain/interfaces/vm.repository.interface';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
+import { Server } from '@/modules/servers/domain/entities/server.entity';
 
 @Injectable()
 export class MigrationCompletedListener {
@@ -57,8 +58,18 @@ export class MigrationCompletedListener {
       return;
     }
 
+    const updateResults = {
+      successful: [] as Array<{
+        vmMoid: string;
+        vmName: string;
+        oldHost: string;
+        newHost: string;
+      }>,
+      failed: [] as Array<{ vmMoid: string; vmName?: string; error: string }>,
+      unchanged: [] as Array<{ vmMoid: string; vmName: string; host: string }>,
+    };
+
     try {
-      // UNE SEULE requête pour récupérer toutes les VMs du vCenter
       const connection =
         this.vmwareConnectionService.buildVmwareConnection(vCenterServer);
       const allVms = await this.vmwareService.listVMs(connection);
@@ -72,36 +83,55 @@ export class MigrationCompletedListener {
         `Retrieved ${allVms.length} VMs from vCenter, processing ${vmMoids.length} migrated VMs`,
       );
 
-      // Mettre à jour chaque VM migrée
       for (const vmMoid of vmMoids) {
         try {
-          await this.updateSingleVm(vmMoid, allVms, userId, vCenterServer);
+          const result = await this.updateSingleVm(
+            vmMoid,
+            allVms,
+            vCenterServer,
+          );
+          if (result) {
+            updateResults[result.status].push(result.data);
+          }
         } catch (error) {
           this.logger.error(`Failed to update VM ${vmMoid}:`, error);
+          updateResults.failed.push({
+            vmMoid,
+            error: error.message,
+          });
         }
       }
     } catch (vmwareError) {
       this.logger.error('Failed to connect to vCenter:', vmwareError);
 
-      // Log l'erreur pour toutes les VMs
-      if (userId) {
-        for (const vmMoid of vmMoids) {
-          await this.logVmUpdateError(vmMoid, vmwareError, userId);
-        }
+      for (const vmMoid of vmMoids) {
+        updateResults.failed.push({
+          vmMoid,
+          error: `vCenter connection failed: ${vmwareError.message}`,
+        });
       }
+    }
+
+    if (userId) {
+      await this.logBatchUpdateResults(updateResults, userId, vCenterServer);
     }
   }
 
   private async updateSingleVm(
     vmMoid: string,
     allVms: any[],
-    userId?: string,
-    vCenterServer?: any,
-  ): Promise<void> {
+    vCenterServer?: Server,
+  ): Promise<{
+    status: 'successful' | 'failed' | 'unchanged';
+    data: any;
+  } | null> {
     const vm = await this.vmRepository.findOne({ where: { moid: vmMoid } });
     if (!vm) {
       this.logger.warn(`VM ${vmMoid} not found in database`);
-      return;
+      return {
+        status: 'failed',
+        data: { vmMoid, error: 'VM not found in database' },
+      };
     }
 
     const vmInfo = allVms.find((v) => v.moid === vmMoid);
@@ -109,7 +139,10 @@ export class MigrationCompletedListener {
       this.logger.warn(
         `VM ${vmMoid} not found in vCenter among ${allVms.length} VMs`,
       );
-      return;
+      return {
+        status: 'failed',
+        data: { vmMoid, vmName: vm.name, error: 'VM not found in vCenter' },
+      };
     }
 
     const newHostMoid = vmInfo.esxiHostMoid;
@@ -124,28 +157,29 @@ export class MigrationCompletedListener {
         `Updated VM ${vm.name} from host ${oldHostMoid} to ${newHostMoid}`,
       );
 
-      if (userId) {
-        await this.logHistory.executeStructured({
-          entity: 'vm',
-          entityId: vm.id,
-          action: 'UPDATE_HOST',
-          userId,
-          oldValue: { esxiHostMoid: oldHostMoid },
-          newValue: { esxiHostMoid: newHostMoid },
-          metadata: {
-            reason: 'migration_completed',
-            vmName: vm.name,
-            vmMoid: vmMoid,
-            vCenterIp: vCenterServer?.ip,
-          },
-        });
-      }
+      return {
+        status: 'successful',
+        data: {
+          vmMoid,
+          vmName: vm.name,
+          oldHost: oldHostMoid || 'unknown',
+          newHost: newHostMoid,
+        },
+      };
     } else {
       this.logger.debug(`VM ${vm.name} already on correct host ${newHostMoid}`);
+      return {
+        status: 'unchanged',
+        data: {
+          vmMoid,
+          vmName: vm.name,
+          host: newHostMoid,
+        },
+      };
     }
   }
 
-  private async getVCenterServer(): Promise<any> {
+  private async getVCenterServer(): Promise<Server> {
     try {
       const servers = await this.serverRepository.findAll();
       return servers.find((server) => server.type === 'vcenter');
@@ -155,30 +189,51 @@ export class MigrationCompletedListener {
     }
   }
 
-  private async logVmUpdateError(
-    vmMoid: string,
-    error: any,
+  private async logBatchUpdateResults(
+    results: {
+      successful: Array<{
+        vmMoid: string;
+        vmName: string;
+        oldHost: string;
+        newHost: string;
+      }>;
+      failed: Array<{ vmMoid: string; vmName?: string; error: string }>;
+      unchanged: Array<{ vmMoid: string; vmName: string; host: string }>;
+    },
     userId: string,
+    vCenterServer?: Server,
   ): Promise<void> {
     try {
-      const vm = await this.vmRepository.findOne({ where: { moid: vmMoid } });
-      if (vm) {
-        await this.logHistory.executeStructured({
-          entity: 'vm',
-          entityId: vm.id,
-          action: 'MIGRATION_COMPLETED',
-          userId,
-          metadata: {
-            reason: 'migration_completed',
-            vmName: vm.name,
-            vmMoid: vmMoid,
-            note: 'Could not verify new host - will update on next sync',
-            error: error.message,
+      const totalVms =
+        results.successful.length +
+        results.failed.length +
+        results.unchanged.length;
+
+      await this.logHistory.executeStructured({
+        entity: 'migration',
+        entityId: `batch-update-${Date.now()}`,
+        action: 'BATCH_VM_HOST_UPDATE',
+        userId,
+        metadata: {
+          reason: 'migration_completed',
+          vCenterIp: vCenterServer?.ip,
+          summary: {
+            totalVms,
+            successful: results.successful.length,
+            failed: results.failed.length,
+            unchanged: results.unchanged.length,
           },
-        });
-      }
+          successful: results.successful,
+          failed: results.failed,
+          unchanged: results.unchanged,
+        },
+      });
+
+      this.logger.log(
+        `Batch VM update completed: ${results.successful.length} updated, ${results.unchanged.length} unchanged, ${results.failed.length} failed`,
+      );
     } catch (logError) {
-      this.logger.error(`Failed to log error for VM ${vmMoid}:`, logError);
+      this.logger.error('Failed to log batch update results:', logError);
     }
   }
 }
