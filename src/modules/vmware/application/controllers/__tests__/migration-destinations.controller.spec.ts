@@ -5,7 +5,6 @@ import { GetMigrationDestinationsUseCase } from '../../use-cases/get-migration-d
 import { RemoveMigrationDestinationUseCase } from '../../use-cases/remove-migration-destination.use-case';
 import { GetVmsForMigrationUseCase } from '../../use-cases/get-vms-for-migration.use-case';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { RoleGuard } from '@/core/guards/role.guard';
 import {
@@ -86,7 +85,6 @@ describe('MigrationDestinationsController', () => {
 
   describe('getMigrationDestinationsList', () => {
     it('should return migration destinations list', async () => {
-      const user: JwtPayload = { userId: 'user-1' } as JwtPayload;
       const expectedResponse = {
         destinations: [
           {
@@ -116,7 +114,6 @@ describe('MigrationDestinationsController', () => {
 
   describe('setMigrationDestinations', () => {
     it('should configure migration destinations successfully', async () => {
-      const user: JwtPayload = { userId: 'user-1' } as JwtPayload;
       const destinations: MigrationDestinationDto[] = [
         {
           sourceServerId: 'server-1',
@@ -143,7 +140,6 @@ describe('MigrationDestinationsController', () => {
 
   describe('removeMigrationDestination', () => {
     it('should remove migration destination successfully', async () => {
-      const user: JwtPayload = { userId: 'user-1' } as JwtPayload;
       const sourceServerId = 'server-1';
 
       mockRemoveMigrationDestination.execute.mockResolvedValue(undefined);
@@ -163,7 +159,6 @@ describe('MigrationDestinationsController', () => {
 
   describe('getVmsForMigration', () => {
     it('should return VMs grouped by servers for migration', async () => {
-      const user: JwtPayload = { userId: 'user-1' } as JwtPayload;
       const expectedResponse: VmsForMigrationResponseDto = {
         servers: [
           {
@@ -198,7 +193,6 @@ describe('MigrationDestinationsController', () => {
     });
 
     it('should handle empty VMs response', async () => {
-      const user: JwtPayload = { userId: 'user-1' } as JwtPayload;
       const expectedResponse: VmsForMigrationResponseDto = {
         servers: [],
         totalServers: 0,

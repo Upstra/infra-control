@@ -70,9 +70,18 @@ describe('RoomTypeormRepository', () => {
       const result = await repository.paginateForTree(1, 10);
 
       expect(typeOrmRepository.createQueryBuilder).toHaveBeenCalledWith('room');
-      expect(queryBuilder.leftJoinAndSelect).toHaveBeenCalledWith('room.servers', 'server');
-      expect(queryBuilder.leftJoinAndSelect).toHaveBeenCalledWith('server.vms', 'vm');
-      expect(queryBuilder.leftJoinAndSelect).toHaveBeenCalledWith('room.ups', 'ups');
+      expect(queryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+        'room.servers',
+        'server',
+      );
+      expect(queryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+        'server.vms',
+        'vm',
+      );
+      expect(queryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+        'room.ups',
+        'ups',
+      );
       expect(queryBuilder.select).toHaveBeenCalledWith([
         'room.id',
         'room.name',
@@ -84,7 +93,10 @@ describe('RoomTypeormRepository', () => {
         'ups.name',
       ]);
       expect(queryBuilder.orderBy).toHaveBeenCalledWith('room.name', 'ASC');
-      expect(queryBuilder.addOrderBy).toHaveBeenCalledWith('server.name', 'ASC');
+      expect(queryBuilder.addOrderBy).toHaveBeenCalledWith(
+        'server.name',
+        'ASC',
+      );
       expect(queryBuilder.addOrderBy).toHaveBeenCalledWith('vm.name', 'ASC');
       expect(queryBuilder.addOrderBy).toHaveBeenCalledWith('ups.name', 'ASC');
       expect(queryBuilder.skip).toHaveBeenCalledWith(0);

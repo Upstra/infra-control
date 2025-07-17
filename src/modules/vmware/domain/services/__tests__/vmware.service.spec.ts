@@ -187,7 +187,11 @@ describe('VmwareService', () => {
 
       vmwareCacheService.getVmMetrics.mockResolvedValue(cachedMetrics);
 
-      const result = await service.getVMMetrics('vm-123', mockConnection, false);
+      const result = await service.getVMMetrics(
+        'vm-123',
+        mockConnection,
+        false,
+      );
 
       expect(result).toEqual(cachedMetrics);
       expect(vmwareCacheService.getVmMetrics).toHaveBeenCalledWith('vm-123');
@@ -216,7 +220,11 @@ describe('VmwareService', () => {
       vmwareCacheService.getVmMetrics.mockResolvedValue(null);
       pythonExecutor.executePython.mockResolvedValue(mockMetrics);
 
-      const result = await service.getVMMetrics('vm-123', mockConnection, false);
+      const result = await service.getVMMetrics(
+        'vm-123',
+        mockConnection,
+        false,
+      );
 
       expect(result).toEqual(mockMetrics);
       expect(vmwareCacheService.getVmMetrics).toHaveBeenCalledWith('vm-123');
@@ -545,10 +553,16 @@ describe('VmwareService', () => {
 
       vmwareCacheService.getServerMetrics.mockResolvedValue(cachedMetrics);
 
-      const result = await service.getServerMetrics('host-123', mockConnection, false);
+      const result = await service.getServerMetrics(
+        'host-123',
+        mockConnection,
+        false,
+      );
 
       expect(result).toEqual(cachedMetrics);
-      expect(vmwareCacheService.getServerMetrics).toHaveBeenCalledWith('host-123');
+      expect(vmwareCacheService.getServerMetrics).toHaveBeenCalledWith(
+        'host-123',
+      );
       expect(pythonExecutor.executePython).not.toHaveBeenCalled();
     });
 
@@ -566,10 +580,16 @@ describe('VmwareService', () => {
       vmwareCacheService.getServerMetrics.mockResolvedValue(null);
       pythonExecutor.executePython.mockResolvedValue(mockServerMetrics);
 
-      const result = await service.getServerMetrics('host-123', mockConnection, false);
+      const result = await service.getServerMetrics(
+        'host-123',
+        mockConnection,
+        false,
+      );
 
       expect(result).toEqual(mockServerMetrics);
-      expect(vmwareCacheService.getServerMetrics).toHaveBeenCalledWith('host-123');
+      expect(vmwareCacheService.getServerMetrics).toHaveBeenCalledWith(
+        'host-123',
+      );
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(
         'server_metrics.sh',
         [
@@ -598,7 +618,11 @@ describe('VmwareService', () => {
 
       pythonExecutor.executePython.mockResolvedValue(mockServerMetrics);
 
-      const result = await service.getServerMetrics('host-123', mockConnection, true);
+      const result = await service.getServerMetrics(
+        'host-123',
+        mockConnection,
+        true,
+      );
 
       expect(result).toEqual(mockServerMetrics);
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(

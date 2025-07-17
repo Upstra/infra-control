@@ -143,15 +143,15 @@ describe('GetRoomTreeListUseCase', () => {
       const room1 = new Room();
       room1.id = 'room-1';
       room1.name = 'Data Center 1';
-      
+
       const server1 = new Server();
       server1.id = 'server-1';
       server1.name = 'ESXi Host 1';
-      
+
       const vm1 = new Vm();
       vm1.id = 'vm-1';
       vm1.name = 'Web Server';
-      
+
       server1.vms = [vm1];
       room1.servers = [server1];
       room1.ups = [];
@@ -160,11 +160,11 @@ describe('GetRoomTreeListUseCase', () => {
       room2.id = 'room-2';
       room2.name = 'Data Center 2';
       room2.servers = [];
-      
+
       const ups1 = new Ups();
       ups1.id = 'ups-1';
       ups1.name = 'Main UPS';
-      
+
       room2.ups = [ups1];
 
       roomRepository.paginateForTree.mockResolvedValue([[room1, room2], 2]);

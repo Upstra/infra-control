@@ -143,26 +143,26 @@ export class LoggingInterceptor implements NestInterceptor {
 
   private simplifyResult(data: any): any {
     if (!data) return undefined;
-    
+
     // If it's a simple value or has an id, return as is
     if (typeof data !== 'object' || data.id) {
       return data.id ?? data;
     }
-    
+
     // For arrays, just return count
     if (Array.isArray(data)) {
       return { count: data.length };
     }
-    
+
     // For objects with specific patterns, return summary
     if ('totalServers' in data && 'totalVms' in data) {
       return { totalServers: data.totalServers, totalVms: data.totalVms };
     }
-    
+
     if ('destinations' in data && Array.isArray(data.destinations)) {
       return { destinationCount: data.destinations.length };
     }
-    
+
     // For other objects, return just the keys
     return { keys: Object.keys(data) };
   }

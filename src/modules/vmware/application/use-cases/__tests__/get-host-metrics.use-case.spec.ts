@@ -100,7 +100,10 @@ describe('GetHostMetricsUseCase', () => {
     });
 
     it('should use default moid when vmwareHostMoid is null', async () => {
-      const serverWithoutMoid = { ...mockServer, vmwareHostMoid: null } as Server;
+      const serverWithoutMoid = {
+        ...mockServer,
+        vmwareHostMoid: null,
+      } as Server;
       serverRepository.findOne.mockResolvedValue(serverWithoutMoid);
       vmwareService.getServerMetrics.mockResolvedValue(mockMetrics);
 

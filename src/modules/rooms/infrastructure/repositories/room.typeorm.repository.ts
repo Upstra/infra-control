@@ -89,9 +89,12 @@ export class RoomTypeormRepository implements RoomRepositoryInterface {
     await this.repo.delete(id);
   }
 
-  async paginateForTree(page: number, limit: number): Promise<[Room[], number]> {
+  async paginateForTree(
+    page: number,
+    limit: number,
+  ): Promise<[Room[], number]> {
     const queryBuilder = this.repo.createQueryBuilder('room');
-    
+
     queryBuilder
       .leftJoinAndSelect('room.servers', 'server')
       .leftJoinAndSelect('server.vms', 'vm')
