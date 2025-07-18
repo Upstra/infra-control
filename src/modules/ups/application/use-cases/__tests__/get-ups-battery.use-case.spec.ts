@@ -10,7 +10,7 @@ import { UpsBatteryEvents } from '../../../domain/events/ups-battery.events';
 
 describe('GetUpsBatteryUseCase', () => {
   let useCase: GetUpsBatteryUseCase;
-  let pythonExecutor: jest.Mocked<PythonExecutorService>;
+  let pythonExecutor: PythonExecutorService;
   let eventEmitter: jest.Mocked<EventEmitter2>;
   let upsRepository: jest.Mocked<UpsRepository>;
   let upsBatteryDomainService: UpsBatteryDomainService;
@@ -64,10 +64,10 @@ describe('GetUpsBatteryUseCase', () => {
   describe('execute', () => {
     it('should return battery status for valid UPS with normal level', async () => {
       upsRepository.findById.mockResolvedValue(mockUps);
-      pythonExecutor.execute.mockResolvedValue({
+      jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
         status: 'success',
         output: '120',
-      });
+      } as any);
 
       const result = await useCase.execute(mockUps.id);
 
@@ -95,10 +95,10 @@ describe('GetUpsBatteryUseCase', () => {
 
     it('should emit alert event for low battery level', async () => {
       upsRepository.findById.mockResolvedValue(mockUps);
-      pythonExecutor.execute.mockResolvedValue({
+      jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
         status: 'success',
         output: '45',
-      });
+      } as any);
 
       const result = await useCase.execute(mockUps.id);
 
@@ -119,10 +119,10 @@ describe('GetUpsBatteryUseCase', () => {
 
     it('should emit alert event for warning battery level', async () => {
       upsRepository.findById.mockResolvedValue(mockUps);
-      pythonExecutor.execute.mockResolvedValue({
+      jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
         status: 'success',
         output: '25',
-      });
+      } as any);
 
       const result = await useCase.execute(mockUps.id);
 
@@ -139,10 +139,10 @@ describe('GetUpsBatteryUseCase', () => {
 
     it('should emit alert event for critical battery level', async () => {
       upsRepository.findById.mockResolvedValue(mockUps);
-      pythonExecutor.execute.mockResolvedValue({
+      jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
         status: 'success',
         output: '8',
-      });
+      } as any);
 
       const result = await useCase.execute(mockUps.id);
 
@@ -163,10 +163,10 @@ describe('GetUpsBatteryUseCase', () => {
 
     it('should throw BadRequestException for invalid battery value', async () => {
       upsRepository.findById.mockResolvedValue(mockUps);
-      pythonExecutor.execute.mockResolvedValue({
+      jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
         status: 'success',
         output: 'invalid',
-      });
+      } as any);
 
       await expect(useCase.execute(mockUps.id)).rejects.toThrow(
         BadRequestException
@@ -178,10 +178,10 @@ describe('GetUpsBatteryUseCase', () => {
 
     it('should throw BadRequestException when python script fails', async () => {
       upsRepository.findById.mockResolvedValue(mockUps);
-      pythonExecutor.execute.mockResolvedValue({
+      jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
         status: 'error',
         message: 'Script execution failed',
-      });
+      } as any);
 
       await expect(useCase.execute(mockUps.id)).rejects.toThrow(
         BadRequestException
@@ -205,10 +205,10 @@ describe('GetUpsBatteryUseCase', () => {
       ];
 
       for (const testCase of testCases) {
-        pythonExecutor.execute.mockResolvedValue({
+        jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
           status: 'success',
           output: testCase.minutes.toString(),
-        });
+        } as any);
 
         const result = await useCase.execute(mockUps.id);
         expect(result.alertLevel).toBe(testCase.expectedLevel);
@@ -217,10 +217,10 @@ describe('GetUpsBatteryUseCase', () => {
 
     it('should calculate hours remaining correctly', async () => {
       upsRepository.findById.mockResolvedValue(mockUps);
-      pythonExecutor.execute.mockResolvedValue({
+      jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
         status: 'success',
         output: '90',
-      });
+      } as any);
 
       const result = await useCase.execute(mockUps.id);
 
@@ -229,10 +229,10 @@ describe('GetUpsBatteryUseCase', () => {
 
     it('should handle empty output from python script', async () => {
       upsRepository.findById.mockResolvedValue(mockUps);
-      pythonExecutor.execute.mockResolvedValue({
+      jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
         status: 'success',
         output: '',
-      });
+      } as any);
 
       await expect(useCase.execute(mockUps.id)).rejects.toThrow(
         BadRequestException
@@ -241,10 +241,10 @@ describe('GetUpsBatteryUseCase', () => {
 
     it('should handle output with whitespace', async () => {
       upsRepository.findById.mockResolvedValue(mockUps);
-      pythonExecutor.execute.mockResolvedValue({
+      jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
         status: 'success',
         output: '  45  \n',
-      });
+      } as any);
 
       const result = await useCase.execute(mockUps.id);
 

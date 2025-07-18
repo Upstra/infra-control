@@ -7,8 +7,6 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { OnEvent } from '@nestjs/event-emitter';
-import { UseGuards } from '@nestjs/common';
-import { WsJwtGuard } from '@/modules/auth/infrastructure/guards/ws-jwt.guard';
 import { UpsBatteryEvents, UpsBatteryCheckedEvent, UpsBatteryAlertEvent } from '../../domain/events/ups-battery.events';
 
 @WebSocketGateway({
@@ -18,7 +16,6 @@ import { UpsBatteryEvents, UpsBatteryCheckedEvent, UpsBatteryAlertEvent } from '
     credentials: true,
   },
 })
-@UseGuards(WsJwtGuard)
 export class UpsGateway {
   @WebSocketServer()
   server: Server;
