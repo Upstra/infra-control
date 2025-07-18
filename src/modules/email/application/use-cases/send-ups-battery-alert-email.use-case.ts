@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MailService } from '../../domain/services/mail.service';
-import { SendEmailDto } from '../dtos/send-email.dto';
+import { SendEmailDto } from '../dto/send-email.dto';
+import { MAIL_SERVICE_TOKEN } from '../../domain/constants/injection-tokens';
 
 export interface SendUpsBatteryAlertEmailDto {
   upsName: string;
@@ -14,7 +15,7 @@ export interface SendUpsBatteryAlertEmailDto {
 @Injectable()
 export class SendUpsBatteryAlertEmailUseCase {
   constructor(
-    private mailService: MailService,
+    @Inject(MAIL_SERVICE_TOKEN) private mailService: MailService,
     private configService: ConfigService,
   ) {}
 
