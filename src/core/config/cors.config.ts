@@ -47,10 +47,23 @@ export const getHttpCorsOptions = (): CorsOptions => {
 };
 
 export const getWebSocketCorsOptions = () => {
+  const frontendUrl = process.env.FRONTEND_URL;
+  const baseOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:3000',
+  ];
+
+  if (frontendUrl && !baseOrigins.includes(frontendUrl)) {
+    baseOrigins.push(frontendUrl);
+  }
+
   return {
-    origin: process.env.NODE_ENV === 'production' 
-      ? [process.env.FRONTEND_URL ?? 'http://localhost']
-      : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000'],
+    origin:
+      process.env.NODE_ENV === 'production'
+        ? [frontendUrl ?? 'http://localhost']
+        : baseOrigins,
     credentials: true,
   };
 };
