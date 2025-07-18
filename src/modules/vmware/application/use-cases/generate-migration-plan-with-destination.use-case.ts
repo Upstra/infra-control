@@ -36,6 +36,7 @@ export class GenerateMigrationPlanWithDestinationUseCase {
 
     const vCenterServer = await this.serverRepository
       .createQueryBuilder('server')
+      .addSelect('server.password')
       .where('server.type = :type', { type: 'vcenter' })
       .getRawOne();
 
