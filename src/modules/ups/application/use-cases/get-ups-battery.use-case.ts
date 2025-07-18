@@ -3,16 +3,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PythonExecutorService } from '@core/services/python-executor';
 import { UpsRepository } from '../../domain/interfaces/ups.repository';
 import { UpsBatteryEvents } from '../../domain/events/ups-battery.events';
-
-export interface UPSBatteryStatusDto {
-  upsId: string;
-  ip: string;
-  minutesRemaining: number;
-  hoursRemaining: number;
-  alertLevel: 'normal' | 'low' | 'warning' | 'critical';
-  statusLabel: string;
-  timestamp: Date;
-}
+import { UPSBatteryStatusDto } from '../../domain/interfaces/ups-battery-status.interface';
 
 @Injectable()
 export class GetUpsBatteryUseCase {
