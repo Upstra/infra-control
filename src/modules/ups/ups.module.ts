@@ -1,7 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
-import { CacheModule } from '@nestjs/cache-manager';
 import { UpsController } from './application/controllers/ups.controller';
 import { UpsBatteryController } from './application/controllers/ups-battery.controller';
 import { Ups } from './domain/entities/ups.entity';
@@ -21,6 +20,7 @@ import { UpsBatteryAlertListener } from './infrastructure/listeners/ups-battery-
 import { UpsGateway } from './infrastructure/gateways/ups.gateway';
 import { UpsBatteryGateway } from './application/gateway/ups-battery.gateway';
 import { UpsBatteryCacheService } from './application/services/ups-battery-cache.service';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
   controllers: [UpsController, UpsBatteryController],
@@ -37,7 +37,7 @@ import { UpsBatteryCacheService } from './application/services/ups-battery-cache
     PingModule,
     PythonExecutorModule,
     ScheduleModule.forRoot(),
-    CacheModule.register(),
+    RedisModule,
   ],
   providers: [
     ...UpsUseCases,

@@ -90,11 +90,11 @@ export class IloPowerController {
   })
   @ApiOperation({ summary: 'Get server power status via iLO' })
   @ApiParam({ name: 'serverId', description: 'Server ID' })
-  @ApiQuery({ 
-    name: 'force', 
-    required: false, 
+  @ApiQuery({
+    name: 'force',
+    required: false,
     type: Boolean,
-    description: 'Force refresh metrics from vCenter instead of using cache'
+    description: 'Force refresh metrics from vCenter instead of using cache',
   })
   @ApiResponse({
     status: 200,

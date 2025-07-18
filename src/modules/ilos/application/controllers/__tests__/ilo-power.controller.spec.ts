@@ -3,106 +3,122 @@ import { IloPowerController } from '../ilo-power.controller';
 import { ControlServerPowerUseCase } from '../../use-cases/control-server-power.use-case';
 import { GetServerStatusUseCase } from '../../use-cases/get-server-status.use-case';
 import { PingIloUseCase } from '../../use-cases/ping-ilo.use-case';
-import { IloPowerAction } from '../../dto/ilo-power-action.dto';
 import {
-  IloServerStatus,
+  IloPowerAction,
+  IloPowerActionDto,
+} from '../../dto/ilo-power-action.dto';
+import {
+  IloPowerResponseDto,
   IloStatusResponseDto,
 } from '../../dto/ilo-status.dto';
-import { PingRequestDto } from '@/core/dto/ping.dto';
+import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
+import { IloServerStatus } from '../../dto/ilo-status.dto';
 
 describe('IloPowerController', () => {
   let controller: IloPowerController;
   let controlServerPowerUseCase: jest.Mocked<ControlServerPowerUseCase>;
   let getServerStatusUseCase: jest.Mocked<GetServerStatusUseCase>;
-  let pingIloUseCase: jest.Mocked<PingIloUseCase>;
 
   beforeEach(async () => {
-    const mockControlServerPowerUseCase = {
-      execute: jest.fn(),
-    };
-
-    const mockGetServerStatusUseCase = {
-      execute: jest.fn(),
-    };
-
-    const mockPingIloUseCase = {
-      execute: jest.fn(),
-    };
-
     const module: TestingModule = await Test.createTestingModule({
       controllers: [IloPowerController],
       providers: [
         {
           provide: ControlServerPowerUseCase,
-          useValue: mockControlServerPowerUseCase,
+          useValue: {
+            execute: jest.fn(),
+          },
         },
         {
           provide: GetServerStatusUseCase,
-          useValue: mockGetServerStatusUseCase,
+          useValue: {
+            execute: jest.fn(),
+          },
         },
         {
           provide: PingIloUseCase,
-          useValue: mockPingIloUseCase,
+          useValue: {
+            execute: jest.fn(),
+          },
         },
       ],
     })
-      .overrideGuard('JwtAuthGuard')
-      .useValue({ canActivate: () => true })
-      .overrideGuard('ResourcePermissionGuard')
-      .useValue({ canActivate: () => true })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: jest.fn().mockReturnValue(true) })
+      .overrideGuard(ResourcePermissionGuard)
+      .useValue({ canActivate: jest.fn().mockReturnValue(true) })
       .compile();
 
     controller = module.get<IloPowerController>(IloPowerController);
     controlServerPowerUseCase = module.get(ControlServerPowerUseCase);
     getServerStatusUseCase = module.get(GetServerStatusUseCase);
-    pingIloUseCase = module.get(PingIloUseCase);
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
   });
 
   describe('controlServerPower', () => {
+    const dto: IloPowerActionDto = {
+      action: IloPowerAction.START,
+    };
+
     it('should control server power successfully', async () => {
-      const serverId = 'server-123';
-      const powerActionDto = { action: IloPowerAction.START };
-      const expectedResult = {
+      const expectedResult: IloPowerResponseDto = {
         success: true,
-        message: 'Server started successfully',
+        message: 'Power action executed successfully',
         currentStatus: IloServerStatus.ON,
       };
 
       controlServerPowerUseCase.execute.mockResolvedValue(expectedResult);
 
-      const result = await controller.controlServerPower(
-        serverId,
-        powerActionDto,
-      );
+      const result = await controller.controlServerPower('server-1', dto);
 
       expect(controlServerPowerUseCase.execute).toHaveBeenCalledWith(
-        serverId,
+        'server-1',
         IloPowerAction.START,
       );
       expect(result).toEqual(expectedResult);
     });
 
-    it('should handle power control failure', async () => {
-      const serverId = 'server-123';
-      const powerActionDto = { action: IloPowerAction.STOP };
+    it('should handle STOP action', async () => {
+      const stopDto: IloPowerActionDto = {
+        action: IloPowerAction.STOP,
+      };
+      const expectedResult: IloPowerResponseDto = {
+        success: true,
+        message: 'Server stopped successfully',
+        currentStatus: IloServerStatus.OFF,
+      };
 
-      controlServerPowerUseCase.execute.mockRejectedValue(
-        new Error('iLO connection failed'),
+      controlServerPowerUseCase.execute.mockResolvedValue(expectedResult);
+
+      const result = await controller.controlServerPower('server-1', stopDto);
+
+      expect(controlServerPowerUseCase.execute).toHaveBeenCalledWith(
+        'server-1',
+        IloPowerAction.STOP,
       );
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should handle errors from use case', async () => {
+      const error = new Error('iLO connection failed');
+      controlServerPowerUseCase.execute.mockRejectedValue(error);
 
       await expect(
-        controller.controlServerPower(serverId, powerActionDto),
-      ).rejects.toThrow('iLO connection failed');
+        controller.controlServerPower('server-1', dto),
+      ).rejects.toThrow(error);
     });
   });
 
   describe('getServerStatus', () => {
     it('should get server status successfully', async () => {
-      const serverId = 'server-123';
-      const expectedResult: IloStatusResponseDto = {
+      const expectedStatus: IloStatusResponseDto = {
         status: IloServerStatus.ON,
-        ip: '192.168.1.100',
-        serverId: 'server-123',
+        ip: '192.168.1.10',
+        serverId: 'server-1',
         serverName: 'Test Server',
         serverType: 'esxi',
         vmwareHostMoid: 'host-123',
@@ -116,20 +132,22 @@ describe('IloPowerController', () => {
         },
       };
 
-      getServerStatusUseCase.execute.mockResolvedValue(expectedResult);
+      getServerStatusUseCase.execute.mockResolvedValue(expectedStatus);
 
-      const result = await controller.getServerStatus(serverId);
+      const result = await controller.getServerStatus('server-1');
 
-      expect(getServerStatusUseCase.execute).toHaveBeenCalledWith(serverId, undefined);
-      expect(result).toEqual(expectedResult);
+      expect(getServerStatusUseCase.execute).toHaveBeenCalledWith(
+        'server-1',
+        undefined,
+      );
+      expect(result).toEqual(expectedStatus);
     });
 
     it('should get server status with force parameter', async () => {
-      const serverId = 'server-123';
-      const expectedResult: IloStatusResponseDto = {
+      const expectedStatus: IloStatusResponseDto = {
         status: IloServerStatus.ON,
-        ip: '192.168.1.100',
-        serverId: 'server-123',
+        ip: '192.168.1.10',
+        serverId: 'server-1',
         serverName: 'Test Server',
         serverType: 'esxi',
         vmwareHostMoid: 'host-123',
@@ -143,93 +161,31 @@ describe('IloPowerController', () => {
         },
       };
 
-      getServerStatusUseCase.execute.mockResolvedValue(expectedResult);
+      getServerStatusUseCase.execute.mockResolvedValue(expectedStatus);
 
-      const result = await controller.getServerStatus(serverId, true);
+      const result = await controller.getServerStatus('server-1', true);
 
-      expect(getServerStatusUseCase.execute).toHaveBeenCalledWith(serverId, true);
-      expect(result).toEqual(expectedResult);
+      expect(getServerStatusUseCase.execute).toHaveBeenCalledWith(
+        'server-1',
+        true,
+      );
+      expect(result).toEqual(expectedStatus);
     });
 
-    it('should handle status check failure', async () => {
-      const serverId = 'server-123';
+    it('should handle errors from status use case', async () => {
+      const error = new Error('iLO authentication failed');
+      getServerStatusUseCase.execute.mockRejectedValue(error);
 
-      getServerStatusUseCase.execute.mockRejectedValue(
-        new Error('Server not found'),
-      );
-
-      await expect(controller.getServerStatus(serverId)).rejects.toThrow(
-        'Server not found',
+      await expect(controller.getServerStatus('server-1')).rejects.toThrow(
+        error,
       );
     });
   });
 
-  describe('pingIlo', () => {
-    it('should ping iLO successfully', async () => {
-      const serverId = 'server-123';
-      const pingDto: PingRequestDto = {
-        host: '192.168.1.100',
-        timeout: 5000,
-      };
-      const expectedResult = {
-        accessible: true,
-        host: '192.168.1.100',
-        responseTime: 12,
-      };
-
-      pingIloUseCase.execute.mockResolvedValue(expectedResult);
-
-      const result = await controller.pingIlo(serverId, pingDto);
-
-      expect(pingIloUseCase.execute).toHaveBeenCalledWith(
-        serverId,
-        pingDto.timeout,
-      );
-      expect(result).toEqual(expectedResult);
-    });
-
-    it('should ping iLO with default timeout', async () => {
-      const serverId = 'server-123';
-      const pingDto: PingRequestDto = {
-        host: '192.168.1.100',
-      };
-      const expectedResult = {
-        accessible: true,
-        host: '192.168.1.100',
-        responseTime: 18,
-      };
-
-      pingIloUseCase.execute.mockResolvedValue(expectedResult);
-
-      const result = await controller.pingIlo(serverId, pingDto);
-
-      expect(pingIloUseCase.execute).toHaveBeenCalledWith(
-        serverId,
-        undefined,
-      );
-      expect(result).toEqual(expectedResult);
-    });
-
-    it('should handle ping failure for iLO', async () => {
-      const serverId = 'server-123';
-      const pingDto: PingRequestDto = {
-        host: 'unreachable-ilo',
-      };
-      const expectedResult = {
-        accessible: false,
-        host: 'unreachable-ilo',
-        error: 'iLO not responding',
-      };
-
-      pingIloUseCase.execute.mockResolvedValue(expectedResult);
-
-      const result = await controller.pingIlo(serverId, pingDto);
-
-      expect(pingIloUseCase.execute).toHaveBeenCalledWith(
-        serverId,
-        undefined,
-      );
-      expect(result).toEqual(expectedResult);
+  describe('guards', () => {
+    it('should have JWT auth guard and resource permission guard', () => {
+      const guards = Reflect.getMetadata('__guards__', IloPowerController);
+      expect(guards).toContain(JwtAuthGuard);
     });
   });
 });

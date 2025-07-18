@@ -48,15 +48,14 @@ export class GetUpsBatteryStatusPaginatedUseCase {
       );
     } else {
       batteryStatuses = await this.upsBatteryCacheService.getMultiple(upsIds);
-      
+
       const missingIds = upsIds.filter((id) => !batteryStatuses[id]);
       if (missingIds.length > 0) {
         await Promise.all(
           missingIds.map(async (upsId) => {
             try {
-              batteryStatuses[upsId] = await this.getUpsBatteryUseCase.execute(
-                upsId,
-              );
+              batteryStatuses[upsId] =
+                await this.getUpsBatteryUseCase.execute(upsId);
             } catch {
               batteryStatuses[upsId] = null;
             }
@@ -74,8 +73,9 @@ export class GetUpsBatteryStatusPaginatedUseCase {
           upsName: ups.name,
         };
       })
-      .filter((item): item is UPSBatteryStatusDto & { upsName: string } => 
-        item !== null,
+      .filter(
+        (item): item is UPSBatteryStatusDto & { upsName: string } =>
+          item !== null,
       );
 
     const totalPages = Math.ceil(total / limit);

@@ -13,7 +13,10 @@ export class GetServerStatusUseCase {
     private readonly getServerWithIloUseCase: GetServerWithIloUseCase,
   ) {}
 
-  async execute(serverId: string): Promise<IloStatusResponseDto> {
+  async execute(
+    serverId: string,
+    force = false,
+  ): Promise<IloStatusResponseDto> {
     if (!serverId || typeof serverId !== 'string' || serverId.trim() === '') {
       throw new BadRequestException(
         'Server ID must be a valid non-empty string',
@@ -38,6 +41,7 @@ export class GetServerStatusUseCase {
     const metrics = await this.vmwareService.getServerMetrics(
       server.vmwareHostMoid,
       vCenterConnection,
+      force,
     );
 
     const status = this.extractStatusFromMetrics(metrics);
