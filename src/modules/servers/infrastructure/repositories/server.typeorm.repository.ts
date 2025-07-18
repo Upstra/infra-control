@@ -211,6 +211,21 @@ export class ServerTypeormRepository
     }
   }
 
+  async findAllWithVms(): Promise<Server[]> {
+    try {
+      return await this.createQueryBuilder('server')
+        .leftJoinAndSelect('server.vms', 'vms')
+        .orderBy('server.name', 'ASC')
+        .addOrderBy('vms.name', 'ASC')
+        .getMany();
+    } catch (error) {
+      this.logger.error('Error retrieving servers with VMs:', error);
+      throw new ServerRetrievalException(
+        'Error retrieving servers with VMs',
+      );
+    }
+  }
+
   async findOneByField<T extends keyof Server>({
     field,
     value,

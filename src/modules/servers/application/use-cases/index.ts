@@ -9,6 +9,7 @@ import { UpdateServerPriorityUseCase } from './update-server-priority.use-case';
 import { CheckServerPermissionUseCase } from './check-server-permission.use-case';
 import { GetServerByIloIpUseCase } from './get-server-by-ilo-ip.use-case';
 import { GetServerWithIloUseCase } from './get-server-with-ilo.use-case';
+import { GetServersWithVmsUseCase } from './get-servers-with-vms.use-case';
 
 export const ServerUseCases = [
   GetAllServersUseCase,
@@ -22,6 +23,7 @@ export const ServerUseCases = [
   CheckServerPermissionUseCase,
   GetServerByIloIpUseCase,
   GetServerWithIloUseCase,
+  GetServersWithVmsUseCase,
 ];
 
 export {
@@ -36,4 +38,5 @@ export {
   CheckServerPermissionUseCase,
   GetServerByIloIpUseCase,
   GetServerWithIloUseCase,
+  GetServersWithVmsUseCase,
 };
