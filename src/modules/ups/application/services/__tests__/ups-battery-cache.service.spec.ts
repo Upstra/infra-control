@@ -1,19 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';
-import { Cache } from 'cache-manager';
 import { UpsBatteryCacheService } from '../ups-battery-cache.service';
 import { UPSBatteryStatusDto } from '../../../domain/interfaces/ups-battery-status.interface';
-import { UpsBatteryEvents } from '../../../domain/events/ups-battery.events';
+import { RedisSafeService } from '@/modules/redis/application/services/redis-safe.service';
 
 describe('UpsBatteryCacheService', () => {
   let service: UpsBatteryCacheService;
-  let cacheManager: Cache;
 
-  const mockCacheManager = {
-    get: jest.fn(),
-    set: jest.fn(),
-    del: jest.fn(),
+  const mockRedisSafeService = {
+    safeGet: jest.fn(),
+    safeSetEx: jest.fn(),
+    safeDel: jest.fn(),
+    safeMGet: jest.fn(),
   };
 
   const mockConfigService = {
@@ -30,7 +28,7 @@ describe('UpsBatteryCacheService', () => {
     hoursRemaining: 0.75,
     alertLevel: 'normal',
     statusLabel: 'Normal',
-    timestamp: new Date(),
+    timestamp: new Date('2025-07-18T23:35:34.417Z'),
   };
 
   beforeEach(async () => {
@@ -38,8 +36,8 @@ describe('UpsBatteryCacheService', () => {
       providers: [
         UpsBatteryCacheService,
         {
-          provide: CACHE_MANAGER,
-          useValue: mockCacheManager,
+          provide: RedisSafeService,
+          useValue: mockRedisSafeService,
         },
         {
           provide: ConfigService,
@@ -49,23 +47,37 @@ describe('UpsBatteryCacheService', () => {
     }).compile();
 
     service = module.get<UpsBatteryCacheService>(UpsBatteryCacheService);
-    cacheManager = module.get<Cache>(CACHE_MANAGER);
 
     jest.clearAllMocks();
   });
 
   describe('get', () => {
     it('should retrieve cached battery status', async () => {
-      mockCacheManager.get.mockResolvedValue(mockBatteryStatus);
+      mockRedisSafeService.safeGet.mockResolvedValue(
+        JSON.stringify(mockBatteryStatus),
+      );
 
       const result = await service.get('ups-123');
 
-      expect(result).toEqual(mockBatteryStatus);
-      expect(mockCacheManager.get).toHaveBeenCalledWith('ups:battery:ups-123');
+      expect(result).toEqual({
+        ...mockBatteryStatus,
+        timestamp: mockBatteryStatus.timestamp.toISOString(),
+      });
+      expect(mockRedisSafeService.safeGet).toHaveBeenCalledWith(
+        'ups:battery:ups-123',
+      );
     });
 
     it('should return null if no cached data exists', async () => {
-      mockCacheManager.get.mockResolvedValue(null);
+      mockRedisSafeService.safeGet.mockResolvedValue(null);
+
+      const result = await service.get('ups-123');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null if JSON parsing fails', async () => {
+      mockRedisSafeService.safeGet.mockResolvedValue('invalid-json');
 
       const result = await service.get('ups-123');
 
@@ -77,10 +89,10 @@ describe('UpsBatteryCacheService', () => {
     it('should cache battery status with TTL', async () => {
       await service.set('ups-123', mockBatteryStatus);
 
-      expect(mockCacheManager.set).toHaveBeenCalledWith(
+      expect(mockRedisSafeService.safeSetEx).toHaveBeenCalledWith(
         'ups:battery:ups-123',
-        mockBatteryStatus,
-        300000,
+        300,
+        JSON.stringify(mockBatteryStatus),
       );
     });
   });
@@ -89,7 +101,9 @@ describe('UpsBatteryCacheService', () => {
     it('should delete cached battery status', async () => {
       await service.delete('ups-123');
 
-      expect(mockCacheManager.del).toHaveBeenCalledWith('ups:battery:ups-123');
+      expect(mockRedisSafeService.safeDel).toHaveBeenCalledWith(
+        'ups:battery:ups-123',
+      );
     });
   });
 
@@ -100,17 +114,57 @@ describe('UpsBatteryCacheService', () => {
         upsId: 'ups-456',
       };
 
-      mockCacheManager.get
-        .mockResolvedValueOnce(mockBatteryStatus)
-        .mockResolvedValueOnce(mockStatus2)
-        .mockResolvedValueOnce(null);
+      mockRedisSafeService.safeMGet.mockResolvedValue([
+        JSON.stringify(mockBatteryStatus),
+        JSON.stringify(mockStatus2),
+        null,
+      ]);
 
-      const result = await service.getMultiple(['ups-123', 'ups-456', 'ups-789']);
+      const result = await service.getMultiple([
+        'ups-123',
+        'ups-456',
+        'ups-789',
+      ]);
 
       expect(result).toEqual({
-        'ups-123': mockBatteryStatus,
-        'ups-456': mockStatus2,
+        'ups-123': {
+          ...mockBatteryStatus,
+          timestamp: mockBatteryStatus.timestamp.toISOString(),
+        },
+        'ups-456': {
+          ...mockStatus2,
+          timestamp: mockStatus2.timestamp.toISOString(),
+        },
         'ups-789': null,
+      });
+      expect(mockRedisSafeService.safeMGet).toHaveBeenCalledWith([
+        'ups:battery:ups-123',
+        'ups:battery:ups-456',
+        'ups:battery:ups-789',
+      ]);
+    });
+
+    it('should return empty object for empty array', async () => {
+      const result = await service.getMultiple([]);
+
+      expect(result).toEqual({});
+      expect(mockRedisSafeService.safeMGet).not.toHaveBeenCalled();
+    });
+
+    it('should handle invalid JSON in results', async () => {
+      mockRedisSafeService.safeMGet.mockResolvedValue([
+        'invalid-json',
+        JSON.stringify(mockBatteryStatus),
+      ]);
+
+      const result = await service.getMultiple(['ups-123', 'ups-456']);
+
+      expect(result).toEqual({
+        'ups-123': null,
+        'ups-456': {
+          ...mockBatteryStatus,
+          timestamp: mockBatteryStatus.timestamp.toISOString(),
+        },
       });
     });
   });
@@ -124,11 +178,11 @@ describe('UpsBatteryCacheService', () => {
 
       await service.setMultiple(statuses);
 
-      expect(mockCacheManager.set).toHaveBeenCalledTimes(2);
-      expect(mockCacheManager.set).toHaveBeenCalledWith(
+      expect(mockRedisSafeService.safeSetEx).toHaveBeenCalledTimes(2);
+      expect(mockRedisSafeService.safeSetEx).toHaveBeenCalledWith(
         'ups:battery:ups-123',
-        mockBatteryStatus,
-        300000,
+        300,
+        JSON.stringify(mockBatteryStatus),
       );
     });
   });
@@ -137,10 +191,10 @@ describe('UpsBatteryCacheService', () => {
     it('should cache battery status on BATTERY_CHECKED event', async () => {
       await service.handleBatteryChecked(mockBatteryStatus);
 
-      expect(mockCacheManager.set).toHaveBeenCalledWith(
+      expect(mockRedisSafeService.safeSetEx).toHaveBeenCalledWith(
         'ups:battery:ups-123',
-        mockBatteryStatus,
-        300000,
+        300,
+        JSON.stringify(mockBatteryStatus),
       );
     });
 
@@ -154,7 +208,7 @@ describe('UpsBatteryCacheService', () => {
 
       await service.handleBatchChecked(payload);
 
-      expect(mockCacheManager.set).toHaveBeenCalledTimes(2);
+      expect(mockRedisSafeService.safeSetEx).toHaveBeenCalledTimes(2);
     });
   });
 });

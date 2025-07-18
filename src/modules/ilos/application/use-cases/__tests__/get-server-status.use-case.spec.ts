@@ -96,6 +96,7 @@ describe('GetServerStatusUseCase', () => {
         password: 'vcenter-pass',
         port: 443,
       },
+      false,
     );
   });
 
@@ -228,6 +229,72 @@ describe('GetServerStatusUseCase', () => {
         password: 'vcenter-pass',
         port: 443,
       },
+      false,
     );
+  });
+
+  it('should force refresh metrics when force parameter is true', async () => {
+    mockGetServerWithIloUseCase.execute.mockResolvedValue(mockServer as any);
+    mockVmwareService.getServerMetrics.mockResolvedValue({
+      powerState: 'poweredOn',
+      overallStatus: 'green',
+      rebootRequired: false,
+      cpuUsagePercent: 25.0,
+      ramUsageMB: 65536,
+      uptime: 172800,
+      boottime: '2023-11-01T12:00:00.000Z',
+    });
+
+    const result = await useCase.execute('server-1', true);
+
+    expect(result).toEqual({
+      status: IloServerStatus.ON,
+      ip: '192.168.1.100',
+      serverId: 'server-1',
+      serverName: 'Test Server',
+      serverType: 'esxi',
+      vmwareHostMoid: 'host-123',
+      serverState: 'UP',
+      serverPriority: 1,
+      upsId: 'ups-1',
+      roomId: 'room-1',
+      groupId: 'group-1',
+      iloId: 'ilo-1',
+      metrics: {
+        cpuUsage: 25.0,
+        memoryUsage: 65536,
+        powerState: 'poweredOn',
+        uptime: 172800,
+      },
+    });
+
+    expect(mockVmwareService.getServerMetrics).toHaveBeenCalledWith(
+      'host-123',
+      {
+        host: '192.168.1.5',
+        user: 'vcenter-user',
+        password: 'vcenter-pass',
+        port: 443,
+      },
+      true,
+    );
+  });
+
+  it('should throw BadRequestException for empty server ID', async () => {
+    await expect(useCase.execute('')).rejects.toThrow(
+      new BadRequestException('Server ID must be a valid non-empty string'),
+    );
+
+    expect(mockGetServerWithIloUseCase.execute).not.toHaveBeenCalled();
+    expect(mockVmwareService.getServerMetrics).not.toHaveBeenCalled();
+  });
+
+  it('should throw BadRequestException for invalid server ID type', async () => {
+    await expect(useCase.execute(null as any)).rejects.toThrow(
+      new BadRequestException('Server ID must be a valid non-empty string'),
+    );
+
+    expect(mockGetServerWithIloUseCase.execute).not.toHaveBeenCalled();
+    expect(mockVmwareService.getServerMetrics).not.toHaveBeenCalled();
   });
 });

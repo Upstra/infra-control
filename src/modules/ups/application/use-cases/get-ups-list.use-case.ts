@@ -26,9 +26,8 @@ export class GetUpsListUseCase {
     );
 
     const upsIds = upsWithCount.map(({ ups }) => ups.id);
-    const cachedBatteryStatuses = await this.upsBatteryCacheService.getMultiple(
-      upsIds,
-    );
+    const cachedBatteryStatuses =
+      await this.upsBatteryCacheService.getMultiple(upsIds);
 
     const dtos = upsWithCount.map(({ ups, serverCount }) => {
       const cachedStatus = cachedBatteryStatuses[ups.id];

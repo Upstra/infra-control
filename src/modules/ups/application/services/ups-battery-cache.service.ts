@@ -1,10 +1,9 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
 import { UPSBatteryStatusDto } from '../../domain/interfaces/ups-battery-status.interface';
 import { UpsBatteryEvents } from '../../domain/events/ups-battery.events';
+import { RedisSafeService } from '../../../redis/application/services/redis-safe.service';
 
 @Injectable()
 export class UpsBatteryCacheService {
@@ -12,7 +11,7 @@ export class UpsBatteryCacheService {
   private readonly cacheKeyPrefix = 'ups:battery:';
 
   constructor(
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly redisSafeService: RedisSafeService,
     private configService: ConfigService,
   ) {
     this.cacheTTL = this.configService.get<number>(
@@ -23,29 +22,49 @@ export class UpsBatteryCacheService {
 
   async get(upsId: string): Promise<UPSBatteryStatusDto | null> {
     const key = this.getCacheKey(upsId);
-    return await this.cacheManager.get<UPSBatteryStatusDto>(key);
+    const data = await this.redisSafeService.safeGet(key);
+    if (!data) return null;
+
+    try {
+      return JSON.parse(data) as UPSBatteryStatusDto;
+    } catch {
+      return null;
+    }
   }
 
   async set(upsId: string, status: UPSBatteryStatusDto): Promise<void> {
     const key = this.getCacheKey(upsId);
-    await this.cacheManager.set(key, status, this.cacheTTL * 1000);
+    const value = JSON.stringify(status);
+    await this.redisSafeService.safeSetEx(key, this.cacheTTL, value);
   }
 
   async delete(upsId: string): Promise<void> {
     const key = this.getCacheKey(upsId);
-    await this.cacheManager.del(key);
+    await this.redisSafeService.safeDel(key);
   }
 
   async getMultiple(
     upsIds: string[],
   ): Promise<Record<string, UPSBatteryStatusDto | null>> {
+    if (upsIds.length === 0) return {};
+
+    const keys = upsIds.map((id) => this.getCacheKey(id));
+    const values = await this.redisSafeService.safeMGet(keys);
+
     const results: Record<string, UPSBatteryStatusDto | null> = {};
-    
-    await Promise.all(
-      upsIds.map(async (upsId) => {
-        results[upsId] = await this.get(upsId);
-      }),
-    );
+
+    upsIds.forEach((upsId, index) => {
+      const value = values[index];
+      if (!value) {
+        results[upsId] = null;
+      } else {
+        try {
+          results[upsId] = JSON.parse(value) as UPSBatteryStatusDto;
+        } catch {
+          results[upsId] = null;
+        }
+      }
+    });
 
     return results;
   }
@@ -66,9 +85,7 @@ export class UpsBatteryCacheService {
   }
 
   @OnEvent(UpsBatteryEvents.BATCH_CHECKED)
-  async handleBatchChecked(payload: {
-    results: UPSBatteryStatusDto[];
-  }) {
+  async handleBatchChecked(payload: { results: UPSBatteryStatusDto[] }) {
     const statusMap: Record<string, UPSBatteryStatusDto> = {};
     payload.results.forEach((status) => {
       statusMap[status.upsId] = status;
