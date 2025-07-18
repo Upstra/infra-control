@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, Inject } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { PythonExecutorService } from '@core/services/python-executor';
+import { PythonExecutorService } from '@/core/services/python-executor/python-executor.service';
 import { UpsRepositoryInterface } from '../../domain/interfaces/ups.repository.interface';
 import { UpsBatteryEvents } from '../../domain/events/ups-battery.events';
 import { UPSBatteryStatusDto } from '../../domain/interfaces/ups-battery-status.interface';
@@ -17,18 +17,28 @@ export class GetUpsBatteryUseCase {
   ) {}
 
   async execute(upsId: string): Promise<UPSBatteryStatusDto> {
-    const ups = await this.upsRepository.findById(upsId);
+    const ups = await this.upsRepository.findUpsById(upsId);
     if (!ups) {
       throw new UpsNotFoundException(upsId);
     }
 
-    const result = await this.pythonExecutor.execute('ups_battery.sh', [
-      '--ip',
-      ups.ip,
-    ]);
+    try {
+      const result = await this.pythonExecutor.executePython('ups_battery.sh', [
+        '--ip',
+        ups.ip,
+      ]);
 
-    if (result.status === 'success') {
-      const minutesRemaining = parseInt(result.output.trim(), 10);
+      let minutesRemaining: number;
+      
+      if (typeof result === 'object' && result.status === 'success') {
+        minutesRemaining = parseInt(result.output.trim(), 10);
+      } else if (typeof result === 'string') {
+        minutesRemaining = parseInt(result.trim(), 10);
+      } else if (typeof result === 'number') {
+        minutesRemaining = result;
+      } else {
+        throw new BadRequestException('Invalid response format from battery script');
+      }
       
       if (isNaN(minutesRemaining)) {
         throw new BadRequestException('Invalid battery minutes value');
@@ -53,8 +63,11 @@ export class GetUpsBatteryUseCase {
       this.eventEmitter.emit(UpsBatteryEvents.BATTERY_CHECKED, status);
 
       return status;
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(error.message || 'Failed to get battery status');
     }
-
-    throw new BadRequestException(result.message || 'Failed to get battery status');
   }
 }

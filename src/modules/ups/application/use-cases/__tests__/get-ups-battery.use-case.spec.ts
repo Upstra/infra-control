@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BadRequestException } from '@nestjs/common';
 import { GetUpsBatteryUseCase } from '../get-ups-battery.use-case';
-import { PythonExecutorService } from '@/core/services/python-executor';
+import { PythonExecutorService } from '@/core/services/python-executor/python-executor.service';
 import { UpsRepositoryInterface } from '../../../domain/interfaces/ups.repository.interface';
 import { UpsBatteryDomainService } from '../../../domain/services/ups-battery.domain.service';
 import { UpsNotFoundException } from '../../../domain/exceptions/ups.exception';
@@ -10,7 +10,7 @@ import { UpsBatteryEvents } from '../../../domain/events/ups-battery.events';
 
 describe('GetUpsBatteryUseCase', () => {
   let useCase: GetUpsBatteryUseCase;
-  let pythonExecutor: PythonExecutorService;
+  let pythonExecutor: jest.Mocked<PythonExecutorService>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
   let upsRepository: jest.Mocked<UpsRepositoryInterface>;
   let upsBatteryDomainService: UpsBatteryDomainService;
@@ -22,7 +22,11 @@ describe('GetUpsBatteryUseCase', () => {
     grace_period_on: 60,
     grace_period_off: 60,
     roomId: 'room-1',
-  };
+    servers: [],
+    room: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  } as any;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -32,7 +36,7 @@ describe('GetUpsBatteryUseCase', () => {
         {
           provide: PythonExecutorService,
           useValue: {
-            execute: jest.fn(),
+            executePython: jest.fn(),
           },
         },
         {
@@ -44,14 +48,14 @@ describe('GetUpsBatteryUseCase', () => {
         {
           provide: 'UpsRepositoryInterface',
           useValue: {
-            findById: jest.fn(),
+            findUpsById: jest.fn(),
           },
         },
       ],
     }).compile();
 
     useCase = module.get<GetUpsBatteryUseCase>(GetUpsBatteryUseCase);
-    pythonExecutor = module.get(PythonExecutorService);
+    pythonExecutor = module.get(PythonExecutorService) as jest.Mocked<PythonExecutorService>;
     eventEmitter = module.get(EventEmitter2);
     upsRepository = module.get('UpsRepositoryInterface');
     upsBatteryDomainService = module.get(UpsBatteryDomainService);
@@ -63,8 +67,8 @@ describe('GetUpsBatteryUseCase', () => {
 
   describe('execute', () => {
     it('should return battery status for valid UPS with normal level', async () => {
-      upsRepository.findById.mockResolvedValue(mockUps);
-      jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
+      upsRepository.findUpsById.mockResolvedValue(mockUps);
+      pythonExecutor.executePython.mockResolvedValue({
         status: 'success',
         output: '120',
       } as any);
@@ -81,8 +85,8 @@ describe('GetUpsBatteryUseCase', () => {
         timestamp: expect.any(Date),
       });
 
-      expect(upsRepository.findById).toHaveBeenCalledWith(mockUps.id);
-      expect(pythonExecutor.execute).toHaveBeenCalledWith('ups_battery.sh', [
+      expect(upsRepository.findUpsById).toHaveBeenCalledWith(mockUps.id);
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith('ups_battery.sh', [
         '--ip',
         mockUps.ip,
       ]);
@@ -94,8 +98,8 @@ describe('GetUpsBatteryUseCase', () => {
     });
 
     it('should emit alert event for low battery level', async () => {
-      upsRepository.findById.mockResolvedValue(mockUps);
-      jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
+      upsRepository.findUpsById.mockResolvedValue(mockUps);
+      pythonExecutor.executePython.mockResolvedValue({
         status: 'success',
         output: '25',
       } as any);
@@ -118,8 +122,8 @@ describe('GetUpsBatteryUseCase', () => {
     });
 
     it('should emit alert event for warning battery level', async () => {
-      upsRepository.findById.mockResolvedValue(mockUps);
-      jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
+      upsRepository.findUpsById.mockResolvedValue(mockUps);
+      pythonExecutor.executePython.mockResolvedValue({
         status: 'success',
         output: '10',
       } as any);
@@ -138,8 +142,8 @@ describe('GetUpsBatteryUseCase', () => {
     });
 
     it('should emit alert event for critical battery level', async () => {
-      upsRepository.findById.mockResolvedValue(mockUps);
-      jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
+      upsRepository.findUpsById.mockResolvedValue(mockUps);
+      pythonExecutor.executePython.mockResolvedValue({
         status: 'success',
         output: '3',
       } as any);
@@ -151,19 +155,19 @@ describe('GetUpsBatteryUseCase', () => {
     });
 
     it('should throw UpsNotFoundException when UPS not found', async () => {
-      upsRepository.findById.mockResolvedValue(null);
+      upsRepository.findUpsById.mockResolvedValue(null);
 
       await expect(useCase.execute('invalid-id')).rejects.toThrow(
         UpsNotFoundException
       );
 
-      expect(pythonExecutor.execute).not.toHaveBeenCalled();
+      expect(pythonExecutor.executePython).not.toHaveBeenCalled();
       expect(eventEmitter.emit).not.toHaveBeenCalled();
     });
 
     it('should throw BadRequestException for invalid battery value', async () => {
-      upsRepository.findById.mockResolvedValue(mockUps);
-      jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
+      upsRepository.findUpsById.mockResolvedValue(mockUps);
+      pythonExecutor.executePython.mockResolvedValue({
         status: 'success',
         output: 'invalid',
       } as any);
@@ -177,11 +181,10 @@ describe('GetUpsBatteryUseCase', () => {
     });
 
     it('should throw BadRequestException when python script fails', async () => {
-      upsRepository.findById.mockResolvedValue(mockUps);
-      jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
-        status: 'error',
-        message: 'Script execution failed',
-      } as any);
+      upsRepository.findUpsById.mockResolvedValue(mockUps);
+      pythonExecutor.executePython.mockRejectedValue(
+        new Error('Script execution failed')
+      );
 
       await expect(useCase.execute(mockUps.id)).rejects.toThrow(
         BadRequestException
@@ -192,7 +195,7 @@ describe('GetUpsBatteryUseCase', () => {
     });
 
     it('should handle edge case battery values correctly', async () => {
-      upsRepository.findById.mockResolvedValue(mockUps);
+      upsRepository.findUpsById.mockResolvedValue(mockUps);
       
       // Test threshold boundaries
       const testCases = [
@@ -205,7 +208,7 @@ describe('GetUpsBatteryUseCase', () => {
       ];
 
       for (const testCase of testCases) {
-        jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
+        pythonExecutor.executePython.mockResolvedValue({
           status: 'success',
           output: testCase.minutes.toString(),
         } as any);
@@ -216,8 +219,8 @@ describe('GetUpsBatteryUseCase', () => {
     });
 
     it('should calculate hours remaining correctly', async () => {
-      upsRepository.findById.mockResolvedValue(mockUps);
-      jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
+      upsRepository.findUpsById.mockResolvedValue(mockUps);
+      pythonExecutor.executePython.mockResolvedValue({
         status: 'success',
         output: '90',
       } as any);
@@ -228,8 +231,8 @@ describe('GetUpsBatteryUseCase', () => {
     });
 
     it('should handle empty output from python script', async () => {
-      upsRepository.findById.mockResolvedValue(mockUps);
-      jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
+      upsRepository.findUpsById.mockResolvedValue(mockUps);
+      pythonExecutor.executePython.mockResolvedValue({
         status: 'success',
         output: '',
       } as any);
@@ -240,8 +243,8 @@ describe('GetUpsBatteryUseCase', () => {
     });
 
     it('should handle output with whitespace', async () => {
-      upsRepository.findById.mockResolvedValue(mockUps);
-      jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
+      upsRepository.findUpsById.mockResolvedValue(mockUps);
+      pythonExecutor.executePython.mockResolvedValue({
         status: 'success',
         output: '  45  \n',
       } as any);

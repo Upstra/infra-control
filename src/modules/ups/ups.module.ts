@@ -35,6 +35,7 @@ import { UpsGateway } from './infrastructure/gateways/ups.gateway';
     UpsBatteryDomainService,
     UpsBatteryAlertListener,
     UpsGateway,
+    UpsTypeormRepository,
     {
       provide: 'UpsRepositoryInterface',
       useClass: UpsTypeormRepository,
