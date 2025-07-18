@@ -6,7 +6,6 @@ import {
   GetVmMetricsUseCase,
   ControlVmPowerUseCase,
   MigrateVmUseCase,
-  GetHostMetricsUseCase,
   StartVMDiscoveryUseCase,
   GetActiveDiscoverySessionUseCase,
   GetDiscoverySessionUseCase,
@@ -33,7 +32,6 @@ describe('VmwareController', () => {
   let getVmMetricsUseCase: jest.Mocked<GetVmMetricsUseCase>;
   let controlVmPowerUseCase: jest.Mocked<ControlVmPowerUseCase>;
   let migrateVmUseCase: jest.Mocked<MigrateVmUseCase>;
-  let getHostMetricsUseCase: jest.Mocked<GetHostMetricsUseCase>;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [VmwareController],
@@ -64,12 +62,6 @@ describe('VmwareController', () => {
         },
         {
           provide: MigrateVmUseCase,
-          useValue: {
-            execute: jest.fn(),
-          },
-        },
-        {
-          provide: GetHostMetricsUseCase,
           useValue: {
             execute: jest.fn(),
           },
@@ -136,7 +128,6 @@ describe('VmwareController', () => {
     getVmMetricsUseCase = module.get(GetVmMetricsUseCase);
     controlVmPowerUseCase = module.get(ControlVmPowerUseCase);
     migrateVmUseCase = module.get(MigrateVmUseCase);
-    getHostMetricsUseCase = module.get(GetHostMetricsUseCase);
   });
 
   it('should be defined', () => {
@@ -252,67 +243,6 @@ describe('VmwareController', () => {
         'vm-123',
         'host-456',
       );
-    });
-  });
-
-  describe('getHostMetrics', () => {
-    it('should return host metrics', async () => {
-      const mockMetrics: VmwareHost = {
-        name: 'esxi-host-1',
-        ip: '192.168.1.100',
-        powerState: 'poweredOn',
-        vCenterIp: '192.168.1.10',
-        overallStatus: 'green',
-        cpuCores: 24,
-        ramTotal: 131072,
-        rebootRequired: false,
-        cpuUsageMHz: 12000,
-        ramUsageMB: 65536,
-        uptime: 864000,
-        boottime: '2023-01-01T00:00:00.000Z',
-        cluster: 'Production-Cluster',
-        cpuHz: 2400000000,
-        numCpuCores: 12,
-        numCpuThreads: 24,
-        model: 'ProLiant DL380 Gen10',
-        vendor: 'HPE',
-        biosVendor: 'HPE',
-        firewall: 'enabled',
-        maxHostRunningVms: 1024,
-        maxHostSupportedVcpus: 4096,
-        maxMemMBPerFtVm: 131072,
-        maxNumDisksSVMotion: 248,
-        maxRegisteredVMs: 2048,
-        maxRunningVMs: 1024,
-        maxSupportedVcpus: 4096,
-        maxSupportedVmMemory: 6128640,
-        maxVcpusPerFtVm: 8,
-        quickBootSupported: true,
-        rebootSupported: true,
-        shutdownSupported: true,
-      };
-
-      getHostMetricsUseCase.execute.mockResolvedValue(mockMetrics as any);
-
-      const result = await controller.getHostMetrics('server-1', {
-        force: false,
-      });
-
-      expect(result).toEqual(mockMetrics);
-      expect(getHostMetricsUseCase.execute).toHaveBeenCalledWith(
-        'server-1',
-        false,
-      );
-    });
-
-    it('should handle getHostMetrics errors', async () => {
-      getHostMetricsUseCase.execute.mockRejectedValue(
-        new Error('VMware connection failed'),
-      );
-
-      await expect(
-        controller.getHostMetrics('server-1', { force: false }),
-      ).rejects.toThrow('VMware connection failed');
     });
   });
 

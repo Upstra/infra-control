@@ -19,7 +19,6 @@ import { ListServersUseCase } from './application/use-cases/list-servers.use-cas
 import { GetVmMetricsUseCase } from './application/use-cases/get-vm-metrics.use-case';
 import { ControlVmPowerUseCase } from './application/use-cases/control-vm-power.use-case';
 import { MigrateVmUseCase } from './application/use-cases/migrate-vm.use-case';
-import { GetHostMetricsUseCase } from './application/use-cases/get-host-metrics.use-case';
 import { StartVMDiscoveryUseCase } from './application/use-cases/start-vm-discovery.use-case';
 import { SaveDiscoveredVmsUseCase } from './application/use-cases/save-discovered-vms.use-case';
 import { GetActiveDiscoverySessionUseCase } from './application/use-cases/get-active-discovery-session.use-case';
@@ -96,7 +95,6 @@ import { EncryptionModule } from '@/core/services/encryption/encryption.module';
     GetVmMetricsUseCase,
     ControlVmPowerUseCase,
     MigrateVmUseCase,
-    GetHostMetricsUseCase,
     StartVMDiscoveryUseCase,
     SaveDiscoveredVmsUseCase,
     GetActiveDiscoverySessionUseCase,

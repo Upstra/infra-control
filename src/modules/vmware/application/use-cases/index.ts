@@ -3,7 +3,6 @@ export * from './list-servers.use-case';
 export * from './get-vm-metrics.use-case';
 export * from './control-vm-power.use-case';
 export * from './migrate-vm.use-case';
-export * from './get-host-metrics.use-case';
 export * from './start-vm-discovery.use-case';
 export * from './get-active-discovery-session.use-case';
 export * from './get-discovery-session.use-case';

@@ -223,6 +223,8 @@ export class VmwareService implements IVmwareService {
       const cached = await this.vmwareCacheService.getServerMetrics(moid);
       if (cached) {
         return this.parseServerMetrics(cached);
+      } else if (cached === null) {
+        this.logger.warn(`No cached metrics found for server ${moid}`);
       }
     }
 

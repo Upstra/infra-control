@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { VmwareCacheServiceInterface } from '../interfaces/vmware-cache.service.interface';
 import { Server } from '@modules/servers/domain/entities/server.entity';
 import { RedisSafeService } from '@/modules/redis/application/services/redis-safe.service';
@@ -6,6 +6,8 @@ import { EncryptionService } from '@/core/services/encryption';
 
 @Injectable()
 export class VmwareCacheService implements VmwareCacheServiceInterface {
+  private readonly logger = new Logger(VmwareCacheService.name);
+
   constructor(
     private readonly redis: RedisSafeService,
     private readonly encryptionService: EncryptionService,
@@ -105,6 +107,8 @@ export class VmwareCacheService implements VmwareCacheServiceInterface {
   async getVmMetrics(moid: string): Promise<any | null> {
     const key = JSON.stringify({ type: 'VM', moid });
     const data = await this.redis.safeHGet('metrics:metrics', key);
+    this.logger.debug(`Fetching metrics for VM ${moid} from cache`);
+    this.logger.debug(`Data fetched: ${data}`);
     return data ? JSON.parse(data) : null;
   }
 
@@ -116,6 +120,8 @@ export class VmwareCacheService implements VmwareCacheServiceInterface {
   async getServerMetrics(moid: string): Promise<any | null> {
     const key = JSON.stringify({ type: 'Server', moid });
     const data = await this.redis.safeHGet('metrics:metrics', key);
+    this.logger.debug(`Fetching metrics for server ${moid} from cache`);
+    this.logger.debug(`Data fetched: ${data}`);
     return data ? JSON.parse(data) : null;
   }
 }

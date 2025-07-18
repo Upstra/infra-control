@@ -29,7 +29,6 @@ import {
   GetVmMetricsUseCase,
   ControlVmPowerUseCase,
   MigrateVmUseCase,
-  GetHostMetricsUseCase,
   StartVMDiscoveryUseCase,
   GetActiveDiscoverySessionUseCase,
   GetDiscoverySessionUseCase,
@@ -63,7 +62,6 @@ export class VmwareController {
     private readonly getVmMetricsUseCase: GetVmMetricsUseCase,
     private readonly controlVmPowerUseCase: ControlVmPowerUseCase,
     private readonly migrateVmUseCase: MigrateVmUseCase,
-    private readonly getHostMetricsUseCase: GetHostMetricsUseCase,
     private readonly startVMDiscoveryUseCase: StartVMDiscoveryUseCase,
     private readonly getActiveDiscoverySessionUseCase: GetActiveDiscoverySessionUseCase,
     private readonly getDiscoverySessionUseCase: GetDiscoverySessionUseCase,
@@ -253,41 +251,6 @@ export class VmwareController {
     @Body() dto: VmMigrateDto,
   ) {
     return this.migrateVmUseCase.execute(serverId, moid, dto.destinationMoid);
-  }
-
-  @Get(':serverId/metrics')
-  @UseGuards(ResourcePermissionGuard)
-  @RequireResourcePermission({
-    resourceType: 'server',
-    requiredBit: PermissionBit.READ,
-    resourceIdSource: 'params',
-    resourceIdField: 'serverId',
-  })
-  @ApiOperation({ summary: 'Get ESXi host metrics' })
-  @ApiParam({ name: 'serverId', description: 'Server ID' })
-  @ApiQuery({
-    name: 'force',
-    required: false,
-    type: Boolean,
-    description: 'Force refresh from vCenter instead of using cache',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Host metrics retrieved successfully',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Insufficient permissions',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Server not found',
-  })
-  async getHostMetrics(
-    @Param('serverId') serverId: string,
-    @Query() query: CacheQueryDto,
-  ) {
-    return this.getHostMetricsUseCase.execute(serverId, query.force);
   }
 
   @Post('discovery/start')
