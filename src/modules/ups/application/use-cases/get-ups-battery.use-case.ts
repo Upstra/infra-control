@@ -5,19 +5,15 @@ import { UpsRepository } from '../../domain/interfaces/ups.repository';
 import { UpsBatteryEvents } from '../../domain/events/ups-battery.events';
 import { UPSBatteryStatusDto } from '../../domain/interfaces/ups-battery-status.interface';
 import { UpsNotFoundException } from '../../domain/exceptions/ups.exception';
+import { UpsBatteryDomainService } from '../../domain/services/ups-battery.domain.service';
 
 @Injectable()
 export class GetUpsBatteryUseCase {
-  private readonly thresholds = {
-    critical: 10,
-    warning: 30,
-    low: 60,
-  };
-
   constructor(
     private pythonExecutor: PythonExecutorService,
     private eventEmitter: EventEmitter2,
     private upsRepository: UpsRepository,
+    private upsBatteryDomainService: UpsBatteryDomainService,
   ) {}
 
   async execute(upsId: string): Promise<UPSBatteryStatusDto> {
@@ -38,7 +34,7 @@ export class GetUpsBatteryUseCase {
         throw new BadRequestException('Invalid battery minutes value');
       }
 
-      const status = this.enrichBatteryStatus(ups.id, ups.ip, minutesRemaining);
+      const status = this.upsBatteryDomainService.enrichBatteryStatus(ups.id, ups.ip, minutesRemaining);
 
       if (status.alertLevel !== 'normal') {
         this.eventEmitter.emit(UpsBatteryEvents.BATTERY_ALERT, {
@@ -60,42 +56,5 @@ export class GetUpsBatteryUseCase {
     }
 
     throw new BadRequestException(result.message || 'Failed to get battery status');
-  }
-
-  private enrichBatteryStatus(
-    upsId: string,
-    ip: string,
-    minutesRemaining: number,
-  ): UPSBatteryStatusDto {
-    const alertLevel = this.calculateAlertLevel(minutesRemaining);
-    
-    return {
-      upsId,
-      ip,
-      minutesRemaining,
-      hoursRemaining: Math.round((minutesRemaining / 60) * 100) / 100,
-      timestamp: new Date(),
-      alertLevel,
-      statusLabel: this.getStatusLabel(alertLevel),
-    };
-  }
-
-  private calculateAlertLevel(
-    minutes: number,
-  ): 'normal' | 'low' | 'warning' | 'critical' {
-    if (minutes <= this.thresholds.critical) return 'critical';
-    if (minutes <= this.thresholds.warning) return 'warning';
-    if (minutes <= this.thresholds.low) return 'low';
-    return 'normal';
-  }
-
-  private getStatusLabel(alertLevel: string): string {
-    const labels = {
-      critical: 'Critique - Action immédiate requise',
-      warning: 'Avertissement - Préparer shutdown',
-      low: 'Faible - Surveillance accrue',
-      normal: 'Normal',
-    };
-    return labels[alertLevel] || 'Inconnu';
   }
 }
