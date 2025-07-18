@@ -53,6 +53,8 @@ export const getWebSocketCorsOptions = () => {
     'http://localhost:3000',
     'http://127.0.0.1:5173',
     'http://127.0.0.1:3000',
+    'http://172.23.50.2',
+    'http://172.23.50.2:80',
   ];
 
   if (frontendUrl && !baseOrigins.includes(frontendUrl)) {
