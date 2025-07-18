@@ -97,7 +97,7 @@ describe('GetUpsBatteryUseCase', () => {
       upsRepository.findById.mockResolvedValue(mockUps);
       jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
         status: 'success',
-        output: '45',
+        output: '25',
       } as any);
 
       const result = await useCase.execute(mockUps.id);
@@ -111,7 +111,7 @@ describe('GetUpsBatteryUseCase', () => {
           upsName: mockUps.name,
           status: expect.objectContaining({
             alertLevel: 'low',
-            minutesRemaining: 45,
+            minutesRemaining: 25,
           }),
         })
       );
@@ -121,7 +121,7 @@ describe('GetUpsBatteryUseCase', () => {
       upsRepository.findById.mockResolvedValue(mockUps);
       jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
         status: 'success',
-        output: '25',
+        output: '10',
       } as any);
 
       const result = await useCase.execute(mockUps.id);
@@ -141,7 +141,7 @@ describe('GetUpsBatteryUseCase', () => {
       upsRepository.findById.mockResolvedValue(mockUps);
       jest.spyOn(pythonExecutor, 'execute').mockResolvedValue({
         status: 'success',
-        output: '8',
+        output: '3',
       } as any);
 
       const result = await useCase.execute(mockUps.id);
@@ -196,12 +196,12 @@ describe('GetUpsBatteryUseCase', () => {
       
       // Test threshold boundaries
       const testCases = [
-        { minutes: 10, expectedLevel: 'critical' },
-        { minutes: 11, expectedLevel: 'warning' },
-        { minutes: 30, expectedLevel: 'warning' },
-        { minutes: 31, expectedLevel: 'low' },
-        { minutes: 60, expectedLevel: 'low' },
-        { minutes: 61, expectedLevel: 'normal' },
+        { minutes: 5, expectedLevel: 'critical' },
+        { minutes: 6, expectedLevel: 'warning' },
+        { minutes: 15, expectedLevel: 'warning' },
+        { minutes: 16, expectedLevel: 'low' },
+        { minutes: 30, expectedLevel: 'low' },
+        { minutes: 31, expectedLevel: 'normal' },
       ];
 
       for (const testCase of testCases) {
