@@ -82,11 +82,17 @@ export class VmwareCacheService implements VmwareCacheServiceInterface {
       );
     }
 
-    const firstServer = servers[0];
+    const vcenter = servers.find((server) => server.type === 'vcenter');
+    if (!vcenter) {
+      throw new NotFoundException(
+        'No vCenter server found in the provided list',
+      );
+    }
+
     await this.setVcenterConfig({
-      ip: firstServer.ip,
-      user: firstServer.login,
-      password: firstServer.password,
+      ip: vcenter.ip,
+      user: vcenter.login,
+      password: vcenter.password,
       port: 443,
     });
 
