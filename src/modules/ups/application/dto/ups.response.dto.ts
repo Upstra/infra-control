@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsString, IsUUID } from 'class-validator';
 import { Ups } from '../../domain/entities/ups.entity';
 import { ServerInUpsResponseDto } from './server-in-ups.response.dto';
+import { BatteryStatusResponseDto } from './battery-status.response.dto';
 
 export class UpsResponseDto {
   @ApiProperty()
@@ -44,7 +45,18 @@ export class UpsResponseDto {
   })
   readonly servers?: ServerInUpsResponseDto[];
 
-  constructor(ups: Ups, serverCount = 0) {
+  @ApiProperty({
+    description: 'Battery status information',
+    type: BatteryStatusResponseDto,
+    required: false,
+  })
+  readonly batteryStatus?: BatteryStatusResponseDto;
+
+  constructor(
+    ups: Ups,
+    serverCount = 0,
+    batteryStatus?: BatteryStatusResponseDto,
+  ) {
     this.id = ups.id;
     this.name = ups.name;
     this.ip = ups.ip;
@@ -55,5 +67,6 @@ export class UpsResponseDto {
       (server) => new ServerInUpsResponseDto(server),
     );
     this.serverCount = serverCount;
+    this.batteryStatus = batteryStatus;
   }
 }

@@ -1,6 +1,7 @@
 import { UpsResponseDto } from '../ups.response.dto';
 import { Ups } from '../../../domain/entities/ups.entity';
 import { Server } from '../../../../servers/domain/entities/server.entity';
+import { BatteryStatusResponseDto } from '../battery-status.response.dto';
 
 describe('UpsResponseDto', () => {
   describe('constructor', () => {
@@ -123,6 +124,50 @@ describe('UpsResponseDto', () => {
 
       expect(dto.servers).toBeUndefined();
       expect(dto.serverCount).toBe(0);
+    });
+
+    it('should create a DTO with battery status', () => {
+      const batteryStatus = new BatteryStatusResponseDto({
+        upsId: 'test-id',
+        ip: '192.168.1.100',
+        minutesRemaining: 45,
+        hoursRemaining: 0.75,
+        alertLevel: 'normal',
+        statusLabel: 'Battery Normal',
+        timestamp: new Date('2024-01-01T12:00:00Z'),
+      });
+
+      const dto = new UpsResponseDto(mockUps, 5, batteryStatus);
+
+      expect(dto.id).toBe('test-id');
+      expect(dto.serverCount).toBe(5);
+      expect(dto.batteryStatus).toEqual(batteryStatus);
+      expect(dto.batteryStatus.minutesRemaining).toBe(45);
+      expect(dto.batteryStatus.alertLevel).toBe('normal');
+    });
+
+    it('should handle UPS without battery status', () => {
+      const dto = new UpsResponseDto(mockUps, 3);
+
+      expect(dto.serverCount).toBe(3);
+      expect(dto.batteryStatus).toBeUndefined();
+    });
+
+    it('should create DTO with critical battery status', () => {
+      const criticalBattery = new BatteryStatusResponseDto({
+        upsId: 'test-id',
+        ip: '192.168.1.100',
+        minutesRemaining: 5,
+        hoursRemaining: 0.083,
+        alertLevel: 'critical',
+        statusLabel: 'Battery Critical',
+        timestamp: new Date(),
+      });
+
+      const dto = new UpsResponseDto(mockUps, 2, criticalBattery);
+
+      expect(dto.batteryStatus.alertLevel).toBe('critical');
+      expect(dto.batteryStatus.minutesRemaining).toBe(5);
     });
   });
 });
