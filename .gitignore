@@ -287,3 +287,4 @@ perso/*
 
 # SBOM files (generated)
 sbom/
+infra-control.postman_collection.json
