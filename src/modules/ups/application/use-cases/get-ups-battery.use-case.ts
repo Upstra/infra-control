@@ -1,7 +1,7 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Inject } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PythonExecutorService } from '@core/services/python-executor';
-import { UpsRepository } from '../../domain/interfaces/ups.repository.interface';
+import { UpsRepositoryInterface } from '../../domain/interfaces/ups.repository.interface';
 import { UpsBatteryEvents } from '../../domain/events/ups-battery.events';
 import { UPSBatteryStatusDto } from '../../domain/interfaces/ups-battery-status.interface';
 import { UpsNotFoundException } from '../../domain/exceptions/ups.exception';
@@ -12,7 +12,7 @@ export class GetUpsBatteryUseCase {
   constructor(
     private pythonExecutor: PythonExecutorService,
     private eventEmitter: EventEmitter2,
-    private upsRepository: UpsRepository,
+    @Inject('UpsRepositoryInterface') private upsRepository: UpsRepositoryInterface,
     private upsBatteryDomainService: UpsBatteryDomainService,
   ) {}
 

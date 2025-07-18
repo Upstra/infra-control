@@ -3,7 +3,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BadRequestException } from '@nestjs/common';
 import { GetUpsBatteryUseCase } from '../get-ups-battery.use-case';
 import { PythonExecutorService } from '@/core/services/python-executor';
-import { UpsRepository } from '../../../domain/interfaces/ups.repository.interface';
+import { UpsRepositoryInterface } from '../../../domain/interfaces/ups.repository.interface';
 import { UpsBatteryDomainService } from '../../../domain/services/ups-battery.domain.service';
 import { UpsNotFoundException } from '../../../domain/exceptions/ups.exception';
 import { UpsBatteryEvents } from '../../../domain/events/ups-battery.events';
@@ -12,7 +12,7 @@ describe('GetUpsBatteryUseCase', () => {
   let useCase: GetUpsBatteryUseCase;
   let pythonExecutor: PythonExecutorService;
   let eventEmitter: jest.Mocked<EventEmitter2>;
-  let upsRepository: jest.Mocked<UpsRepository>;
+  let upsRepository: jest.Mocked<UpsRepositoryInterface>;
   let upsBatteryDomainService: UpsBatteryDomainService;
 
   const mockUps = {
