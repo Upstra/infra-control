@@ -506,7 +506,7 @@ export class VmwareService implements IVmwareService {
       return;
     }
 
-    const servers = await this.serverRepository.findAll();
+    const servers = await this.serverRepository.findAllWithCredentials();
     await this.vmwareCacheService.initializeIfNeeded(servers);
     this.vcenterInitialized = true;
   }
