@@ -4,6 +4,7 @@ import {
   Post,
   Param,
   Body,
+  Query,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -15,6 +16,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
@@ -88,6 +90,12 @@ export class IloPowerController {
   })
   @ApiOperation({ summary: 'Get server power status via iLO' })
   @ApiParam({ name: 'serverId', description: 'Server ID' })
+  @ApiQuery({ 
+    name: 'force', 
+    required: false, 
+    type: Boolean,
+    description: 'Force refresh metrics from vCenter instead of using cache'
+  })
   @ApiResponse({
     status: 200,
     description: 'Server status retrieved successfully',
@@ -107,8 +115,9 @@ export class IloPowerController {
   })
   async getServerStatus(
     @Param('serverId') serverId: string,
+    @Query('force') force?: boolean,
   ): Promise<IloStatusResponseDto> {
-    return this.getServerStatusUseCase.execute(serverId);
+    return this.getServerStatusUseCase.execute(serverId, force);
   }
 
   @Post(':serverId/ping')

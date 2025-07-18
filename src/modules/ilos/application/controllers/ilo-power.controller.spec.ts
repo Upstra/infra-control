@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { IloPowerController } from './ilo-power.controller';
 import { ControlServerPowerUseCase } from '../use-cases/control-server-power.use-case';
 import { GetServerStatusUseCase } from '../use-cases/get-server-status.use-case';
+import { PingIloUseCase } from '../use-cases/ping-ilo.use-case';
 import { IloPowerAction, IloPowerActionDto } from '../dto/ilo-power-action.dto';
 import {
   IloPowerResponseDto,
@@ -28,6 +29,12 @@ describe('IloPowerController', () => {
         },
         {
           provide: GetServerStatusUseCase,
+          useValue: {
+            execute: jest.fn(),
+          },
+        },
+        {
+          provide: PingIloUseCase,
           useValue: {
             execute: jest.fn(),
           },
@@ -126,7 +133,33 @@ describe('IloPowerController', () => {
 
       const result = await controller.getServerStatus('server-1');
 
-      expect(getServerStatusUseCase.execute).toHaveBeenCalledWith('server-1');
+      expect(getServerStatusUseCase.execute).toHaveBeenCalledWith('server-1', undefined);
+      expect(result).toEqual(expectedStatus);
+    });
+
+    it('should get server status with force parameter', async () => {
+      const expectedStatus: IloStatusResponseDto = {
+        status: IloServerStatus.ON,
+        ip: '192.168.1.10',
+        serverId: 'server-1',
+        serverName: 'Test Server',
+        serverType: 'esxi',
+        vmwareHostMoid: 'host-123',
+        serverState: 'running',
+        serverPriority: 1,
+        roomId: 'room-1',
+        metrics: {
+          cpuUsage: 50.0,
+          memoryUsage: 16384,
+          powerState: 'poweredOn',
+        },
+      };
+
+      getServerStatusUseCase.execute.mockResolvedValue(expectedStatus);
+
+      const result = await controller.getServerStatus('server-1', true);
+
+      expect(getServerStatusUseCase.execute).toHaveBeenCalledWith('server-1', true);
       expect(result).toEqual(expectedStatus);
     });
 

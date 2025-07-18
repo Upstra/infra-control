@@ -120,7 +120,34 @@ describe('IloPowerController', () => {
 
       const result = await controller.getServerStatus(serverId);
 
-      expect(getServerStatusUseCase.execute).toHaveBeenCalledWith(serverId);
+      expect(getServerStatusUseCase.execute).toHaveBeenCalledWith(serverId, undefined);
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should get server status with force parameter', async () => {
+      const serverId = 'server-123';
+      const expectedResult: IloStatusResponseDto = {
+        status: IloServerStatus.ON,
+        ip: '192.168.1.100',
+        serverId: 'server-123',
+        serverName: 'Test Server',
+        serverType: 'esxi',
+        vmwareHostMoid: 'host-123',
+        serverState: 'running',
+        serverPriority: 1,
+        roomId: 'room-1',
+        metrics: {
+          cpuUsage: 50.0,
+          memoryUsage: 16384,
+          powerState: 'poweredOn',
+        },
+      };
+
+      getServerStatusUseCase.execute.mockResolvedValue(expectedResult);
+
+      const result = await controller.getServerStatus(serverId, true);
+
+      expect(getServerStatusUseCase.execute).toHaveBeenCalledWith(serverId, true);
       expect(result).toEqual(expectedResult);
     });
 
@@ -156,7 +183,6 @@ describe('IloPowerController', () => {
 
       expect(pingIloUseCase.execute).toHaveBeenCalledWith(
         serverId,
-        pingDto.host,
         pingDto.timeout,
       );
       expect(result).toEqual(expectedResult);
@@ -179,7 +205,6 @@ describe('IloPowerController', () => {
 
       expect(pingIloUseCase.execute).toHaveBeenCalledWith(
         serverId,
-        pingDto.host,
         undefined,
       );
       expect(result).toEqual(expectedResult);
@@ -202,7 +227,6 @@ describe('IloPowerController', () => {
 
       expect(pingIloUseCase.execute).toHaveBeenCalledWith(
         serverId,
-        pingDto.host,
         undefined,
       );
       expect(result).toEqual(expectedResult);
