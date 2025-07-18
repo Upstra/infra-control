@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { VmwareCacheServiceInterface } from '../interfaces/vmware-cache.service.interface';
 import { Server } from '@modules/servers/domain/entities/server.entity';
 import { RedisSafeService } from '@/modules/redis/application/services/redis-safe.service';
@@ -77,12 +77,14 @@ export class VmwareCacheService implements VmwareCacheServiceInterface {
     }
 
     if (servers.length === 0) {
-      throw new Error('No servers available to extract vCenter configuration');
+      throw new NotFoundException(
+        'No servers available to extract vCenter configuration',
+      );
     }
 
     const firstServer = servers[0];
     await this.setVcenterConfig({
-      ip: firstServer.vmwareVCenterIp,
+      ip: firstServer.ip,
       user: firstServer.login,
       password: firstServer.password,
       port: 443,
