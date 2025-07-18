@@ -21,7 +21,7 @@ import {
   VmMigrateDto,
   VmwareConnectionDto,
 } from '../../dto';
-import { VmwareVm, VmwareHost, VmwareServer } from '../../../domain/interfaces';
+import { VmwareVm, VmwareServer } from '../../../domain/interfaces';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
 

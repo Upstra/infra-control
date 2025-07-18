@@ -29,7 +29,7 @@ export interface UserRepositoryInterface
    * Soft delete a user by setting deletedAt timestamp.
    * TODO: This method will be used for GDPR compliance in the future.
    * For now, we use hard delete via deleteUser().
-   * 
+   *
    * @param id - The ID of the user to soft delete
    * @returns Updated user with deletedAt set
    */

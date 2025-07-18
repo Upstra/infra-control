@@ -6,7 +6,7 @@ import { UserExceptions } from '../../domain/exceptions/user.exception';
 
 /**
  * Performs a HARD DELETE of a user account by its identifier.
- * 
+ *
  * TODO: This use case currently performs a hard delete (permanent removal from database).
  * In the future, for GDPR compliance, we should implement proper data retention policies
  * and use soft delete with data anonymization after a certain period.

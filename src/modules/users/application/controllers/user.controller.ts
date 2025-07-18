@@ -251,7 +251,8 @@ export class UserController {
   })
   @ApiOperation({
     summary: 'Supprimer définitivement un utilisateur (HARD DELETE)',
-    description: 'Supprime DÉFINITIVEMENT un utilisateur via son UUID. Action IRRÉVERSIBLE - les données sont perdues. TODO: Implémenter GDPR avec période de rétention.',
+    description:
+      'Supprime DÉFINITIVEMENT un utilisateur via son UUID. Action IRRÉVERSIBLE - les données sont perdues. TODO: Implémenter GDPR avec période de rétention.',
   })
   @ApiResponse({ status: 204, description: 'Utilisateur supprimé avec succès' })
   async deleteUser(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
@@ -276,7 +277,7 @@ export class UserController {
   @ApiOperation({
     summary: 'Désactiver un compte utilisateur (SOFT DELETE)',
     description:
-      'Effectue une suppression logique du compte utilisateur en définissant deletedAt et isActive=false. Les données sont conservées. Admin uniquement. TODO: Sera utilisé pour GDPR à l\'avenir.',
+      "Effectue une suppression logique du compte utilisateur en définissant deletedAt et isActive=false. Les données sont conservées. Admin uniquement. TODO: Sera utilisé pour GDPR à l'avenir.",
   })
   @ApiResponse({
     status: 200,

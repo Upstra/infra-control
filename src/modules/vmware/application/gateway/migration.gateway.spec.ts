@@ -197,7 +197,6 @@ describe('MigrationGateway', () => {
 
       await gateway.handleCancelMigration(mockSocket);
 
-
       expect(migrationOrchestrator.cancelMigration).toHaveBeenCalled();
       expect(mockSocket.emit).toHaveBeenCalledWith('migration:cancelled', {
         success: true,

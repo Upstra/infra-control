@@ -31,7 +31,6 @@ describe('MigrationDestinationsController', () => {
     execute: jest.fn(),
   };
 
-
   const mockJwtAuthGuard = {
     canActivate: jest.fn().mockReturnValue(true),
   };

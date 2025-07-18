@@ -206,5 +206,4 @@ export class MigrationCompletedListener {
       return null;
     }
   }
-
 }
