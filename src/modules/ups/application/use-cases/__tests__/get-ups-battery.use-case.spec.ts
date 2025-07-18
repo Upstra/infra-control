@@ -13,7 +13,6 @@ describe('GetUpsBatteryUseCase', () => {
   let pythonExecutor: jest.Mocked<PythonExecutorService>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
   let upsRepository: jest.Mocked<UpsRepositoryInterface>;
-  let upsBatteryDomainService: UpsBatteryDomainService;
 
   const mockUps = {
     id: '123e4567-e89b-12d3-a456-426614174000',
@@ -55,7 +54,9 @@ describe('GetUpsBatteryUseCase', () => {
     }).compile();
 
     useCase = module.get<GetUpsBatteryUseCase>(GetUpsBatteryUseCase);
-    pythonExecutor = module.get(PythonExecutorService) as jest.Mocked<PythonExecutorService>;
+    pythonExecutor = module.get(
+      PythonExecutorService,
+    ) as jest.Mocked<PythonExecutorService>;
     eventEmitter = module.get(EventEmitter2);
     upsRepository = module.get('UpsRepositoryInterface');
     upsBatteryDomainService = module.get(UpsBatteryDomainService);
@@ -86,14 +87,14 @@ describe('GetUpsBatteryUseCase', () => {
       });
 
       expect(upsRepository.findUpsById).toHaveBeenCalledWith(mockUps.id);
-      expect(pythonExecutor.executePython).toHaveBeenCalledWith('ups_battery.sh', [
-        '--ip',
-        mockUps.ip,
-      ]);
+      expect(pythonExecutor.executePython).toHaveBeenCalledWith(
+        'ups_battery.sh',
+        ['--ip', mockUps.ip],
+      );
       expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
       expect(eventEmitter.emit).toHaveBeenCalledWith(
         UpsBatteryEvents.BATTERY_CHECKED,
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -117,7 +118,7 @@ describe('GetUpsBatteryUseCase', () => {
             alertLevel: 'low',
             minutesRemaining: 25,
           }),
-        })
+        }),
       );
     });
 
@@ -137,7 +138,7 @@ describe('GetUpsBatteryUseCase', () => {
           status: expect.objectContaining({
             alertLevel: 'warning',
           }),
-        })
+        }),
       );
     });
 
@@ -158,7 +159,7 @@ describe('GetUpsBatteryUseCase', () => {
       upsRepository.findUpsById.mockResolvedValue(null);
 
       await expect(useCase.execute('invalid-id')).rejects.toThrow(
-        UpsNotFoundException
+        UpsNotFoundException,
       );
 
       expect(pythonExecutor.executePython).not.toHaveBeenCalled();
@@ -173,31 +174,30 @@ describe('GetUpsBatteryUseCase', () => {
       } as any);
 
       await expect(useCase.execute(mockUps.id)).rejects.toThrow(
-        BadRequestException
+        BadRequestException,
       );
       await expect(useCase.execute(mockUps.id)).rejects.toThrow(
-        'Invalid battery minutes value'
+        'Invalid battery minutes value',
       );
     });
 
     it('should throw BadRequestException when python script fails', async () => {
       upsRepository.findUpsById.mockResolvedValue(mockUps);
       pythonExecutor.executePython.mockRejectedValue(
-        new Error('Script execution failed')
+        new Error('Script execution failed'),
       );
 
       await expect(useCase.execute(mockUps.id)).rejects.toThrow(
-        BadRequestException
+        BadRequestException,
       );
       await expect(useCase.execute(mockUps.id)).rejects.toThrow(
-        'Script execution failed'
+        'Script execution failed',
       );
     });
 
     it('should handle edge case battery values correctly', async () => {
       upsRepository.findUpsById.mockResolvedValue(mockUps);
-      
-      // Test threshold boundaries
+
       const testCases = [
         { minutes: 5, expectedLevel: 'critical' },
         { minutes: 6, expectedLevel: 'warning' },
@@ -238,7 +238,7 @@ describe('GetUpsBatteryUseCase', () => {
       } as any);
 
       await expect(useCase.execute(mockUps.id)).rejects.toThrow(
-        BadRequestException
+        BadRequestException,
       );
     });
 

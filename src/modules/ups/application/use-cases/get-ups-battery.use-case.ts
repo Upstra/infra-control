@@ -12,7 +12,8 @@ export class GetUpsBatteryUseCase {
   constructor(
     private pythonExecutor: PythonExecutorService,
     private eventEmitter: EventEmitter2,
-    @Inject('UpsRepositoryInterface') private upsRepository: UpsRepositoryInterface,
+    @Inject('UpsRepositoryInterface')
+    private upsRepository: UpsRepositoryInterface,
     private upsBatteryDomainService: UpsBatteryDomainService,
   ) {}
 
@@ -29,7 +30,7 @@ export class GetUpsBatteryUseCase {
       ]);
 
       let minutesRemaining: number;
-      
+
       if (typeof result === 'object' && result.status === 'success') {
         minutesRemaining = parseInt(result.output.trim(), 10);
       } else if (typeof result === 'string') {
@@ -37,14 +38,20 @@ export class GetUpsBatteryUseCase {
       } else if (typeof result === 'number') {
         minutesRemaining = result;
       } else {
-        throw new BadRequestException('Invalid response format from battery script');
+        throw new BadRequestException(
+          'Invalid response format from battery script',
+        );
       }
-      
+
       if (isNaN(minutesRemaining)) {
         throw new BadRequestException('Invalid battery minutes value');
       }
 
-      const status = this.upsBatteryDomainService.enrichBatteryStatus(ups.id, ups.ip, minutesRemaining);
+      const status = this.upsBatteryDomainService.enrichBatteryStatus(
+        ups.id,
+        ups.ip,
+        minutesRemaining,
+      );
 
       if (status.alertLevel !== 'normal') {
         this.eventEmitter.emit(UpsBatteryEvents.BATTERY_ALERT, {
@@ -67,7 +74,9 @@ export class GetUpsBatteryUseCase {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new BadRequestException(error.message || 'Failed to get battery status');
+      throw new BadRequestException(
+        error.message || 'Failed to get battery status',
+      );
     }
   }
 }

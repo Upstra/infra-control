@@ -126,10 +126,10 @@ describe('UpsBatteryDomainService', () => {
 
     it('should create unique timestamps', async () => {
       const result1 = service.enrichBatteryStatus(upsId, ip, 60);
-      
+
       // Small delay to ensure different timestamp
-      await new Promise(resolve => setTimeout(resolve, 10));
-      
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
       const result2 = service.enrichBatteryStatus(upsId, ip, 60);
 
       expect(result1.timestamp).not.toEqual(result2.timestamp);
@@ -146,7 +146,11 @@ describe('UpsBatteryDomainService', () => {
       ];
 
       for (const testCase of testCases) {
-        const result = service.enrichBatteryStatus('id', 'ip', testCase.minutes);
+        const result = service.enrichBatteryStatus(
+          'id',
+          'ip',
+          testCase.minutes,
+        );
         expect(result.statusLabel).toBe(testCase.expectedLabel);
       }
     });

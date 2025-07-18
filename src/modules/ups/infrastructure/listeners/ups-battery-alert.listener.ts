@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { UpsBatteryAlertEvent, UpsBatteryEvents } from '../../domain/events/ups-battery.events';
+import {
+  UpsBatteryAlertEvent,
+  UpsBatteryEvents,
+} from '../../domain/events/ups-battery.events';
 import { EmailEvents } from '@/modules/email/domain/events/email.events';
 
 @Injectable()
@@ -17,9 +20,10 @@ export class UpsBatteryAlertListener {
       return;
     }
 
-    const emailEvent = event.status.alertLevel === 'critical' 
-      ? EmailEvents.UPS_BATTERY_CRITICAL 
-      : EmailEvents.UPS_BATTERY_WARNING;
+    const emailEvent =
+      event.status.alertLevel === 'critical'
+        ? EmailEvents.UPS_BATTERY_CRITICAL
+        : EmailEvents.UPS_BATTERY_WARNING;
 
     this.eventEmitter.emit(emailEvent, {
       upsName: event.upsName,

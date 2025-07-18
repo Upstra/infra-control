@@ -102,7 +102,9 @@ export class EmailEventListener {
   @OnEvent(EmailEvents.UPS_BATTERY_CRITICAL, { async: true })
   async handleUpsBatteryCritical(payload: any) {
     try {
-      this.logger.log(`Sending critical UPS battery alert for ${payload.upsName}`);
+      this.logger.log(
+        `Sending critical UPS battery alert for ${payload.upsName}`,
+      );
       await this.sendUpsBatteryAlertEmail.execute(payload);
     } catch (error) {
       this.logger.error(
@@ -115,7 +117,9 @@ export class EmailEventListener {
   @OnEvent(EmailEvents.UPS_BATTERY_WARNING, { async: true })
   async handleUpsBatteryWarning(payload: any) {
     try {
-      this.logger.log(`Sending warning UPS battery alert for ${payload.upsName}`);
+      this.logger.log(
+        `Sending warning UPS battery alert for ${payload.upsName}`,
+      );
       await this.sendUpsBatteryAlertEmail.execute(payload);
     } catch (error) {
       this.logger.error(

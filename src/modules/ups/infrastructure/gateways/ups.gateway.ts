@@ -7,7 +7,11 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { OnEvent } from '@nestjs/event-emitter';
-import { UpsBatteryEvents, UpsBatteryCheckedEvent, UpsBatteryAlertEvent } from '../../domain/events/ups-battery.events';
+import {
+  UpsBatteryEvents,
+  UpsBatteryCheckedEvent,
+  UpsBatteryAlertEvent,
+} from '../../domain/events/ups-battery.events';
 
 @WebSocketGateway({
   namespace: 'ups',
@@ -23,7 +27,9 @@ export class UpsGateway {
   @OnEvent(UpsBatteryEvents.BATTERY_CHECKED)
   handleBatteryUpdate(status: UpsBatteryCheckedEvent): void {
     this.server.emit('battery-status', status);
-    this.server.to(`ups-${status.upsId}`).emit('battery-status-specific', status);
+    this.server
+      .to(`ups-${status.upsId}`)
+      .emit('battery-status-specific', status);
   }
 
   @OnEvent(UpsBatteryEvents.BATTERY_ALERT)

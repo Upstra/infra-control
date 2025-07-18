@@ -19,7 +19,8 @@ export class SendUpsBatteryAlertEmailUseCase {
   constructor(
     @Inject(MAIL_SERVICE_TOKEN) private mailService: IMailService,
     private configService: ConfigService,
-    @Inject('UserRepositoryInterface') private userRepository: UserTypeormRepository,
+    @Inject('UserRepositoryInterface')
+    private userRepository: UserTypeormRepository,
   ) {}
 
   async execute(dto: SendUpsBatteryAlertEmailDto): Promise<void> {

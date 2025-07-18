@@ -178,7 +178,7 @@ export class UpsController {
   @ApiParam({
     name: 'id',
     type: String,
-    description: 'UUID de l\'UPS',
+    description: "UUID de l'UPS",
     required: true,
   })
   @ApiOperation({
@@ -192,9 +192,7 @@ export class UpsController {
     status: 200,
     description: 'Battery status retrieved successfully',
   })
-  async getBatteryStatus(
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
+  async getBatteryStatus(@Param('id', ParseUUIDPipe) id: string) {
     return this.getUpsBatteryUseCase.execute(id);
   }
 
@@ -221,7 +219,7 @@ export class UpsController {
         } catch (error) {
           return { ...ups, battery: null, error: error.message };
         }
-      })
+      }),
     );
     return batteryStatuses;
   }
