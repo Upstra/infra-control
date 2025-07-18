@@ -26,6 +26,16 @@ export interface UserRepositoryInterface
   deleteUser(id: string): Promise<void>;
 
   /**
+   * Soft delete a user by setting deletedAt timestamp.
+   * TODO: This method will be used for GDPR compliance in the future.
+   * For now, we use hard delete via deleteUser().
+   * 
+   * @param id - The ID of the user to soft delete
+   * @returns Updated user with deletedAt set
+   */
+  softDeleteUser(id: string): Promise<User>;
+
+  /**
    * Count the number of admin users in the system.
    * @param includeDeleted - Whether to include soft-deleted users
    */

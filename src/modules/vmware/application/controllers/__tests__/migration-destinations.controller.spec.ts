@@ -4,7 +4,6 @@ import { GenerateMigrationPlanWithDestinationUseCase } from '../../use-cases/gen
 import { GetMigrationDestinationsUseCase } from '../../use-cases/get-migration-destinations.use-case';
 import { RemoveMigrationDestinationUseCase } from '../../use-cases/remove-migration-destination.use-case';
 import { GetVmsForMigrationUseCase } from '../../use-cases/get-vms-for-migration.use-case';
-import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { RoleGuard } from '@/core/guards/role.guard';
 import {
@@ -32,9 +31,6 @@ describe('MigrationDestinationsController', () => {
     execute: jest.fn(),
   };
 
-  const mockLogHistoryUseCase = {
-    execute: jest.fn(),
-  };
 
   const mockJwtAuthGuard = {
     canActivate: jest.fn().mockReturnValue(true),
@@ -63,10 +59,6 @@ describe('MigrationDestinationsController', () => {
         {
           provide: GetVmsForMigrationUseCase,
           useValue: mockGetVmsForMigration,
-        },
-        {
-          provide: LogHistoryUseCase,
-          useValue: mockLogHistoryUseCase,
         },
       ],
     })

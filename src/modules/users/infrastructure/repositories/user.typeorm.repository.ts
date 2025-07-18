@@ -153,9 +153,30 @@ export class UserTypeormRepository
 
   async deleteUser(id: string): Promise<void> {
     try {
+      // TODO: For GDPR compliance, we should use softDelete in the future
       await this.delete(id);
     } catch (error) {
       Logger.error('Error deleting user:', error);
+      throw UserExceptions.deletionFailed();
+    }
+  }
+
+  async softDeleteUser(id: string): Promise<User> {
+    try {
+      const user = await this.findOneById(id);
+      if (!user) {
+        throw UserExceptions.notFound(id);
+      }
+
+      user.deletedAt = new Date();
+      user.isActive = false;
+
+      return await this.save(user);
+    } catch (error) {
+      if (error.name === 'UserNotFoundException') {
+        throw error;
+      }
+      Logger.error('Error soft deleting user:', error);
       throw UserExceptions.deletionFailed();
     }
   }

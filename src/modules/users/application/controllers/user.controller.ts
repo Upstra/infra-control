@@ -231,9 +231,9 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
-    summary: "Supprime l'utilisateur courant",
+    summary: "Supprime définitivement l'utilisateur courant (HARD DELETE)",
     description:
-      "Supprime l'utilisateur courant via son token JWT. Action Irréversible",
+      "Supprime DÉFINITIVEMENT l'utilisateur courant via son token JWT. Action IRRÉVERSIBLE - les données sont perdues. TODO: Implémenter GDPR avec période de rétention.",
   })
   @ApiResponse({ status: 204, description: 'Utilisateur supprimé avec succès' })
   async deleteCurrentUser(@CurrentUser() user: JwtPayload): Promise<void> {
@@ -250,8 +250,8 @@ export class UserController {
     required: true,
   })
   @ApiOperation({
-    summary: 'Supprimer un utilisateur',
-    description: 'Supprime un utilisateur via son UUID. Action irréversible.',
+    summary: 'Supprimer définitivement un utilisateur (HARD DELETE)',
+    description: 'Supprime DÉFINITIVEMENT un utilisateur via son UUID. Action IRRÉVERSIBLE - les données sont perdues. TODO: Implémenter GDPR avec période de rétention.',
   })
   @ApiResponse({ status: 204, description: 'Utilisateur supprimé avec succès' })
   async deleteUser(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
@@ -274,9 +274,9 @@ export class UserController {
     required: false,
   })
   @ApiOperation({
-    summary: 'Supprimer un compte utilisateur (soft delete)',
+    summary: 'Désactiver un compte utilisateur (SOFT DELETE)',
     description:
-      'Effectue une suppression logique du compte utilisateur. Admin uniquement.',
+      'Effectue une suppression logique du compte utilisateur en définissant deletedAt et isActive=false. Les données sont conservées. Admin uniquement. TODO: Sera utilisé pour GDPR à l\'avenir.',
   })
   @ApiResponse({
     status: 200,

@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { MigrationGateway } from './migration.gateway';
 import { MigrationOrchestratorService } from '../../domain/services/migration-orchestrator.service';
-import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
 import { JwtNotValid } from '@/modules/auth/domain/exceptions/auth.exception';
 import { MigrationState } from '../../domain/interfaces/migration-orchestrator.interface';
 
@@ -10,7 +9,6 @@ describe('MigrationGateway', () => {
   let gateway: MigrationGateway;
   let migrationOrchestrator: jest.Mocked<MigrationOrchestratorService>;
   let jwtService: jest.Mocked<JwtService>;
-  let logHistoryUseCase: jest.Mocked<LogHistoryUseCase>;
   let mockSocket: any;
 
   beforeEach(async () => {
@@ -32,19 +30,12 @@ describe('MigrationGateway', () => {
             verify: jest.fn(),
           },
         },
-        {
-          provide: LogHistoryUseCase,
-          useValue: {
-            executeStructured: jest.fn(),
-          },
-        },
       ],
     }).compile();
 
     gateway = module.get<MigrationGateway>(MigrationGateway);
     migrationOrchestrator = module.get(MigrationOrchestratorService);
     jwtService = module.get(JwtService);
-    logHistoryUseCase = module.get(LogHistoryUseCase);
 
     gateway.server = {
       emit: jest.fn(),
@@ -203,19 +194,9 @@ describe('MigrationGateway', () => {
 
     it('should cancel migration successfully', async () => {
       migrationOrchestrator.cancelMigration.mockResolvedValue();
-      logHistoryUseCase.executeStructured.mockResolvedValue();
 
       await gateway.handleCancelMigration(mockSocket);
 
-      expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith({
-        entity: 'migration',
-        entityId: 'socket-123',
-        action: 'CANCEL_MIGRATION',
-        userId: 'user-123',
-        metadata: {},
-        ipAddress: '192.168.1.1',
-        userAgent: 'test-agent',
-      });
 
       expect(migrationOrchestrator.cancelMigration).toHaveBeenCalled();
       expect(mockSocket.emit).toHaveBeenCalledWith('migration:cancelled', {

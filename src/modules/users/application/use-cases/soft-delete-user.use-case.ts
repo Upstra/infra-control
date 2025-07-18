@@ -38,10 +38,8 @@ export class SoftDeleteUserUseCase {
       throw UserExceptions.cannotDeleteLastAdmin();
     }
 
-    targetUser.deletedAt = new Date();
-    targetUser.isActive = false;
-
-    const updatedUser = await this.userRepository.save(targetUser);
+    // TODO: For now, we use the softDeleteUser method which sets deletedAt
+    const updatedUser = await this.userRepository.softDeleteUser(targetUserId);
 
     await this.logHistory.executeStructured({
       entity: 'user',
