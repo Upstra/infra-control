@@ -4,9 +4,9 @@ import { UPSBatteryStatusDto } from '../interfaces/ups-battery-status.interface'
 @Injectable()
 export class UpsBatteryDomainService {
   private readonly thresholds = {
-    critical: 10,
-    warning: 30,
-    low: 60,
+    critical: 5,
+    warning: 15,
+    low: 30,
   };
 
   enrichBatteryStatus(
@@ -15,7 +15,7 @@ export class UpsBatteryDomainService {
     minutesRemaining: number,
   ): UPSBatteryStatusDto {
     const alertLevel = this.calculateAlertLevel(minutesRemaining);
-    
+
     return {
       upsId,
       ip,

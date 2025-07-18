@@ -1,12 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { UpsRepository } from '../../domain/interfaces/ups.repository';
+
 import { GetUpsBatteryUseCase } from './get-ups-battery.use-case';
+import { UpsTypeormRepository } from '../../infrastructure/repositories/ups.typeorm.repository';
 
 @Injectable()
 export class CheckAllUpsBatteriesUseCase {
   constructor(
-    private upsRepository: UpsRepository,
+    @Inject(UpsTypeormRepository)
+    private upsRepository: UpsTypeormRepository,
     private getUpsBatteryUseCase: GetUpsBatteryUseCase,
   ) {}
 

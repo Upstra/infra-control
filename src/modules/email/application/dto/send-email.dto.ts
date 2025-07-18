@@ -7,6 +7,7 @@ export class SendEmailDto {
     | 'reset-password'
     | 'password-changed'
     | 'account-created'
-    | 'vmware-sync-report';
+    | 'vmware-sync-report'
+    | 'ups-battery-alert';
   context: Record<string, any>;
 }
