@@ -44,10 +44,7 @@ describe('ServerWithVmsResponseDto', () => {
   describe('constructor', () => {
     it('should create ServerWithVmsResponseDto with server data and VMs', () => {
       // Arrange
-      const vmDtos = [
-        new VmLightDto(mockVm1),
-        new VmLightDto(mockVm2)
-      ];
+      const vmDtos = [new VmLightDto(mockVm1), new VmLightDto(mockVm2)];
 
       // Act
       const dto = new ServerWithVmsResponseDto(mockServer, vmDtos);
@@ -61,12 +58,12 @@ describe('ServerWithVmsResponseDto', () => {
       expect(dto.vms[0]).toEqual({
         id: 'vm-1',
         name: 'VM-Server1-01',
-        state: 'running'
+        state: 'running',
       });
       expect(dto.vms[1]).toEqual({
         id: 'vm-2',
         name: 'VM-Server1-02',
-        state: 'stopped'
+        state: 'stopped',
       });
     });
 
@@ -80,7 +77,10 @@ describe('ServerWithVmsResponseDto', () => {
 
     it('should handle server without vmwareHostMoid', () => {
       // Arrange
-      const serverWithoutMoid = { ...mockServer, vmwareHostMoid: undefined } as Server;
+      const serverWithoutMoid = {
+        ...mockServer,
+        vmwareHostMoid: undefined,
+      } as Server;
 
       // Act
       const dto = new ServerWithVmsResponseDto(serverWithoutMoid);
@@ -105,7 +105,7 @@ describe('ServerWithVmsResponseDto', () => {
       expect(dto.vms[0]).toEqual({
         id: 'vm-1',
         name: 'VM-Server1-01',
-        state: 'running'
+        state: 'running',
       });
     });
 
@@ -135,7 +135,9 @@ describe('ServerWithVmsResponseDto', () => {
   describe('validation', () => {
     it('should pass validation with valid data', async () => {
       // Arrange
-      const dto = new ServerWithVmsResponseDto(mockServer, [new VmLightDto(mockVm1)]);
+      const dto = new ServerWithVmsResponseDto(mockServer, [
+        new VmLightDto(mockVm1),
+      ]);
 
       // Act
       const errors = await validate(dto);
@@ -202,7 +204,11 @@ describe('ServerWithVmsResponseDto', () => {
 
     it('should fail validation when vms array contains invalid VmLightDto', async () => {
       // Arrange
-      const invalidVmDto = { id: 'not-a-uuid', name: '', state: 'running' } as any;
+      const invalidVmDto = {
+        id: 'not-a-uuid',
+        name: '',
+        state: 'running',
+      } as any;
       const dto = new ServerWithVmsResponseDto(mockServer, [invalidVmDto]);
 
       // Act
@@ -226,7 +232,7 @@ describe('ServerWithVmsResponseDto', () => {
         name: 'ESXi-Server-01',
         ip: '192.168.1.10',
         hostMoid: 'host-123',
-        vms: []
+        vms: [],
       });
 
       // These properties should not be included in the light DTO
@@ -246,7 +252,7 @@ describe('ServerWithVmsResponseDto', () => {
 
       // Assert
       expect(Array.isArray(dto.vms)).toBe(true);
-      dto.vms.forEach(vm => {
+      dto.vms.forEach((vm) => {
         expect(vm).toHaveProperty('id');
         expect(vm).toHaveProperty('name');
         expect(vm).toHaveProperty('state');

@@ -220,9 +220,7 @@ export class ServerTypeormRepository
         .getMany();
     } catch (error) {
       this.logger.error('Error retrieving servers with VMs:', error);
-      throw new ServerRetrievalException(
-        'Error retrieving servers with VMs',
-      );
+      throw new ServerRetrievalException('Error retrieving servers with VMs');
     }
   }
 

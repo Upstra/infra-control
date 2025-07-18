@@ -94,16 +94,16 @@ export class ServerController {
 
   /**
    * Retrieve all servers with their associated VMs (light representation)
-   * 
+   *
    * @description
    * This endpoint returns all servers with their VMs in a lightweight format,
    * optimized for frontend list displays. It includes only essential server
    * information and basic VM details (id, name, state) for optimal performance.
-   * 
+   *
    * @returns Promise<ServerWithVmsResponseDto[]> Array of servers with their VMs
-   * 
+   *
    * @since 1.0.0
-   * 
+   *
    * @example
    * GET /server/light-with-vms
    * Response:
@@ -130,10 +130,10 @@ export class ServerController {
     description:
       'Renvoie la liste de tous les serveurs avec leurs VMs dans un format optimisé pour les listes frontend. Inclut uniquement les informations essentielles des serveurs et les détails de base des VMs (id, nom, état) pour des performances optimales.',
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     type: [ServerWithVmsResponseDto],
-    description: 'Liste des serveurs avec leurs VMs'
+    description: 'Liste des serveurs avec leurs VMs',
   })
   @ApiResponse({
     status: 403,

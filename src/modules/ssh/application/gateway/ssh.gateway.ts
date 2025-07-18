@@ -10,9 +10,9 @@ import { ClientChannel, Client } from 'ssh2';
 import { OpenSshSessionUseCase } from '../use-cases/open-ssh-session.use-case';
 import { getWebSocketCorsOptions } from '@/core/config/cors.config';
 
-@WebSocketGateway({ 
-  cors: getWebSocketCorsOptions(), 
-  namespace: '/ssh' 
+@WebSocketGateway({
+  cors: getWebSocketCorsOptions(),
+  namespace: '/ssh',
 })
 export class SshGateway {
   @WebSocketServer()

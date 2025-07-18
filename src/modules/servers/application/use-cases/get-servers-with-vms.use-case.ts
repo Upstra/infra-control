@@ -4,18 +4,18 @@ import { ServerWithVmsResponseDto } from '../dto/server-with-vms.response.dto';
 
 /**
  * Use case for retrieving servers with their associated VMs
- * 
+ *
  * @description
  * This use case fetches all servers along with their VMs in a single query,
  * providing a lightweight representation optimized for frontend list displays.
- * 
+ *
  * @responsibilities
  * - Fetches servers with their VMs from the repository
  * - Maps server entities to lightweight DTOs
  * - Ensures optimal performance by loading only essential data
- * 
+ *
  * @since 1.0.0
- * 
+ *
  * @example
  * ```typescript
  * const serversWithVms = await getServersWithVmsUseCase.execute();
@@ -31,11 +31,11 @@ export class GetServersWithVmsUseCase {
 
   /**
    * Executes the use case to retrieve servers with their VMs
-   * 
+   *
    * @returns Promise<ServerWithVmsResponseDto[]> Array of servers with their VMs
-   * 
+   *
    * @throws {Error} If repository operation fails
-   * 
+   *
    * @example
    * ```typescript
    * const result = await this.getServersWithVmsUseCase.execute();
@@ -56,8 +56,8 @@ export class GetServersWithVmsUseCase {
   async execute(): Promise<ServerWithVmsResponseDto[]> {
     // Fetch servers with their VMs using a single query with join
     const servers = await this.serverRepository.findAllWithVms();
-    
+
     // Map each server entity to the response DTO
-    return servers.map(server => ServerWithVmsResponseDto.fromEntity(server));
+    return servers.map((server) => ServerWithVmsResponseDto.fromEntity(server));
   }
 }

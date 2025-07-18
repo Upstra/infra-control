@@ -92,7 +92,10 @@ describe('ServerTypeormRepository - findAllWithVms', () => {
 
       // Assert
       expect(result).toEqual(mockServers);
-      expect(queryBuilder.leftJoinAndSelect).toHaveBeenCalledWith('server.vms', 'vms');
+      expect(queryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+        'server.vms',
+        'vms',
+      );
       expect(queryBuilder.orderBy).toHaveBeenCalledWith('server.name', 'ASC');
       expect(queryBuilder.addOrderBy).toHaveBeenCalledWith('vms.name', 'ASC');
       expect(queryBuilder.getMany).toHaveBeenCalledTimes(1);
@@ -151,7 +154,10 @@ describe('ServerTypeormRepository - findAllWithVms', () => {
       await repository.findAllWithVms();
 
       // Assert
-      expect(queryBuilder.leftJoinAndSelect).toHaveBeenCalledWith('server.vms', 'vms');
+      expect(queryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+        'server.vms',
+        'vms',
+      );
     });
 
     it('should build query in correct order', async () => {
@@ -202,9 +208,7 @@ describe('ServerTypeormRepository - findAllWithVms', () => {
         {
           id: 'server-2',
           name: 'ESXi-Server-02',
-          vms: [
-            { id: 'vm-4', name: 'VM-D', state: 'running' },
-          ],
+          vms: [{ id: 'vm-4', name: 'VM-D', state: 'running' }],
         } as Server,
         {
           id: 'server-3',
@@ -252,7 +256,9 @@ describe('ServerTypeormRepository - findAllWithVms', () => {
       await repository.findAllWithVms();
 
       // Assert
-      expect(mockEntityManager.createQueryBuilder).toHaveBeenCalledWith('server');
+      expect(mockEntityManager.createQueryBuilder).toHaveBeenCalledWith(
+        'server',
+      );
     });
   });
 });

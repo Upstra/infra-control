@@ -11,8 +11,8 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtNotValid } from '@/modules/auth/domain/exceptions/auth.exception';
 import { getWebSocketCorsOptions } from '@/core/config/cors.config';
 
-@WebSocketGateway({ 
-  cors: getWebSocketCorsOptions()
+@WebSocketGateway({
+  cors: getWebSocketCorsOptions(),
 })
 export class UserGateway {
   @WebSocketServer()

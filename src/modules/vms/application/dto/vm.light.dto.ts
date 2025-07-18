@@ -4,17 +4,17 @@ import { Vm } from '../../domain/entities/vm.entity';
 
 /**
  * Light VM DTO with only essential fields for server-vm list endpoints
- * 
+ *
  * @description
  * This DTO contains only the minimal necessary information about a VM
  * to optimize performance when fetching servers with their VMs.
- * 
+ *
  * @since 1.0.0
  */
 export class VmLightDto {
   /**
    * VM unique identifier
-   * 
+   *
    * @example "94c93b06-e2bf-4954-9b50-7253797ee8af"
    */
   @ApiProperty({
@@ -27,7 +27,7 @@ export class VmLightDto {
 
   /**
    * VM name
-   * 
+   *
    * @example "VM-Server1-01"
    */
   @ApiProperty({
@@ -40,7 +40,7 @@ export class VmLightDto {
 
   /**
    * VM current state
-   * 
+   *
    * @example "running"
    */
   @ApiProperty({
@@ -54,7 +54,7 @@ export class VmLightDto {
 
   /**
    * Creates a new VmLightDto instance from a VM entity
-   * 
+   *
    * @param vm - The VM entity to convert
    */
   constructor(vm: Vm) {
@@ -65,7 +65,7 @@ export class VmLightDto {
 
   /**
    * Static factory method to create VmLightDto from VM entity
-   * 
+   *
    * @param vm - The VM entity to convert
    * @returns VmLightDto instance
    */

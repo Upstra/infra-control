@@ -143,9 +143,15 @@ describe('VmLightDto', () => {
   });
 
   describe('different VM states', () => {
-    const vmStates = ['running', 'stopped', 'suspended', 'poweredOff', 'poweredOn'];
+    const vmStates = [
+      'running',
+      'stopped',
+      'suspended',
+      'poweredOff',
+      'poweredOn',
+    ];
 
-    vmStates.forEach(state => {
+    vmStates.forEach((state) => {
       it(`should handle VM in ${state} state`, () => {
         // Arrange
         const vmWithState = { ...mockVm, state } as Vm;

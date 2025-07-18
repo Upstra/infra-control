@@ -15,18 +15,16 @@ describe('ServerController - light-with-vms endpoint', () => {
       hostMoid: 'host-123',
       vms: [
         { id: 'vm-1', name: 'VM-Server1-01', state: 'running' },
-        { id: 'vm-2', name: 'VM-Server1-02', state: 'stopped' }
-      ]
+        { id: 'vm-2', name: 'VM-Server1-02', state: 'stopped' },
+      ],
     },
     {
       id: 'server-2',
       name: 'ESXi-Server-02',
       ip: '192.168.1.20',
       hostMoid: 'host-456',
-      vms: [
-        { id: 'vm-3', name: 'VM-Server2-01', state: 'running' }
-      ]
-    }
+      vms: [{ id: 'vm-3', name: 'VM-Server2-01', state: 'running' }],
+    },
   ];
 
   beforeEach(async () => {
@@ -102,8 +100,8 @@ describe('ServerController - light-with-vms endpoint', () => {
           name: 'ESXi-Server-01',
           ip: '192.168.1.10',
           hostMoid: 'host-123',
-          vms: []
-        }
+          vms: [],
+        },
       ];
       getServersWithVmsUseCase.execute.mockResolvedValue(serversWithoutVms);
 
@@ -118,10 +116,14 @@ describe('ServerController - light-with-vms endpoint', () => {
     it('should propagate use case errors', async () => {
       // Arrange
       const errorMessage = 'Database connection failed';
-      getServersWithVmsUseCase.execute.mockRejectedValue(new Error(errorMessage));
+      getServersWithVmsUseCase.execute.mockRejectedValue(
+        new Error(errorMessage),
+      );
 
       // Act & Assert
-      await expect(controller.getServersWithVms()).rejects.toThrow(errorMessage);
+      await expect(controller.getServersWithVms()).rejects.toThrow(
+        errorMessage,
+      );
     });
 
     it('should handle large number of servers and VMs', async () => {
@@ -134,8 +136,8 @@ describe('ServerController - light-with-vms endpoint', () => {
         vms: Array.from({ length: 10 }, (_, j) => ({
           id: `vm-${i}-${j}`,
           name: `VM-Server${i}-${j.toString().padStart(2, '0')}`,
-          state: j % 2 === 0 ? 'running' : 'stopped'
-        }))
+          state: j % 2 === 0 ? 'running' : 'stopped',
+        })),
       }));
       getServersWithVmsUseCase.execute.mockResolvedValue(largeDataSet);
 
@@ -158,22 +160,22 @@ describe('ServerController - light-with-vms endpoint', () => {
 
       // Assert
       expect(result).toHaveLength(2);
-      
+
       // Verify first server structure
       expect(result[0]).toEqual({
         id: expect.any(String),
         name: expect.any(String),
         ip: expect.any(String),
         hostMoid: expect.any(String),
-        vms: expect.any(Array)
+        vms: expect.any(Array),
       });
 
       // Verify VM structure
-      result[0].vms.forEach(vm => {
+      result[0].vms.forEach((vm) => {
         expect(vm).toEqual({
           id: expect.any(String),
           name: expect.any(String),
-          state: expect.any(String)
+          state: expect.any(String),
         });
       });
     });
@@ -186,7 +188,7 @@ describe('ServerController - light-with-vms endpoint', () => {
       const result = await controller.getServersWithVms();
 
       // Assert
-      result.forEach(server => {
+      result.forEach((server) => {
         const serverKeys = Object.keys(server);
         expect(serverKeys).toEqual(['id', 'name', 'ip', 'hostMoid', 'vms']);
       });
@@ -200,8 +202,8 @@ describe('ServerController - light-with-vms endpoint', () => {
       const result = await controller.getServersWithVms();
 
       // Assert
-      result.forEach(server => {
-        server.vms.forEach(vm => {
+      result.forEach((server) => {
+        server.vms.forEach((vm) => {
           const vmKeys = Object.keys(vm);
           expect(vmKeys).toEqual(['id', 'name', 'state']);
         });
@@ -220,8 +222,8 @@ describe('ServerController - light-with-vms endpoint', () => {
         vms: Array.from({ length: 1000 }, (_, i) => ({
           id: `vm-${i}`,
           name: `VM-${i}`,
-          state: 'running'
-        }))
+          state: 'running',
+        })),
       };
       getServersWithVmsUseCase.execute.mockResolvedValue([serverWithManyVms]);
 

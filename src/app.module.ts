@@ -33,6 +33,7 @@ import { PythonExecutorModule } from './core/services/python-executor';
 import { VmwareModule } from './modules/vmware/vmware.module';
 import { EncryptionModule } from './core/services/encryption';
 import { PingModule } from './modules/ping/ping.module';
+import { ExportModule } from './modules/export/export.module';
 
 @Module({
   controllers: [],
@@ -69,6 +70,7 @@ import { PingModule } from './modules/ping/ping.module';
     UserPreferencesModule,
     SystemSettingsModule,
     PingModule,
+    ExportModule,
   ],
   providers: [Logger],
 })
