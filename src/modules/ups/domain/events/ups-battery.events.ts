@@ -1,6 +1,7 @@
 export enum UpsBatteryEvents {
   BATTERY_ALERT = 'ups.battery.alert',
   BATTERY_CHECKED = 'ups.battery.checked',
+  BATCH_CHECKED = 'ups.battery.batch-checked',
 }
 
 export interface UpsBatteryAlertEvent {

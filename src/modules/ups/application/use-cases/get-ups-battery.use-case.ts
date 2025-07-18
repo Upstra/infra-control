@@ -6,6 +6,7 @@ import { UpsBatteryEvents } from '../../domain/events/ups-battery.events';
 import { UPSBatteryStatusDto } from '../../domain/interfaces/ups-battery-status.interface';
 import { UpsNotFoundException } from '../../domain/exceptions/ups.exception';
 import { UpsBatteryDomainService } from '../../domain/services/ups-battery.domain.service';
+import { UpsBatteryCacheService } from '../services/ups-battery-cache.service';
 
 @Injectable()
 export class GetUpsBatteryUseCase {
@@ -15,9 +16,15 @@ export class GetUpsBatteryUseCase {
     @Inject('UpsRepositoryInterface')
     private upsRepository: UpsRepositoryInterface,
     private upsBatteryDomainService: UpsBatteryDomainService,
+    private upsBatteryCacheService: UpsBatteryCacheService,
   ) {}
 
   async execute(upsId: string): Promise<UPSBatteryStatusDto> {
+    const cachedStatus = await this.upsBatteryCacheService.get(upsId);
+    if (cachedStatus) {
+      return cachedStatus;
+    }
+
     const ups = await this.upsRepository.findUpsById(upsId);
     if (!ups) {
       throw new UpsNotFoundException(upsId);

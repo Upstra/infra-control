@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { UpsRepositoryInterface } from '../../domain/interfaces/ups.repository.interface';
 import { UpsResponseDto } from '../dto/ups.response.dto';
 import { UpsListResponseDto } from '../dto';
-import { GetUpsBatteryUseCase } from './get-ups-battery.use-case';
+import { UpsBatteryCacheService } from '../services/ups-battery-cache.service';
 import { BatteryStatusResponseDto } from '../dto/battery-status.response.dto';
 
 @Injectable()
@@ -10,7 +10,7 @@ export class GetUpsListUseCase {
   constructor(
     @Inject('UpsRepositoryInterface')
     private readonly repo: UpsRepositoryInterface,
-    private readonly getUpsBatteryUseCase: GetUpsBatteryUseCase,
+    private readonly upsBatteryCacheService: UpsBatteryCacheService,
   ) {}
 
   /**
@@ -25,20 +25,19 @@ export class GetUpsListUseCase {
       limit,
     );
 
-    const dtos = await Promise.all(
-      upsWithCount.map(async ({ ups, serverCount }) => {
-        let batteryStatus: BatteryStatusResponseDto | undefined;
-
-        try {
-          const batteryData = await this.getUpsBatteryUseCase.execute(ups.id);
-          batteryStatus = new BatteryStatusResponseDto(batteryData);
-        } catch {
-          batteryStatus = undefined;
-        }
-
-        return new UpsResponseDto(ups, serverCount, batteryStatus);
-      }),
+    const upsIds = upsWithCount.map(({ ups }) => ups.id);
+    const cachedBatteryStatuses = await this.upsBatteryCacheService.getMultiple(
+      upsIds,
     );
+
+    const dtos = upsWithCount.map(({ ups, serverCount }) => {
+      const cachedStatus = cachedBatteryStatuses[ups.id];
+      const batteryStatus = cachedStatus
+        ? new BatteryStatusResponseDto(cachedStatus)
+        : undefined;
+
+      return new UpsResponseDto(ups, serverCount, batteryStatus);
+    });
 
     return new UpsListResponseDto(dtos, total, page, limit);
   }

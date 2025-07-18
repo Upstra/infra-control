@@ -242,6 +242,7 @@ export class VmwareService implements IVmwareService {
     }
   }
 
+  //TODO: why this function is a copy of getServerMetrics?
   async getHostMetrics(
     moid: string,
     connection: VmwareConnectionDto,

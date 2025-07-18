@@ -40,6 +40,7 @@ export class Vm extends BaseEntity {
   @Column()
   grace_period_off: number;
 
+  //DEPRECATED
   @ApiProperty()
   @Column({ type: 'varchar', nullable: true })
   os?: string;
