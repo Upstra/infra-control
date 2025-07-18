@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { VmwareCacheService } from './vmware-cache.service';
+import { VmwareCacheService } from '../vmware-cache.service';
 import { Server } from '@modules/servers/domain/entities/server.entity';
 import { RedisSafeService } from '@/modules/redis/application/services/redis-safe.service';
 import { EncryptionService } from '@/core/services/encryption';

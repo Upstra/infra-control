@@ -29,6 +29,7 @@ import {
   UpdateUpsUseCase,
 } from '@/modules/ups/application/use-cases';
 import { PingUpsUseCase } from '@/modules/ups/application/use-cases/ping-ups.use-case';
+import { GetUpsBatteryUseCase } from '@/modules/ups/application/use-cases/get-ups-battery.use-case';
 
 import {
   UpsCreationDto,
@@ -54,6 +55,7 @@ export class UpsController {
     private readonly updateUpsUseCase: UpdateUpsUseCase,
     private readonly deleteUpsUseCase: DeleteUpsUseCase,
     private readonly pingUpsUseCase: PingUpsUseCase,
+    private readonly getUpsBatteryUseCase: GetUpsBatteryUseCase,
   ) {}
 
   @Get()
@@ -170,6 +172,56 @@ export class UpsController {
     @CurrentUser() user: JwtPayload,
   ): Promise<void> {
     return this.deleteUpsUseCase.execute(id, user.userId);
+  }
+
+  @Get(':id/battery')
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: "UUID de l'UPS",
+    required: true,
+  })
+  @ApiOperation({
+    summary: 'Get battery status for a specific UPS',
+    description:
+      'Retrieves the current battery status including remaining minutes, alert level, and status label.',
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiResponse({
+    status: 200,
+    description: 'Battery status retrieved successfully',
+  })
+  async getBatteryStatus(@Param('id', ParseUUIDPipe) id: string) {
+    return this.getUpsBatteryUseCase.execute(id);
+  }
+
+  @Get('battery/all')
+  @ApiOperation({
+    summary: 'Get battery status for all UPS devices',
+    description:
+      'Retrieves battery status for all UPS devices. Admin only endpoint.',
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
+  @ApiResponse({
+    status: 200,
+    description: 'Battery statuses retrieved successfully',
+  })
+  async getAllBatteriesStatus() {
+    const upsList = await this.getAllUpsUseCase.execute();
+    const batteryStatuses = await Promise.all(
+      upsList.map(async (ups) => {
+        try {
+          const battery = await this.getUpsBatteryUseCase.execute(ups.id);
+          return { ...ups, battery };
+        } catch (error) {
+          return { ...ups, battery: null, error: error.message };
+        }
+      }),
+    );
+    return batteryStatuses;
   }
 
   @Post(':id/ping')

@@ -5,6 +5,11 @@ export enum EmailEventType {
   VMWARE_SYNC_REPORT = 'email.vmware.sync.report',
 }
 
+export enum EmailEvents {
+  UPS_BATTERY_CRITICAL = 'email.ups.battery.critical',
+  UPS_BATTERY_WARNING = 'email.ups.battery.warning',
+}
+
 export interface AccountCreatedEvent {
   email: string;
   firstName: string;

@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import {
   EmailEventType,
+  EmailEvents,
   AccountCreatedEvent,
   PasswordChangedEvent,
   PasswordResetEvent,
@@ -11,6 +12,7 @@ import { SendAccountCreatedEmailUseCase } from '../../application/use-cases/send
 import { SendPasswordChangedEmailUseCase } from '../../application/use-cases/send-password-changed-email.use-case';
 import { SendResetPasswordEmailUseCase } from '../../application/use-cases/send-reset-password-email.use-case';
 import { SendVmwareSyncReportEmailUseCase } from '../../application/use-cases/send-vmware-sync-report-email.use-case';
+import { SendUpsBatteryAlertEmailUseCase } from '../../application/use-cases/send-ups-battery-alert-email.use-case';
 
 @Injectable()
 export class EmailEventListener {
@@ -21,6 +23,7 @@ export class EmailEventListener {
     private readonly sendPasswordChangedEmail: SendPasswordChangedEmailUseCase,
     private readonly sendResetPasswordEmail: SendResetPasswordEmailUseCase,
     private readonly sendVmwareSyncReportEmail: SendVmwareSyncReportEmailUseCase,
+    private readonly sendUpsBatteryAlertEmail: SendUpsBatteryAlertEmailUseCase,
   ) {}
 
   @OnEvent(EmailEventType.ACCOUNT_CREATED, { async: true })
@@ -93,6 +96,36 @@ export class EmailEventListener {
       );
     } catch (error) {
       this.logger.error(`Failed to send VMware sync report`, error.stack);
+    }
+  }
+
+  @OnEvent(EmailEvents.UPS_BATTERY_CRITICAL, { async: true })
+  async handleUpsBatteryCritical(payload: any) {
+    try {
+      this.logger.log(
+        `Sending critical UPS battery alert for ${payload.upsName}`,
+      );
+      await this.sendUpsBatteryAlertEmail.execute(payload);
+    } catch (error) {
+      this.logger.error(
+        `Failed to send critical UPS battery alert for ${payload.upsName}`,
+        error.stack,
+      );
+    }
+  }
+
+  @OnEvent(EmailEvents.UPS_BATTERY_WARNING, { async: true })
+  async handleUpsBatteryWarning(payload: any) {
+    try {
+      this.logger.log(
+        `Sending warning UPS battery alert for ${payload.upsName}`,
+      );
+      await this.sendUpsBatteryAlertEmail.execute(payload);
+    } catch (error) {
+      this.logger.error(
+        `Failed to send warning UPS battery alert for ${payload.upsName}`,
+        error.stack,
+      );
     }
   }
 }
