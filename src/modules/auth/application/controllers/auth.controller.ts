@@ -71,8 +71,8 @@ export class AuthController {
       res.cookie('refreshToken', response.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path: '/auth/refresh',
+        sameSite: 'lax',
+        path: '/',
       });
       return { accessToken: response.accessToken };
     });
@@ -103,9 +103,9 @@ export class AuthController {
       .then(({ accessToken, refreshToken }) => {
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
-          path: '/auth/refresh',
+          secure: process.env.NODE_ENV === 'production-https',
+          sameSite: 'lax',
+          path: '/',
         });
         return { accessToken };
       });
@@ -133,8 +133,8 @@ export class AuthController {
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/auth/refresh',
+      sameSite: 'lax',
+      path: '/',
     });
     return { accessToken };
   }
@@ -142,7 +142,7 @@ export class AuthController {
   @Post('logout')
   @ApiResponse({ status: 200, description: 'Déconnexion réussie' })
   logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('refreshToken', { path: '/auth/refresh' });
+    res.clearCookie('refreshToken', { path: '/' });
     return { message: 'Déconnexion réussie' };
   }
 
