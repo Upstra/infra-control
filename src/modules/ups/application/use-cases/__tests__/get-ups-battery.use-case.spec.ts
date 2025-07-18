@@ -13,6 +13,7 @@ describe('GetUpsBatteryUseCase', () => {
   let pythonExecutor: jest.Mocked<PythonExecutorService>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
   let upsRepository: jest.Mocked<UpsRepositoryInterface>;
+  let upsBatteryDomainService: UpsBatteryDomainService;
 
   const mockUps = {
     id: '123e4567-e89b-12d3-a456-426614174000',

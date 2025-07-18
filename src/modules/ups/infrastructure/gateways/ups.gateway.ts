@@ -12,13 +12,11 @@ import {
   UpsBatteryCheckedEvent,
   UpsBatteryAlertEvent,
 } from '../../domain/events/ups-battery.events';
+import { getWebSocketCorsOptions } from '@/core/config/cors.config';
 
 @WebSocketGateway({
   namespace: 'ups',
-  cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    credentials: true,
-  },
+  cors: getWebSocketCorsOptions(),
 })
 export class UpsGateway {
   @WebSocketServer()

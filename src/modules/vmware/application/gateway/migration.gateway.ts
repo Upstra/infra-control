@@ -19,13 +19,11 @@ import {
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
 import { RequestContextDto } from '@/core/dto/request-context.dto';
 import { JwtNotValid } from '@/modules/auth/domain/exceptions/auth.exception';
+import { getWebSocketCorsOptions } from '@/core/config/cors.config';
 
 @WebSocketGateway({
   namespace: 'migration',
-  cors: {
-    origin: true,
-    credentials: true,
-  },
+  cors: getWebSocketCorsOptions(),
 })
 export class MigrationGateway
   implements OnGatewayConnection, OnGatewayDisconnect

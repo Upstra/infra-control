@@ -11,12 +11,10 @@ import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { DiscoveryProgressDto } from '../dto/discovery-progress.dto';
 import { DiscoveryResultsDto } from '../dto/discovery-results.dto';
+import { getWebSocketCorsOptions } from '@/core/config/cors.config';
 
 @WebSocketGateway({
-  cors: {
-    origin: '*',
-    credentials: true,
-  },
+  cors: getWebSocketCorsOptions(),
   namespace: '/discovery',
 })
 export class VmwareDiscoveryGateway
