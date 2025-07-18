@@ -5,7 +5,6 @@ import { VmwareService } from '../../domain/services/vmware.service';
 import { VmwareConnectionService } from '../../domain/services/vmware-connection.service';
 import { VmRepositoryInterface } from '@/modules/vms/domain/interfaces/vm.repository.interface';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
-import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
 import {
   VmUpdateResponse,
@@ -23,7 +22,6 @@ export class MigrationCompletedListener {
     private readonly vmRepository: VmRepositoryInterface,
     @Inject('ServerRepositoryInterface')
     private readonly serverRepository: ServerRepositoryInterface,
-    private readonly logHistory: LogHistoryUseCase,
   ) {}
 
   @OnEvent('migration.completed', { async: true })
@@ -109,9 +107,9 @@ export class MigrationCompletedListener {
       }
     }
 
-    if (userId) {
-      await this.logBatchUpdateResults(updateResults, userId, vCenterServer);
-    }
+    this.logger.log(
+      `Batch VM update completed: ${updateResults.successful.length} updated, ${updateResults.unchanged.length} unchanged, ${updateResults.failed.length} failed`,
+    );
   }
 
   private async updateSingleVm(
@@ -209,42 +207,4 @@ export class MigrationCompletedListener {
     }
   }
 
-  private async logBatchUpdateResults(
-    results: VmUpdateBatchResults,
-    userId: string,
-    vCenterServer?: Server,
-  ): Promise<void> {
-    try {
-      const totalVms =
-        results.successful.length +
-        results.failed.length +
-        results.unchanged.length;
-
-      await this.logHistory.executeStructured({
-        entity: 'migration',
-        entityId: `batch-update-${Date.now()}`,
-        action: 'BATCH_VM_HOST_UPDATE',
-        userId,
-        metadata: {
-          reason: 'migration_completed',
-          vCenterIp: vCenterServer?.ip,
-          summary: {
-            totalVms,
-            successful: results.successful.length,
-            failed: results.failed.length,
-            unchanged: results.unchanged.length,
-          },
-          successful: results.successful,
-          failed: results.failed,
-          unchanged: results.unchanged,
-        },
-      });
-
-      this.logger.log(
-        `Batch VM update completed: ${results.successful.length} updated, ${results.unchanged.length} unchanged, ${results.failed.length} failed`,
-      );
-    } catch (logError) {
-      this.logger.error('Failed to log batch update results:', logError);
-    }
-  }
 }

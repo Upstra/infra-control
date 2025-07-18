@@ -16,7 +16,6 @@ import {
   MigrationEvent,
   MigrationState,
 } from '../../domain/interfaces/migration-orchestrator.interface';
-import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
 import { RequestContextDto } from '@/core/dto/request-context.dto';
 import { JwtNotValid } from '@/modules/auth/domain/exceptions/auth.exception';
 import { getWebSocketCorsOptions } from '@/core/config/cors.config';
@@ -38,7 +37,6 @@ export class MigrationGateway
   constructor(
     private readonly migrationOrchestrator: MigrationOrchestratorService,
     private readonly jwtService: JwtService,
-    private readonly logHistoryUseCase: LogHistoryUseCase,
   ) {}
 
   async handleConnection(client: Socket): Promise<void> {
@@ -131,23 +129,6 @@ export class MigrationGateway
       if (!userId) {
         throw new JwtNotValid();
       }
-
-      const requestContext = RequestContextDto.fromSocket(client);
-      const sessionId = client.id;
-
-      this.logHistoryUseCase
-        .executeStructured({
-          entity: 'migration',
-          entityId: sessionId,
-          action: 'CANCEL_MIGRATION',
-          userId,
-          metadata: {},
-          ipAddress: requestContext.ipAddress,
-          userAgent: requestContext.userAgent,
-        })
-        .catch((error) =>
-          this.logger.error('Failed to log migration cancel:', error),
-        );
 
       await this.migrationOrchestrator.cancelMigration();
       client.emit('migration:cancelled', { success: true });

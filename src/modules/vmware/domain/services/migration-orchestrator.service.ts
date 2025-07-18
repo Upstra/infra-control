@@ -19,7 +19,6 @@ import { MigrationCompletedEvent } from '../interfaces/migration-completed-event
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as fs from 'fs/promises';
 import * as yaml from 'js-yaml';
-import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
 import { RequestContextDto } from '@/core/dto/request-context.dto';
 import { VmRepositoryInterface } from '@/modules/vms/domain/interfaces/vm.repository.interface';
 
@@ -38,7 +37,6 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
     private readonly redis: RedisSafeService,
     private readonly pythonExecutor: PythonExecutorService,
     private readonly eventEmitter: EventEmitter2,
-    @Optional() private readonly logHistoryUseCase?: LogHistoryUseCase,
     @Optional()
     @Inject('VmRepositoryInterface')
     private readonly vmRepository?: VmRepositoryInterface,
@@ -81,26 +79,6 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
     try {
       planAnalysis = await this.analyzeMigrationPlan(planPath);
 
-      if (this.logHistoryUseCase && userId) {
-        await this.logHistoryUseCase.executeStructured({
-          entity: 'migration',
-          entityId: sessionId,
-          action: 'START_MIGRATION',
-          userId,
-          metadata: {
-            migrationType: planAnalysis.migrationType,
-            planPath,
-            sourceServers: planAnalysis.sourceServers,
-            destinationServers: planAnalysis.destinationServers,
-            affectedVms: planAnalysis.affectedVms,
-            totalVmsCount: planAnalysis.totalVmsCount,
-            hasDestination: planAnalysis.hasDestination,
-            upsGracePeriod: planAnalysis.upsGracePeriod,
-          },
-          ipAddress: requestContext?.ipAddress,
-          userAgent: requestContext?.userAgent,
-        });
-      }
     } catch (analysisError) {
       this.logger.warn('Failed to analyze migration plan:', analysisError);
     }
@@ -122,79 +100,32 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
       await this.setState(MigrationState.MIGRATED);
       this.logger.log('Migration plan executed successfully');
 
-      if (this.logHistoryUseCase && userId) {
-        const endTime = new Date();
-        const events = await this.getEvents();
+      const endTime = new Date();
+      const events = await this.getEvents();
 
-        const successfulVmEvents = events.filter(
-          (e) => e.type === 'vm_migration' && e.success && e.vmMoid,
-        );
+      const successfulVmEvents = events.filter(
+        (e) => e.type === 'vm_migration' && e.success && e.vmMoid,
+      );
 
-        const successfulVmMoids = successfulVmEvents.map((e) => e.vmMoid!);
-        const failedVmMoids = events
-          .filter((e) => e.type === 'vm_migration' && !e.success && e.vmMoid)
-          .map((e) => e.vmMoid!);
+      const successfulVmMoids = successfulVmEvents.map((e) => e.vmMoid!);
+      const failedVmMoids = events
+        .filter((e) => e.type === 'vm_migration' && !e.success && e.vmMoid)
+        .map((e) => e.vmMoid!);
 
-        const successfulVms = events.filter(
-          (e) =>
-            (e.type === 'vm_migration' || e.type === 'vm_shutdown') &&
-            e.success,
-        ).length;
-        const failedVms = events.filter(
-          (e) =>
-            (e.type === 'vm_migration' || e.type === 'vm_shutdown') &&
-            !e.success,
-        ).length;
-
-        await this.logHistoryUseCase.executeStructured({
-          entity: 'migration',
-          entityId: sessionId,
-          action: 'COMPLETE_MIGRATION',
-          userId,
-          metadata: {
-            migrationType: planAnalysis?.migrationType || 'unknown',
-            duration: endTime.getTime() - startTime.getTime(),
-            result: 'success',
-            successfulVms,
-            failedVms,
-            events: events.slice(0, 50),
-          },
-          ipAddress: requestContext?.ipAddress,
-          userAgent: requestContext?.userAgent,
-        });
-
-        this.eventEmitter.emit('migration.completed', {
-          sessionId,
-          userId,
-          migrationType: planAnalysis?.migrationType || 'migration',
-          events,
-          affectedVms: planAnalysis?.affectedVms || [],
-          successfulVms: successfulVmMoids,
-          failedVms: failedVmMoids,
-        } as MigrationCompletedEvent);
-      }
+      this.eventEmitter.emit('migration.completed', {
+        sessionId,
+        userId,
+        migrationType: planAnalysis?.migrationType || 'migration',
+        events,
+        affectedVms: planAnalysis?.affectedVms || [],
+        successfulVms: successfulVmMoids,
+        failedVms: failedVmMoids,
+      } as MigrationCompletedEvent);
     } catch (error) {
       await this.setState(MigrationState.FAILED);
       await this.setError(error.message);
       this.logger.error('Migration plan failed:', error);
 
-      if (this.logHistoryUseCase && userId) {
-        const endTime = new Date();
-        await this.logHistoryUseCase.executeStructured({
-          entity: 'migration',
-          entityId: sessionId,
-          action: 'FAILED_MIGRATION',
-          userId,
-          metadata: {
-            migrationType: planAnalysis?.migrationType || 'unknown',
-            duration: endTime.getTime() - startTime.getTime(),
-            result: 'failed',
-            errorMessage: error.message,
-          },
-          ipAddress: requestContext?.ipAddress,
-          userAgent: requestContext?.userAgent,
-        });
-      }
 
       throw error;
     } finally {
@@ -219,19 +150,6 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
     const sessionId = requestContext?.correlationId || `restart-${Date.now()}`;
     const startTime = new Date();
 
-    if (this.logHistoryUseCase && userId) {
-      await this.logHistoryUseCase.executeStructured({
-        entity: 'migration',
-        entityId: sessionId,
-        action: 'START_RESTART',
-        userId,
-        metadata: {
-          migrationType: 'restart',
-        },
-        ipAddress: requestContext?.ipAddress,
-        userAgent: requestContext?.userAgent,
-      });
-    }
 
     await this.setState(MigrationState.RESTARTING);
     await this.setCurrentOperation('Executing restart plan');
@@ -249,44 +167,11 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
       await this.clearMigrationData();
       this.logger.log('Restart plan executed successfully');
 
-      if (this.logHistoryUseCase && userId) {
-        const endTime = new Date();
-        await this.logHistoryUseCase.executeStructured({
-          entity: 'migration',
-          entityId: sessionId,
-          action: 'COMPLETE_RESTART',
-          userId,
-          metadata: {
-            migrationType: 'restart',
-            duration: endTime.getTime() - startTime.getTime(),
-            result: 'success',
-          },
-          ipAddress: requestContext?.ipAddress,
-          userAgent: requestContext?.userAgent,
-        });
-      }
     } catch (error) {
       await this.setState(MigrationState.FAILED);
       await this.setError(error.message);
       this.logger.error('Restart plan failed:', error);
 
-      if (this.logHistoryUseCase && userId) {
-        const endTime = new Date();
-        await this.logHistoryUseCase.executeStructured({
-          entity: 'migration',
-          entityId: sessionId,
-          action: 'FAILED_RESTART',
-          userId,
-          metadata: {
-            migrationType: 'restart',
-            duration: endTime.getTime() - startTime.getTime(),
-            result: 'failed',
-            errorMessage: error.message,
-          },
-          ipAddress: requestContext?.ipAddress,
-          userAgent: requestContext?.userAgent,
-        });
-      }
 
       throw error;
     }

@@ -4,7 +4,6 @@ import * as fs from 'fs/promises';
 import * as yaml from 'js-yaml';
 import { RedisSafeService } from '@/modules/redis/application/services/redis-safe.service';
 import { PythonExecutorService } from '@/core/services/python-executor';
-import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
 import { VmRepositoryInterface } from '@/modules/vms/domain/interfaces/vm.repository.interface';
 import { RequestContextDto } from '@/core/dto/request-context.dto';
 import { MigrationOrchestratorService } from '../migration-orchestrator.service';
@@ -18,7 +17,6 @@ describe('MigrationOrchestratorService', () => {
   let redis: jest.Mocked<RedisSafeService>;
   let pythonExecutor: jest.Mocked<PythonExecutorService>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
-  let logHistoryUseCase: jest.Mocked<LogHistoryUseCase>;
   let vmRepository: jest.Mocked<VmRepositoryInterface>;
 
   const mockFs = fs as jest.Mocked<typeof fs>;
@@ -52,12 +50,6 @@ describe('MigrationOrchestratorService', () => {
           },
         },
         {
-          provide: LogHistoryUseCase,
-          useValue: {
-            executeStructured: jest.fn(),
-          },
-        },
-        {
           provide: 'VmRepositoryInterface',
           useValue: {
             findOne: jest.fn(),
@@ -72,7 +64,6 @@ describe('MigrationOrchestratorService', () => {
     redis = module.get(RedisSafeService);
     pythonExecutor = module.get(PythonExecutorService);
     eventEmitter = module.get(EventEmitter2);
-    logHistoryUseCase = module.get(LogHistoryUseCase);
     vmRepository = module.get('VmRepositoryInterface');
 
     jest.clearAllMocks();
@@ -125,44 +116,6 @@ describe('MigrationOrchestratorService', () => {
       await service.executeMigrationPlan(planPath, userId, requestContext);
 
       jest.runAllTimers();
-
-      expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith({
-        entity: 'migration',
-        entityId: 'test-correlation',
-        action: 'START_MIGRATION',
-        userId: 'user-123',
-        metadata: {
-          migrationType: 'migration',
-          planPath,
-          sourceServers: ['ESXi-01', 'ESXi-02'],
-          destinationServers: ['ESXi-03'],
-          affectedVms: [
-            {
-              moid: 'vm-123',
-              name: 'VM-Web',
-              sourceServer: 'ESXi-01',
-              destinationServer: 'ESXi-03',
-            },
-            {
-              moid: 'vm-456',
-              name: 'VM-DB',
-              sourceServer: 'ESXi-01',
-              destinationServer: 'ESXi-03',
-            },
-            {
-              moid: 'vm-789',
-              name: 'VM-App',
-              sourceServer: 'ESXi-02',
-              destinationServer: undefined,
-            },
-          ],
-          totalVmsCount: 3,
-          hasDestination: true,
-          upsGracePeriod: 60,
-        },
-        ipAddress: '192.168.1.1',
-        userAgent: 'test-agent',
-      });
     });
 
     it('should log successful migration completion', async () => {
@@ -176,21 +129,6 @@ describe('MigrationOrchestratorService', () => {
       await service.executeMigrationPlan(planPath, userId, requestContext);
 
       jest.runAllTimers();
-
-      expect(logHistoryUseCase.executeStructured).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          entity: 'migration',
-          entityId: 'test-correlation',
-          action: 'COMPLETE_MIGRATION',
-          userId: 'user-123',
-          metadata: expect.objectContaining({
-            migrationType: 'migration',
-            result: 'success',
-            successfulVms: 2,
-            failedVms: 1,
-          }),
-        }),
-      );
     });
 
     it('should log failed migration', async () => {
@@ -203,19 +141,6 @@ describe('MigrationOrchestratorService', () => {
       ).rejects.toThrow('Python script failed');
 
       jest.runAllTimers();
-
-      expect(logHistoryUseCase.executeStructured).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          entity: 'migration',
-          entityId: 'test-correlation',
-          action: 'FAILED_MIGRATION',
-          userId: 'user-123',
-          metadata: expect.objectContaining({
-            result: 'failed',
-            errorMessage: 'Python script failed',
-          }),
-        }),
-      );
     });
 
     it('should handle shutdown-only migration type', async () => {
@@ -233,16 +158,6 @@ describe('MigrationOrchestratorService', () => {
       await service.executeMigrationPlan(planPath, userId, requestContext);
 
       jest.runAllTimers();
-
-      expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith(
-        expect.objectContaining({
-          metadata: expect.objectContaining({
-            migrationType: 'shutdown',
-            hasDestination: false,
-            destinationServers: [],
-          }),
-        }),
-      );
     });
 
     it('should continue even if plan analysis fails', async () => {
@@ -272,7 +187,6 @@ describe('MigrationOrchestratorService', () => {
 
       jest.runAllTimers();
 
-      expect(logHistoryUseCase.executeStructured).not.toHaveBeenCalled();
       expect(pythonExecutor.executePython).toHaveBeenCalled();
     });
   });
@@ -290,34 +204,6 @@ describe('MigrationOrchestratorService', () => {
       await service.executeRestartPlan(userId, requestContext);
 
       jest.runAllTimers();
-
-      expect(logHistoryUseCase.executeStructured).toHaveBeenCalledTimes(2);
-
-      expect(logHistoryUseCase.executeStructured).toHaveBeenNthCalledWith(1, {
-        entity: 'migration',
-        entityId: 'test-correlation-id',
-        action: 'START_RESTART',
-        userId: 'user-123',
-        metadata: {
-          migrationType: 'restart',
-        },
-        ipAddress: '127.0.0.1',
-        userAgent: 'test-agent',
-      });
-
-      expect(logHistoryUseCase.executeStructured).toHaveBeenNthCalledWith(2, {
-        entity: 'migration',
-        entityId: 'test-correlation-id',
-        action: 'COMPLETE_RESTART',
-        userId: 'user-123',
-        metadata: {
-          migrationType: 'restart',
-          duration: expect.any(Number),
-          result: 'success',
-        },
-        ipAddress: '127.0.0.1',
-        userAgent: 'test-agent',
-      });
     });
 
     it('should log failed restart', async () => {
@@ -330,16 +216,6 @@ describe('MigrationOrchestratorService', () => {
       ).rejects.toThrow('Restart failed');
 
       jest.runAllTimers();
-
-      expect(logHistoryUseCase.executeStructured).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          action: 'FAILED_RESTART',
-          metadata: expect.objectContaining({
-            result: 'failed',
-            errorMessage: 'Restart failed',
-          }),
-        }),
-      );
     });
   });
 

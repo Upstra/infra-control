@@ -19,10 +19,7 @@ import {
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
 import { RoleGuard } from '@/core/guards/role.guard';
 import { RequireRole } from '@/core/decorators/role.decorator';
-import {
-  UseLoggingContext,
-  LogToHistory,
-} from '@/core/decorators/logging-context.decorator';
+import { UseLoggingContext } from '@/core/decorators/logging-context.decorator';
 import { GenerateMigrationPlanWithDestinationUseCase } from '../use-cases/generate-migration-plan-with-destination.use-case';
 import { GetMigrationDestinationsUseCase } from '../use-cases/get-migration-destinations.use-case';
 import { RemoveMigrationDestinationUseCase } from '../use-cases/remove-migration-destination.use-case';
@@ -90,13 +87,6 @@ export class MigrationDestinationsController {
     status: 403,
     description: 'Forbidden - Admin privileges required',
   })
-  @LogToHistory('migration-destination', 'SET', {
-    extractEntityId: () => 'destinations',
-    extractMetadata: (data) => ({
-      destinationsCount: data.destinations.length,
-      destinations: data.destinations,
-    }),
-  })
   async setMigrationDestinations(
     @Body() dto: SetMigrationDestinationsDto,
   ): Promise<SetDestinationsResponseDto> {
@@ -132,12 +122,6 @@ export class MigrationDestinationsController {
   @ApiResponse({
     status: 403,
     description: 'Forbidden - Admin privileges required',
-  })
-  @LogToHistory('migration-destination', 'REMOVE', {
-    extractEntityId: (data) => data.sourceServerId,
-    extractMetadata: (data) => ({
-      sourceServerId: data.sourceServerId,
-    }),
   })
   async removeMigrationDestination(
     @Param('sourceServerId') sourceServerId: string,
