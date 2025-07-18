@@ -147,10 +147,10 @@ describe('GetServersWithVmsUseCase', () => {
 
     it('should return servers with empty VMs array when no VMs are associated', async () => {
       // Arrange
-      const serverWithoutVms: Server = {
+      const serverWithoutVms = {
         ...mockServer1,
         vms: [],
-      };
+      } as Server;
       serverRepository.findAllWithVms.mockResolvedValue([serverWithoutVms]);
 
       // Act
@@ -174,10 +174,10 @@ describe('GetServersWithVmsUseCase', () => {
 
     it('should handle servers with undefined VMs', async () => {
       // Arrange
-      const serverWithUndefinedVms: Server = {
+      const serverWithUndefinedVms = {
         ...mockServer1,
         vms: undefined as any,
-      };
+      } as Server;
       serverRepository.findAllWithVms.mockResolvedValue([serverWithUndefinedVms]);
 
       // Act

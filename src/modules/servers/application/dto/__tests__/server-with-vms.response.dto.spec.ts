@@ -25,7 +25,7 @@ describe('ServerWithVmsResponseDto', () => {
     priority: 2,
   } as Vm;
 
-  const mockServer: Server = {
+  const mockServer = {
     id: 'server-1',
     name: 'ESXi-Server-01',
     ip: '192.168.1.10',
@@ -80,7 +80,7 @@ describe('ServerWithVmsResponseDto', () => {
 
     it('should handle server without vmwareHostMoid', () => {
       // Arrange
-      const serverWithoutMoid = { ...mockServer, vmwareHostMoid: undefined };
+      const serverWithoutMoid = { ...mockServer, vmwareHostMoid: undefined } as Server;
 
       // Act
       const dto = new ServerWithVmsResponseDto(serverWithoutMoid);
@@ -111,7 +111,7 @@ describe('ServerWithVmsResponseDto', () => {
 
     it('should handle server entity without VMs', () => {
       // Arrange
-      const serverWithoutVms = { ...mockServer, vms: undefined };
+      const serverWithoutVms = { ...mockServer, vms: undefined } as Server;
 
       // Act
       const dto = ServerWithVmsResponseDto.fromEntity(serverWithoutVms);
@@ -122,7 +122,7 @@ describe('ServerWithVmsResponseDto', () => {
 
     it('should handle server entity with empty VMs array', () => {
       // Arrange
-      const serverWithEmptyVms = { ...mockServer, vms: [] };
+      const serverWithEmptyVms = { ...mockServer, vms: [] } as Server;
 
       // Act
       const dto = ServerWithVmsResponseDto.fromEntity(serverWithEmptyVms);
@@ -146,7 +146,7 @@ describe('ServerWithVmsResponseDto', () => {
 
     it('should fail validation when id is missing', async () => {
       // Arrange
-      const invalidServer = { ...mockServer, id: '' };
+      const invalidServer = { ...mockServer, id: '' } as Server;
       const dto = new ServerWithVmsResponseDto(invalidServer);
 
       // Act
@@ -160,7 +160,7 @@ describe('ServerWithVmsResponseDto', () => {
 
     it('should fail validation when name is missing', async () => {
       // Arrange
-      const invalidServer = { ...mockServer, name: '' };
+      const invalidServer = { ...mockServer, name: '' } as Server;
       const dto = new ServerWithVmsResponseDto(invalidServer);
 
       // Act
@@ -174,7 +174,7 @@ describe('ServerWithVmsResponseDto', () => {
 
     it('should fail validation when ip is missing', async () => {
       // Arrange
-      const invalidServer = { ...mockServer, ip: '' };
+      const invalidServer = { ...mockServer, ip: '' } as Server;
       const dto = new ServerWithVmsResponseDto(invalidServer);
 
       // Act
@@ -188,7 +188,7 @@ describe('ServerWithVmsResponseDto', () => {
 
     it('should fail validation when id is not a valid UUID', async () => {
       // Arrange
-      const invalidServer = { ...mockServer, id: 'not-a-uuid' };
+      const invalidServer = { ...mockServer, id: 'not-a-uuid' } as Server;
       const dto = new ServerWithVmsResponseDto(invalidServer);
 
       // Act

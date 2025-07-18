@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DataSource, QueryBuilder } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { ServerTypeormRepository } from '../server.typeorm.repository';
 import { Server } from '../../../domain/entities/server.entity';
 import { Vm } from '../../../../vms/domain/entities/vm.entity';
@@ -8,7 +8,7 @@ import { ServerRetrievalException } from '../../../domain/exceptions/server.exce
 describe('ServerTypeormRepository - findAllWithVms', () => {
   let repository: ServerTypeormRepository;
   let dataSource: jest.Mocked<DataSource>;
-  let queryBuilder: jest.Mocked<QueryBuilder<Server>>;
+  let queryBuilder: any;
 
   const mockVm1: Vm = {
     id: 'vm-1',
@@ -54,7 +54,7 @@ describe('ServerTypeormRepository - findAllWithVms', () => {
       orderBy: jest.fn().mockReturnThis(),
       addOrderBy: jest.fn().mockReturnThis(),
       getMany: jest.fn(),
-    } as any;
+    };
 
     // Mock DataSource
     const mockEntityManager = {

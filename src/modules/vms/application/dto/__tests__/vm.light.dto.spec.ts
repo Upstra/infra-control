@@ -87,7 +87,7 @@ describe('VmLightDto', () => {
 
     it('should fail validation when id is missing', async () => {
       // Arrange
-      const invalidVm = { ...mockVm, id: '' };
+      const invalidVm = { ...mockVm, id: '' } as Vm;
       const dto = new VmLightDto(invalidVm);
 
       // Act
@@ -101,7 +101,7 @@ describe('VmLightDto', () => {
 
     it('should fail validation when name is missing', async () => {
       // Arrange
-      const invalidVm = { ...mockVm, name: '' };
+      const invalidVm = { ...mockVm, name: '' } as Vm;
       const dto = new VmLightDto(invalidVm);
 
       // Act
@@ -115,7 +115,7 @@ describe('VmLightDto', () => {
 
     it('should fail validation when state is missing', async () => {
       // Arrange
-      const invalidVm = { ...mockVm, state: '' };
+      const invalidVm = { ...mockVm, state: '' } as Vm;
       const dto = new VmLightDto(invalidVm);
 
       // Act
@@ -129,7 +129,7 @@ describe('VmLightDto', () => {
 
     it('should fail validation when id is not a valid UUID', async () => {
       // Arrange
-      const invalidVm = { ...mockVm, id: 'not-a-uuid' };
+      const invalidVm = { ...mockVm, id: 'not-a-uuid' } as Vm;
       const dto = new VmLightDto(invalidVm);
 
       // Act
@@ -148,7 +148,7 @@ describe('VmLightDto', () => {
     vmStates.forEach(state => {
       it(`should handle VM in ${state} state`, () => {
         // Arrange
-        const vmWithState = { ...mockVm, state };
+        const vmWithState = { ...mockVm, state } as Vm;
 
         // Act
         const dto = new VmLightDto(vmWithState);
