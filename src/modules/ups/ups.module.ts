@@ -21,7 +21,6 @@ import { UpsBatteryAlertListener } from './infrastructure/listeners/ups-battery-
 import { UpsGateway } from './infrastructure/gateways/ups.gateway';
 import { UpsBatteryGateway } from './application/gateway/ups-battery.gateway';
 import { UpsBatteryCacheService } from './application/services/ups-battery-cache.service';
-import { UpsBatteryJobService } from './application/services/ups-battery-job.service';
 
 @Module({
   controllers: [UpsController, UpsBatteryController],
@@ -52,7 +51,6 @@ import { UpsBatteryJobService } from './application/services/ups-battery-job.ser
     UpsGateway,
     UpsBatteryGateway,
     UpsBatteryCacheService,
-    UpsBatteryJobService,
     UpsTypeormRepository,
     {
       provide: 'UpsRepositoryInterface',

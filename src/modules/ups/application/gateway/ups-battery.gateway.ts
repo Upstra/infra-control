@@ -6,20 +6,15 @@ import {
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import { OnEvent } from '@nestjs/event-emitter';
-import { UseGuards } from '@nestjs/common';
 import { getWebSocketCorsOptions } from '@/core/config/cors.config';
 import { UpsBatteryEvents } from '../../domain/events/ups-battery.events';
 import { UPSBatteryStatusDto } from '../../domain/interfaces/ups-battery-status.interface';
 import { GetUpsBatteryUseCase } from '../use-cases/get-ups-battery.use-case';
-import { PermissionGuard } from '@/core/guards/permission.guard';
-import { RequirePermissions } from '@/core/decorators/permissions.decorator';
-import { UPS_PERMISSIONS } from '@/modules/permissions/constants/permission-list.constants';
 
 @WebSocketGateway({
   cors: getWebSocketCorsOptions(),
   namespace: '/ups',
 })
-@UseGuards(PermissionGuard)
 export class UpsBatteryGateway {
   @WebSocketServer()
   server: Server;
@@ -37,7 +32,6 @@ export class UpsBatteryGateway {
   }
 
   @SubscribeMessage('battery:request-status')
-  @RequirePermissions(UPS_PERMISSIONS.READ)
   async handleBatteryStatusRequest(
     @MessageBody() upsId: string,
   ): Promise<UPSBatteryStatusDto> {
@@ -45,7 +39,6 @@ export class UpsBatteryGateway {
   }
 
   @SubscribeMessage('battery:request-bulk-status')
-  @RequirePermissions(UPS_PERMISSIONS.READ)
   async handleBulkBatteryStatusRequest(
     @MessageBody() upsIds: string[],
   ): Promise<Record<string, UPSBatteryStatusDto | null>> {
