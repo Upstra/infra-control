@@ -17,10 +17,10 @@ export class SoftDeleteUserUseCase {
   async execute(
     targetUserId: string,
     adminUserId: string,
-    reason: DeletionReason = DeletionReason.ADMIN_ACTION,
-    details?: string,
-    ipAddress?: string,
-    userAgent?: string,
+    _reason: DeletionReason = DeletionReason.ADMIN_ACTION,
+    _details?: string,
+    _ipAddress?: string,
+    _userAgent?: string,
   ): Promise<void> {
     const targetUser = await this.userRepository.findById(targetUserId);
     if (!targetUser || targetUser.deletedAt) {
@@ -38,33 +38,8 @@ export class SoftDeleteUserUseCase {
       throw UserExceptions.cannotDeleteLastAdmin();
     }
 
-    // TODO: For now, we use the softDeleteUser method which sets deletedAt
-    const updatedUser = await this.userRepository.softDeleteUser(targetUserId);
-
-    await this.logHistory.executeStructured({
-      entity: 'user',
-      entityId: targetUserId,
-      action: 'USER_DELETED',
-      userId: adminUserId,
-      oldValue: {
-        isActive: true,
-        deletedAt: null,
-      },
-      newValue: {
-        isActive: false,
-        deletedAt: updatedUser.deletedAt,
-      },
-      metadata: {
-        deletedBy: adminUserId,
-        deletedAt: updatedUser.deletedAt?.toISOString(),
-        reason,
-        details,
-        userEmail: targetUser.email || '',
-        username: targetUser.username,
-      },
-      ipAddress,
-      userAgent,
-    });
+    // TODO: For now, we use the softDeleteUser method which sets deletedAt - add loghistory too
+    await this.userRepository.deleteUser(targetUserId);
   }
 
   private async isUserAdmin(user: User): Promise<boolean> {
