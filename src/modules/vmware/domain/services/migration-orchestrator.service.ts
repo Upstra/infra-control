@@ -78,7 +78,6 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
 
     try {
       planAnalysis = await this.analyzeMigrationPlan(planPath);
-
     } catch (analysisError) {
       this.logger.warn('Failed to analyze migration plan:', analysisError);
     }
@@ -126,7 +125,6 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
       await this.setError(error.message);
       this.logger.error('Migration plan failed:', error);
 
-
       throw error;
     } finally {
       await this.setEndTime();
@@ -150,7 +148,6 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
     const sessionId = requestContext?.correlationId || `restart-${Date.now()}`;
     const startTime = new Date();
 
-
     await this.setState(MigrationState.RESTARTING);
     await this.setCurrentOperation('Executing restart plan');
 
@@ -166,12 +163,10 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
       await this.setState(MigrationState.IDLE);
       await this.clearMigrationData();
       this.logger.log('Restart plan executed successfully');
-
     } catch (error) {
       await this.setState(MigrationState.FAILED);
       await this.setError(error.message);
       this.logger.error('Restart plan failed:', error);
-
 
       throw error;
     }

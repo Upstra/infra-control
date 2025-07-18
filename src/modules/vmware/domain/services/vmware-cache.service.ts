@@ -113,9 +113,9 @@ export class VmwareCacheService implements VmwareCacheServiceInterface {
    * @returns VM metrics or null if not in cache
    */
   async getVmMetrics(moid: string): Promise<any | null> {
-    const key = JSON.stringify({ type: 'VM', moid });
+    const key = JSON.stringify({ type: 'VM', moid: moid });
     const data = await this.redis.safeHGet('metrics:metrics', key);
-    this.logger.debug(`Fetching metrics for VM ${moid} from cache`);
+    this.logger.debug(`Fetching metrics for VM ${moid} from cache with key: ${key}`);
     this.logger.debug(`Data fetched: ${data}`);
     return data ? JSON.parse(data) : null;
   }
@@ -126,9 +126,9 @@ export class VmwareCacheService implements VmwareCacheServiceInterface {
    * @returns Server metrics or null if not in cache
    */
   async getServerMetrics(moid: string): Promise<any | null> {
-    const key = JSON.stringify({ type: 'Server', moid });
+    const key = JSON.stringify({ type: 'Server', moid: moid });
     const data = await this.redis.safeHGet('metrics:metrics', key);
-    this.logger.debug(`Fetching metrics for server ${moid} from cache`);
+    this.logger.debug(`Fetching metrics for server ${moid} from cache with key: ${key}`);
     this.logger.debug(`Data fetched: ${data}`);
     return data ? JSON.parse(data) : null;
   }
