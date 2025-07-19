@@ -76,11 +76,11 @@ export class GetSystemHealthUseCase {
   private calculateUptime(status: 'up' | 'down' | 'unknown'): number {
     switch (status) {
       case 'up':
-        return 99.9 + Math.random() * 0.099;
+        return 99.95;
       case 'unknown':
-        return 95 + Math.random() * 4;
+        return 97.0;
       case 'down':
-        return Math.random() * 50;
+        return 25.0;
       default:
         return 99.0;
     }
