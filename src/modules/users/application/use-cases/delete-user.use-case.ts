@@ -5,24 +5,27 @@ import { UserRepositoryInterface } from '../../domain/interfaces/user.repository
 import { CannotDeleteLastAdminException } from '../../domain/exceptions/user.exception';
 
 /**
- * Performs a HARD DELETE of a user account by its identifier.
+ * Performs a SOFT DELETE of a user account by its identifier.
  *
- * TODO: This use case currently performs a hard delete (permanent removal from database).
- * In the future, for GDPR compliance, we should implement proper data retention policies
- * and use soft delete with data anonymization after a certain period.
+ * This use case performs a soft delete to preserve history and audit trails.
+ * The user will be marked as deleted with a timestamp and deactivated,
+ * but their data remains in the database for historical reference.
  *
  * Responsibilities:
  * - Validates the user exists.
- * - Performs any cleanup (revoke tokens, reassign assets).
- * - Delegates deletion to UserDomainService.
+ * - Checks if the user is the last admin (cannot delete last admin).
+ * - Performs soft delete (sets deletedAt timestamp and isActive to false).
+ * - Logs the deletion event in history.
  *
  * @param id  UUID of the user to delete.
+ * @param userId  UUID of the user performing the deletion (for audit trail).
  * @returns   Promise<void> upon successful deletion.
  *
- * @throws NotFoundException if the user does not exist.
+ * @throws UserNotFoundException if the user does not exist.
+ * @throws CannotDeleteLastAdminException if attempting to delete the last admin.
  *
  * @example
- * await deleteUserUseCase.execute('user-uuid-123');
+ * await deleteUserUseCase.execute('user-uuid-123', 'admin-uuid');
  */
 
 export class DeleteUserUseCase {
@@ -46,7 +49,7 @@ export class DeleteUserUseCase {
       throw new CannotDeleteLastAdminException();
     }
 
-    await this.repo.deleteUser(id);
+    await this.repo.softDeleteUser(id);
     await this.logHistory?.execute('user', id, 'DELETE', userId);
   }
 }
