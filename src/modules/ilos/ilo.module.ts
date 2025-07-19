@@ -18,12 +18,14 @@ import { PingIloUseCase } from './application/use-cases/ping-ilo.use-case';
 import { IloPowerController } from './application/controllers/ilo-power.controller';
 import { ServerModule } from '../servers/server.module';
 import { VmwareModule } from '../vmware/vmware.module';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Ilo]),
     PythonExecutorModule,
     PingModule,
+    AuditModule,
     forwardRef(() => ServerModule),
     forwardRef(() => VmwareModule),
   ],

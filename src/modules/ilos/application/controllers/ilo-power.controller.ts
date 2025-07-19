@@ -9,6 +9,7 @@ import {
   HttpStatus,
   UseGuards,
   UseFilters,
+  Req,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -32,6 +33,9 @@ import {
 } from '../dto/ilo-status.dto';
 import { PingRequestDto, PingResponseDto } from '@/core/dto/ping.dto';
 import { PythonErrorInterceptor } from '@/core/interceptors/python-error.interceptor';
+import { CurrentUser } from '@/core/decorators/current-user.decorator';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { RequestContextDto } from '@/core/dto';
 
 @ApiTags('iLO')
 @ApiBearerAuth()
@@ -77,8 +81,16 @@ export class IloPowerController {
   async controlServerPower(
     @Param('serverId') serverId: string,
     @Body() dto: IloPowerActionDto,
+    @CurrentUser() user: JwtPayload,
+    @Req() req: any,
   ): Promise<IloPowerResponseDto> {
-    return this.controlServerPowerUseCase.execute(serverId, dto.action);
+    const requestContext = RequestContextDto.fromRequest(req);
+    return this.controlServerPowerUseCase.execute(
+      serverId,
+      dto.action,
+      user.userId,
+      requestContext,
+    );
   }
 
   @Get(':serverId/status')

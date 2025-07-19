@@ -6,7 +6,7 @@ import {
   CannotDeleteLastAdminRoleException,
   SystemRoleNameAlreadyExistsException,
   CannotRemoveGuestRoleException,
-  RoleExceptions, InvalidRoleUpdateException,
+  InvalidRoleUpdateException,
 } from '../role.exception';
 
 describe('Role Exceptions', () => {
