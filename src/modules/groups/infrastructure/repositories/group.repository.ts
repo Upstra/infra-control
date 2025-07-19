@@ -9,6 +9,7 @@ import {
   PaginatedResult,
   GroupWithCounts,
 } from '../../domain/interfaces/group.repository.interface';
+import { GroupNotFoundException } from '../../domain/exceptions/group.exception';
 
 @Injectable()
 export class GroupRepository implements IGroupRepository {
@@ -225,7 +226,7 @@ export class GroupRepository implements IGroupRepository {
       });
 
       if (!group) {
-        throw new Error(`Group with id ${id} not found`);
+        throw new GroupNotFoundException();
       }
 
       const dissociationErrors: string[] = [];

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsStrongPassword, IsEmail, Length } from 'class-validator';
+import { IsValidName } from '../../../../core/decorators/is-valid-name.decorator';
 
 export class RegisterDto {
   @ApiProperty({
@@ -8,7 +9,8 @@ export class RegisterDto {
     required: true,
   })
   @IsString()
-  @Length(3, 10)
+  @Length(2, 15)
+  @IsValidName()
   readonly firstName: string;
 
   @ApiProperty({
@@ -17,7 +19,8 @@ export class RegisterDto {
     required: true,
   })
   @IsString()
-  @Length(3, 10)
+  @Length(2, 15)
+  @IsValidName()
   readonly lastName: string;
 
   @ApiProperty({
