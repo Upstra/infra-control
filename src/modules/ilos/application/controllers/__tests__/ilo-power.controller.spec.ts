@@ -14,6 +14,7 @@ import {
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
 import { IloServerStatus } from '../../dto/ilo-status.dto';
+import { JwtPayload } from '@/core/types/jwt-payload.interface';
 
 describe('IloPowerController', () => {
   let controller: IloPowerController;
@@ -71,13 +72,45 @@ describe('IloPowerController', () => {
         currentStatus: IloServerStatus.ON,
       };
 
+      const mockUser: JwtPayload = {
+        userId: 'user-123',
+        email: 'test@example.com',
+        isActive: true,
+        isTwoFactorEnabled: false,
+        role: {
+          id: 'role-1',
+          name: 'admin',
+          isAdmin: true,
+          canCreateServer: true,
+          permissionVms: [],
+          permissionServers: [],
+        },
+      };
+
+      const mockReq = {
+        ip: '127.0.0.1',
+        headers: {
+          'user-agent': 'jest-test',
+        },
+      };
+
       controlServerPowerUseCase.execute.mockResolvedValue(expectedResult);
 
-      const result = await controller.controlServerPower('server-1', dto);
+      const result = await controller.controlServerPower(
+        'server-1',
+        dto,
+        mockUser,
+        mockReq,
+      );
 
       expect(controlServerPowerUseCase.execute).toHaveBeenCalledWith(
         'server-1',
         IloPowerAction.START,
+        'user-123',
+        expect.objectContaining({
+          ipAddress: '127.0.0.1',
+          userAgent: 'jest-test',
+        }),
       );
       expect(result).toEqual(expectedResult);
     });
@@ -92,13 +125,45 @@ describe('IloPowerController', () => {
         currentStatus: IloServerStatus.OFF,
       };
 
+      const mockUser: JwtPayload = {
+        userId: 'user-123',
+        email: 'test@example.com',
+        isActive: true,
+        isTwoFactorEnabled: false,
+        role: {
+          id: 'role-1',
+          name: 'admin',
+          isAdmin: true,
+          canCreateServer: true,
+          permissionVms: [],
+          permissionServers: [],
+        },
+      };
+
+      const mockReq = {
+        ip: '127.0.0.1',
+        headers: {
+          'user-agent': 'jest-test',
+        },
+      };
+
       controlServerPowerUseCase.execute.mockResolvedValue(expectedResult);
 
-      const result = await controller.controlServerPower('server-1', stopDto);
+      const result = await controller.controlServerPower(
+        'server-1',
+        stopDto,
+        mockUser,
+        mockReq,
+      );
 
       expect(controlServerPowerUseCase.execute).toHaveBeenCalledWith(
         'server-1',
         IloPowerAction.STOP,
+        'user-123',
+        expect.objectContaining({
+          ipAddress: '127.0.0.1',
+          userAgent: 'jest-test',
+        }),
       );
       expect(result).toEqual(expectedResult);
     });
@@ -107,8 +172,30 @@ describe('IloPowerController', () => {
       const error = new Error('iLO connection failed');
       controlServerPowerUseCase.execute.mockRejectedValue(error);
 
+      const mockUser: JwtPayload = {
+        userId: 'user-123',
+        email: 'test@example.com',
+        isActive: true,
+        isTwoFactorEnabled: false,
+        role: {
+          id: 'role-1',
+          name: 'admin',
+          isAdmin: true,
+          canCreateServer: true,
+          permissionVms: [],
+          permissionServers: [],
+        },
+      };
+
+      const mockReq = {
+        ip: '127.0.0.1',
+        headers: {
+          'user-agent': 'jest-test',
+        },
+      };
+
       await expect(
-        controller.controlServerPower('server-1', dto),
+        controller.controlServerPower('server-1', dto, mockUser, mockReq),
       ).rejects.toThrow(error);
     });
   });
