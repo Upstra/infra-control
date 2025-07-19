@@ -404,21 +404,24 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
     const planContent = await fs.readFile(planPath, 'utf-8');
     const plan: any = yaml.load(planContent);
 
-    const hasDestination = plan.servers?.some((s: any) => s.destination);
+    const hasDestination = plan.servers?.some((s: any) => s.server?.destination || s.destination);
     const affectedVms: VmInfo[] = [];
     const sourceServers: string[] = [];
     const destinationServers: string[] = [];
 
     if (plan.servers) {
-      for (const server of plan.servers) {
+      for (const serverWrapper of plan.servers) {
+        const server = serverWrapper.server || serverWrapper;
         if (server.host?.name) {
           sourceServers.push(server.host.name);
         }
         if (server.destination?.name) {
           destinationServers.push(server.destination.name);
         }
-        if (server.vm_order) {
-          for (const vmMoid of server.vm_order) {
+        const vmOrder = server.vmOrder || server.vm_order;
+        if (vmOrder) {
+          for (const vm of vmOrder) {
+            const vmMoid = vm.vmMoId || vm;
             affectedVms.push({
               moid: vmMoid,
               sourceServer: server.host?.name,
