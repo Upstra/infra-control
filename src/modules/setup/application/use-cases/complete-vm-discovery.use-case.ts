@@ -38,7 +38,7 @@ export class CompleteVmDiscoveryUseCase {
     });
 
     const serverStepCompleted = await this.setupProgressRepo.hasCompletedStep(
-      SetupStep.CREATE_SERVER,
+      SetupStep.SERVERS_CONFIG,
     );
 
     if (!serverStepCompleted) {
@@ -48,7 +48,7 @@ export class CompleteVmDiscoveryUseCase {
     }
 
     await this.completeSetupStepUseCase.execute(
-      SetupStep.VM_DISCOVERY,
+      SetupStep.RELATIONSHIPS,
       userId,
       {
         serverId: discoveryResult.serverId,

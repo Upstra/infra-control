@@ -91,6 +91,7 @@ describe('SoftDeleteUserUseCase', () => {
             findWithRoles: jest.fn(),
             countActiveAdmins: jest.fn(),
             save: jest.fn(),
+            deleteUser: jest.fn(),
           },
         },
         {
@@ -138,12 +139,7 @@ describe('SoftDeleteUserUseCase', () => {
       );
 
       expect(userRepository.findById).toHaveBeenCalledWith('target-user-id');
-      expect(userRepository.save).toHaveBeenCalledWith(
-        expect.objectContaining({
-          isActive: false,
-          deletedAt: expect.any(Date),
-        }),
-      );
+      expect(userRepository.deleteUser).toHaveBeenCalledWith('target-user-id');
 
       expect(logHistoryUseCase.executeStructured).toHaveBeenCalledWith({
         entity: 'user',
@@ -384,7 +380,7 @@ describe('SoftDeleteUserUseCase', () => {
 
       await useCase.execute('target-user-id', 'admin-user-id');
 
-      expect(userRepository.save).toHaveBeenCalled();
+      expect(userRepository.deleteUser).toHaveBeenCalled();
       expect(logHistoryUseCase.executeStructured).toHaveBeenCalled();
     });
 
@@ -411,7 +407,7 @@ describe('SoftDeleteUserUseCase', () => {
 
       await useCase.execute('target-user-id', 'admin-user-id');
 
-      expect(userRepository.save).toHaveBeenCalled();
+      expect(userRepository.deleteUser).toHaveBeenCalled();
       expect(logHistoryUseCase.executeStructured).toHaveBeenCalled();
     });
 
@@ -432,7 +428,7 @@ describe('SoftDeleteUserUseCase', () => {
 
       await useCase.execute('target-user-id', 'admin-user-id');
 
-      expect(userRepository.save).toHaveBeenCalled();
+      expect(userRepository.deleteUser).toHaveBeenCalled();
       expect(logHistoryUseCase.executeStructured).toHaveBeenCalled();
     });
   });

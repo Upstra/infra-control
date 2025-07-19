@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 
 import { ServerResponseDto } from '../dto/server.response.dto';
+import { ServerNotFoundException } from '../../domain/exceptions/server.exception';
 
 /**
  * Fetches detailed information for one server by its identifier.
@@ -30,7 +31,11 @@ export class GetServerByIdUseCase {
   ) {}
 
   async execute(id: string): Promise<ServerResponseDto> {
-    const server = await this.serverRepository.findServerById(id);
-    return new ServerResponseDto(server, server.ilo);
+    const server =
+      await this.serverRepository.findServerByIdWithCredentials(id);
+    if (!server) {
+      throw new ServerNotFoundException(id);
+    }
+    return ServerResponseDto.fromEntity(server);
   }
 }

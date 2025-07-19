@@ -11,4 +11,5 @@ export const mockRoomRepository = (): RoomRepositoryInterface => ({
   findAll: jest.fn(),
   findOneByField: jest.fn(),
   paginate: jest.fn(),
+  paginateForTree: jest.fn(),
 });

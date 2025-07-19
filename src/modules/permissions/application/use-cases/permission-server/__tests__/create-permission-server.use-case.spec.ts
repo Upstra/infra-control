@@ -90,7 +90,7 @@ describe('CreatePermissionServerUseCase', () => {
       expect(logHistory.executeStructured).toHaveBeenCalledWith({
         entity: 'permission_server',
         entityId: 'server-456_role-123',
-        action: 'CREATE',
+        action: 'CREATE_PERMISSION_SERVER',
         userId: 'user-789',
         newValue: {
           serverId: savedEntity.serverId,
@@ -122,7 +122,7 @@ describe('CreatePermissionServerUseCase', () => {
       expect(logHistory.executeStructured).toHaveBeenCalledWith({
         entity: 'permission_server',
         entityId: 'server-456_role-123',
-        action: 'CREATE',
+        action: 'CREATE_PERMISSION_SERVER',
         userId: 'system',
         newValue: {
           serverId: savedEntity.serverId,

@@ -3,7 +3,7 @@ import { UserDomainService } from '@modules/users/domain/services/user.domain.se
 import { UserRepositoryInterface } from '@modules/users/domain/interfaces/user.repository.interface';
 import { UpdateAccountDto } from '../dto/update-account.dto';
 import { UserResponseDto } from '../dto/user.response.dto';
-import { UserExceptions } from '@modules/users/domain/exceptions/user.exception';
+import { UserNotFoundException } from '@modules/users/domain/exceptions/user.exception';
 
 @Injectable()
 export class UpdateAccountUseCase {
@@ -19,7 +19,7 @@ export class UpdateAccountUseCase {
   ): Promise<UserResponseDto> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
-      throw UserExceptions.notFound();
+      throw new UserNotFoundException();
     }
 
     const updatedUser = await this.userDomainService.updateAccount(

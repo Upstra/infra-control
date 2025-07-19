@@ -32,7 +32,7 @@ describe('SetupProgressDto', () => {
 
   it('preserves metadata default when not provided', () => {
     const dto = new SetupProgressDto(
-      SetupStep.CREATE_ROOM,
+      SetupStep.ROOMS_CONFIG,
       new Date().toISOString(),
       'user-2',
     );

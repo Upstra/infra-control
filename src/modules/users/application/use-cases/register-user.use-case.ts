@@ -4,7 +4,7 @@ import { UserDomainService } from '../../domain/services/user.domain.service';
 import { EnsureDefaultRoleUseCase } from '@/modules/roles/application/use-cases';
 import { RegisterDto } from '@/modules/auth/application/dto/register.dto';
 import { User } from '../../domain/entities/user.entity';
-import { UserExceptions } from '../../domain/exceptions/user.exception';
+import { UserConflictException } from '../../domain/exceptions/user.exception';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 import { IUserPreferencesRepository } from '@/modules/user-preferences/domain/interfaces/user-preferences.repository.interface';
 import { UserPreference } from '@/modules/user-preferences/domain/entities/user-preference.entity';
@@ -43,7 +43,7 @@ export class RegisterUserUseCase {
       value: dto.username,
       disableThrow: true,
     });
-    if (usernameExists) throw UserExceptions.conflict('username');
+    if (usernameExists) throw new UserConflictException('username');
 
     const emailExists = await this.repo.findOneByField({
       field: 'email',
@@ -51,7 +51,7 @@ export class RegisterUserUseCase {
       disableThrow: true,
     });
 
-    if (emailExists) throw UserExceptions.conflict('email');
+    if (emailExists) throw new UserConflictException('email');
 
     const role = await this.ensureDefaultRoleUseCase.execute();
     const user = await this.domain.createUserEntity(

@@ -39,7 +39,7 @@ describe('UpdateServerUseCase', () => {
       ilo: { ip: '10.0.0.2', name: 'ILO-2' },
     };
     const existing = createMockServer();
-    const updated = createMockServer({ name: 'Updated' });
+    const updated = createMockServer({ name: 'Updated', iloId: 'ilo-123' });
 
     repo.updateServer.mockResolvedValue(updated);
     updateIlo.execute.mockResolvedValue(createMockIlo({ name: 'ILO-2' }));
@@ -48,9 +48,11 @@ describe('UpdateServerUseCase', () => {
 
     expect(repo.updateServer).toHaveBeenCalledWith(existing.id, {
       name: 'Updated',
-      ilo: { ip: '10.0.0.2', name: 'ILO-2' },
     });
-    expect(updateIlo.execute).toHaveBeenCalledWith(existing.id, dto.ilo);
+    expect(updateIlo.execute).toHaveBeenCalledWith({
+      ...dto.ilo,
+      id: updated.iloId,
+    });
     expect(result.name).toBe('Updated');
     expect(result.ilo.name).toBe('ILO-2');
   });
@@ -144,5 +146,21 @@ describe('UpdateServerUseCase', () => {
 
     expect(groupRepo.findById).not.toHaveBeenCalled();
     expect(result.groupId).toBeNull();
+  });
+
+  it('should skip ILO update if server has no ILO associated', async () => {
+    const dto: ServerUpdateDto = {
+      name: 'Updated',
+      ilo: { ip: '10.0.0.2', name: 'ILO-2' },
+    };
+    const existing = createMockServer();
+    const updated = createMockServer({ name: 'Updated', iloId: null });
+
+    repo.updateServer.mockResolvedValue(updated);
+
+    const result = await useCase.execute(existing.id, dto);
+
+    expect(updateIlo.execute).not.toHaveBeenCalled();
+    expect(result.name).toBe('Updated');
   });
 });

@@ -3,32 +3,18 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Vm } from '../../../vms/domain/entities/vm.entity';
 import { VmPriorityResponseDto } from '../dto/vm-priority-response.dto';
-import { GetUserVmPermissionsUseCase } from '../../../permissions/application/use-cases/permission-vm';
-import { PermissionBit } from '../../../permissions/domain/value-objects/permission-bit.enum';
 @Injectable()
 export class GetVmPrioritiesUseCase {
   constructor(
     @InjectRepository(Vm)
     private readonly vmRepository: Repository<Vm>,
-    private readonly getUserPermissionVm: GetUserVmPermissionsUseCase,
   ) {}
 
-  async execute(userId: string): Promise<VmPriorityResponseDto[]> {
-    const permissions = await this.getUserPermissionVm.execute(userId);
-
-    const vmIds = permissions
-      .filter(
-        (perm) => (perm.bitmask & PermissionBit.READ) === PermissionBit.READ,
-      )
-      .map((perm) => perm.vmId);
-
-    if (vmIds.length === 0) {
-      return [];
-    }
-
+  async execute(_userId: string): Promise<VmPriorityResponseDto[]> {
     const vms = await this.vmRepository
       .createQueryBuilder('vm')
-      .where('vm.id IN (:...ids)', { ids: vmIds })
+      .leftJoinAndSelect('vm.server', 'server')
+      .where('server.type != :type', { type: 'vcenter' })
       .orderBy('vm.priority', 'ASC')
       .addOrderBy('vm.name', 'ASC')
       .getMany();

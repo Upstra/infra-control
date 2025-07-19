@@ -4,7 +4,7 @@ import { UserDomainService } from '@modules/users/domain/services/user.domain.se
 import { UpdateAccountDto } from '../../dto/update-account.dto';
 import { UserResponseDto } from '../../dto/user.response.dto';
 import { User } from '@modules/users/domain/entities/user.entity';
-import { UserExceptions } from '@modules/users/domain/exceptions/user.exception';
+import { UserNotFoundException } from '@modules/users/domain/exceptions/user.exception';
 
 describe('UpdateAccountUseCase', () => {
   let useCase: UpdateAccountUseCase;
@@ -138,7 +138,7 @@ describe('UpdateAccountUseCase', () => {
 
       await expect(
         useCase.execute('non-existent-id', updateData),
-      ).rejects.toThrow(UserExceptions.notFound());
+      ).rejects.toThrow(new UserNotFoundException());
 
       expect(userRepository.findById).toHaveBeenCalledWith('non-existent-id');
       expect(userDomainService.updateAccount).not.toHaveBeenCalled();

@@ -4,6 +4,7 @@ import { GetAllRoomsUseCase } from './get-all-rooms.use-case';
 import { GetRoomListUseCase } from './get-room-list.use-case';
 import { GetRoomByIdUseCase } from './get-room-by-id.use-case';
 import { UpdateRoomUseCase } from './update-room.use-case';
+import { GetRoomTreeListUseCase } from './get-room-tree-list.use-case';
 
 export const RoomUseCases = [
   GetRoomListUseCase,
@@ -12,6 +13,7 @@ export const RoomUseCases = [
   CreateRoomUseCase,
   UpdateRoomUseCase,
   DeleteRoomUseCase,
+  GetRoomTreeListUseCase,
 ];
 
 export {
@@ -21,4 +23,5 @@ export {
   UpdateRoomUseCase,
   DeleteRoomUseCase,
   GetRoomListUseCase,
+  GetRoomTreeListUseCase,
 };

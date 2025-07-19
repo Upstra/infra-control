@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { UserTypeormRepository } from '../../infrastructure/repositories/user.typeorm.repository';
 import { UserResponseDto } from '../dto/user.response.dto';
-import { UserExceptions } from '../../domain/exceptions/user.exception';
+import {
+  CannotDeactivateLastAdminException,
+  CannotToggleOwnStatusException,
+  UserNotFoundException,
+} from '../../domain/exceptions/user.exception';
 import { User } from '../../domain/entities/user.entity';
-import { LogHistoryUseCase } from '../../../history/application/use-cases/log-history.use-case';
+import { LogHistoryUseCase } from '@modules/history/application/use-cases';
 
 export interface ToggleUserStatusUseCaseInput {
   targetUserId: string;
@@ -27,11 +31,11 @@ export class ToggleUserStatusUseCase {
 
     const targetUser = await this.userRepository.findById(targetUserId);
     if (!targetUser) {
-      throw UserExceptions.notFound();
+      throw new UserNotFoundException();
     }
 
     if (targetUserId === adminId) {
-      throw UserExceptions.cannotToggleOwnStatus();
+      throw new CannotToggleOwnStatusException();
     }
 
     const userWithRoles = await this.userRepository.findWithRoles(targetUserId);
@@ -41,7 +45,7 @@ export class ToggleUserStatusUseCase {
     if (isTargetAdmin && targetUser.isActive) {
       const activeAdminCount = await this.userRepository.countActiveAdmins();
       if (activeAdminCount <= 1) {
-        throw UserExceptions.cannotDeactivateLastAdmin();
+        throw new CannotDeactivateLastAdminException();
       }
     }
 

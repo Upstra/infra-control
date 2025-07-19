@@ -8,13 +8,11 @@ describe('ServerCreationDto', () => {
     const dto = plainToInstance(ServerCreationDto, {
       name: 'My Server',
       state: 'UP',
-      grace_period_on: 10,
-      grace_period_off: 5,
       adminUrl: 'https://admin.local',
       ip: '192.168.0.1',
       login: 'admin',
       password: 'pass',
-      type: 'physical',
+      type: 'esxi',
       priority: 1,
       roomId: 'c56a4180-65aa-42ec-a945-5fd21dec0538',
       ilo: createMockIloCreationDto({
@@ -31,13 +29,11 @@ describe('ServerCreationDto', () => {
     const dto = plainToInstance(ServerCreationDto, {
       name: 'My Server',
       state: 'UP',
-      grace_period_on: 10,
-      grace_period_off: 5,
       adminUrl: 'https://admin.local',
       ip: '192.168.0.1',
       login: 'admin',
       password: 'pass',
-      type: 'physical',
+      type: 'esxi',
       priority: 1,
       roomId: 'not-a-uuid',
     });

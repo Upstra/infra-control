@@ -16,7 +16,6 @@ import {
 import {
   GetActivityFeedUseCase,
   GetAlertsUseCase,
-  GetResourceUsageUseCase,
   GetUserPresenceUseCase,
   GetSystemHealthUseCase,
   GetUpsStatusUseCase,
@@ -46,7 +45,6 @@ export const DashboardUseCases = [
   // Widgets
   GetActivityFeedUseCase,
   GetAlertsUseCase,
-  GetResourceUsageUseCase,
   GetUserPresenceUseCase,
   GetSystemHealthUseCase,
   GetUpsStatusUseCase,
@@ -73,7 +71,6 @@ export {
   // Widgets
   GetActivityFeedUseCase,
   GetAlertsUseCase,
-  GetResourceUsageUseCase,
   GetUserPresenceUseCase,
   GetSystemHealthUseCase,
   GetUpsStatusUseCase,

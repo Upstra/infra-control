@@ -10,8 +10,12 @@ export class GetVmListUseCase {
     private readonly repo: VmRepositoryInterface,
   ) {}
 
-  async execute(page = 1, limit = 10): Promise<VmListResponseDto> {
-    const [vms, total] = await this.repo.paginate(page, limit);
+  async execute(
+    page = 1,
+    limit = 10,
+    serverId?: string,
+  ): Promise<VmListResponseDto> {
+    const [vms, total] = await this.repo.paginate(page, limit, serverId);
     const items = vms.map((v) => new VmResponseDto(v));
     return new VmListResponseDto(items, total, page, limit);
   }

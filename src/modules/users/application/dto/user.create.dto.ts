@@ -7,7 +7,9 @@ import {
   IsOptional,
   IsArray,
   IsUUID,
+  Length,
 } from 'class-validator';
+import { IsValidName } from '../../../../core/decorators/is-valid-name.decorator';
 
 export class UserCreateDto {
   @ApiProperty({
@@ -24,6 +26,8 @@ export class UserCreateDto {
   })
   @IsString()
   @IsNotEmpty()
+  @Length(2, 15)
+  @IsValidName()
   firstName: string;
 
   @ApiProperty({
@@ -32,6 +36,8 @@ export class UserCreateDto {
   })
   @IsString()
   @IsNotEmpty()
+  @Length(2, 15)
+  @IsValidName()
   lastName: string;
 
   @ApiProperty({

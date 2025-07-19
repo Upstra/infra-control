@@ -5,12 +5,13 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import {
-  UserConflictException,
-  UserDeletionException,
   UserNotFoundException,
-  UserRegistrationException,
-  UserRetrievalException,
+  UserBadRequestException,
   UserUpdateException,
+  UserDeletionException,
+  UserRetrievalException,
+  UserConflictException,
+  UserRegistrationException,
   CannotDeleteLastAdminException,
   CannotRemoveLastAdminException,
   CannotDeleteOwnAccountException,
@@ -20,10 +21,11 @@ import {
 
 @Catch(
   UserNotFoundException,
-  UserConflictException,
+  UserBadRequestException,
   UserUpdateException,
   UserDeletionException,
   UserRetrievalException,
+  UserConflictException,
   UserRegistrationException,
   CannotDeleteLastAdminException,
   CannotRemoveLastAdminException,
@@ -35,8 +37,7 @@ export class UserExceptionFilter implements ExceptionFilter {
   catch(exception: Error, host: ArgumentsHost) {
     const response = host.switchToHttp().getResponse();
 
-    let status = HttpStatus.INTERNAL_SERVER_ERROR;
-
+    let status;
     if (exception instanceof UserNotFoundException) {
       status = HttpStatus.NOT_FOUND;
     } else if (
@@ -48,6 +49,16 @@ export class UserExceptionFilter implements ExceptionFilter {
       exception instanceof CannotDeactivateLastAdminException
     ) {
       status = HttpStatus.CONFLICT;
+    } else if (
+      exception instanceof UserBadRequestException ||
+      exception instanceof UserUpdateException ||
+      exception instanceof UserDeletionException ||
+      exception instanceof UserRetrievalException ||
+      exception instanceof UserRegistrationException
+    ) {
+      status = HttpStatus.BAD_REQUEST;
+    } else {
+      status = HttpStatus.INTERNAL_SERVER_ERROR;
     }
 
     response.status(status).json({

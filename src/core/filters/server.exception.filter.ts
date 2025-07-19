@@ -22,10 +22,22 @@ import {
 export class ServerExceptionFilter implements ExceptionFilter {
   catch(exception: Error, host: ArgumentsHost) {
     const response = host.switchToHttp().getResponse();
-    const status =
-      exception instanceof ServerNotFoundException
-        ? HttpStatus.NOT_FOUND
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+
+    let status: HttpStatus;
+    if (
+      exception instanceof ServerNotFoundException ||
+      exception instanceof ServerRetrievalException
+    ) {
+      status = HttpStatus.NOT_FOUND;
+    } else if (
+      exception instanceof ServerCreationException ||
+      exception instanceof ServerUpdateException ||
+      exception instanceof ServerDeletionException
+    ) {
+      status = HttpStatus.BAD_REQUEST;
+    } else {
+      status = HttpStatus.INTERNAL_SERVER_ERROR;
+    }
 
     response.status(status).json({
       statusCode: status,

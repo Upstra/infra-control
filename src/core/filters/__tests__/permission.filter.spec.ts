@@ -22,9 +22,7 @@ describe('PermissionFilters', () => {
     const filter = new PermissionCreationExceptionFilter();
     const { host, response, json } = createHost();
     filter.catch(new PermissionCreationException('oops'), host);
-    expect(response.status).toHaveBeenCalledWith(
-      HttpStatus.INTERNAL_SERVER_ERROR,
-    );
+    expect(response.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
     expect(json).toHaveBeenCalledWith({ statusCode: 500, message: 'oops' });
   });
 
@@ -32,9 +30,7 @@ describe('PermissionFilters', () => {
     const filter = new PermissionDeletionExceptionFilter();
     const { host, response, json } = createHost();
     filter.catch(new PermissionDeletionException('del'), host);
-    expect(response.status).toHaveBeenCalledWith(
-      HttpStatus.INTERNAL_SERVER_ERROR,
-    );
+    expect(response.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
     expect(json).toHaveBeenCalledWith({ statusCode: 500, message: 'del' });
   });
 

@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { GroupRepository } from '../../infrastructure/repositories/group.repository';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 
@@ -21,15 +17,6 @@ export class DeleteGroupUseCase {
 
     await this.logHistory.execute('group', id, 'DELETE', userId);
 
-    try {
-      await this.groupRepository.deleteWithTransaction(id);
-    } catch (error) {
-      if (
-        error.message.includes('Cannot delete group with associated resources')
-      ) {
-        throw new BadRequestException(error.message);
-      }
-      throw error;
-    }
+    await this.groupRepository.deleteWithTransaction(id);
   }
 }

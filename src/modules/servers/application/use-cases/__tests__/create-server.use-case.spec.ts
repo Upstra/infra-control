@@ -8,15 +8,19 @@ import {
   createMockServerCreationDto,
 } from '@/modules/servers/__mocks__/servers.mock';
 import { createMockIloResponseDto } from '@/modules/ilos/__mocks__/ilo.mock';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { GroupRepository } from '@/modules/groups/infrastructure/repositories/group.repository';
 import { UpsRepositoryInterface } from '@/modules/ups/domain/interfaces/ups.repository.interface';
 
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { mockRoom } from '@/modules/rooms/__mocks__/room.mock';
 import { createMockGroup } from '@/modules/groups/__mocks__/group.mock';
 import { RoomNotFoundException } from '@/modules/rooms/domain/exceptions/room.exception';
 import { GroupNotFoundException } from '@/modules/groups/domain/exceptions/group.exception';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 import { PermissionServerRepositoryInterface } from '@/modules/permissions/infrastructure/interfaces/permission.server.repository.interface';
@@ -37,14 +41,12 @@ describe('CreateServerUseCase', () => {
   let permissionRepo: jest.Mocked<PermissionServerRepositoryInterface>;
   let logHistory: jest.Mocked<LogHistoryUseCase>;
 
-  const mockPayload: JwtPayload = {
-    userId: 'user-123',
-    email: 'john.doe@example.com',
-  };
+  const mockPayload = createMockJwtPayload();
 
   beforeEach(() => {
     repo = {
       save: jest.fn(),
+      findOneByField: jest.fn(),
     } as any;
 
     domain = new ServerDomainService();
@@ -231,6 +233,83 @@ describe('CreateServerUseCase', () => {
     });
   });
 
+  describe('vCenter validation', () => {
+    it('should throw ConflictException when creating a second vCenter', async () => {
+      const dto = createMockServerCreationDto({
+        type: 'vcenter',
+        ilo: undefined,
+        priority: undefined,
+      });
+      const existingVCenter = createMockServer({ type: 'vcenter' });
+
+      roomRepo.findRoomById.mockResolvedValue(mockRoom());
+      repo.findOneByField.mockResolvedValue(existingVCenter);
+
+      await expect(useCase.execute(dto, mockPayload.userId)).rejects.toThrow(
+        ConflictException,
+      );
+      await expect(useCase.execute(dto, mockPayload.userId)).rejects.toThrow(
+        'A vCenter server already exists in the infrastructure. Only one vCenter is allowed.',
+      );
+
+      expect(repo.findOneByField).toHaveBeenCalledWith({
+        field: 'type',
+        value: 'vcenter',
+      });
+      expect(iloUseCase.execute).not.toHaveBeenCalled();
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+
+    it('should allow creating vCenter if none exists', async () => {
+      const dto = createMockServerCreationDto({
+        type: 'vcenter',
+        ilo: undefined,
+        priority: undefined,
+      });
+      const mockServer = createMockServer({ type: 'vcenter' });
+
+      roomRepo.findRoomById.mockResolvedValue(mockRoom());
+      repo.findOneByField.mockResolvedValue(null);
+      repo.save.mockResolvedValue(mockServer);
+      userRepo.findOneByField.mockResolvedValue(createMockUser({ roles: [] }));
+
+      const result = await useCase.execute(dto, mockPayload.userId);
+
+      expect(repo.findOneByField).toHaveBeenCalledWith({
+        field: 'type',
+        value: 'vcenter',
+      });
+      expect(iloUseCase.execute).not.toHaveBeenCalled();
+      expect(repo.save).toHaveBeenCalled();
+      expect(result.name).toBe(mockServer.name);
+    });
+
+    it('should throw BadRequestException when vCenter has iLO configuration', async () => {
+      const dto = createMockServerCreationDto({
+        type: 'vcenter',
+        ilo: {
+          name: 'ILO-vCenter',
+          ip: '10.0.0.1',
+          login: 'admin',
+          password: 'password',
+        },
+      });
+
+      roomRepo.findRoomById.mockResolvedValue(mockRoom());
+      repo.findOneByField.mockResolvedValue(null);
+
+      await expect(useCase.execute(dto, mockPayload.userId)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(useCase.execute(dto, mockPayload.userId)).rejects.toThrow(
+        'vCenter servers should not have iLO configuration',
+      );
+
+      expect(iloUseCase.execute).not.toHaveBeenCalled();
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+  });
+
   describe('Server save errors', () => {
     it('should throw error if server save fails', async () => {
       const dto = createMockServerCreationDto();
@@ -388,7 +467,7 @@ describe('CreateServerUseCase', () => {
           iloIpAddress: mockIloDto.ip,
         },
         metadata: {
-          serverType: 'physical',
+          serverType: 'esxi',
           hasUpsConnection: !!dto.upsId,
           assignedToGroup: !!dto.groupId,
           adminRolesGranted: 1,
@@ -449,7 +528,7 @@ describe('CreateServerUseCase', () => {
           iloIpAddress: mockIloDto.ip,
         },
         metadata: {
-          serverType: 'physical',
+          serverType: 'esxi',
           hasUpsConnection: false,
           assignedToGroup: false,
           adminRolesGranted: 0,

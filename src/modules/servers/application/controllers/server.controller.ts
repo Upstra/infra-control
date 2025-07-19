@@ -30,15 +30,18 @@ import {
   UpdateServerUseCase,
   DeleteServerUseCase,
   GetUserServersUseCase,
-  GetServerByIdWithPermissionCheckUseCase,
+  GetUserServersWithMetricsUseCase,
   UpdateServerPriorityUseCase,
   CheckServerPermissionUseCase,
+  GetServersWithVmsUseCase,
 } from '@/modules/servers/application/use-cases';
+import { PingServerUseCase } from '@/modules/servers/application/use-cases/ping-server.use-case';
 
 import { ServerResponseDto } from '../dto/server.response.dto';
 import { ServerCreationDto } from '../dto/server.creation.dto';
 import { ServerUpdateDto } from '../dto/server.update.dto';
 import { ServerListResponseDto } from '../dto/server.list.response.dto';
+import { ServerWithVmsResponseDto } from '../dto/server-with-vms.response.dto';
 import { UpdatePriorityDto } from '../../../priorities/application/dto/update-priority.dto';
 import { CheckServerPermissionDto } from '../dto/check-server-permission.dto';
 import { ServerPermissionCheckResponseDto } from '../dto/permission-check.response.dto';
@@ -53,6 +56,7 @@ import { RequireResourcePermission } from '@/core/decorators/ressource-permissio
 import { PermissionBit } from '@/modules/permissions/domain/value-objects/permission-bit.enum';
 import { LogToHistory } from '@/core/decorators/logging-context.decorator';
 import { RequestContextDto } from '@/core/dto';
+import { PingRequestDto, PingResponseDto } from '@/core/dto/ping.dto';
 
 @ApiTags('Server')
 @Controller('server')
@@ -63,10 +67,12 @@ export class ServerController {
     private readonly createServerUseCase: CreateServerUseCase,
     private readonly updateServerUseCase: UpdateServerUseCase,
     private readonly deleteServerUseCase: DeleteServerUseCase,
-    private readonly getServerByIdWithPermissionCheckUseCase: GetServerByIdWithPermissionCheckUseCase,
     private readonly getUserServersUseCase: GetUserServersUseCase,
+    private readonly getUserServersWithMetricsUseCase: GetUserServersWithMetricsUseCase,
     private readonly updateServerPriorityUseCase: UpdateServerPriorityUseCase,
     private readonly checkServerPermissionUseCase: CheckServerPermissionUseCase,
+    private readonly pingServerUseCase: PingServerUseCase,
+    private readonly getServersWithVmsUseCase: GetServersWithVmsUseCase,
   ) {}
 
   @Get('admin/all')
@@ -86,6 +92,57 @@ export class ServerController {
   })
   async getAllServers(): Promise<ServerResponseDto[]> {
     return this.getAllServersUseCase.execute();
+  }
+
+  /**
+   * Retrieve all servers with their associated VMs (light representation)
+   *
+   * @description
+   * This endpoint returns all servers with their VMs in a lightweight format,
+   * optimized for frontend list displays. It includes only essential server
+   * information and basic VM details (id, name, state) for optimal performance.
+   *
+   * @returns Promise<ServerWithVmsResponseDto[]> Array of servers with their VMs
+   *
+   * @since 1.0.0
+   *
+   * @example
+   * GET /server/light-with-vms
+   * Response:
+   * [
+   *   {
+   *     "id": "cce1b685-e2bf-4954-9b50-7253797ee8af",
+   *     "name": "ESXi-Server-01",
+   *     "ip": "192.168.1.10",
+   *     "hostMoid": "host-123",
+   *     "vms": [
+   *       { "id": "vm-1", "name": "VM-Server1-01", "state": "running" },
+   *       { "id": "vm-2", "name": "VM-Server1-02", "state": "running" }
+   *     ]
+   *   }
+   * ]
+   */
+  @Get('light-with-vms')
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
+  @ApiOperation({
+    summary: 'Lister tous les serveurs avec leurs VMs (format léger)',
+    description:
+      'Renvoie la liste de tous les serveurs avec leurs VMs dans un format optimisé pour les listes frontend. Inclut uniquement les informations essentielles des serveurs et les détails de base des VMs (id, nom, état) pour des performances optimales.',
+  })
+  @ApiResponse({
+    status: 200,
+    type: [ServerWithVmsResponseDto],
+    description: 'Liste des serveurs avec leurs VMs',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Accès refusé - Rôle admin requis',
+  })
+  async getServersWithVms(): Promise<ServerWithVmsResponseDto[]> {
+    return this.getServersWithVmsUseCase.execute();
   }
 
   @UseGuards(JwtAuthGuard, RoleGuard)
@@ -122,12 +179,23 @@ export class ServerController {
   @ApiOperation({ summary: 'Lister mes serveurs accessibles avec pagination' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'includeMetrics', required: false, type: Boolean })
   @ApiResponse({ status: 200, type: ServerListResponseDto })
   async getMyServers(
     @CurrentUser() user: JwtPayload,
     @Query('page') page = '1',
     @Query('limit') limit = '10',
+    @Query('includeMetrics') includeMetrics = false,
   ): Promise<ServerListResponseDto> {
+    if (includeMetrics) {
+      return this.getUserServersWithMetricsUseCase.execute(
+        user.userId,
+        Number(page),
+        Number(limit),
+        includeMetrics,
+      );
+    }
+
     return this.getUserServersUseCase.execute(
       user.userId,
       Number(page),
@@ -137,7 +205,13 @@ export class ServerController {
 
   @Get(':id')
   @UseFilters(InvalidQueryExceptionFilter)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, ResourcePermissionGuard)
+  @RequireResourcePermission({
+    resourceType: 'server',
+    requiredBit: PermissionBit.READ,
+    resourceIdSource: 'params',
+    resourceIdField: 'id',
+  })
   @ApiBearerAuth()
   @ApiParam({
     name: 'id',
@@ -148,12 +222,8 @@ export class ServerController {
   @ApiResponse({ status: 200, type: ServerResponseDto })
   async getServerById(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: JwtPayload,
   ): Promise<ServerResponseDto> {
-    return this.getServerByIdWithPermissionCheckUseCase.execute(
-      id,
-      user.userId,
-    );
+    return this.getServerByIdUseCase.execute(id);
   }
 
   @Post()
@@ -346,5 +416,48 @@ export class ServerController {
       user.userId,
       dto.permission,
     );
+  }
+
+  @Post(':id/ping')
+  @UseGuards(JwtAuthGuard, ResourcePermissionGuard)
+  @RequireResourcePermission({
+    resourceType: 'server',
+    requiredBit: PermissionBit.READ,
+    resourceIdSource: 'params',
+    resourceIdField: 'id',
+  })
+  @UseFilters(InvalidQueryExceptionFilter)
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: 'UUID du serveur à ping',
+    required: true,
+  })
+  @ApiOperation({
+    summary: 'Ping server connectivity',
+    description:
+      'Pings the server to check if it is accessible over the network. Required before listing resources.',
+  })
+  @ApiBody({
+    type: PingRequestDto,
+    description: 'Host and timeout configuration for ping',
+    required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    type: PingResponseDto,
+    description: 'Ping result with accessibility status and response time',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient permissions',
+  })
+  async pingServer(
+    @Param('id', ParseUUIDPipe) serverId: string,
+    @Body() pingDto: PingRequestDto,
+    @CurrentUser() _user: JwtPayload,
+  ): Promise<PingResponseDto> {
+    return this.pingServerUseCase.execute(serverId, pingDto.timeout);
   }
 }

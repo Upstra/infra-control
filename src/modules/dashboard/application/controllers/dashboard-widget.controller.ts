@@ -20,7 +20,6 @@ import {
 import {
   ActivityFeedResponseDto,
   AlertsResponseDto,
-  ResourceUsageResponseDto,
   UserPresenceResponseDto,
   SystemHealthResponseDto,
   UpsStatusResponseDto,
@@ -30,7 +29,6 @@ import {
 import {
   GetActivityFeedUseCase,
   GetAlertsUseCase,
-  GetResourceUsageUseCase,
   GetUserPresenceUseCase,
   GetSystemHealthUseCase,
   GetUpsStatusUseCase,
@@ -45,7 +43,6 @@ export class DashboardWidgetController {
   constructor(
     private readonly getActivityFeedUseCase: GetActivityFeedUseCase,
     private readonly getAlertsUseCase: GetAlertsUseCase,
-    private readonly getResourceUsageUseCase: GetResourceUsageUseCase,
     private readonly getUserPresenceUseCase: GetUserPresenceUseCase,
     private readonly getSystemHealthUseCase: GetSystemHealthUseCase,
     private readonly getUpsStatusUseCase: GetUpsStatusUseCase,
@@ -78,18 +75,6 @@ export class DashboardWidgetController {
     @Query() query: WidgetDataQueryDto,
   ): Promise<AlertsResponseDto> {
     return this.getAlertsUseCase.execute(query);
-  }
-
-  @Get('resource-usage')
-  @ApiOperation({ summary: 'Get resource usage data' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Resource usage data',
-    type: ResourceUsageResponseDto,
-  })
-  // TODO: @UseInterceptors(RedisCacheInterceptor)
-  async getResourceUsage(): Promise<ResourceUsageResponseDto> {
-    return this.getResourceUsageUseCase.execute();
   }
 
   @Get('user-presence')

@@ -4,7 +4,6 @@ import { DashboardWidgetController } from '../dashboard-widget.controller';
 import {
   GetActivityFeedUseCase,
   GetAlertsUseCase,
-  GetResourceUsageUseCase,
   GetUserPresenceUseCase,
   GetSystemHealthUseCase,
   GetUpsStatusUseCase,
@@ -13,7 +12,6 @@ import {
 import {
   ActivityFeedResponseDto,
   AlertsResponseDto,
-  ResourceUsageResponseDto,
   UserPresenceResponseDto,
   SystemHealthResponseDto,
   UpsStatusResponseDto,
@@ -25,7 +23,6 @@ describe('DashboardWidgetController', () => {
   let controller: DashboardWidgetController;
   let getActivityFeedUseCase: jest.Mocked<GetActivityFeedUseCase>;
   let getAlertsUseCase: jest.Mocked<GetAlertsUseCase>;
-  let getResourceUsageUseCase: jest.Mocked<GetResourceUsageUseCase>;
   let getUserPresenceUseCase: jest.Mocked<GetUserPresenceUseCase>;
   let getSystemHealthUseCase: jest.Mocked<GetSystemHealthUseCase>;
   let getUpsStatusUseCase: jest.Mocked<GetUpsStatusUseCase>;
@@ -79,25 +76,6 @@ describe('DashboardWidgetController', () => {
     },
   };
 
-  const mockResourceUsage: ResourceUsageResponseDto = {
-    cpu: {
-      usage: 45.5,
-      trend: 'up',
-    },
-    memory: {
-      usage: 62.3,
-      trend: 'stable',
-    },
-    storage: {
-      usage: 78.9,
-      trend: 'up',
-    },
-    network: {
-      inbound: '125.4 MB/s',
-      outbound: '87.2 MB/s',
-      trend: 'stable',
-    },
-  };
 
   const mockUserPresence: UserPresenceResponseDto = {
     onlineUsers: [
@@ -176,10 +154,6 @@ describe('DashboardWidgetController', () => {
           useValue: { execute: jest.fn() },
         },
         {
-          provide: GetResourceUsageUseCase,
-          useValue: { execute: jest.fn() },
-        },
-        {
           provide: GetUserPresenceUseCase,
           useValue: { execute: jest.fn() },
         },
@@ -203,7 +177,6 @@ describe('DashboardWidgetController', () => {
     );
     getActivityFeedUseCase = module.get(GetActivityFeedUseCase);
     getAlertsUseCase = module.get(GetAlertsUseCase);
-    getResourceUsageUseCase = module.get(GetResourceUsageUseCase);
     getUserPresenceUseCase = module.get(GetUserPresenceUseCase);
     getSystemHealthUseCase = module.get(GetSystemHealthUseCase);
     getUpsStatusUseCase = module.get(GetUpsStatusUseCase);
@@ -262,24 +235,6 @@ describe('DashboardWidgetController', () => {
       const result = await controller.getAlerts(query);
 
       expect(result).toEqual(emptyAlerts);
-    });
-  });
-
-  describe('getResourceUsage', () => {
-    it('should return resource usage data', async () => {
-      getResourceUsageUseCase.execute.mockResolvedValue(mockResourceUsage);
-
-      const result = await controller.getResourceUsage();
-
-      expect(result).toEqual(mockResourceUsage);
-      expect(getResourceUsageUseCase.execute).toHaveBeenCalled();
-    });
-
-    it('should handle errors from use case', async () => {
-      const error = new Error('Failed to fetch resource usage');
-      getResourceUsageUseCase.execute.mockRejectedValue(error);
-
-      await expect(controller.getResourceUsage()).rejects.toThrow(error);
     });
   });
 

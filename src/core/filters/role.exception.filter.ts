@@ -10,29 +10,45 @@ import {
   AdminRoleAlreadyExistsException,
   CannotDeleteSystemRoleException,
   SystemRoleNameAlreadyExistsException,
+  InvalidRoleUpdateException,
+  CannotDeleteLastAdminRoleException,
+  CannotRemoveGuestRoleException,
 } from '@/modules/roles/domain/exceptions/role.exception';
 
 @Catch(
-  RoleRetrievalException,
   RoleNotFoundException,
+  RoleRetrievalException,
   AdminRoleAlreadyExistsException,
   CannotDeleteSystemRoleException,
+  CannotDeleteLastAdminRoleException,
+  InvalidRoleUpdateException,
   SystemRoleNameAlreadyExistsException,
+  CannotRemoveGuestRoleException,
 )
 export class RoleExceptionFilter implements ExceptionFilter {
   catch(exception: Error, host: ArgumentsHost) {
     const response = host.switchToHttp().getResponse();
 
-    let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    if (exception instanceof RoleNotFoundException) {
+    let status: HttpStatus;
+    if (
+      exception instanceof RoleNotFoundException ||
+      exception instanceof RoleRetrievalException
+    ) {
       status = HttpStatus.NOT_FOUND;
     } else if (
       exception instanceof AdminRoleAlreadyExistsException ||
       exception instanceof SystemRoleNameAlreadyExistsException
     ) {
       status = HttpStatus.CONFLICT;
-    } else if (exception instanceof CannotDeleteSystemRoleException) {
+    } else if (
+      exception instanceof CannotDeleteSystemRoleException ||
+      exception instanceof CannotDeleteLastAdminRoleException ||
+      exception instanceof InvalidRoleUpdateException ||
+      exception instanceof CannotRemoveGuestRoleException
+    ) {
       status = HttpStatus.FORBIDDEN;
+    } else {
+      status = HttpStatus.INTERNAL_SERVER_ERROR;
     }
 
     response.status(status).json({

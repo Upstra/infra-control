@@ -14,12 +14,18 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any): Promise<AuthenticatedUserDto> {
+  async validate(payload: any): Promise<AuthenticatedUserDto | null> {
+    if (!payload) {
+      return null;
+    }
+
+    const role = Array.isArray(payload.roles) ? payload.roles[0] : payload.role;
+
     return {
       userId: payload.userId,
       email: payload.email,
       isTwoFactorEnabled: payload.isTwoFactorEnabled,
-      role: payload.roles?.[0] || payload.role,
+      role: role,
       isActive: payload.isActive,
     };
   }

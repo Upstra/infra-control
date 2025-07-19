@@ -6,7 +6,9 @@ import {
   UseFilters,
   Get,
   UseInterceptors,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -77,8 +79,23 @@ export class TwoFAController {
     required: true,
   })
   @ApiResponse({ status: 200, type: TwoFAResponseDto })
-  verify(@CurrentUser() user: JwtPayload, @Body() dto: TwoFADto) {
-    return this.verify2FAUseCase.execute(user, dto);
+  async verify(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: TwoFADto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.verify2FAUseCase.execute(user, dto);
+    
+    if (result.refreshToken) {
+      res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+      });
+    }
+    
+    return result;
   }
 
   @Post('disable')
@@ -106,8 +123,23 @@ export class TwoFAController {
   @ApiBearerAuth()
   @ApiBody({ type: TwoFARecoveryDto })
   @ApiResponse({ status: 200, type: TwoFAResponseDto })
-  recover(@CurrentUser() user: JwtPayload, @Body() dto: TwoFARecoveryDto) {
-    return this.verify2FARecoveryUseCase.execute(user, dto);
+  async recover(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: TwoFARecoveryDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.verify2FARecoveryUseCase.execute(user, dto);
+    
+    if (result.refreshToken) {
+      res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+      });
+    }
+    
+    return result;
   }
 
   @Get('status')

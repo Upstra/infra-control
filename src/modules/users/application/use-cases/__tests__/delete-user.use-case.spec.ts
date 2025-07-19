@@ -1,5 +1,4 @@
 import {
-  UserExceptions,
   UserNotFoundException,
   CannotDeleteLastAdminException,
 } from '@/modules/users/domain/exceptions/user.exception';
@@ -17,15 +16,26 @@ describe('DeleteUserUseCase', () => {
     repo = {
       findOneByField: jest.fn(),
       deleteUser: jest.fn(),
+      softDeleteUser: jest.fn(),
       countAdmins: jest.fn(),
     } as any;
 
     useCase = new DeleteUserUseCase(repo);
   });
 
-  it('should delete user if user exists', async () => {
+  it('should soft delete and anonymize user if user exists', async () => {
+    const timestamp = Date.now();
+    const deletedUser = createMockUser({ 
+      ...mockUser, 
+      deletedAt: new Date(), 
+      isActive: false,
+      email: `deleted_${timestamp}_${mockUser.id}@deleted.local`,
+      username: `deleted_${timestamp}_${mockUser.id}`,
+      firstName: 'Deleted',
+      lastName: 'User'
+    });
     repo.findOneByField.mockResolvedValue(mockUser);
-    repo.deleteUser.mockResolvedValue(undefined);
+    repo.softDeleteUser.mockResolvedValue(deletedUser);
 
     await expect(useCase.execute('user-id')).resolves.toBeUndefined();
 
@@ -34,11 +44,11 @@ describe('DeleteUserUseCase', () => {
       value: 'user-id',
       relations: ['roles'],
     });
-    expect(repo.deleteUser).toHaveBeenCalledWith('user-id');
+    expect(repo.softDeleteUser).toHaveBeenCalledWith('user-id');
   });
 
   it('should throw if user does not exist', async () => {
-    repo.findOneByField.mockRejectedValue(UserExceptions.notFound('user-id'));
+    repo.findOneByField.mockRejectedValue(new UserNotFoundException('user-id'));
 
     await expect(useCase.execute('user-id')).rejects.toThrow(
       UserNotFoundException,
@@ -49,12 +59,12 @@ describe('DeleteUserUseCase', () => {
       value: 'user-id',
       relations: ['roles'],
     });
-    expect(repo.deleteUser).not.toHaveBeenCalled();
+    expect(repo.softDeleteUser).not.toHaveBeenCalled();
   });
 
-  it('should throw if deleteUser fails', async () => {
+  it('should throw if softDeleteUser fails', async () => {
     repo.findOneByField.mockResolvedValue(mockUser);
-    repo.deleteUser.mockRejectedValue(new Error('DB fail'));
+    repo.softDeleteUser.mockRejectedValue(new Error('DB fail'));
 
     await expect(useCase.execute('user-id')).rejects.toThrow('DB fail');
 
@@ -63,7 +73,7 @@ describe('DeleteUserUseCase', () => {
       value: 'user-id',
       relations: ['roles'],
     });
-    expect(repo.deleteUser).toHaveBeenCalledWith('user-id');
+    expect(repo.softDeleteUser).toHaveBeenCalledWith('user-id');
   });
 
   it('should throw if deleting the last admin', async () => {
@@ -78,6 +88,6 @@ describe('DeleteUserUseCase', () => {
     );
 
     expect(repo.countAdmins).toHaveBeenCalled();
-    expect(repo.deleteUser).not.toHaveBeenCalled();
+    expect(repo.softDeleteUser).not.toHaveBeenCalled();
   });
 });

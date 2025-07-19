@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID, IsNumber } from 'class-validator';
 
 export class UpsCreationDto {
   @ApiProperty()
@@ -11,16 +11,6 @@ export class UpsCreationDto {
   @IsNotEmpty()
   @IsString()
   readonly ip!: string;
-
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  readonly login!: string;
-
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  readonly password!: string;
 
   @ApiProperty()
   @IsNotEmpty()

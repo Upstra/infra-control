@@ -89,14 +89,19 @@ describe('UpdateUserPreferencesUseCase', () => {
         locale: 'en',
       };
 
+      const createdPreferences = UserPreference.createDefault(userId);
+      createdPreferences.locale = 'en';
+
       mockRepository.findByUserId.mockResolvedValue(null);
-      mockRepository.update.mockImplementation(async (pref) => pref);
+      mockRepository.create.mockResolvedValue(createdPreferences);
+      mockRepository.update.mockResolvedValue(createdPreferences);
 
       const result = await useCase.execute(userId, updateDto);
 
       expect(result.userId).toBe(userId);
       expect(result.locale).toBe('en');
       expect(result.theme).toBe('dark'); // default value
+      expect(mockRepository.create).toHaveBeenCalled();
       expect(mockRepository.update).toHaveBeenCalled();
     });
 

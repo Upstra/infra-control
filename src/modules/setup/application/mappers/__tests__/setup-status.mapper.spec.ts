@@ -16,17 +16,17 @@ describe('SetupStatusMapper', () => {
     serverCount: 0,
   };
 
-  it('should map a first-time setup with no room to CREATE_ROOM step', () => {
+  it('should map a first-time setup with no room to ROOMS_CONFIG step', () => {
     const state: SetupState = {
       phase: SetupPhase.IN_PROGRESS,
       hasAdminUser: true,
       hasInfrastructure: false,
-      nextRequiredStep: 'create-room',
+      nextRequiredStep: 'rooms',
     };
 
     const result = mapper.toDto(state, defaultCounts, true);
 
-    expect(result.currentStep).toBe(SetupStep.CREATE_ROOM);
+    expect(result.currentStep).toBe(SetupStep.ROOMS_CONFIG);
     expect(result.isFirstSetup).toBe(true);
     expect(result.hasRooms).toBe(false);
     expect(result.hasUps).toBe(false);

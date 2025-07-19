@@ -40,16 +40,25 @@ export class TwoFAResponseDto {
   })
   recoveryCodes?: string[];
 
+  @ApiPropertyOptional({
+    description: 'Refresh token for the user',
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    required: false,
+  })
+  refreshToken?: string;
+
   constructor(
     isValid: boolean,
     accessToken?: string | null,
     message?: string,
     recoveryCodes?: string[],
+    refreshToken?: string,
   ) {
     this.isValid = isValid;
     this.accessToken = accessToken ?? null;
     if (message) this.message = message;
     if (recoveryCodes) this.recoveryCodes = recoveryCodes;
+    if (refreshToken) this.refreshToken = refreshToken;
   }
 }
 

@@ -13,7 +13,6 @@ describe('ServerUpdateDto', () => {
   it('should validate with full optional update', async () => {
     const dto = plainToInstance(ServerUpdateDto, {
       name: 'Updated Server',
-      grace_period_on: 5,
       priority: 2,
     });
     await expect(validateOrReject(dto)).resolves.toBeUndefined();

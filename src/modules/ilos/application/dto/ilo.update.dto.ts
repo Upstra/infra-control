@@ -5,6 +5,11 @@ export class IloUpdateDto {
   @ApiProperty()
   @IsOptional()
   @IsString()
+  readonly id?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
   readonly name?: string;
 
   @ApiProperty()

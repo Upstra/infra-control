@@ -12,7 +12,12 @@ import {
   HttpStatus,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { CreateGroupDto } from '../dto/create-group.dto';
@@ -25,6 +30,8 @@ import { UpdateGroupUseCase } from '../use-cases/update-group.use-case';
 import { DeleteGroupUseCase } from '../use-cases/delete-group.use-case';
 import { GetGroupUseCase } from '../use-cases/get-group.use-case';
 import { ListGroupsUseCase } from '../use-cases/list-groups.use-case';
+import { RequireRole } from '@/core/decorators/role.decorator';
+import { RoleGuard } from '@/core/guards';
 
 @ApiTags('Groups')
 @Controller('groups')
@@ -55,6 +62,13 @@ export class GroupController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new group' })
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
+  @ApiResponse({
+    status: 201,
+    description: 'Group created successfully',
+    type: GroupResponseDto,
+  })
   async create(
     @Body() dto: CreateGroupDto,
     @CurrentUser() user: { id: string },
@@ -64,6 +78,13 @@ export class GroupController {
 
   @Put(':id')
   @ApiOperation({ summary: 'Update a group' })
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
+  @ApiResponse({
+    status: 200,
+    description: 'Group updated successfully',
+    type: GroupResponseDto,
+  })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateGroupDto,

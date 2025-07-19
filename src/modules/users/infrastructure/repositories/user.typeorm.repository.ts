@@ -7,7 +7,11 @@ import {
 } from '../../domain/interfaces/user.repository.interface';
 import { DataSource, Repository, In, IsNull } from 'typeorm';
 import { InvalidQueryValueException } from '@/core/exceptions/repository.exception';
-import { UserExceptions } from '../../domain/exceptions/user.exception';
+import {
+  UserDeletionException,
+  UserNotFoundException,
+  UserRetrievalException,
+} from '../../domain/exceptions/user.exception';
 import { PrimitiveFields } from '@/core/types/primitive-fields.interface';
 
 @Injectable()
@@ -49,7 +53,7 @@ export class UserTypeormRepository
     } catch (error) {
       if (disableThrow) return [];
       Logger.error('Error retrieving users by field:', error);
-      throw UserExceptions.retrievalFailed();
+      throw new UserRetrievalException();
     }
   }
 
@@ -95,10 +99,10 @@ export class UserTypeormRepository
         if (disableThrow) {
           return null;
         }
-        throw UserExceptions.notFound(String(value));
+        throw new UserNotFoundException(String(value));
       }
       Logger.error('Error retrieving user by field:', error);
-      throw UserExceptions.retrievalFailed();
+      throw new UserRetrievalException();
     }
   }
 
@@ -153,10 +157,43 @@ export class UserTypeormRepository
 
   async deleteUser(id: string): Promise<void> {
     try {
-      await this.delete(id);
+      await this.softDeleteUser(id);
     } catch (error) {
+      if (error.name === 'UserNotFoundException' || error.name === 'UserDeletionException') {
+        throw error;
+      }
       Logger.error('Error deleting user:', error);
-      throw UserExceptions.deletionFailed();
+      throw new UserDeletionException();
+    }
+  }
+
+  async softDeleteUser(id: string): Promise<User> {
+    try {
+      const user = await this.findOneById(id);
+      if (!user) {
+        throw new UserNotFoundException(id);
+      }
+
+      const timestamp = Date.now();
+      user.deletedAt = new Date();
+      user.isActive = false;
+      user.email = `deleted_${timestamp}_${user.id}@deleted.local`;
+      user.username = `deleted_${timestamp}_${user.id}`;
+      user.firstName = 'Deleted';
+      user.lastName = 'User';
+      user.password = 'DELETED';
+      user.twoFactorSecret = null;
+      user.recoveryCodes = null;
+      user.resetPasswordToken = null;
+      user.resetPasswordExpiry = null;
+
+      return await this.save(user);
+    } catch (error) {
+      if (error.name === 'UserNotFoundException') {
+        throw error;
+      }
+      Logger.error('Error soft deleting user:', error);
+      throw new UserDeletionException();
     }
   }
 
@@ -207,10 +244,58 @@ export class UserTypeormRepository
     });
   }
 
-  // Override findOneById to exclude soft-deleted users by default
   async findOneById(id: string): Promise<User | null> {
     return await this.findOne({
       where: { id, deletedAt: IsNull() } as any,
     });
+  }
+
+  async getUserActiveStatus(
+    userId: string,
+  ): Promise<{ isActive: boolean } | null> {
+    const result = await this.createQueryBuilder('user')
+      .select('user.isActive')
+      .where('user.id = :userId', { userId })
+      .andWhere('user.deletedAt IS NULL')
+      .getOne();
+
+    return result ? { isActive: result.isActive } : null;
+  }
+
+  async findAdminUsers(): Promise<User[]> {
+    return await this.createQueryBuilder('user')
+      .innerJoinAndSelect('user.roles', 'role')
+      .where('role.name IN (:...names)', { names: ['Admin', 'admin'] })
+      .andWhere('user.isActive = :isActive', { isActive: true })
+      .andWhere('user.deletedAt IS NULL')
+      .getMany();
+  }
+
+  async findByIds(ids: string[]): Promise<User[]> {
+    if (!ids || ids.length === 0) {
+      return [];
+    }
+
+    return await this.createQueryBuilder('user')
+      .where('user.id IN (:...ids)', { ids })
+      .andWhere('user.deletedAt IS NULL')
+      .getMany();
+  }
+
+  /**
+   * Permanently delete a user from the database.
+   * WARNING: This is a hard delete and cannot be undone.
+   * Use only for GDPR compliance after the retention period.
+   * 
+   * @param id - The ID of the user to permanently delete
+   * @throws UserDeletionException on database error
+   */
+  async hardDeleteUser(id: string): Promise<void> {
+    try {
+      await this.delete(id);
+    } catch (error) {
+      Logger.error('Error hard deleting user:', error);
+      throw new UserDeletionException();
+    }
   }
 }

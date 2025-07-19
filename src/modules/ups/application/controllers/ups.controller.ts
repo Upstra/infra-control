@@ -28,6 +28,7 @@ import {
   GetUpsByIdUseCase,
   UpdateUpsUseCase,
 } from '@/modules/ups/application/use-cases';
+import { PingUpsUseCase } from '@/modules/ups/application/use-cases/ping-ups.use-case';
 
 import {
   UpsCreationDto,
@@ -40,6 +41,7 @@ import { RoleGuard } from '@/core/guards/role.guard';
 import { RequireRole } from '@/core/decorators/role.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
+import { PingRequestDto, PingResponseDto } from '@/core/dto/ping.dto';
 
 @ApiTags('UPS')
 @Controller('ups')
@@ -51,6 +53,7 @@ export class UpsController {
     private readonly createUpsUseCase: CreateUpsUseCase,
     private readonly updateUpsUseCase: UpdateUpsUseCase,
     private readonly deleteUpsUseCase: DeleteUpsUseCase,
+    private readonly pingUpsUseCase: PingUpsUseCase,
   ) {}
 
   @Get()
@@ -110,7 +113,8 @@ export class UpsController {
       'Crée un nouvel UPS dans le système à partir des informations fournies.',
   })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
   @ApiResponse({ status: 201, type: UpsResponseDto })
   async createUps(
     @Body() upsDto: UpsCreationDto,
@@ -136,8 +140,9 @@ export class UpsController {
     description:
       'Met à jour les informations d’un UPS existant à partir de son UUID.',
   })
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @ApiResponse({ status: 200, type: UpsResponseDto })
   async updateUps(
     @Param('id', ParseUUIDPipe) id: string,
@@ -160,12 +165,45 @@ export class UpsController {
       'Supprime un UPS du système en utilisant son UUID. Action définitive.',
   })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
   @ApiResponse({ status: 204, description: 'UPS supprimé avec succès' })
   async deleteUps(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: JwtPayload,
   ): Promise<void> {
     return this.deleteUpsUseCase.execute(id, user.userId);
+  }
+
+  @Post(':id/ping')
+  @ApiParam({
+    name: 'id',
+    type: String,
+    description: `UUID de l'UPS à ping`,
+    required: true,
+  })
+  @ApiOperation({
+    summary: 'Ping UPS connectivity',
+    description:
+      'Pings the UPS device to check if it is accessible over the network. Required before checking UPS status.',
+  })
+  @ApiBody({
+    type: PingRequestDto,
+    description: 'Timeout configuration for ping',
+    required: true,
+  })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiResponse({
+    status: 200,
+    type: PingResponseDto,
+    description: 'Ping result with accessibility status and response time',
+  })
+  async pingUps(
+    @Param('id', ParseUUIDPipe) upsId: string,
+    @Body() pingDto: PingRequestDto,
+    @CurrentUser() _user: JwtPayload,
+  ): Promise<PingResponseDto> {
+    return this.pingUpsUseCase.execute(upsId, pingDto.timeout);
   }
 }

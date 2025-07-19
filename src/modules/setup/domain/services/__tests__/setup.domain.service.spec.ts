@@ -18,13 +18,13 @@ describe('SetupDomainService', () => {
       expect(result.nextRequiredStep).toBe('welcome');
     });
 
-    it('should return IN_PROGRESS with next step create-room if 1 user and no room', () => {
+    it('should return IN_PROGRESS with next step planning if 1 user and no infrastructure', () => {
       const result = service.determineSetupState(1, 0, 0, 0);
 
       expect(result.phase).toBe(SetupPhase.IN_PROGRESS);
       expect(result.hasAdminUser).toBe(true);
       expect(result.hasInfrastructure).toBe(false);
-      expect(result.nextRequiredStep).toBe('create-room');
+      expect(result.nextRequiredStep).toBe('planning');
     });
 
     it('should return COMPLETED if at least one server is present', () => {
@@ -40,7 +40,7 @@ describe('SetupDomainService', () => {
       const result = service.determineSetupState(2, 1, 1, 0);
 
       expect(result.phase).toBe(SetupPhase.IN_PROGRESS);
-      expect(result.nextRequiredStep).toBe('create-server');
+      expect(result.nextRequiredStep).toBe('servers');
     });
 
     it('should return IN_PROGRESS with next step create-ups if room exists but no UPS and no server', () => {
@@ -49,7 +49,7 @@ describe('SetupDomainService', () => {
       expect(result.phase).toBe(SetupPhase.IN_PROGRESS);
       expect(result.hasAdminUser).toBe(true);
       expect(result.hasInfrastructure).toBe(false);
-      expect(result.nextRequiredStep).toBe('create-ups');
+      expect(result.nextRequiredStep).toBe('ups');
     });
 
     it('should return null when all conditions are met', () => {

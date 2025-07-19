@@ -18,8 +18,6 @@ describe('UpsUpdateDto', () => {
       ip: '192.168.1.2',
       login: 'root',
       password: 'rootpass',
-      grace_period_on: 15,
-      grace_period_off: 5,
       roomId: '2c43bb4c-f39e-4a49-817e-d4c28be83150',
     });
 

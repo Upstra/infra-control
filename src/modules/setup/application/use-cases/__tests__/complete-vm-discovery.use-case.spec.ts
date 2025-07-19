@@ -30,7 +30,7 @@ describe('CompleteVmDiscoveryUseCase', () => {
 
     expect(repo.findOneByField).toHaveBeenCalled();
     expect(completeStep.execute).toHaveBeenCalledWith(
-      SetupStep.VM_DISCOVERY,
+      SetupStep.RELATIONSHIPS,
       'user',
       expect.any(Object),
     );

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsOptional, IsString, IsUUID, IsNumber } from 'class-validator';
 
 export class UpsUpdateDto {
   @ApiProperty()
@@ -11,16 +11,6 @@ export class UpsUpdateDto {
   @IsOptional()
   @IsString()
   readonly ip?: string;
-
-  @ApiProperty()
-  @IsOptional()
-  @IsString()
-  readonly login?: string;
-
-  @ApiProperty()
-  @IsOptional()
-  @IsString()
-  readonly password?: string;
 
   @ApiProperty()
   @IsOptional()

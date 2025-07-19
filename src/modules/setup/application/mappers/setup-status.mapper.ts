@@ -78,19 +78,28 @@ export class SetupStatusMapper {
    *
    * ## Mappings:
    * - 'welcome'       → SetupStep.WELCOME
-   * - 'create-room'   → SetupStep.CREATE_ROOM
-   * - 'create-ups'    → SetupStep.CREATE_UPS
-   * - 'create-server' → SetupStep.CREATE_SERVER
-   * - 'vm-discovery'  → SetupStep.VM_DISCOVERY
+   * - 'planning'      → SetupStep.RESOURCE_PLANNING
+   * - 'rooms'         → SetupStep.ROOMS_CONFIG
+   * - 'ups'           → SetupStep.UPS_CONFIG
+   * - 'servers'       → SetupStep.SERVERS_CONFIG
+   * - 'relationships' → SetupStep.RELATIONSHIPS
+   * - 'review'        → SetupStep.REVIEW
    * - `null` or unknown → SetupStep.COMPLETE
    */
   private mapNextStepToSetupStep(nextStep: string | null): SetupStep {
     const stepMapping: Record<string, SetupStep> = {
       welcome: SetupStep.WELCOME,
-      'create-room': SetupStep.CREATE_ROOM,
-      'create-ups': SetupStep.CREATE_UPS,
-      'create-server': SetupStep.CREATE_SERVER,
-      'vm-discovery': SetupStep.VM_DISCOVERY,
+      planning: SetupStep.RESOURCE_PLANNING,
+      rooms: SetupStep.ROOMS_CONFIG,
+      ups: SetupStep.UPS_CONFIG,
+      servers: SetupStep.SERVERS_CONFIG,
+      relationships: SetupStep.RELATIONSHIPS,
+      review: SetupStep.REVIEW,
+      // Legacy mappings for backward compatibility
+      'create-room': SetupStep.ROOMS_CONFIG,
+      'create-ups': SetupStep.UPS_CONFIG,
+      'create-server': SetupStep.SERVERS_CONFIG,
+      'vm-discovery': SetupStep.RELATIONSHIPS,
     };
 
     return nextStep && stepMapping[nextStep]

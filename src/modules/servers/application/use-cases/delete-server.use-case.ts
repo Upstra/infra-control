@@ -1,8 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 
-import { DeleteIloUseCase } from '@/modules/ilos/application/use-cases';
-
 /**
  * Deletes a server and all dependent VMs after validation.
  *
@@ -21,17 +19,14 @@ import { DeleteIloUseCase } from '@/modules/ilos/application/use-cases';
  * @example
  * await deleteServerUseCase.execute('srv-uuid','user-uuid');
  */
-
 @Injectable()
 export class DeleteServerUseCase {
   constructor(
     @Inject('ServerRepositoryInterface')
     private readonly serverRepository: ServerRepositoryInterface,
-    private readonly deleteIloUsecase: DeleteIloUseCase,
   ) {}
 
   async execute(id: string, _userId?: string): Promise<void> {
     await this.serverRepository.deleteServer(id);
-    await this.deleteIloUsecase.execute(id);
   }
 }

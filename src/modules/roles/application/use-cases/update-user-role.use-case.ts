@@ -4,7 +4,7 @@ import { User } from '@/modules/users/domain/entities/user.entity';
 import { Role } from '../../domain/entities/role.entity';
 import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
 import { CannotRemoveGuestRoleException } from '../../domain/exceptions/role.exception';
-import { UserExceptions } from '@/modules/users/domain/exceptions/user.exception';
+import { CannotRemoveLastAdminException } from '@/modules/users/domain/exceptions/user.exception';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 import { RequestContextDto } from '@/core/dto';
 
@@ -110,7 +110,7 @@ export class UpdateUserRoleUseCase {
       throw new CannotRemoveGuestRoleException();
     }
     if (role.isAdmin && (await this.isLastAdmin(user, userRepo))) {
-      throw UserExceptions.cannotRemoveLastAdminRole();
+      throw new CannotRemoveLastAdminException();
     }
     user.roles = user.roles.filter((r) => r.id !== role.id);
   }

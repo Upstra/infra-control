@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { EmailInfrastructureModule } from './infrastructures/email-infrastructure.module';
+import { EmailInfrastructureModule } from './infrastructure/email-infrastructure.module';
 import { EmailApplicationModule } from './application/email-application.module';
 import { EmailEventListener } from './infrastructure/listeners/email-event.listener';
 

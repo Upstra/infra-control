@@ -60,8 +60,6 @@ export class CheckVmPermissionUseCase {
 
     if (user?.roles?.length) {
       const roleIds = user.roles.map((r) => r.id);
-      this.logger.debug(`User ${userId} has roleIds ${roleIds.join(',')}`);
-
       const permissions = await PermissionResolver.resolveVmPermissions(
         this.permissionRepo,
         roleIds,

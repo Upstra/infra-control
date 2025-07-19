@@ -37,10 +37,6 @@ describe('GetAllUpsUseCase', () => {
         id: '1',
         name: 'UPS 1',
         ip: '192.168.1.100',
-        login: 'admin',
-        password: 'password',
-        grace_period_on: 10,
-        grace_period_off: 5,
         roomId: 'room-1',
         servers: [],
         room: null,
@@ -77,10 +73,6 @@ describe('GetAllUpsUseCase', () => {
         id: 'test-id',
         name: 'Test UPS',
         ip: '10.0.0.1',
-        login: 'testuser',
-        password: 'testpass',
-        grace_period_on: 15,
-        grace_period_off: 10,
         roomId: 'room-test',
         servers: [],
         room: null,
@@ -95,8 +87,6 @@ describe('GetAllUpsUseCase', () => {
       expect(result[0].id).toBe('test-id');
       expect(result[0].name).toBe('Test UPS');
       expect(result[0].ip).toBe('10.0.0.1');
-      expect(result[0].grace_period_on).toBe(15);
-      expect(result[0].grace_period_off).toBe(10);
       expect(result[0].roomId).toBe('room-test');
       expect(result[0].serverCount).toBe(2);
     });

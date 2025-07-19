@@ -3,8 +3,12 @@ import { UpdateUserRolesUseCase } from '../update-user-roles.use-case';
 import { User } from '@/modules/users/domain/entities/user.entity';
 import { Role } from '../../../domain/entities/role.entity';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
-import { UserExceptions } from '@/modules/users/domain/exceptions/user.exception';
-import { RoleExceptions } from '../../../domain/exceptions/role.exception';
+import { CannotRemoveLastAdminException } from '@/modules/users/domain/exceptions/user.exception';
+import {
+  CannotRemoveGuestRoleException,
+  InvalidRoleUpdateException,
+  RoleNotFoundException,
+} from '../../../domain/exceptions/role.exception';
 
 describe('UpdateUserRolesUseCase', () => {
   let useCase: UpdateUserRolesUseCase;
@@ -136,7 +140,7 @@ describe('UpdateUserRolesUseCase', () => {
       userRepo.createQueryBuilder.mockReturnValue(queryBuilder);
 
       await expect(useCase.execute(userId, roleId, undefined)).rejects.toThrow(
-        UserExceptions.cannotRemoveLastAdminRole(),
+        new CannotRemoveLastAdminException(),
       );
     });
 
@@ -185,7 +189,7 @@ describe('UpdateUserRolesUseCase', () => {
       roleRepo.findOneOrFail.mockResolvedValue(guestRole);
 
       await expect(useCase.execute(userId, roleId, undefined)).rejects.toThrow(
-        RoleExceptions.cannotRemoveGuestRole(),
+        new CannotRemoveGuestRoleException(),
       );
     });
 
@@ -314,7 +318,7 @@ describe('UpdateUserRolesUseCase', () => {
       ]);
 
       await expect(useCase.execute(userId, undefined, roleIds)).rejects.toThrow(
-        RoleExceptions.roleNotFound(),
+        RoleNotFoundException,
       );
     });
 
@@ -370,7 +374,7 @@ describe('UpdateUserRolesUseCase', () => {
       });
 
       await expect(useCase.execute(userId, undefined, roleIds)).rejects.toThrow(
-        UserExceptions.cannotRemoveLastAdminRole(),
+        new CannotRemoveLastAdminException(),
       );
     });
   });
@@ -379,7 +383,7 @@ describe('UpdateUserRolesUseCase', () => {
     it('should throw error when both roleId and roleIds are provided', async () => {
       await expect(
         useCase.execute('user-id', 'role-id', ['role1', 'role2']),
-      ).rejects.toThrow(RoleExceptions.cannotSpecifyBothRoleIdAndRoleIds());
+      ).rejects.toThrow(new InvalidRoleUpdateException());
     });
   });
 

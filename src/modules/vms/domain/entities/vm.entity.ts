@@ -6,6 +6,7 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Group } from '../../../groups/domain/entities/group.entity';
@@ -13,6 +14,7 @@ import { Server } from '../../../servers/domain/entities/server.entity';
 import { PermissionVm } from '../../../permissions/domain/entities/permission.vm.entity';
 
 @Entity('vm')
+@Index(['moid', 'serverId'], { unique: true, where: 'moid IS NOT NULL' })
 export class Vm extends BaseEntity {
   @ApiProperty()
   @PrimaryGeneratedColumn('uuid')
@@ -21,6 +23,10 @@ export class Vm extends BaseEntity {
   @ApiProperty()
   @Column({ type: 'varchar' })
   name!: string;
+
+  @ApiProperty()
+  @Column({ type: 'varchar', nullable: true })
+  moid?: string;
 
   @ApiProperty()
   @Column({ type: 'varchar' })
@@ -34,26 +40,58 @@ export class Vm extends BaseEntity {
   @Column()
   grace_period_off: number;
 
+  //DEPRECATED
   @ApiProperty()
-  @Column({ type: 'varchar' })
-  os!: string;
+  @Column({ type: 'varchar', nullable: true })
+  os?: string;
 
   @ApiProperty()
-  @Column({ type: 'varchar' })
-  adminUrl: string;
+  @Column({ type: 'varchar', nullable: true })
+  guestOs?: string;
 
   @ApiProperty()
-  @ApiProperty()
-  @Column({ type: 'varchar', unique: true })
-  ip!: string;
+  @Column({ type: 'varchar', nullable: true })
+  guestFamily?: string;
 
   @ApiProperty()
-  @Column({ type: 'varchar' })
-  login!: string;
+  @Column({ type: 'varchar', nullable: true })
+  version?: string;
 
   @ApiProperty()
-  @Column({ type: 'varchar' })
-  password!: string;
+  @Column({ type: 'timestamp', nullable: true })
+  createDate?: Date;
+
+  @ApiProperty()
+  @Column({ type: 'int', nullable: true })
+  numCoresPerSocket?: number;
+
+  @ApiProperty()
+  @Column({ type: 'int', nullable: true })
+  numCPU?: number;
+
+  @ApiProperty()
+  @Column({ type: 'varchar', nullable: true })
+  esxiHostName?: string;
+
+  @ApiProperty()
+  @Column({ type: 'varchar', nullable: true })
+  esxiHostMoid?: string;
+
+  @ApiProperty()
+  @Column({ type: 'varchar', nullable: true })
+  adminUrl?: string;
+
+  @ApiProperty()
+  @Column({ type: 'varchar', nullable: true })
+  ip?: string;
+
+  @ApiProperty()
+  @Column({ type: 'varchar', nullable: true })
+  login?: string;
+
+  @ApiProperty({ writeOnly: true })
+  @Column({ type: 'varchar', nullable: true, select: false })
+  password?: string;
 
   @ApiProperty()
   @Column()
@@ -80,4 +118,8 @@ export class Vm extends BaseEntity {
   @ApiProperty({ type: () => PermissionVm, isArray: true })
   @OneToMany(() => PermissionVm, (permission) => permission.vm)
   permissions: PermissionVm[];
+
+  @ApiProperty()
+  @Column({ type: 'timestamp', nullable: true })
+  lastSyncAt?: Date;
 }

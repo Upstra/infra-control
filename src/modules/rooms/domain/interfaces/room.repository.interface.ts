@@ -15,4 +15,12 @@ export interface RoomRepositoryInterface
    * @param limit - items per page
    */
   paginate(page: number, limit: number): Promise<[Room[], number]>;
+
+  /**
+   * Retrieve rooms optimized for tree navigation with minimal fields.
+   *
+   * @param page - page number starting at 1
+   * @param limit - items per page
+   */
+  paginateForTree(page: number, limit: number): Promise<[Room[], number]>;
 }

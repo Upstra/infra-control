@@ -125,6 +125,69 @@ describe('JwtStrategy', () => {
       });
     });
 
+    it('should handle payload with roles array', async () => {
+      const mockRole = createMockRole();
+      const payload = {
+        userId: 'user-123',
+        email: 'john.doe@example.com',
+        isTwoFactorEnabled: true,
+        roles: [mockRole],
+        isActive: true,
+      };
+
+      const result = await strategy.validate(payload);
+
+      expect(result).toEqual({
+        userId: 'user-123',
+        email: 'john.doe@example.com',
+        isTwoFactorEnabled: true,
+        role: mockRole,
+        isActive: true,
+      });
+    });
+
+    it('should handle payload with multiple roles and pick the first one', async () => {
+      const mockRole1 = createMockRole({ id: 'role-1', name: 'Role 1' });
+      const mockRole2 = createMockRole({ id: 'role-2', name: 'Role 2' });
+      const payload = {
+        userId: 'user-123',
+        email: 'john.doe@example.com',
+        isTwoFactorEnabled: true,
+        roles: [mockRole1, mockRole2],
+        isActive: true,
+      };
+
+      const result = await strategy.validate(payload);
+
+      expect(result).toEqual({
+        userId: 'user-123',
+        email: 'john.doe@example.com',
+        isTwoFactorEnabled: true,
+        role: mockRole1,
+        isActive: true,
+      });
+    });
+
+    it('should handle payload with empty roles array', async () => {
+      const payload = {
+        userId: 'user-123',
+        email: 'john.doe@example.com',
+        isTwoFactorEnabled: true,
+        roles: [],
+        isActive: true,
+      };
+
+      const result = await strategy.validate(payload);
+
+      expect(result).toEqual({
+        userId: 'user-123',
+        email: 'john.doe@example.com',
+        isTwoFactorEnabled: true,
+        role: undefined,
+        isActive: true,
+      });
+    });
+
     it('should handle two-factor disabled user', async () => {
       const mockRole = createMockRole();
       const payload = {
@@ -217,9 +280,8 @@ describe('JwtStrategy', () => {
     });
 
     it('should handle null payload gracefully', async () => {
-      await expect(strategy.validate(null as any)).rejects.toThrow(
-        "Cannot read properties of null (reading 'userId')",
-      );
+      const result = await strategy.validate(null as any);
+      expect(result).toBeNull();
     });
 
     it('should handle empty payload object', async () => {

@@ -134,7 +134,7 @@ export class GetSetupStatusUseCase {
   private async hasCompletedVmDiscovery(): Promise<boolean> {
     const vmDiscoveryStep = await this.setupProgressRepo.findOneByField({
       field: 'step',
-      value: SetupStep.VM_DISCOVERY,
+      value: SetupStep.RELATIONSHIPS,
       disableThrow: true,
     });
 

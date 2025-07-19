@@ -33,8 +33,6 @@ export class ServerDomainService {
 
     server.name = dto.name;
     server.state = dto.state;
-    server.grace_period_on = dto.grace_period_on;
-    server.grace_period_off = dto.grace_period_off;
     server.adminUrl = dto.adminUrl;
     server.ip = dto.ip;
     server.login = dto.login;
@@ -52,8 +50,6 @@ export class ServerDomainService {
   updateServerEntityFromDto(server: Server, dto: ServerUpdateDto): Server {
     server.name = dto.name ?? server.name;
     server.state = dto.state ?? server.state;
-    server.grace_period_on = dto.grace_period_on ?? server.grace_period_on;
-    server.grace_period_off = dto.grace_period_off ?? server.grace_period_off;
     server.adminUrl = dto.adminUrl ?? server.adminUrl;
     server.ip = dto.ip ?? server.ip;
     server.login = dto.login ?? server.login;

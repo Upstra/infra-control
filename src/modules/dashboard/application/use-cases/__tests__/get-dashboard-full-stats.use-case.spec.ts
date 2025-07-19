@@ -1,7 +1,6 @@
 import { GetDashboardFullStatsUseCase } from '../get-dashboard-full-stats.use-case';
 import { SetupStep } from '@/modules/setup/application/dto';
 import { SetupProgress } from '@/modules/setup/domain/entities/setup-progress.entity';
-import { RedisSafeService } from '@/modules/redis/application/services/redis-safe.service';
 
 describe('GetDashboardFullStatsUseCase', () => {
   const statisticsPort = { getStatistics: jest.fn() } as any;
@@ -39,11 +38,11 @@ describe('GetDashboardFullStatsUseCase', () => {
       totalVms: 3,
     });
     presenceService.getConnectedUserCount.mockResolvedValue(5);
-    serverRepo.countByState.mockImplementation((state) => 
-      state === 'UP' ? Promise.resolve(1) : Promise.resolve(1)
+    serverRepo.countByState.mockImplementation((state) =>
+      state === 'UP' ? Promise.resolve(1) : Promise.resolve(1),
     );
-    vmRepo.countByState.mockImplementation((state) => 
-      state === 'UP' ? Promise.resolve(2) : Promise.resolve(1)
+    vmRepo.countByState.mockImplementation((state) =>
+      state === 'UP' ? Promise.resolve(2) : Promise.resolve(1),
     );
     progressRepo.findAll.mockResolvedValue([]);
 
@@ -65,7 +64,10 @@ describe('GetDashboardFullStatsUseCase', () => {
       onlineUsers: 5,
     });
     expect(redisService.safeSet).toHaveBeenCalled();
-    expect(redisService.safeExpire).toHaveBeenCalledWith('dashboard:full-stats', 60);
+    expect(redisService.safeExpire).toHaveBeenCalledWith(
+      'dashboard:full-stats',
+      60,
+    );
   });
 
   it('returns cached result when available', async () => {
@@ -105,11 +107,11 @@ describe('GetDashboardFullStatsUseCase', () => {
       totalVms: 2,
     });
     presenceService.getConnectedUserCount.mockResolvedValue(2);
-    serverRepo.countByState.mockImplementation((state) => 
-      state === 'UP' ? Promise.resolve(1) : Promise.resolve(2)
+    serverRepo.countByState.mockImplementation((state) =>
+      state === 'UP' ? Promise.resolve(1) : Promise.resolve(2),
     );
-    vmRepo.countByState.mockImplementation((state) => 
-      state === 'UP' ? Promise.resolve(2) : Promise.resolve(0)
+    vmRepo.countByState.mockImplementation((state) =>
+      state === 'UP' ? Promise.resolve(2) : Promise.resolve(0),
     );
     progressRepo.findAll.mockResolvedValue([
       { step: SetupStep.WELCOME } as SetupProgress,

@@ -2,9 +2,9 @@ import { Verify2FAUseCase } from '../verify-2fa.use-case';
 import { JwtService } from '@nestjs/jwt';
 import { TokenService } from '../../services/token.service';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
 import { TwoFAInvalidCodeException } from '@/modules/auth/domain/exceptions/twofa.exception';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { TwoFADto } from '../../dto/twofa.dto';
 import * as speakeasy from 'speakeasy';
 import {
@@ -21,10 +21,7 @@ describe('Verify2FAUseCase', () => {
   let jwtService: jest.Mocked<JwtService>;
   let tokenService: jest.Mocked<TokenService>;
 
-  const userPayload: JwtPayload = {
-    userId: 'user-123',
-    email: 'john.doe@example.com',
-  };
+  const userPayload = createMockJwtPayload();
 
   const dto: TwoFADto = {
     code: '123456',
@@ -40,11 +37,17 @@ describe('Verify2FAUseCase', () => {
     } as any;
 
     jwtService = { sign: jest.fn() } as any;
-    tokenService = { generate2FAToken: jest.fn() } as any;
+    tokenService = { 
+      generate2FAToken: jest.fn(),
+      generateTokens: jest.fn().mockReturnValue({
+        accessToken: 'mocked-access-token',
+        refreshToken: 'mocked-refresh-token',
+      }),
+    } as any;
 
     const recoverCodeService = {
-      generate: jest.fn(),
-      hash: jest.fn(),
+      generate: jest.fn().mockReturnValue(['code1', 'code2', 'code3']),
+      hash: jest.fn().mockResolvedValue(['hashed1', 'hashed2', 'hashed3']),
     } as any;
 
     useCase = new Verify2FAUseCase(
@@ -60,21 +63,21 @@ describe('Verify2FAUseCase', () => {
     const user = createMockUser({ isTwoFactorEnabled: true });
     getUserByEmailUseCase.execute.mockResolvedValue(user);
     (speakeasy.totp.verify as jest.Mock).mockReturnValue(true);
-    tokenService.generate2FAToken.mockReturnValue('access.token');
 
     const result = await useCase.execute(userPayload, dto);
 
-    expect(tokenService.generate2FAToken).toHaveBeenCalledWith({
+    expect(tokenService.generateTokens).toHaveBeenCalledWith({
       userId: user.id,
       email: user.email,
-      isTwoFactorAuthenticated: true,
+      isTwoFactorEnabled: user.isTwoFactorEnabled,
       isActive: user.isActive,
       roles: user.roles,
     });
     expect(result).toEqual({
       isValid: true,
-      accessToken: 'access.token',
+      accessToken: 'mocked-access-token',
       message: '2FA verified successfully.',
+      refreshToken: 'mocked-refresh-token',
     });
     expect(updateUserFieldsUseCase.execute).not.toHaveBeenCalled();
   });
@@ -83,25 +86,27 @@ describe('Verify2FAUseCase', () => {
     const user = createMockUser({ isTwoFactorEnabled: false });
     getUserByEmailUseCase.execute.mockResolvedValue(user);
     (speakeasy.totp.verify as jest.Mock).mockReturnValue(true);
-    tokenService.generate2FAToken.mockReturnValue('enabled.token');
 
     const result = await useCase.execute(userPayload, dto);
 
     expect(updateUserFieldsUseCase.execute).toHaveBeenCalledWith(user.id, {
       isTwoFactorEnabled: true,
+      recoveryCodes: expect.any(Array),
     });
-    expect(tokenService.generate2FAToken).toHaveBeenCalledWith({
+    expect(tokenService.generateTokens).toHaveBeenCalledWith({
       userId: user.id,
       email: user.email,
-      isTwoFactorAuthenticated: true,
+      isTwoFactorEnabled: user.isTwoFactorEnabled,
       isActive: user.isActive,
       roles: user.roles,
     });
     expect(result).toEqual({
       isValid: true,
-      accessToken: 'enabled.token',
+      accessToken: 'mocked-access-token',
       message:
         '2FA activated successfully. Store your recovery codes securely.',
+      recoveryCodes: expect.any(Array),
+      refreshToken: 'mocked-refresh-token',
     });
   });
 

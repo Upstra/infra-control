@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UserController } from '../user.controller';
 import { ToggleUserStatusUseCase } from '../../use-cases';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { UserResponseDto } from '../../dto/user.response.dto';
 import { User } from '../../../domain/entities/user.entity';
 import {
@@ -43,10 +44,10 @@ describe('UserController - toggleUserStatus', () => {
     return user;
   };
 
-  const mockAdmin: JwtPayload = {
+  const mockAdmin: JwtPayload = createMockJwtPayload({
     userId: 'admin-id',
     email: 'admin@example.com',
-  };
+  });
 
   const mockRequest = {
     ip: '192.168.1.1',
@@ -208,10 +209,10 @@ describe('UserController - toggleUserStatus', () => {
       const expectedResponse = new UserResponseDto(user);
       toggleUserStatusUseCase.execute.mockResolvedValue(expectedResponse);
 
-      const differentAdmin: JwtPayload = {
+      const differentAdmin: JwtPayload = createMockJwtPayload({
         userId: 'different-admin-id',
         email: 'admin2@example.com',
-      };
+      });
 
       await controller.toggleUserStatus('user-id', differentAdmin, mockRequest);
 

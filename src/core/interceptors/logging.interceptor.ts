@@ -75,7 +75,7 @@ export class LoggingInterceptor implements NestInterceptor {
                 sessionId: requestContext.sessionId,
               },
             }),
-            result: data?.id ?? data,
+            result: this.simplifyResult(data),
           });
 
           this.logToHistoryAsync(
@@ -139,5 +139,27 @@ export class LoggingInterceptor implements NestInterceptor {
         this.logger.error('Failed to log to history', error);
       }
     }
+  }
+
+  private simplifyResult(data: any): any {
+    if (!data) return undefined;
+
+    if (typeof data !== 'object' || data.id) {
+      return data.id ?? data;
+    }
+
+    if (Array.isArray(data)) {
+      return { count: data.length };
+    }
+
+    if ('totalServers' in data && 'totalVms' in data) {
+      return { totalServers: data.totalServers, totalVms: data.totalVms };
+    }
+
+    if ('destinations' in data && Array.isArray(data.destinations)) {
+      return { destinationCount: data.destinations.length };
+    }
+
+    return { keys: Object.keys(data) };
   }
 }
