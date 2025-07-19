@@ -1,12 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Repository, DataSource, EntityManager } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { NotFoundException, ForbiddenException } from '@nestjs/common';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { SwapVmPrioritiesUseCase } from '../swap-vm-priorities.use-case';
 import { Vm } from '../../../../vms/domain/entities/vm.entity';
-import { GetUserVmPermissionsUseCase } from '../../../../permissions/application/use-cases/permission-vm';
 import { LogHistoryUseCase } from '../../../../history/application/use-cases';
-import { PermissionBit } from '../../../../permissions/domain/value-objects/permission-bit.enum';
+import { GenerateMigrationPlanUseCase } from '../generate-migration-plan.use-case';
 
 describe('SwapVmPrioritiesUseCase', () => {
   let useCase: SwapVmPrioritiesUseCase;
