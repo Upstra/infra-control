@@ -49,7 +49,7 @@ export class IloPowerController {
   @UseGuards(ResourcePermissionGuard)
   @RequireResourcePermission({
     resourceType: 'server',
-    requiredBit: PermissionBit.WRITE,
+    requiredBit: PermissionBit.SHUTDOWN,
     resourceIdSource: 'params',
     resourceIdField: 'serverId',
   })
@@ -67,7 +67,8 @@ export class IloPowerController {
   })
   @ApiResponse({
     status: 403,
-    description: 'Insufficient permissions to control this server',
+    description:
+      'Insufficient permissions - requires SHUTDOWN permission on this server or admin role',
   })
   @ApiResponse({
     status: 404,
@@ -129,9 +130,10 @@ export class IloPowerController {
     resourceIdField: 'serverId',
   })
   @ApiOperation({
-    summary: 'Ping iLO connectivity',
+    summary: 'Ping iLO server to check connectivity',
     description:
       'Pings the iLO interface to check if it is accessible over the network. Required before checking server status or controlling power.',
+    deprecated: true,
   })
   @ApiParam({ name: 'serverId', description: 'Server ID' })
   @ApiResponse({

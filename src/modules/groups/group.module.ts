@@ -10,8 +10,6 @@ import { UpdateGroupUseCase } from './application/use-cases/update-group.use-cas
 import { DeleteGroupUseCase } from './application/use-cases/delete-group.use-case';
 import { GetGroupUseCase } from './application/use-cases/get-group.use-case';
 import { ListGroupsUseCase } from './application/use-cases/list-groups.use-case';
-import { PreviewGroupShutdownUseCase } from './application/use-cases/preview-group-shutdown.use-case';
-import { ExecuteGroupShutdownUseCase } from './application/use-cases/execute-group-shutdown.use-case';
 import { AuditModule } from '../audit/audit.module';
 
 @Module({
@@ -28,8 +26,6 @@ import { AuditModule } from '../audit/audit.module';
     DeleteGroupUseCase,
     GetGroupUseCase,
     ListGroupsUseCase,
-    PreviewGroupShutdownUseCase,
-    ExecuteGroupShutdownUseCase,
   ],
   exports: [GroupRepository, 'GroupRepositoryInterface'],
 })
