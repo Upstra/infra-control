@@ -11,7 +11,7 @@ import {
   IsIP,
   Allow,
 } from 'class-validator';
-import { IsPriority } from '../../../groups/application/validators/priority.validator';
+import { IsConditionalPriority } from '../../../servers/application/validators/conditional-priority.validator';
 
 /**
  * DTO for creating a room in bulk operation
@@ -166,12 +166,12 @@ export class BulkServerDto {
 
   @ApiProperty({
     description:
-      'Priority in group/rack (lower = higher priority). Must be unique across all servers (1-999)',
+      'Priority in group/rack (lower = higher priority). Must be unique across all servers (1-999). Required for all servers except vCenter',
     example: 1,
+    required: false,
   })
-  @IsNumber()
-  @IsPriority()
-  priority: number;
+  @IsConditionalPriority()
+  priority?: number;
 
   @ApiProperty({
     description: 'Room ID (can be temporary ID from frontend)',

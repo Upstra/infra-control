@@ -179,7 +179,9 @@ export class GetUserServersWithMetricsUseCase {
     return enrichedServers;
   }
 
-  private mapIloStatusToMetrics(iloStatus: IloStatusResponseDto): ServerMetricsExtendedDto {
+  private mapIloStatusToMetrics(
+    iloStatus: IloStatusResponseDto,
+  ): ServerMetricsExtendedDto {
     return {
       powerState: iloStatus.metrics.powerState || 'unknown',
       health: (iloStatus.metrics as any).health || 'unknown',
@@ -188,7 +190,8 @@ export class GetUserServersWithMetricsUseCase {
       powerSupplyStatus: (iloStatus.metrics as any).powerSupplyStatus || {},
       cpuUsage: iloStatus.metrics.cpuUsage,
       memoryUsage: iloStatus.metrics.memoryUsage,
-      lastUpdated: (iloStatus.metrics as any).lastUpdated || new Date().toISOString(),
+      lastUpdated:
+        (iloStatus.metrics as any).lastUpdated || new Date().toISOString(),
     };
   }
 }

@@ -55,7 +55,11 @@ export class VmTypeormRepository
     }
   }
 
-  async paginate(page: number, limit: number, serverId?: string): Promise<[Vm[], number]> {
+  async paginate(
+    page: number,
+    limit: number,
+    serverId?: string,
+  ): Promise<[Vm[], number]> {
     const queryBuilder = this.createQueryBuilder('vm')
       .orderBy('vm.name', 'ASC')
       .skip((page - 1) * limit)

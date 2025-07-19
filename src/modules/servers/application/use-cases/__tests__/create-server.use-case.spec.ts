@@ -42,6 +42,7 @@ describe('CreateServerUseCase', () => {
   beforeEach(() => {
     repo = {
       save: jest.fn(),
+      findOneByField: jest.fn(),
     } as any;
 
     domain = new ServerDomainService();

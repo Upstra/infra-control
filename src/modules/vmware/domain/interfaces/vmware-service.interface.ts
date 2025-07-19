@@ -2,7 +2,6 @@ import { VmwareConnectionDto } from '@/modules/vmware/application/dto';
 import {
   VmwareVm,
   VmwareVmMetrics,
-  VmwareHost,
   VmwareServerInfo,
   VmwareServerMetrics,
   VmwarePowerState,

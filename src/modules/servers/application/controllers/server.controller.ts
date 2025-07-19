@@ -195,7 +195,7 @@ export class ServerController {
         includeMetrics,
       );
     }
-    
+
     return this.getUserServersUseCase.execute(
       user.userId,
       Number(page),

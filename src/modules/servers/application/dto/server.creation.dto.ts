@@ -1,7 +1,7 @@
 import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { IloCreationDto } from '../../../ilos/application/dto/ilo.creation.dto';
-import { IsPriority } from '../../../groups/application/validators/priority.validator';
+import { IsConditionalPriority } from '../validators/conditional-priority.validator';
 
 /**
  * DTO utilisé pour la création d'un serveur.
@@ -73,13 +73,12 @@ export class ServerCreationDto {
 
   @ApiProperty({
     description:
-      'Priorité du serveur dans son groupe ou rack (plus c’est bas, plus la priorité est haute)',
+      "Priorité du serveur dans son groupe ou rack (plus c'est bas, plus la priorité est haute). Requis pour tous les serveurs sauf vCenter",
     example: 1,
-    required: true,
+    required: false,
   })
-  @IsNotEmpty()
-  @IsPriority()
-  readonly priority!: number;
+  @IsConditionalPriority()
+  readonly priority?: number;
 
   @ApiProperty({
     description: 'UUID de la salle où le serveur est localisé',

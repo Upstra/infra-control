@@ -75,7 +75,10 @@ describe('VmController', () => {
       controllers: [VmController],
       providers: [
         { provide: GetAllVmsWithMetricsUseCase, useValue: getAllVmsUseCase },
-        { provide: GetAllVmsAdminWithMetricsUseCase, useValue: getAllVmsAdminUseCase },
+        {
+          provide: GetAllVmsAdminWithMetricsUseCase,
+          useValue: getAllVmsAdminUseCase,
+        },
         { provide: GetVmListWithMetricsUseCase, useValue: getVmListUseCase },
         { provide: GetVmByIdWithMetricsUseCase, useValue: getVmByIdUseCase },
         { provide: CreateVmUseCase, useValue: createVmUseCase },
@@ -123,7 +126,12 @@ describe('VmController', () => {
       getVmListUseCase.execute.mockResolvedValue(mock);
       const result = await controller.getVms('1', '5');
       expect(result).toBe(mock);
-      expect(getVmListUseCase.execute).toHaveBeenCalledWith(1, 5, false, undefined);
+      expect(getVmListUseCase.execute).toHaveBeenCalledWith(
+        1,
+        5,
+        false,
+        undefined,
+      );
     });
 
     it('should use default pagination', async () => {
@@ -131,7 +139,12 @@ describe('VmController', () => {
       getVmListUseCase.execute.mockResolvedValue(mock);
       const result = await controller.getVms();
       expect(result).toBe(mock);
-      expect(getVmListUseCase.execute).toHaveBeenCalledWith(1, 10, false, undefined);
+      expect(getVmListUseCase.execute).toHaveBeenCalledWith(
+        1,
+        10,
+        false,
+        undefined,
+      );
     });
 
     it('should filter by serverId when provided', async () => {
@@ -139,7 +152,12 @@ describe('VmController', () => {
       getVmListUseCase.execute.mockResolvedValue(mock);
       const result = await controller.getVms('1', '10', 'server-123');
       expect(result).toBe(mock);
-      expect(getVmListUseCase.execute).toHaveBeenCalledWith(1, 10, false, 'server-123');
+      expect(getVmListUseCase.execute).toHaveBeenCalledWith(
+        1,
+        10,
+        false,
+        'server-123',
+      );
     });
   });
 

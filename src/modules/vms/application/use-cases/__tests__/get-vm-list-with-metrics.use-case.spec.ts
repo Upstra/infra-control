@@ -51,14 +51,14 @@ describe('GetVmListWithMetricsUseCase', () => {
       currentPage: 1,
       totalPages: 1,
     };
-    const enrichedVm = { 
-      ...mockVmDto, 
-      metrics: { 
+    const enrichedVm = {
+      ...mockVmDto,
+      metrics: {
         cpuUsage: 50,
         memoryUsage: 2048,
         memoryMB: 4096,
-        powerState: 'poweredOn'
-      } 
+        powerState: 'poweredOn',
+      },
     };
 
     getVmListUseCase.execute.mockResolvedValue(mockResponse);
@@ -67,7 +67,9 @@ describe('GetVmListWithMetricsUseCase', () => {
     const result = await useCase.execute(1, 10, true);
 
     expect(getVmListUseCase.execute).toHaveBeenCalledWith(1, 10, undefined);
-    expect(enrichVmsWithMetricsUseCase.execute).toHaveBeenCalledWith([mockVmDto]);
+    expect(enrichVmsWithMetricsUseCase.execute).toHaveBeenCalledWith([
+      mockVmDto,
+    ]);
     expect(result.items[0]).toEqual(enrichedVm);
   });
 

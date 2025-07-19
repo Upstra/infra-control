@@ -2,9 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { GetUserServersWithMetricsUseCase } from '../get-user-servers-with-metrics.use-case';
 import { GetServerStatusUseCase } from '@/modules/ilos/application/use-cases/get-server-status.use-case';
 import { ServerListResponseDto } from '../../dto/server.list.response.dto';
-import { ServerResponseDto } from '../../dto/server.response.dto';
-import { IloResponseDto } from '@/modules/ilos/application/dto/ilo.response.dto';
-import { IloStatusResponseDto, IloServerStatus } from '@/modules/ilos/application/dto/ilo-status.dto';
+import {
+  IloStatusResponseDto,
+  IloServerStatus,
+} from '@/modules/ilos/application/dto/ilo-status.dto';
 import { User } from '@/modules/users/domain/entities/user.entity';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
 import { Role } from '@/modules/roles/domain/entities/role.entity';
@@ -186,10 +187,7 @@ describe('GetUserServersWithMetricsUseCase', () => {
 
     it('should return paginated servers for non-admin user without metrics', async () => {
       userRepo.findOneByField.mockResolvedValue(mockUser);
-      serverRepo.findAllByFieldPaginated.mockResolvedValue([
-        [mockServer],
-        1,
-      ]);
+      serverRepo.findAllByFieldPaginated.mockResolvedValue([[mockServer], 1]);
 
       const mockPermissions = [
         {
@@ -200,9 +198,9 @@ describe('GetUserServersWithMetricsUseCase', () => {
         },
       ];
 
-      (PermissionResolver.resolveServerPermissions as jest.Mock).mockResolvedValue(
-        mockPermissions,
-      );
+      (
+        PermissionResolver.resolveServerPermissions as jest.Mock
+      ).mockResolvedValue(mockPermissions);
 
       jest.spyOn(PermissionSet.prototype, 'filterByBit').mockReturnValue({
         getAccessibleResourceIds: () => ['server-id'],
@@ -219,10 +217,7 @@ describe('GetUserServersWithMetricsUseCase', () => {
 
     it('should return paginated servers for non-admin user with metrics', async () => {
       userRepo.findOneByField.mockResolvedValue(mockUser);
-      serverRepo.findAllByFieldPaginated.mockResolvedValue([
-        [mockServer],
-        1,
-      ]);
+      serverRepo.findAllByFieldPaginated.mockResolvedValue([[mockServer], 1]);
       (getServerStatusUseCase.execute as jest.Mock).mockResolvedValue(
         mockIloStatus,
       );
@@ -236,9 +231,9 @@ describe('GetUserServersWithMetricsUseCase', () => {
         },
       ];
 
-      (PermissionResolver.resolveServerPermissions as jest.Mock).mockResolvedValue(
-        mockPermissions,
-      );
+      (
+        PermissionResolver.resolveServerPermissions as jest.Mock
+      ).mockResolvedValue(mockPermissions);
 
       jest.spyOn(PermissionSet.prototype, 'filterByBit').mockReturnValue({
         getAccessibleResourceIds: () => ['server-id'],
@@ -302,9 +297,9 @@ describe('GetUserServersWithMetricsUseCase', () => {
         },
       ];
 
-      (PermissionResolver.resolveServerPermissions as jest.Mock).mockResolvedValue(
-        mockPermissions,
-      );
+      (
+        PermissionResolver.resolveServerPermissions as jest.Mock
+      ).mockResolvedValue(mockPermissions);
 
       const result = await useCase.execute('user-id', 1, 10, false);
 
