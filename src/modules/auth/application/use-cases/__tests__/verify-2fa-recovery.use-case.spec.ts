@@ -31,7 +31,13 @@ describe('Verify2FARecoveryUseCase', () => {
     getUserByEmailUseCase = { execute: jest.fn() } as any;
     updateUserFieldsUseCase = { execute: jest.fn() } as any;
     jwtService = { sign: jest.fn() } as any;
-    tokenService = { generate2FAToken: jest.fn() } as any;
+    tokenService = { 
+      generate2FAToken: jest.fn(),
+      generateTokens: jest.fn().mockReturnValue({
+        accessToken: 'mocked-access-token',
+        refreshToken: 'mocked-refresh-token',
+      }),
+    } as any;
 
     useCase = new Verify2FARecoveryUseCase(
       getUserByEmailUseCase,
@@ -52,21 +58,20 @@ describe('Verify2FARecoveryUseCase', () => {
       return Promise.resolve(hash === 'hashed-code-2');
     });
 
-    tokenService.generate2FAToken.mockReturnValue('valid.jwt.token');
-
     const result = await useCase.execute(userPayload, dto);
 
-    expect(tokenService.generate2FAToken).toHaveBeenCalledWith({
+    expect(tokenService.generateTokens).toHaveBeenCalledWith({
       userId: mockUser.id,
       email: mockUser.email,
-      isTwoFactorAuthenticated: true,
+      isTwoFactorEnabled: mockUser.isTwoFactorEnabled,
       isActive: mockUser.isActive,
       roles: mockUser.roles,
     });
     expect(result).toEqual({
       isValid: true,
-      accessToken: 'valid.jwt.token',
+      accessToken: 'mocked-access-token',
       message: 'Connexion via recovery code réussie.',
+      refreshToken: 'mocked-refresh-token',
     });
 
     expect(updateUserFieldsUseCase.execute).toHaveBeenCalledWith(mockUser.id, {

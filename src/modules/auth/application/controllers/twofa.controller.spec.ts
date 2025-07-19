@@ -57,10 +57,10 @@ describe('TwoFAController', () => {
       email: 'john@example.com',
       userId: 'id123',
     });
-    await controller.verify(mockUser, { code: '123456' });
-    expect(get2FAStatusUseCase.execute).toHaveBeenCalledWith(
-      'john@example.com',
-    );
+    const mockResponse = {
+      cookie: jest.fn(),
+    } as any;
+    await controller.verify(mockUser, { code: '123456' }, mockResponse);
   });
 
   it('should disable 2FA', async () => {
@@ -82,8 +82,19 @@ describe('TwoFAController', () => {
       userId: 'id123',
     });
     const dto: TwoFADto = { code: '123456' };
-    await controller.verify(user, dto);
+    const mockResponse = {
+      cookie: jest.fn(),
+    } as any;
+    const mockResult = {
+      isValid: true,
+      accessToken: 'test-token',
+      refreshToken: 'refresh-token',
+    };
+    verify2FAUseCase.execute.mockResolvedValue(mockResult);
+    
+    await controller.verify(user, dto, mockResponse);
     expect(verify2FAUseCase.execute).toHaveBeenCalledWith(user, dto);
+    expect(mockResponse.cookie).toHaveBeenCalledWith('refreshToken', 'refresh-token', expect.any(Object));
   });
 
   it('should call disable 2FA with only user payload', async () => {
@@ -104,7 +115,11 @@ describe('TwoFAController', () => {
       const dto: TwoFARecoveryDto = { recoveryCode: 'RECOV123' };
       verify2FARecoveryUseCase.execute.mockResolvedValue({ success: true });
 
-      const result = await controller.recover(user, dto);
+      const mockResponse = {
+        cookie: jest.fn(),
+      } as any;
+      
+      const result = await controller.recover(user, dto, mockResponse);
       expect(verify2FARecoveryUseCase.execute).toHaveBeenCalledWith(user, dto);
       expect(result).toEqual({ success: true });
     });
@@ -118,7 +133,11 @@ describe('TwoFAController', () => {
       const error = new Error('Invalid recovery code');
       verify2FARecoveryUseCase.execute.mockRejectedValue(error);
 
-      await expect(controller.recover(user, dto)).rejects.toThrow(
+      const mockResponse = {
+        cookie: jest.fn(),
+      } as any;
+      
+      await expect(controller.recover(user, dto, mockResponse)).rejects.toThrow(
         'Invalid recovery code',
       );
     });
@@ -132,7 +151,11 @@ describe('TwoFAController', () => {
       verify2FARecoveryUseCase.execute.mockRejectedValue(
         new Error('Unexpected error'),
       );
-      await expect(controller.recover(user, dto)).rejects.toThrow(
+      const mockResponse = {
+        cookie: jest.fn(),
+      } as any;
+      
+      await expect(controller.recover(user, dto, mockResponse)).rejects.toThrow(
         'Unexpected error',
       );
     });

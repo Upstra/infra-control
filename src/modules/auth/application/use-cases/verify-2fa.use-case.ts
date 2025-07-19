@@ -74,16 +74,16 @@ export class Verify2FAUseCase {
         '2FA activated successfully. Store your recovery codes securely.';
     }
 
-    const accessToken = this.tokenService.generate2FAToken({
+    const tokens = this.tokenService.generateTokens({
       userId: user.id,
       email: user.email,
-      isTwoFactorAuthenticated: true,
+      isTwoFactorEnabled: user.isTwoFactorEnabled,
       isActive: user.isActive,
       roles: user.roles,
     });
 
     message = message || '2FA verified successfully.';
 
-    return new TwoFAResponseDto(true, accessToken, message, recoveryCodes);
+    return new TwoFAResponseDto(true, tokens.accessToken, message, recoveryCodes, tokens.refreshToken);
   }
 }

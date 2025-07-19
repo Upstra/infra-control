@@ -77,18 +77,20 @@ export class Verify2FARecoveryUseCase {
       recoveryCodes: updatedCodes,
     });
 
-    const accessToken = this.tokenService.generate2FAToken({
+    const tokens = this.tokenService.generateTokens({
       userId: user.id,
       email: user.email,
-      isTwoFactorAuthenticated: true,
+      isTwoFactorEnabled: user.isTwoFactorEnabled,
       isActive: user.isActive,
       roles: user.roles,
     });
 
     return new TwoFAResponseDto(
       true,
-      accessToken,
+      tokens.accessToken,
       'Connexion via recovery code réussie.',
+      undefined,
+      tokens.refreshToken,
     );
   }
 }
