@@ -27,9 +27,9 @@ export class SyncServerVmwareDataUseCase {
     errors?: string[];
   }> {
     // TODO: Implement server-specific sync for new params structure
-    if ('serverId' in params) {
+    if ('serverId' in params || 'fullSync' in params) {
       return {
-        serverId: params.serverId,
+        serverId: 'serverId' in params ? params.serverId : undefined,
         vmsUpdated: 0,
         vmsAdded: 0,
         vmsRemoved: 0,
