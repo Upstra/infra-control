@@ -92,7 +92,6 @@ describe('SaveDiscoveredVmsUseCase', () => {
       expect(vmRepository.findOne).toHaveBeenCalledWith({
         where: {
           moid: mockDiscoveredVm.moid,
-          serverId: mockDiscoveredVm.serverId,
         },
       });
       expect(vmDomainService.createVmEntity).toHaveBeenCalledWith({
@@ -147,11 +146,85 @@ describe('SaveDiscoveredVmsUseCase', () => {
       expect(vmRepository.findOne).toHaveBeenCalledWith({
         where: {
           moid: mockDiscoveredVm.moid,
-          serverId: mockDiscoveredVm.serverId,
         },
       });
       expect(vmDomainService.createVmEntity).not.toHaveBeenCalled();
       expect(vmRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('should update VM when migrated to different server', async () => {
+      const existingVm = {
+        ...mockVm,
+        serverId: 'server-1',
+        esxiHostMoid: 'host-123',
+      } as Vm;
+
+      const migratedVm: DiscoveredVmDto = {
+        ...mockDiscoveredVm,
+        serverId: 'server-2',
+        esxiHostMoid: 'host-456',
+      };
+
+      vmRepository.findOne.mockResolvedValue(existingVm);
+      vmRepository.findAll.mockResolvedValue([existingVm]);
+      vmRepository.save.mockImplementation(async (vm) => vm as Vm);
+
+      const result = await useCase.execute({ vms: [migratedVm] });
+
+      expect(result.savedCount).toBe(1);
+      expect(result.updated).toBe(1);
+      expect(result.changes).toBe(1);
+      expect(result.failedCount).toBe(0);
+
+      expect(vmRepository.findOne).toHaveBeenCalledWith({
+        where: {
+          moid: migratedVm.moid,
+        },
+      });
+
+      expect(vmRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          serverId: 'server-2',
+          esxiHostMoid: 'host-456',
+        }),
+      );
+    });
+
+    it('should detect multiple changes including server migration', async () => {
+      const existingVm = {
+        ...mockVm,
+        serverId: 'server-1',
+        esxiHostMoid: 'host-123',
+        name: 'Old Name',
+        state: 'poweredOff',
+      } as Vm;
+
+      const migratedVm: DiscoveredVmDto = {
+        ...mockDiscoveredVm,
+        serverId: 'server-2',
+        esxiHostMoid: 'host-456',
+        name: 'New Name',
+        powerState: 'poweredOn',
+      };
+
+      vmRepository.findOne.mockResolvedValue(existingVm);
+      vmRepository.findAll.mockResolvedValue([existingVm]);
+      vmRepository.save.mockImplementation(async (vm) => vm as Vm);
+
+      const result = await useCase.execute({ vms: [migratedVm] });
+
+      expect(result.savedCount).toBe(1);
+      expect(result.updated).toBe(1);
+      expect(result.changes).toBe(1);
+
+      expect(vmRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          serverId: 'server-2',
+          esxiHostMoid: 'host-456',
+          name: 'New Name',
+          state: 'poweredOn',
+        }),
+      );
     });
 
     it('should handle VMs without optional fields', async () => {

@@ -62,7 +62,6 @@ export class SaveDiscoveredVmsUseCase {
           const existingVm = await this.vmRepository.findOne({
             where: {
               moid: discoveredVm.moid,
-              serverId: discoveredVm.serverId,
             },
           });
 
@@ -73,7 +72,8 @@ export class SaveDiscoveredVmsUseCase {
               existingVm.ip !== discoveredVm.ip ||
               existingVm.guestOs !== discoveredVm.guestOs ||
               existingVm.numCPU !== discoveredVm.numCpu ||
-              existingVm.esxiHostMoid !== discoveredVm.esxiHostMoid;
+              existingVm.esxiHostMoid !== discoveredVm.esxiHostMoid ||
+              existingVm.serverId !== discoveredVm.serverId;
 
             if (hasChanges) {
               const changes: string[] = [];
@@ -104,6 +104,14 @@ export class SaveDiscoveredVmsUseCase {
                   `VM ${discoveredVm.name} migrated from host ${existingVm.esxiHostMoid} to ${discoveredVm.esxiHostMoid}`,
                 );
               }
+              if (existingVm.serverId !== discoveredVm.serverId) {
+                changes.push(
+                  `serverId: ${existingVm.serverId} → ${discoveredVm.serverId}`,
+                );
+                this.logger.log(
+                  `VM ${discoveredVm.name} migrated from server ${existingVm.serverId} to ${discoveredVm.serverId}`,
+                );
+              }
 
               existingVm.name = discoveredVm.name;
               existingVm.state = discoveredVm.powerState ?? 'unknown';
@@ -112,6 +120,7 @@ export class SaveDiscoveredVmsUseCase {
               existingVm.numCPU = discoveredVm.numCpu || existingVm.numCPU;
               existingVm.esxiHostMoid =
                 discoveredVm.esxiHostMoid || existingVm.esxiHostMoid;
+              existingVm.serverId = discoveredVm.serverId;
               existingVm.lastSyncAt = new Date();
 
               const updatedVm = await this.vmRepository.save(existingVm);
