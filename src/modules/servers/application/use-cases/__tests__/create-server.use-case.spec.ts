@@ -12,7 +12,7 @@ import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { GroupRepository } from '@/modules/groups/infrastructure/repositories/group.repository';
 import { UpsRepositoryInterface } from '@/modules/ups/domain/interfaces/ups.repository.interface';
 
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { mockRoom } from '@/modules/rooms/__mocks__/room.mock';
 import { createMockGroup } from '@/modules/groups/__mocks__/group.mock';
 import { RoomNotFoundException } from '@/modules/rooms/domain/exceptions/room.exception';
@@ -225,6 +225,83 @@ describe('CreateServerUseCase', () => {
       expect(roomRepo.findRoomById).toHaveBeenCalledWith(dto.roomId);
       expect(groupRepo.findById).toHaveBeenCalledWith(dto.groupId);
       expect(iloUseCase.execute).toHaveBeenCalledWith(dto.ilo);
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('vCenter validation', () => {
+    it('should throw ConflictException when creating a second vCenter', async () => {
+      const dto = createMockServerCreationDto({
+        type: 'vcenter',
+        ilo: undefined,
+        priority: undefined,
+      });
+      const existingVCenter = createMockServer({ type: 'vcenter' });
+
+      roomRepo.findRoomById.mockResolvedValue(mockRoom());
+      repo.findOneByField.mockResolvedValue(existingVCenter);
+
+      await expect(useCase.execute(dto, mockPayload.userId)).rejects.toThrow(
+        ConflictException,
+      );
+      await expect(useCase.execute(dto, mockPayload.userId)).rejects.toThrow(
+        'A vCenter server already exists in the infrastructure. Only one vCenter is allowed.',
+      );
+
+      expect(repo.findOneByField).toHaveBeenCalledWith({
+        field: 'type',
+        value: 'vcenter',
+      });
+      expect(iloUseCase.execute).not.toHaveBeenCalled();
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+
+    it('should allow creating vCenter if none exists', async () => {
+      const dto = createMockServerCreationDto({
+        type: 'vcenter',
+        ilo: undefined,
+        priority: undefined,
+      });
+      const mockServer = createMockServer({ type: 'vcenter' });
+
+      roomRepo.findRoomById.mockResolvedValue(mockRoom());
+      repo.findOneByField.mockResolvedValue(null);
+      repo.save.mockResolvedValue(mockServer);
+      userRepo.findOneByField.mockResolvedValue(createMockUser({ roles: [] }));
+
+      const result = await useCase.execute(dto, mockPayload.userId);
+
+      expect(repo.findOneByField).toHaveBeenCalledWith({
+        field: 'type',
+        value: 'vcenter',
+      });
+      expect(iloUseCase.execute).not.toHaveBeenCalled();
+      expect(repo.save).toHaveBeenCalled();
+      expect(result.name).toBe(mockServer.name);
+    });
+
+    it('should throw BadRequestException when vCenter has iLO configuration', async () => {
+      const dto = createMockServerCreationDto({
+        type: 'vcenter',
+        ilo: {
+          name: 'ILO-vCenter',
+          ip: '10.0.0.1',
+          login: 'admin',
+          password: 'password',
+        },
+      });
+
+      roomRepo.findRoomById.mockResolvedValue(mockRoom());
+      repo.findOneByField.mockResolvedValue(null);
+
+      await expect(useCase.execute(dto, mockPayload.userId)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(useCase.execute(dto, mockPayload.userId)).rejects.toThrow(
+        'vCenter servers should not have iLO configuration',
+      );
+
+      expect(iloUseCase.execute).not.toHaveBeenCalled();
       expect(repo.save).not.toHaveBeenCalled();
     });
   });

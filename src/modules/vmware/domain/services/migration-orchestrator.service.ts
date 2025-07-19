@@ -73,7 +73,6 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
 
     const sessionId =
       requestContext?.correlationId || `migration-${Date.now()}`;
-    const startTime = new Date();
     let planAnalysis: MigrationPlanAnalysis | undefined;
 
     try {
@@ -99,7 +98,6 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
       await this.setState(MigrationState.MIGRATED);
       this.logger.log('Migration plan executed successfully');
 
-      const endTime = new Date();
       const events = await this.getEvents();
 
       const successfulVmEvents = events.filter(
@@ -404,7 +402,9 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
     const planContent = await fs.readFile(planPath, 'utf-8');
     const plan: any = yaml.load(planContent);
 
-    const hasDestination = plan.servers?.some((s: any) => s.server?.destination || s.destination);
+    const hasDestination = plan.servers?.some(
+      (s: any) => s.server?.destination || s.destination,
+    );
     const affectedVms: VmInfo[] = [];
     const sourceServers: string[] = [];
     const destinationServers: string[] = [];

@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 
@@ -78,6 +79,19 @@ export class CreateServerUseCase {
 
     if (dto.groupId) {
       group = await this.groupRepository.findById(dto.groupId);
+    }
+
+    if (dto.type === 'vcenter') {
+      const existingVCenter = await this.serverRepository.findOneByField({
+        field: 'type',
+        value: 'vcenter',
+      });
+
+      if (existingVCenter) {
+        throw new ConflictException(
+          'A vCenter server already exists in the infrastructure. Only one vCenter is allowed.',
+        );
+      }
     }
 
     if (dto.type !== 'vcenter') {
