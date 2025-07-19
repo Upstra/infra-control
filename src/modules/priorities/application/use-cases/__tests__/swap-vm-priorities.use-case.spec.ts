@@ -6,11 +6,12 @@ import { SwapVmPrioritiesUseCase } from '../swap-vm-priorities.use-case';
 import { Vm } from '../../../../vms/domain/entities/vm.entity';
 import { LogHistoryUseCase } from '../../../../history/application/use-cases';
 import { GenerateMigrationPlanUseCase } from '../generate-migration-plan.use-case';
+import { Server } from '../../../../servers/domain/entities/server.entity';
 
 describe('SwapVmPrioritiesUseCase', () => {
   let useCase: SwapVmPrioritiesUseCase;
-  let getUserPermissionVm: jest.Mocked<GetUserVmPermissionsUseCase>;
   let logHistory: jest.Mocked<LogHistoryUseCase>;
+  let generateMigrationPlan: jest.Mocked<GenerateMigrationPlanUseCase>;
   let dataSource: jest.Mocked<DataSource>;
   let entityManager: jest.Mocked<EntityManager>;
   let transactionalRepository: jest.Mocked<Repository<Vm>>;
@@ -19,16 +20,38 @@ describe('SwapVmPrioritiesUseCase', () => {
   const vm1Id = 'vm-1';
   const vm2Id = 'vm-2';
 
+  const mockServer1 = {
+    id: 'server-1',
+    name: 'Server 1',
+    type: 'esxi',
+  } as Server;
+
+  const mockServer2 = {
+    id: 'server-2',
+    name: 'Server 2',
+    type: 'esxi',
+  } as Server;
+
+  const mockVcenterServer = {
+    id: 'server-vcenter',
+    name: 'vCenter Server',
+    type: 'vcenter',
+  } as Server;
+
   const mockVm1 = {
     id: vm1Id,
     name: 'VM 1',
     priority: 1,
+    serverId: 'server-1',
+    server: mockServer1,
   } as Vm;
 
   const mockVm2 = {
     id: vm2Id,
     name: 'VM 2',
     priority: 2,
+    serverId: 'server-1',
+    server: mockServer1,
   } as Vm;
 
   beforeEach(async () => {
@@ -49,23 +72,15 @@ describe('SwapVmPrioritiesUseCase', () => {
       providers: [
         SwapVmPrioritiesUseCase,
         {
-          provide: getRepositoryToken(Vm),
-          useValue: {
-            findOne: jest.fn(),
-            save: jest.fn(),
-          },
-        },
-        {
-          provide: GetUserVmPermissionsUseCase,
-          useValue: {
-            execute: jest.fn(),
-          },
-        },
-        {
           provide: LogHistoryUseCase,
           useValue: {
             execute: jest.fn(),
-            executeStructured: jest.fn(),
+          },
+        },
+        {
+          provide: GenerateMigrationPlanUseCase,
+          useValue: {
+            execute: jest.fn(),
           },
         },
         {
@@ -76,8 +91,8 @@ describe('SwapVmPrioritiesUseCase', () => {
     }).compile();
 
     useCase = module.get<SwapVmPrioritiesUseCase>(SwapVmPrioritiesUseCase);
-    getUserPermissionVm = module.get(GetUserVmPermissionsUseCase);
     logHistory = module.get(LogHistoryUseCase);
+    generateMigrationPlan = module.get(GenerateMigrationPlanUseCase);
   });
 
   it('should be defined', () => {
@@ -94,163 +109,131 @@ describe('SwapVmPrioritiesUseCase', () => {
     });
 
     it('should successfully swap priorities between two VMs', async () => {
-      const permissions = [
-        { vmId: vm1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-        { vmId: vm2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-      ];
+      const vm1Mock = { ...mockVm1 };
+      const vm2Mock = { ...mockVm2 };
 
-      getUserPermissionVm.execute.mockResolvedValue(permissions);
-      transactionalRepository.findOne.mockResolvedValueOnce(mockVm1);
-      transactionalRepository.findOne.mockResolvedValueOnce(mockVm2);
+      transactionalRepository.findOne
+        .mockResolvedValueOnce(vm1Mock as Vm)
+        .mockResolvedValueOnce(vm2Mock as Vm);
       transactionalRepository.save.mockImplementation(async (entities) => {
-        // TypeORM save returns the saved entities
         return entities as any;
       });
 
       const result = await useCase.execute(vm1Id, vm2Id, mockUserId);
 
-      expect(getUserPermissionVm.execute).toHaveBeenCalledWith(mockUserId);
       expect(transactionalRepository.findOne).toHaveBeenCalledWith({
         where: { id: vm1Id },
+        relations: ['server'],
       });
       expect(transactionalRepository.findOne).toHaveBeenCalledWith({
         where: { id: vm2Id },
+        relations: ['server'],
       });
       expect(transactionalRepository.save).toHaveBeenCalledWith([
-        { ...mockVm1, priority: 2 },
-        { ...mockVm2, priority: 1 },
+        expect.objectContaining({ id: vm1Id, priority: 2 }),
+        expect.objectContaining({ id: vm2Id, priority: 1 }),
       ]);
-      expect(logHistory.executeStructured).toHaveBeenCalledWith({
-        entity: 'vm',
-        entityId: vm1Id,
-        action: 'PRIORITY_SWAP',
-        userId: mockUserId,
-        oldValue: { priority: 1 },
-        newValue: { priority: 2 },
-        metadata: {
-          swapPartner: vm2Id,
-          swapPartnerName: 'VM 2',
-          vmServerId: undefined,
-          oldPriority: 1,
-          newPriority: 2,
-        },
-      });
-      expect(logHistory.executeStructured).toHaveBeenCalledWith({
-        entity: 'vm',
-        entityId: vm2Id,
-        action: 'PRIORITY_SWAP',
-        userId: mockUserId,
-        oldValue: { priority: 2 },
-        newValue: { priority: 1 },
-        metadata: {
-          swapPartner: vm1Id,
-          swapPartnerName: 'VM 1',
-          vmServerId: undefined,
-          oldPriority: 2,
-          newPriority: 1,
-        },
-      });
+      expect(logHistory.execute).toHaveBeenCalledWith(
+        'vm',
+        `${vm1Id}-${vm2Id}`,
+        'SWAP_PRIORITY',
+        mockUserId,
+      );
+      expect(generateMigrationPlan.execute).toHaveBeenCalled();
       expect(result).toEqual({
         vm1: { id: vm1Id, priority: 2 },
         vm2: { id: vm2Id, priority: 1 },
       });
     });
 
-    it('should throw ForbiddenException when user lacks WRITE permission on vm1', async () => {
-      const permissions = [
-        { vmId: vm1Id, bitmask: PermissionBit.READ }, // No WRITE
-        { vmId: vm2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-      ];
-
-      getUserPermissionVm.execute.mockResolvedValue(permissions);
-
-      await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow(
-        new ForbiddenException('You do not have write permissions on both VMs'),
-      );
-
-      expect(dataSource.transaction).not.toHaveBeenCalled();
-    });
-
-    it('should throw ForbiddenException when user lacks WRITE permission on vm2', async () => {
-      const permissions = [
-        { vmId: vm1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-        { vmId: vm2Id, bitmask: PermissionBit.READ }, // No WRITE
-      ];
-
-      getUserPermissionVm.execute.mockResolvedValue(permissions);
-
-      await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow(
-        new ForbiddenException('You do not have write permissions on both VMs'),
-      );
-    });
-
-    it('should throw ForbiddenException when user has no permission on vm1', async () => {
-      const permissions = [
-        { vmId: vm2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-      ];
-
-      getUserPermissionVm.execute.mockResolvedValue(permissions);
-
-      await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow(
-        new ForbiddenException('You do not have write permissions on both VMs'),
-      );
-    });
-
-    it('should throw ForbiddenException when user has no permissions at all', async () => {
-      getUserPermissionVm.execute.mockResolvedValue([]);
-
-      await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow(
-        new ForbiddenException('You do not have write permissions on both VMs'),
-      );
-    });
-
     it('should throw NotFoundException when vm1 does not exist', async () => {
-      const permissions = [
-        { vmId: vm1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-        { vmId: vm2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-      ];
-
-      getUserPermissionVm.execute.mockResolvedValue(permissions);
-      transactionalRepository.findOne.mockResolvedValueOnce(null);
+      transactionalRepository.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(mockVm2 as Vm);
 
       await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow(
-        new NotFoundException(`VM with id "${vm1Id}" not found`),
+        new NotFoundException(`VM with id ${vm1Id} not found`),
       );
+
+      expect(transactionalRepository.findOne).toHaveBeenCalledTimes(2);
+      expect(transactionalRepository.save).not.toHaveBeenCalled();
+      expect(logHistory.execute).not.toHaveBeenCalled();
     });
 
     it('should throw NotFoundException when vm2 does not exist', async () => {
-      const permissions = [
-        { vmId: vm1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-        { vmId: vm2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-      ];
-
-      getUserPermissionVm.execute.mockResolvedValue(permissions);
-      transactionalRepository.findOne.mockResolvedValueOnce(mockVm1);
-      transactionalRepository.findOne.mockResolvedValueOnce(null);
+      transactionalRepository.findOne
+        .mockResolvedValueOnce(mockVm1 as Vm)
+        .mockResolvedValueOnce(null);
 
       await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow(
-        new NotFoundException(`VM with id "${vm2Id}" not found`),
+        new NotFoundException(`VM with id ${vm2Id} not found`),
       );
+
+      expect(transactionalRepository.findOne).toHaveBeenCalledTimes(2);
+      expect(transactionalRepository.save).not.toHaveBeenCalled();
+      expect(logHistory.execute).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException when vm1 is on vCenter server', async () => {
+      const vmOnVcenter = { ...mockVm1, server: mockVcenterServer };
+
+      transactionalRepository.findOne
+        .mockResolvedValueOnce(vmOnVcenter as Vm)
+        .mockResolvedValueOnce(mockVm2 as Vm);
+
+      await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow(
+        new BadRequestException(
+          'Cannot swap priorities for VMs on vCenter servers',
+        ),
+      );
+
+      expect(transactionalRepository.save).not.toHaveBeenCalled();
+      expect(logHistory.execute).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException when vm2 is on vCenter server', async () => {
+      const vmOnVcenter = { ...mockVm2, server: mockVcenterServer };
+
+      transactionalRepository.findOne
+        .mockResolvedValueOnce(mockVm1 as Vm)
+        .mockResolvedValueOnce(vmOnVcenter as Vm);
+
+      await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow(
+        new BadRequestException(
+          'Cannot swap priorities for VMs on vCenter servers',
+        ),
+      );
+
+      expect(transactionalRepository.save).not.toHaveBeenCalled();
+      expect(logHistory.execute).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException when VMs are on different servers', async () => {
+      const vm1DifferentServer = { ...mockVm1, serverId: 'server-1' };
+      const vm2DifferentServer = { ...mockVm2, serverId: 'server-2' };
+
+      transactionalRepository.findOne
+        .mockResolvedValueOnce(vm1DifferentServer as Vm)
+        .mockResolvedValueOnce(vm2DifferentServer as Vm);
+
+      await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow(
+        new BadRequestException(
+          'Cannot swap priorities between VMs on different servers',
+        ),
+      );
+
+      expect(transactionalRepository.save).not.toHaveBeenCalled();
+      expect(logHistory.execute).not.toHaveBeenCalled();
     });
 
     it('should handle swapping VMs with same priority', async () => {
       const samePriorityVm1 = { ...mockVm1, priority: 5 };
       const samePriorityVm2 = { ...mockVm2, priority: 5 };
 
-      const permissions = [
-        { vmId: vm1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-        { vmId: vm2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-      ];
-
-      getUserPermissionVm.execute.mockResolvedValue(permissions);
-      transactionalRepository.findOne.mockResolvedValueOnce(
-        samePriorityVm1 as Vm,
-      );
-      transactionalRepository.findOne.mockResolvedValueOnce(
-        samePriorityVm2 as Vm,
-      );
+      transactionalRepository.findOne
+        .mockResolvedValueOnce(samePriorityVm1 as Vm)
+        .mockResolvedValueOnce(samePriorityVm2 as Vm);
       transactionalRepository.save.mockImplementation(async (entities) => {
-        // TypeORM save returns the saved entities
         return entities as any;
       });
 
@@ -262,68 +245,14 @@ describe('SwapVmPrioritiesUseCase', () => {
       });
     });
 
-    it('should handle swapping with complex permission bitmasks', async () => {
-      const permissions = [
-        {
-          vmId: vm1Id,
-          bitmask:
-            PermissionBit.READ |
-            PermissionBit.WRITE |
-            PermissionBit.DELETE |
-            PermissionBit.RESTART |
-            PermissionBit.SHUTDOWN |
-            PermissionBit.SNAPSHOT,
-        }, // All permissions
-        { vmId: vm2Id, bitmask: PermissionBit.WRITE | PermissionBit.DELETE }, // WRITE + DELETE
-      ];
-
-      // Create mutable copies that will be mutated by the use case
-      const vm1Mock = { ...mockVm1, priority: 1 };
-      const vm2Mock = { ...mockVm2, priority: 2 };
-
-      getUserPermissionVm.execute.mockResolvedValue(permissions);
-
-      // Return the mocks that will be mutated
-      transactionalRepository.findOne
-        .mockResolvedValueOnce(vm1Mock as Vm)
-        .mockResolvedValueOnce(vm2Mock as Vm);
-
-      transactionalRepository.save.mockImplementation(async (entities) => {
-        // TypeORM save returns the saved entities
-        return entities as any;
-      });
-
-      const result = await useCase.execute(vm1Id, vm2Id, mockUserId);
-
-      // The mocks should have been mutated
-      expect(vm1Mock.priority).toBe(2);
-      expect(vm2Mock.priority).toBe(1);
-
-      // And the result should reflect the swapped values
-      expect(result).toEqual({
-        vm1: { id: vm1Id, priority: 2 },
-        vm2: { id: vm2Id, priority: 1 },
-      });
-    });
-
     it('should handle null priorities correctly', async () => {
       const nullPriorityVm1 = { ...mockVm1, priority: null } as any;
       const nullPriorityVm2 = { ...mockVm2, priority: null } as any;
 
-      const permissions = [
-        { vmId: vm1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-        { vmId: vm2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-      ];
-
-      getUserPermissionVm.execute.mockResolvedValue(permissions);
-      transactionalRepository.findOne.mockResolvedValueOnce(
-        nullPriorityVm1 as Vm,
-      );
-      transactionalRepository.findOne.mockResolvedValueOnce(
-        nullPriorityVm2 as Vm,
-      );
+      transactionalRepository.findOne
+        .mockResolvedValueOnce(nullPriorityVm1 as Vm)
+        .mockResolvedValueOnce(nullPriorityVm2 as Vm);
       transactionalRepository.save.mockImplementation(async (entities) => {
-        // TypeORM save returns the saved entities
         return entities as any;
       });
 
@@ -335,45 +264,14 @@ describe('SwapVmPrioritiesUseCase', () => {
       });
     });
 
-    it('should rollback transaction on error', async () => {
-      const permissions = [
-        { vmId: vm1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-        { vmId: vm2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-      ];
+    it('should handle VMs with no server relation', async () => {
+      const vmWithoutServer1 = { ...mockVm1, server: null };
+      const vmWithoutServer2 = { ...mockVm2, server: null };
 
-      getUserPermissionVm.execute.mockResolvedValue(permissions);
-      transactionalRepository.findOne.mockResolvedValueOnce(mockVm1);
-      transactionalRepository.findOne.mockResolvedValueOnce(mockVm2);
-      transactionalRepository.save.mockRejectedValue(
-        new Error('Database error'),
-      );
-
-      await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow(
-        'Database error',
-      );
-
-      // Verify that logHistory was not called since transaction rolled back
-      expect(logHistory.executeStructured).not.toHaveBeenCalled();
-    });
-
-    it('should handle VMs from different servers', async () => {
-      const vm1DifferentServer = { ...mockVm1, serverId: 'server-a' };
-      const vm2DifferentServer = { ...mockVm2, serverId: 'server-b' };
-
-      const permissions = [
-        { vmId: vm1Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-        { vmId: vm2Id, bitmask: PermissionBit.READ | PermissionBit.WRITE },
-      ];
-
-      getUserPermissionVm.execute.mockResolvedValue(permissions);
-      transactionalRepository.findOne.mockResolvedValueOnce({
-        ...vm1DifferentServer,
-      } as Vm);
-      transactionalRepository.findOne.mockResolvedValueOnce({
-        ...vm2DifferentServer,
-      } as Vm);
+      transactionalRepository.findOne
+        .mockResolvedValueOnce(vmWithoutServer1 as Vm)
+        .mockResolvedValueOnce(vmWithoutServer2 as Vm);
       transactionalRepository.save.mockImplementation(async (entities) => {
-        // TypeORM save returns the saved entities
         return entities as any;
       });
 
@@ -383,21 +281,107 @@ describe('SwapVmPrioritiesUseCase', () => {
         vm1: { id: vm1Id, priority: 2 },
         vm2: { id: vm2Id, priority: 1 },
       });
+    });
 
-      expect(logHistory.executeStructured).toHaveBeenCalledWith({
-        entity: 'vm',
-        entityId: vm1Id,
-        action: 'PRIORITY_SWAP',
-        userId: mockUserId,
-        oldValue: { priority: 1 },
-        newValue: { priority: 2 },
-        metadata: {
-          swapPartner: vm2Id,
-          swapPartnerName: 'VM 2',
-          vmServerId: 'server-a',
-          oldPriority: 1,
-          newPriority: 2,
-        },
+    it('should rollback transaction on save error', async () => {
+      transactionalRepository.findOne
+        .mockResolvedValueOnce(mockVm1 as Vm)
+        .mockResolvedValueOnce(mockVm2 as Vm);
+      transactionalRepository.save.mockRejectedValue(
+        new Error('Database error'),
+      );
+
+      await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow(
+        'Database error',
+      );
+
+      expect(logHistory.execute).not.toHaveBeenCalled();
+      expect(generateMigrationPlan.execute).not.toHaveBeenCalled();
+    });
+
+    it('should rollback transaction on logHistory error', async () => {
+      transactionalRepository.findOne
+        .mockResolvedValueOnce(mockVm1 as Vm)
+        .mockResolvedValueOnce(mockVm2 as Vm);
+      transactionalRepository.save.mockResolvedValue([mockVm1, mockVm2] as any);
+      logHistory.execute.mockRejectedValue(new Error('Log error'));
+
+      await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow(
+        'Log error',
+      );
+
+      expect(generateMigrationPlan.execute).not.toHaveBeenCalled();
+    });
+
+    it('should rollback transaction on generateMigrationPlan error', async () => {
+      transactionalRepository.findOne
+        .mockResolvedValueOnce(mockVm1 as Vm)
+        .mockResolvedValueOnce(mockVm2 as Vm);
+      transactionalRepository.save.mockResolvedValue([mockVm1, mockVm2] as any);
+      logHistory.execute.mockResolvedValue(undefined);
+      generateMigrationPlan.execute.mockRejectedValue(
+        new Error('Migration plan error'),
+      );
+
+      await expect(useCase.execute(vm1Id, vm2Id, mockUserId)).rejects.toThrow(
+        'Migration plan error',
+      );
+    });
+
+    it('should handle very large priority values', async () => {
+      const largePriorityVm1 = { ...mockVm1, priority: Number.MAX_SAFE_INTEGER };
+      const largePriorityVm2 = { ...mockVm2, priority: 1 };
+
+      transactionalRepository.findOne
+        .mockResolvedValueOnce(largePriorityVm1 as Vm)
+        .mockResolvedValueOnce(largePriorityVm2 as Vm);
+      transactionalRepository.save.mockImplementation(async (entities) => {
+        return entities as any;
+      });
+
+      const result = await useCase.execute(vm1Id, vm2Id, mockUserId);
+
+      expect(result).toEqual({
+        vm1: { id: vm1Id, priority: 1 },
+        vm2: { id: vm2Id, priority: Number.MAX_SAFE_INTEGER },
+      });
+    });
+
+    it('should handle negative priority values', async () => {
+      const negativePriorityVm1 = { ...mockVm1, priority: -10 };
+      const negativePriorityVm2 = { ...mockVm2, priority: -5 };
+
+      transactionalRepository.findOne
+        .mockResolvedValueOnce(negativePriorityVm1 as Vm)
+        .mockResolvedValueOnce(negativePriorityVm2 as Vm);
+      transactionalRepository.save.mockImplementation(async (entities) => {
+        return entities as any;
+      });
+
+      const result = await useCase.execute(vm1Id, vm2Id, mockUserId);
+
+      expect(result).toEqual({
+        vm1: { id: vm1Id, priority: -5 },
+        vm2: { id: vm2Id, priority: -10 },
+      });
+    });
+
+    it('should handle zero priority values', async () => {
+      const zeroPriorityVm1 = { ...mockVm1, priority: 0 };
+      const zeroPriorityVm2 = { ...mockVm2, priority: 10 };
+
+      transactionalRepository.findOne
+        .mockResolvedValueOnce(zeroPriorityVm1 as Vm)
+        .mockResolvedValueOnce(zeroPriorityVm2 as Vm);
+      transactionalRepository.save.mockImplementation(async (entities) => {
+        return entities as any;
+      });
+
+      const result = await useCase.execute(vm1Id, vm2Id, mockUserId);
+
+      expect(result).toEqual({
+        vm1: { id: vm1Id, priority: 10 },
+        vm2: { id: vm2Id, priority: 0 },
       });
     });
   });

@@ -15,7 +15,7 @@ export class SensitiveOperationsGuard extends BaseRateLimitGuard {
         300000,
         86400000,
       ),
-      max: parseEnvInt(process.env.RATE_LIMIT_SENSITIVE_MAX, 3, 1, 10),
+      max: parseEnvInt(process.env.RATE_LIMIT_SENSITIVE_MAX, 10, 1, 20),
       message: {
         error: "Trop d'opérations sensibles. Réessayez plus tard.",
         statusCode: 429,
