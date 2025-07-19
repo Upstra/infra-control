@@ -23,6 +23,13 @@ export interface UserRepositoryInterface
     lastName: string,
     email: string,
   ): Promise<User>;
+  /**
+   * Delete a user (performs soft delete with anonymization).
+   * The user data is anonymized and marked as deleted.
+   * 
+   * @param id - The ID of the user to delete
+   * @throws UserDeletionException on error
+   */
   deleteUser(id: string): Promise<void>;
 
   /**
@@ -122,5 +129,15 @@ export interface UserRepositoryInterface
    * @returns Array of users found
    */
   findByIds(ids: string[]): Promise<User[]>;
+
+  /**
+   * Permanently delete a user from the database.
+   * WARNING: This is a hard delete and cannot be undone.
+   * Use only for GDPR compliance after the retention period.
+   * 
+   * @param id - The ID of the user to permanently delete
+   * @throws UserDeletionException on database error
+   */
+  hardDeleteUser(id: string): Promise<void>;
 }
 export { FindOneByFieldOptions, FindAllByFieldOptions };

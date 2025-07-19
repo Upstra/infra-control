@@ -134,7 +134,7 @@ describe('BulkActivateUseCase', () => {
       userRepository.findById.mockResolvedValueOnce(null);
 
       await expect(useCase.execute(bulkActivateDto)).rejects.toThrow(
-        new UserNotFoundException(),
+        UserNotFoundException,
       );
 
       expect(userRepository.findById).toHaveBeenCalledTimes(2);
@@ -150,7 +150,7 @@ describe('BulkActivateUseCase', () => {
       userRepository.findById.mockResolvedValue(null);
 
       await expect(useCase.execute(bulkActivateDto)).rejects.toThrow(
-        new UserNotFoundException(),
+        UserNotFoundException,
       );
 
       expect(userRepository.findById).toHaveBeenCalledTimes(1);
@@ -161,10 +161,10 @@ describe('BulkActivateUseCase', () => {
         userIds: ['id1'],
       };
 
-      userRepository.findById.mockRejectedValueOnce(UserNotFoundException);
+      userRepository.findById.mockRejectedValueOnce(new UserNotFoundException('id1'));
 
       await expect(useCase.execute(bulkActivateDto)).rejects.toThrow(
-        new UserNotFoundException(),
+        UserNotFoundException,
       );
 
       expect(userRepository.findById).toHaveBeenCalledTimes(1);

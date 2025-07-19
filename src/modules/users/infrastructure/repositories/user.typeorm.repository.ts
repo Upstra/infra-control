@@ -157,9 +157,11 @@ export class UserTypeormRepository
 
   async deleteUser(id: string): Promise<void> {
     try {
-      // TODO: For GDPR compliance, we should use softDelete in the future
-      await this.delete(id);
+      await this.softDeleteUser(id);
     } catch (error) {
+      if (error.name === 'UserNotFoundException' || error.name === 'UserDeletionException') {
+        throw error;
+      }
       Logger.error('Error deleting user:', error);
       throw new UserDeletionException();
     }
@@ -278,5 +280,22 @@ export class UserTypeormRepository
       .where('user.id IN (:...ids)', { ids })
       .andWhere('user.deletedAt IS NULL')
       .getMany();
+  }
+
+  /**
+   * Permanently delete a user from the database.
+   * WARNING: This is a hard delete and cannot be undone.
+   * Use only for GDPR compliance after the retention period.
+   * 
+   * @param id - The ID of the user to permanently delete
+   * @throws UserDeletionException on database error
+   */
+  async hardDeleteUser(id: string): Promise<void> {
+    try {
+      await this.delete(id);
+    } catch (error) {
+      Logger.error('Error hard deleting user:', error);
+      throw new UserDeletionException();
+    }
   }
 }
