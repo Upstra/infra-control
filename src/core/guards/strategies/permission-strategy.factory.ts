@@ -1,10 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import {
-  PermissionCheckStrategy,
-  PermissionStrategyFactory,
-  ServerPermissionStrategy,
-  VmPermissionStrategy,
-} from '@/core/guards';
+import { PermissionCheckStrategy, PermissionStrategyFactory } from './permission-strategy.interface';
+import { ServerPermissionStrategy } from './server-permission.strategy';
+import { VmPermissionStrategy } from './vm-permission.strategy';
 
 @Injectable()
 export class PermissionStrategyFactoryImpl
