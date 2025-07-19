@@ -161,7 +161,7 @@ describe('VmwareSyncScheduler', () => {
       expect(newScheduler['isEnabled']).toBe(false);
     });
 
-    it('should initialize with sync enabled when config is not "false"', () => {
+    it('should initialize with sync disabled when config is not "true"', () => {
       configService.get.mockReturnValue('yes');
       const newScheduler = new VmwareSyncScheduler(
         syncServerVmwareData as any,
@@ -170,7 +170,7 @@ describe('VmwareSyncScheduler', () => {
         configService as any,
         eventEmitter as any,
       );
-      expect(newScheduler['isEnabled']).toBe(true);
+      expect(newScheduler['isEnabled']).toBe(false);
     });
   });
 
