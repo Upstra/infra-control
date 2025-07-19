@@ -48,9 +48,7 @@ export class VmTypeormRepository
   }
   async findAll(): Promise<Vm[]> {
     try {
-      return await super.find({
-        relations: ['permissions'],
-      });
+      return await super.find();
     } catch (error) {
       Logger.error('Error retrieving all VMs:', error);
       throw new VmRetrievalException();
@@ -59,7 +57,6 @@ export class VmTypeormRepository
 
   async paginate(page: number, limit: number, serverId?: string): Promise<[Vm[], number]> {
     const queryBuilder = this.createQueryBuilder('vm')
-      .leftJoinAndSelect('vm.permissions', 'permissions')
       .orderBy('vm.name', 'ASC')
       .skip((page - 1) * limit)
       .take(limit);
@@ -74,7 +71,6 @@ export class VmTypeormRepository
   async findVmById(id: string): Promise<Vm> {
     const vm = await this.findOne({
       where: { id },
-      relations: ['permissions'],
     });
     if (!vm) {
       throw new VmNotFoundException(id);

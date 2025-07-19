@@ -1,4 +1,5 @@
 import { GetUserServersUseCase } from './get-user-servers.use-case';
+import { GetUserServersWithMetricsUseCase } from './get-user-servers-with-metrics.use-case';
 import { CreateServerUseCase } from './create-server.use-case';
 import { DeleteServerUseCase } from './delete-server.use-case';
 import { GetAllServersUseCase } from './get-all-servers.use-case';
@@ -18,6 +19,7 @@ export const ServerUseCases = [
   UpdateServerUseCase,
   DeleteServerUseCase,
   GetUserServersUseCase,
+  GetUserServersWithMetricsUseCase,
   GetServerByIdWithPermissionCheckUseCase,
   UpdateServerPriorityUseCase,
   CheckServerPermissionUseCase,
@@ -33,6 +35,7 @@ export {
   UpdateServerUseCase,
   DeleteServerUseCase,
   GetUserServersUseCase,
+  GetUserServersWithMetricsUseCase,
   GetServerByIdWithPermissionCheckUseCase,
   UpdateServerPriorityUseCase,
   CheckServerPermissionUseCase,

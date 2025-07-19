@@ -242,25 +242,6 @@ export class VmwareService implements IVmwareService {
     }
   }
 
-  //TODO: why this function is a copy of getServerMetrics?
-  async getHostMetrics(
-    moid: string,
-    connection: VmwareConnectionDto,
-  ): Promise<VmwareHost> {
-    const args = ['--moid', moid, ...this.buildConnectionArgs(connection)];
-
-    try {
-      const result = await this.pythonExecutor.executePython(
-        'server_metrics.sh',
-        args,
-      );
-      return this.parseHostMetrics(result);
-    } catch (error) {
-      this.logger.error(`Failed to get metrics for host ${moid}:`, error);
-      throw this.handlePythonError(error, 'Failed to retrieve host metrics');
-    }
-  }
-
   async listServers(connection: VmwareConnectionDto): Promise<VmwareServer[]> {
     const args = this.buildConnectionArgs(connection);
 

@@ -48,6 +48,7 @@ import { VmwareModule } from '../vmware/vmware.module';
     UpdateIloUseCase,
     DeleteIloUseCase,
     IloPowerService,
+    GetServerStatusUseCase,
   ],
 })
 export class IloModule {}

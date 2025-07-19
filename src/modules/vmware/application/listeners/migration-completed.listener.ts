@@ -129,20 +129,6 @@ export class MigrationCompletedListener {
       };
     }
 
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-    if (vm.lastSyncAt && vm.lastSyncAt > fiveMinutesAgo) {
-      this.logger.debug(`VM ${vmMoid} recently synced, skipping`);
-      return {
-        status: 'unchanged',
-        data: {
-          vmMoid,
-          vmName: vm.name,
-          host: vm.esxiHostMoid,
-          reason: 'recently_synced',
-        },
-      };
-    }
-
     const vmInfo = allVms.find((v) => v.moid === vmMoid);
     if (!vmInfo) {
       this.logger.warn(
@@ -164,7 +150,6 @@ export class MigrationCompletedListener {
       const oldHostMoid = vm.esxiHostMoid;
 
       vm.esxiHostMoid = newHostMoid;
-      vm.lastSyncAt = new Date();
       await this.vmRepository.save(vm);
 
       this.logger.log(
@@ -181,8 +166,6 @@ export class MigrationCompletedListener {
         },
       };
     } else {
-      // Mettre à jour le timestamp même si pas de changement d'hôte
-      vm.lastSyncAt = new Date();
       await this.vmRepository.save(vm);
 
       this.logger.debug(`VM ${vm.name} already on correct host ${newHostMoid}`);

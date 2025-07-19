@@ -36,8 +36,4 @@ export interface IVmwareService {
     connection: VmwareConnectionDto,
     force?: boolean,
   ): Promise<VmwareServerMetrics>;
-  getHostMetrics(
-    moid: string,
-    connection: VmwareConnectionDto,
-  ): Promise<VmwareHost>;
 }

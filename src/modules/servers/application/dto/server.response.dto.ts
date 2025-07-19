@@ -9,6 +9,7 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { Server } from '../../domain/entities/server.entity';
 import { IloResponseDto } from '../../../ilos/application/dto/ilo.response.dto';
+import { ServerMetricsExtendedDto } from './server-metrics-extended.dto';
 
 export class ServerResponseDto {
   @ApiProperty()
@@ -94,6 +95,10 @@ export class ServerResponseDto {
   @IsNotEmpty()
   @IsDateString()
   readonly updatedAt!: string;
+
+  @ApiProperty({ type: ServerMetricsExtendedDto, required: false })
+  @IsOptional()
+  readonly metrics?: ServerMetricsExtendedDto;
 
   constructor(server: Server, ilo?: IloResponseDto) {
     this.id = server.id;

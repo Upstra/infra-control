@@ -20,7 +20,6 @@ describe('ControlVmPowerUseCase', () => {
       getVMMetrics: jest.fn(),
       controlVMPower: jest.fn(),
       migrateVM: jest.fn(),
-      getHostMetrics: jest.fn(),
     };
 
     mockServerRepository = {

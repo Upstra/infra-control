@@ -30,6 +30,7 @@ import {
   UpdateServerUseCase,
   DeleteServerUseCase,
   GetUserServersUseCase,
+  GetUserServersWithMetricsUseCase,
   UpdateServerPriorityUseCase,
   CheckServerPermissionUseCase,
   GetServersWithVmsUseCase,
@@ -67,6 +68,7 @@ export class ServerController {
     private readonly updateServerUseCase: UpdateServerUseCase,
     private readonly deleteServerUseCase: DeleteServerUseCase,
     private readonly getUserServersUseCase: GetUserServersUseCase,
+    private readonly getUserServersWithMetricsUseCase: GetUserServersWithMetricsUseCase,
     private readonly updateServerPriorityUseCase: UpdateServerPriorityUseCase,
     private readonly checkServerPermissionUseCase: CheckServerPermissionUseCase,
     private readonly pingServerUseCase: PingServerUseCase,
@@ -177,12 +179,23 @@ export class ServerController {
   @ApiOperation({ summary: 'Lister mes serveurs accessibles avec pagination' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'includeMetrics', required: false, type: Boolean })
   @ApiResponse({ status: 200, type: ServerListResponseDto })
   async getMyServers(
     @CurrentUser() user: JwtPayload,
     @Query('page') page = '1',
     @Query('limit') limit = '10',
+    @Query('includeMetrics') includeMetrics = false,
   ): Promise<ServerListResponseDto> {
+    if (includeMetrics) {
+      return this.getUserServersWithMetricsUseCase.execute(
+        user.userId,
+        Number(page),
+        Number(limit),
+        includeMetrics,
+      );
+    }
+    
     return this.getUserServersUseCase.execute(
       user.userId,
       Number(page),
