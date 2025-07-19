@@ -47,13 +47,6 @@ export class VmSyncScheduler {
         return;
       }
 
-      if (vCenterServer.state !== 'UP') {
-        this.logger.warn(
-          `vCenter server ${vCenterServer.name} is not active (state: ${vCenterServer.state})`,
-        );
-        return;
-      }
-
       this.logger.log(
         `Starting VM sync from vCenter: ${vCenterServer.name} (${vCenterServer.ip})`,
       );
