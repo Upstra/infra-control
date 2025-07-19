@@ -8,7 +8,10 @@ import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 import { UserCreateDto } from '../../dto/user.create.dto';
 import { User } from '../../../domain/entities/user.entity';
 import { Role } from '@/modules/roles/domain/entities/role.entity';
-import { UserExceptions } from '../../../domain/exceptions/user.exception';
+import {
+  UserBadRequestException,
+  UserConflictException,
+} from '../../../domain/exceptions/user.exception';
 import { EmailEventType } from '@/modules/email/domain/events/email.events';
 import { IUserPreferencesRepository } from '@/modules/user-preferences/domain/interfaces/user-preferences.repository.interface';
 
@@ -209,7 +212,7 @@ describe('CreateUserByAdminUseCase', () => {
       userRepository.findOneByField.mockResolvedValueOnce(mockUser);
 
       await expect(useCase.execute(dto, adminId)).rejects.toThrow(
-        UserExceptions.conflict('username'),
+        new UserConflictException('username'),
       );
 
       expect(userRepository.findOneByField).toHaveBeenCalledWith({
@@ -225,7 +228,7 @@ describe('CreateUserByAdminUseCase', () => {
       userRepository.findOneByField.mockResolvedValueOnce(mockUser);
 
       await expect(useCase.execute(dto, adminId)).rejects.toThrow(
-        UserExceptions.conflict('email'),
+        new UserConflictException('email'),
       );
 
       expect(userRepository.findOneByField).toHaveBeenCalledTimes(2);
@@ -236,7 +239,7 @@ describe('CreateUserByAdminUseCase', () => {
       roleRepository.findByIds.mockResolvedValue([mockRole1]);
 
       await expect(useCase.execute(dto, adminId)).rejects.toThrow(
-        UserExceptions.badRequest('One or more role IDs are invalid'),
+        new UserBadRequestException('One or more role IDs are invalid'),
       );
 
       expect(roleRepository.findByIds).toHaveBeenCalledWith(dto.roleIds);

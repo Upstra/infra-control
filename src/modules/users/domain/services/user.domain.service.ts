@@ -2,10 +2,10 @@ import { Inject, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { User } from '../entities/user.entity';
 import { Role } from '../../../roles/domain/entities/role.entity';
-import { UserUpdateDto } from '../../application/dto/user.update.dto';
-import { UpdateAccountDto } from '../../application/dto/update-account.dto';
+import { UserUpdateDto } from '@modules/users/application/dto';
+import { UpdateAccountDto } from '@modules/users/application/dto';
 import { UserRepositoryInterface } from '../interfaces/user.repository.interface';
-import { UserExceptions } from '../exceptions/user.exception';
+import { UserConflictException } from '../exceptions/user.exception';
 
 /**
  * Manages user lifecycle and profile operations within the domain layer.
@@ -98,7 +98,7 @@ export class UserDomainService {
       disableThrow: true,
     });
     if (existing && existing.id !== userId) {
-      throw UserExceptions.conflict(field as 'username' | 'email');
+      throw new UserConflictException(field as 'username' | 'email');
     }
   }
 

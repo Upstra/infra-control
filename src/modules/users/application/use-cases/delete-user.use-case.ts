@@ -2,7 +2,7 @@ import { Inject } from '@nestjs/common';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 
 import { UserRepositoryInterface } from '../../domain/interfaces/user.repository.interface';
-import { UserExceptions } from '../../domain/exceptions/user.exception';
+import { CannotDeleteLastAdminException } from '../../domain/exceptions/user.exception';
 
 /**
  * Performs a HARD DELETE of a user account by its identifier.
@@ -43,7 +43,7 @@ export class DeleteUserUseCase {
       user.roles?.some((r) => r.isAdmin) &&
       (await this.repo.countAdmins()) === 1
     ) {
-      throw UserExceptions.cannotDeleteLastAdmin();
+      throw new CannotDeleteLastAdminException();
     }
 
     await this.repo.deleteUser(id);

@@ -27,3 +27,9 @@ export class UpsRetrievalException extends Error {
     super(message);
   }
 }
+
+export class UpsInvalidQueryException extends Error {
+  constructor(field: string) {
+    super(`Invalid query value for field: ${String(field)}`);
+  }
+}

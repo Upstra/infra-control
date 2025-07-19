@@ -7,7 +7,11 @@ import {
 } from '../../domain/interfaces/user.repository.interface';
 import { DataSource, Repository, In, IsNull } from 'typeorm';
 import { InvalidQueryValueException } from '@/core/exceptions/repository.exception';
-import { UserExceptions } from '../../domain/exceptions/user.exception';
+import {
+  UserDeletionException,
+  UserNotFoundException,
+  UserRetrievalException,
+} from '../../domain/exceptions/user.exception';
 import { PrimitiveFields } from '@/core/types/primitive-fields.interface';
 
 @Injectable()
@@ -49,7 +53,7 @@ export class UserTypeormRepository
     } catch (error) {
       if (disableThrow) return [];
       Logger.error('Error retrieving users by field:', error);
-      throw UserExceptions.retrievalFailed();
+      throw new UserRetrievalException();
     }
   }
 
@@ -95,10 +99,10 @@ export class UserTypeormRepository
         if (disableThrow) {
           return null;
         }
-        throw UserExceptions.notFound(String(value));
+        throw new UserNotFoundException(String(value));
       }
       Logger.error('Error retrieving user by field:', error);
-      throw UserExceptions.retrievalFailed();
+      throw new UserRetrievalException();
     }
   }
 
@@ -157,7 +161,7 @@ export class UserTypeormRepository
       await this.delete(id);
     } catch (error) {
       Logger.error('Error deleting user:', error);
-      throw UserExceptions.deletionFailed();
+      throw new UserDeletionException();
     }
   }
 

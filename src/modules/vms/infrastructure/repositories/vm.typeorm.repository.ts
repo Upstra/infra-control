@@ -3,7 +3,7 @@ import { Vm } from '../../domain/entities/vm.entity';
 import { VmRepositoryInterface } from '../../domain/interfaces/vm.repository.interface';
 import { DataSource, Repository } from 'typeorm';
 import {
-  VmDeletionException,
+  VmDeletionException, VmInvalidQueryException,
   VmNotFoundException,
   VmRetrievalException,
 } from '../../domain/exceptions/vm.exception';
@@ -32,7 +32,7 @@ export class VmTypeormRepository
     relations = [],
   }: FindOneByFieldOptions<Vm, K>): Promise<Vm | null> {
     if (value === undefined || value === null) {
-      throw new Error(`Invalid query value for field: ${String(field)}`);
+      throw new VmInvalidQueryException(String(field));
     }
 
     return this.findOne({
