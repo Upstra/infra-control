@@ -3,6 +3,7 @@ import { Ups } from '../../domain/entities/ups.entity';
 import { UpsRepositoryInterface } from '../../domain/interfaces/ups.repository.interface';
 import { DataSource, Repository } from 'typeorm';
 import {
+  UpsInvalidQueryException,
   UpsNotFoundException,
   UpsRetrievalException,
   UpsUpdateException,
@@ -25,7 +26,7 @@ export class UpsTypeormRepository
     relations = [],
   }: FindOneByFieldOptions<Ups, T>): Promise<Ups> {
     if (value === undefined || value === null) {
-      throw new Error(`Invalid value for ${String(field)}`);
+      throw new UpsInvalidQueryException(String(field));
     }
     return this.findOne({
       where: { [field]: value },

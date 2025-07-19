@@ -3,10 +3,7 @@ import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.
 import { UserDomainService } from '@/modules/users/domain/services/user.domain.service';
 import { User } from '@/modules/users/domain/entities/user.entity';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
-import {
-  UserExceptions,
-  UserNotFoundException,
-} from '@/modules/users/domain/exceptions/user.exception';
+import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EmailEventType } from '@/modules/email/domain/events/email.events';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases/log-history.use-case';
@@ -106,7 +103,7 @@ describe('ResetPasswordUseCase', () => {
 
   it('should throw if user is not found', async () => {
     repo.findOneByField.mockRejectedValue(
-      UserExceptions.notFound('invalid-id'),
+      new UserNotFoundException('invalid-id'),
     );
 
     await expect(

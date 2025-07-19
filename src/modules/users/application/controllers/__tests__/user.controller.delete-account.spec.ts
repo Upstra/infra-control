@@ -1,11 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserController } from '../user.controller';
-import { SoftDeleteUserUseCase } from '../../use-cases/soft-delete-user.use-case';
+import { SoftDeleteUserUseCase } from '@modules/users/application/use-cases';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { DeletionReason } from '../../dto/delete-account.dto';
 import {
-  UserExceptions,
   UserNotFoundException,
   CannotDeleteOwnAccountException,
   CannotDeleteLastAdminException,
@@ -206,7 +205,7 @@ describe('UserController - deleteAccount', () => {
 
     it('should handle UserNotFoundException', async () => {
       softDeleteUserUseCase.execute.mockRejectedValue(
-        UserExceptions.notFound('target-user-id'),
+        new UserNotFoundException('target-user-id'),
       );
 
       await expect(
@@ -216,7 +215,7 @@ describe('UserController - deleteAccount', () => {
 
     it('should handle CannotDeleteOwnAccountException', async () => {
       softDeleteUserUseCase.execute.mockRejectedValue(
-        UserExceptions.cannotDeleteOwnAccount(),
+        new CannotDeleteOwnAccountException(),
       );
 
       await expect(
@@ -226,7 +225,7 @@ describe('UserController - deleteAccount', () => {
 
     it('should handle CannotDeleteLastAdminException', async () => {
       softDeleteUserUseCase.execute.mockRejectedValue(
-        UserExceptions.cannotDeleteLastAdmin(),
+        new CannotDeleteLastAdminException(),
       );
 
       await expect(

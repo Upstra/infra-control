@@ -1,7 +1,11 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { UserRepositoryInterface } from '../../domain/interfaces/user.repository.interface';
-import { UserExceptions } from '../../domain/exceptions/user.exception';
-import { LogHistoryUseCase } from '../../../history/application/use-cases/log-history.use-case';
+import {
+  CannotDeleteLastAdminException,
+  CannotDeleteOwnAccountException,
+  UserNotFoundException,
+} from '../../domain/exceptions/user.exception';
+import { LogHistoryUseCase } from '@modules/history/application/use-cases';
 import { DeletionReason } from '../dto/delete-account.dto';
 import { User } from '../../domain/entities/user.entity';
 
@@ -24,18 +28,18 @@ export class SoftDeleteUserUseCase {
   ): Promise<void> {
     const targetUser = await this.userRepository.findById(targetUserId);
     if (!targetUser || targetUser.deletedAt) {
-      throw UserExceptions.notFound(targetUserId);
+      throw new UserNotFoundException(targetUserId);
     }
 
     if (targetUserId === adminUserId) {
-      throw UserExceptions.cannotDeleteOwnAccount();
+      throw new CannotDeleteOwnAccountException();
     }
 
     const adminCount = await this.userRepository.countActiveAdmins();
     const isTargetAdmin = await this.isUserAdmin(targetUser);
 
     if (isTargetAdmin && adminCount <= 1) {
-      throw UserExceptions.cannotDeleteLastAdmin();
+      throw new CannotDeleteLastAdminException();
     }
 
     // TODO: For now, we use the softDeleteUser method which sets deletedAt - add loghistory too

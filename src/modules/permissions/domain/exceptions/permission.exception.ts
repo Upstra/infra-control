@@ -22,3 +22,10 @@ export class PermissionDeletionException extends Error {
     this.name = 'PermissionDeletionException';
   }
 }
+
+export class PermissionInvalidValueException extends Error {
+  constructor(field: string) {
+    super(`Invalid value for ${field}`);
+    this.name = 'PermissionInvalidValueException';
+  }
+}
