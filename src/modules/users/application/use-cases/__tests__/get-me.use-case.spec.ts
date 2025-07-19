@@ -2,10 +2,7 @@ import { GetMeUseCase } from '../get-me.use-case';
 import { GetUserByIdUseCase } from '../get-user-by-id.use-case';
 import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { UserResponseDto } from '../../dto/user.response.dto';
-import {
-  UserExceptions,
-  UserNotFoundException,
-} from '@/modules/users/domain/exceptions/user.exception';
+import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
 
 describe('GetMeUseCase', () => {
   let getMeUseCase: GetMeUseCase;
@@ -43,7 +40,7 @@ describe('GetMeUseCase', () => {
       email: 'john@doe.com',
     });
     getUserByIdUseCase.execute.mockRejectedValue(
-      UserExceptions.notFound('id123'),
+      new UserNotFoundException('id123'),
     );
 
     await expect(getMeUseCase.execute(user)).rejects.toThrow(
@@ -58,7 +55,7 @@ describe('GetMeUseCase', () => {
       email: 'john@doe.com',
     });
     getUserByIdUseCase.execute.mockRejectedValue(
-      UserExceptions.notFound('undefined'),
+      new UserNotFoundException('undefined'),
     );
     await expect(getMeUseCase.execute(user)).rejects.toThrow(
       UserNotFoundException,

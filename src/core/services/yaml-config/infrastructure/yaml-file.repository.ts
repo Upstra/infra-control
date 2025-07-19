@@ -27,7 +27,7 @@ export class YamlFileRepository {
       this.logger.error(`Failed to write file: ${error.message}`);
       throw new HttpException(
         `Failed to write migration plan: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        HttpStatus.BAD_REQUEST,
       );
     }
   }

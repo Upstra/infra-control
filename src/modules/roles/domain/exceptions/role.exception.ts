@@ -1,6 +1,10 @@
 export class RoleNotFoundException extends Error {
-  constructor(id: string) {
-    super(`Role with ID ${id} not found`);
+  constructor(id?: string) {
+    if (id) {
+      super(`Role with ID ${id} not found`);
+    } else {
+      super('One or more roles not found');
+    }
     this.name = 'RoleNotFoundException';
   }
 }
@@ -37,6 +41,13 @@ export class CannotDeleteLastAdminRoleException extends Error {
   }
 }
 
+export class InvalidRoleUpdateException extends Error {
+  constructor() {
+    super('Cannot specify both roleId and roleIds');
+    this.name = 'InvalidRoleUpdateException';
+  }
+}
+
 export class SystemRoleNameAlreadyExistsException extends Error {
   constructor(roleName: string) {
     super(
@@ -50,21 +61,5 @@ export class CannotRemoveGuestRoleException extends Error {
   constructor() {
     super('Cannot remove last guest role from user.');
     this.name = 'CannotRemoveGuestRoleException';
-  }
-}
-
-export class RoleExceptions {
-  static roleNotFound(): RoleNotFoundException {
-    return new RoleNotFoundException('One or more roles not found');
-  }
-
-  static cannotSpecifyBothRoleIdAndRoleIds(): Error {
-    const error = new Error('Cannot specify both roleId and roleIds');
-    error.name = 'InvalidRoleUpdateException';
-    return error;
-  }
-
-  static cannotRemoveGuestRole(): CannotRemoveGuestRoleException {
-    return new CannotRemoveGuestRoleException();
   }
 }

@@ -1,5 +1,4 @@
 import {
-  UserExceptions,
   UserNotFoundException,
   CannotDeleteLastAdminException,
 } from '@/modules/users/domain/exceptions/user.exception';
@@ -38,7 +37,7 @@ describe('DeleteUserUseCase', () => {
   });
 
   it('should throw if user does not exist', async () => {
-    repo.findOneByField.mockRejectedValue(UserExceptions.notFound('user-id'));
+    repo.findOneByField.mockRejectedValue(new UserNotFoundException('user-id'));
 
     await expect(useCase.execute('user-id')).rejects.toThrow(
       UserNotFoundException,

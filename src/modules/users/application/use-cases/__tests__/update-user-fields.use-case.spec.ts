@@ -2,10 +2,7 @@ import { UpdateUserFieldsUseCase } from '../update-user-fields.use-case';
 import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
 import { User } from '@/modules/users/domain/entities/user.entity';
-import {
-  UserExceptions,
-  UserNotFoundException,
-} from '@/modules/users/domain/exceptions/user.exception';
+import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
 
 describe('UpdateUserFieldsUseCase', () => {
   let useCase: UpdateUserFieldsUseCase;
@@ -52,7 +49,7 @@ describe('UpdateUserFieldsUseCase', () => {
 
   it('should throw if user not found after update', async () => {
     repo.updateFields.mockResolvedValue(undefined);
-    repo.findOneByField.mockRejectedValue(UserExceptions.notFound('user-1'));
+    repo.findOneByField.mockRejectedValue(new UserNotFoundException('user-1'));
 
     await expect(
       useCase.execute('user-1', { lastName: 'Doe' }),

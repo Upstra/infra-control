@@ -5,7 +5,10 @@ import { UserDomainService } from '../../domain/services/user.domain.service';
 import { RoleRepositoryInterface } from '@/modules/roles/domain/interfaces/role.repository.interface';
 import { UserCreateDto } from '../dto/user.create.dto';
 import { User } from '../../domain/entities/user.entity';
-import { UserExceptions } from '../../domain/exceptions/user.exception';
+import {
+  UserBadRequestException,
+  UserConflictException,
+} from '../../domain/exceptions/user.exception';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 import { Role } from '@/modules/roles/domain/entities/role.entity';
 import { EmailEventType } from '@/modules/email/domain/events/email.events';
@@ -38,20 +41,20 @@ export class CreateUserByAdminUseCase {
       value: dto.username,
       disableThrow: true,
     });
-    if (usernameExists) throw UserExceptions.conflict('username');
+    if (usernameExists) throw new UserConflictException('username');
 
     const emailExists = await this.userRepo.findOneByField({
       field: 'email',
       value: dto.email,
       disableThrow: true,
     });
-    if (emailExists) throw UserExceptions.conflict('email');
+    if (emailExists) throw new UserConflictException('email');
 
     let roles: Role[] = [];
     if (dto.roleIds?.length) {
       roles = await this.roleRepo.findByIds(dto.roleIds);
       if (roles.length !== dto.roleIds.length) {
-        throw UserExceptions.badRequest('One or more role IDs are invalid');
+        throw new UserBadRequestException('One or more role IDs are invalid');
       }
     }
 
