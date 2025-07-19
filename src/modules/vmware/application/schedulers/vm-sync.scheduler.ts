@@ -37,10 +37,7 @@ export class VmSyncScheduler {
     try {
       this.logger.log('Starting scheduled VM synchronization');
 
-      const vCenterServer = await this.serverRepository.findOneByField({
-        field: 'type',
-        value: 'vcenter',
-      });
+      const vCenterServer = await this.serverRepository.findServerByTypeWithCredentials('vcenter');
 
       if (!vCenterServer) {
         this.logger.warn('No vCenter server found for VM sync');

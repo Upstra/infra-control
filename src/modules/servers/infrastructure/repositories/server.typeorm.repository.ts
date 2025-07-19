@@ -193,6 +193,30 @@ export class ServerTypeormRepository
     }
   }
 
+  async findServerByTypeWithCredentials(type: string): Promise<Server | null> {
+    try {
+      const server = await this.createQueryBuilder('server')
+        .leftJoinAndSelect('server.ilo', 'ilo')
+        .leftJoinAndSelect('server.group', 'group')
+        .leftJoinAndSelect('server.room', 'room')
+        .leftJoinAndSelect('server.ups', 'ups')
+        .leftJoinAndSelect('server.vms', 'vms')
+        .addSelect('server.password')
+        .where('server.type = :type', { type })
+        .getOne();
+
+      return server;
+    } catch (error) {
+      this.logger.error(
+        `Error retrieving server with credentials for type ${type}:`,
+        error,
+      );
+      throw new ServerRetrievalException(
+        `Error retrieving server with credentials for type ${type}`,
+      );
+    }
+  }
+
   async findAllWithCredentials(): Promise<Server[]> {
     try {
       return await this.createQueryBuilder('server')
