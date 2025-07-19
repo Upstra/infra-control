@@ -1,8 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
 import { VmwareService } from '@/modules/vmware/domain/services/vmware.service';
+import { VmwareConnectionService } from '@/modules/vmware/domain/services/vmware-connection.service';
+import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 import { VmPowerAction } from '../dto';
 
 export interface VmPowerControlResult {
@@ -15,29 +15,22 @@ export interface VmPowerControlResult {
 export class ControlVmPowerUseCase {
   constructor(
     private readonly vmwareService: VmwareService,
-    @InjectRepository(Server)
-    private readonly serverRepository: Repository<Server>,
+    private readonly vmwareConnectionService: VmwareConnectionService,
+    @Inject('ServerRepositoryInterface')
+    private readonly serverRepository: ServerRepositoryInterface,
   ) {}
 
   async execute(
-    serverId: string,
     moid: string,
     action: VmPowerAction,
   ): Promise<VmPowerControlResult> {
-    const server = await this.serverRepository.findOne({
-      where: { id: serverId },
-    });
+    const vcenter = await this.serverRepository.findServerByTypeWithCredentials('vcenter');
 
-    if (!server) {
-      throw new NotFoundException(`Server with ID ${serverId} not found`);
+    if (!vcenter) {
+      throw new NotFoundException('vCenter server not found');
     }
 
-    const connection = {
-      host: server.ip,
-      user: server.login,
-      password: server.password,
-      port: 443,
-    };
+    const connection = this.vmwareConnectionService.buildVmwareConnection(vcenter);
 
     let vmAction: 'on' | 'off';
     switch (action) {

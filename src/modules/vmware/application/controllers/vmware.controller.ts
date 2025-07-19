@@ -191,7 +191,7 @@ export class VmwareController {
     return this.getVmMetricsUseCase.execute(serverId, moid, query.force);
   }
 
-  @Post(':serverId/vms/:moid/power')
+  @Post('vms/:moid/power')
   @UseGuards(ResourcePermissionGuard)
   @RequireResourcePermission({
     resourceType: 'server',
@@ -216,11 +216,10 @@ export class VmwareController {
     description: 'Server or VM not found',
   })
   async controlVMPower(
-    @Param('serverId') serverId: string,
     @Param('moid') moid: string,
     @Body() dto: VmPowerActionDto,
   ) {
-    return this.controlVmPowerUseCase.execute(serverId, moid, dto.action);
+    return this.controlVmPowerUseCase.execute(moid, dto.action);
   }
 
   @Post(':serverId/vms/:moid/migrate')

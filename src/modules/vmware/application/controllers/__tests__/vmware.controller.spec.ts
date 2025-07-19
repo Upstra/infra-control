@@ -24,6 +24,7 @@ import {
 import { VmwareVm, VmwareServer } from '../../../domain/interfaces';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
+import { VmSyncScheduler } from '../../schedulers/vm-sync.scheduler';
 
 describe('VmwareController', () => {
   let controller: VmwareController;
@@ -112,6 +113,12 @@ describe('VmwareController', () => {
           provide: SyncServerVmwareDataUseCase,
           useValue: {
             execute: jest.fn(),
+          },
+        },
+        {
+          provide: VmSyncScheduler,
+          useValue: {
+            triggerManualSync: jest.fn(),
           },
         },
       ],
@@ -210,13 +217,12 @@ describe('VmwareController', () => {
 
       controlVmPowerUseCase.execute.mockResolvedValue(mockResult);
 
-      const result = await controller.controlVMPower('server-1', 'vm-123', dto);
+      const result = await controller.controlVMPower('vm-123', dto);
 
       expect(result).toEqual(mockResult);
       expect(controlVmPowerUseCase.execute).toHaveBeenCalledWith(
-        'server-1',
         'vm-123',
-        'on',
+        VmPowerAction.POWER_ON,
       );
     });
   });
