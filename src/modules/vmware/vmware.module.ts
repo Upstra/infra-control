@@ -14,6 +14,7 @@ import { VmwareConnectionService } from './domain/services/vmware-connection.ser
 import { MigrationOrchestratorService } from './domain/services/migration-orchestrator.service';
 import { MigrationCompletedListener } from './application/listeners/migration-completed.listener';
 import { VmwareSyncScheduler } from './application/schedulers/vmware-sync.scheduler';
+import { VmSyncScheduler } from './application/schedulers/vm-sync.scheduler';
 import { ListVmsUseCase } from './application/use-cases/list-vms.use-case';
 import { ListServersUseCase } from './application/use-cases/list-servers.use-case';
 import { GetVmMetricsUseCase } from './application/use-cases/get-vm-metrics.use-case';
@@ -89,6 +90,7 @@ import { SendMigrationCompletedEmailUseCase } from '@/modules/email/application/
     MigrationOrchestratorService,
     MigrationCompletedListener,
     VmwareSyncScheduler,
+    VmSyncScheduler,
     VmwareDiscoveryGateway,
     MigrationGateway,
     ListVmsUseCase,

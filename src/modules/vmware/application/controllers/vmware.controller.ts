@@ -50,6 +50,7 @@ import {
   MigrationStatusResponseDto,
 } from '../dto/migration-plan.dto';
 import { CacheQueryDto } from '../dto/cache-query.dto';
+import { VmSyncScheduler } from '../schedulers/vm-sync.scheduler';
 
 @ApiTags('VMware')
 @ApiBearerAuth()
@@ -70,6 +71,7 @@ export class VmwareController {
     private readonly getMigrationStatusUseCase: GetMigrationStatusUseCase,
     private readonly clearMigrationDataUseCase: ClearMigrationDataUseCase,
     private readonly syncServerVmwareDataUseCase: SyncServerVmwareDataUseCase,
+    private readonly vmSyncScheduler: VmSyncScheduler,
   ) {}
 
   @Post('list')
@@ -363,5 +365,45 @@ export class VmwareController {
   })
   async clearMigrationData() {
     await this.clearMigrationDataUseCase.execute();
+  }
+
+  @Post('vms/sync')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Manually trigger VM synchronization',
+    description:
+      'Triggers an immediate synchronization of all VMs from vCenter/ESXi servers. ' +
+      'This operation discovers VMs and updates their information including host changes.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'VM synchronization completed',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        message: { type: 'string' },
+        totalVMs: { type: 'number' },
+        changes: { type: 'number' },
+        duration: { type: 'string' },
+        errors: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              serverName: { type: 'string' },
+              error: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Synchronization already in progress',
+  })
+  async syncVMs() {
+    return this.vmSyncScheduler.triggerManualSync();
   }
 }

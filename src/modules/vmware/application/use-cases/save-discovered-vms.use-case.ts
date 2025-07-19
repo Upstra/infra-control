@@ -10,6 +10,9 @@ export interface SaveDiscoveredVmsResult {
   failedCount: number;
   savedVms: Vm[];
   errors: Array<{ vm: string; error: string }>;
+  created?: number;
+  updated?: number;
+  changes?: number;
 }
 
 @Injectable()
@@ -23,8 +26,9 @@ export class SaveDiscoveredVmsUseCase {
   ) {}
 
   async execute(
-    discoveredVms: DiscoveredVmDto[],
+    dto: { vms: DiscoveredVmDto[]; serverId?: string },
   ): Promise<SaveDiscoveredVmsResult> {
+    const discoveredVms = dto.vms;
     this.logger.log(`Saving ${discoveredVms.length} discovered VMs`);
 
     const vmsByServer = new Map<
@@ -46,6 +50,9 @@ export class SaveDiscoveredVmsUseCase {
       failedCount: 0,
       savedVms: [],
       errors: [],
+      created: 0,
+      updated: 0,
+      changes: 0,
     };
 
     for (const [_, serverVms] of vmsByServer.entries()) {
@@ -68,6 +75,27 @@ export class SaveDiscoveredVmsUseCase {
               existingVm.esxiHostMoid !== discoveredVm.esxiHostMoid;
 
             if (hasChanges) {
+              const changes: string[] = [];
+              
+              if (existingVm.name !== discoveredVm.name) {
+                changes.push(`name: ${existingVm.name} → ${discoveredVm.name}`);
+              }
+              if (existingVm.state !== (discoveredVm.powerState ?? 'unknown')) {
+                changes.push(`state: ${existingVm.state} → ${discoveredVm.powerState}`);
+              }
+              if (existingVm.ip !== discoveredVm.ip) {
+                changes.push(`ip: ${existingVm.ip || 'none'} → ${discoveredVm.ip || 'none'}`);
+              }
+              if (existingVm.numCPU !== discoveredVm.numCpu) {
+                changes.push(`cpu: ${existingVm.numCPU} → ${discoveredVm.numCpu}`);
+              }
+              if (existingVm.esxiHostMoid !== discoveredVm.esxiHostMoid) {
+                changes.push(`host: ${existingVm.esxiHostMoid || 'none'} → ${discoveredVm.esxiHostMoid || 'none'}`);
+                this.logger.log(
+                  `VM ${discoveredVm.name} migrated from host ${existingVm.esxiHostMoid} to ${discoveredVm.esxiHostMoid}`,
+                );
+              }
+
               existingVm.name = discoveredVm.name;
               existingVm.state = discoveredVm.powerState ?? 'unknown';
               existingVm.ip = discoveredVm.ip || existingVm.ip;
@@ -75,13 +103,16 @@ export class SaveDiscoveredVmsUseCase {
               existingVm.numCPU = discoveredVm.numCpu || existingVm.numCPU;
               existingVm.esxiHostMoid =
                 discoveredVm.esxiHostMoid || existingVm.esxiHostMoid;
+              existingVm.lastSyncAt = new Date();
 
               const updatedVm = await this.vmRepository.save(existingVm);
               result.savedVms.push(updatedVm);
               result.savedCount++;
+              result.updated++;
+              result.changes++;
 
-              this.logger.debug(
-                `Updated existing VM ${discoveredVm.name} (moid: ${discoveredVm.moid})`,
+              this.logger.log(
+                `Updated VM ${discoveredVm.name} (${discoveredVm.moid}) - Changes: ${changes.join(', ')}`,
               );
             } else {
               this.logger.debug(
@@ -106,13 +137,16 @@ export class SaveDiscoveredVmsUseCase {
           };
 
           const vmEntity = this.vmDomainService.createVmEntity(vmCreationDto);
+          vmEntity.lastSyncAt = new Date();
           const savedVm = await this.vmRepository.save(vmEntity);
 
           result.savedVms.push(savedVm);
           result.savedCount++;
+          result.created++;
+          result.changes++;
 
-          this.logger.debug(
-            `Successfully saved VM ${discoveredVm.name} (id: ${savedVm.id})`,
+          this.logger.log(
+            `Created new VM ${discoveredVm.name} on ESXi host ${discoveredVm.esxiHostMoid || 'unknown'} with priority ${priority}`,
           );
         } catch (error) {
           const errorMessage =
@@ -132,7 +166,8 @@ export class SaveDiscoveredVmsUseCase {
     }
 
     this.logger.log(
-      `VM save operation completed: ${result.savedCount} saved, ${result.failedCount} failed`,
+      `VM sync completed: ${result.created} created, ${result.updated} updated, ` +
+      `${result.failedCount} failed, ${result.changes} total changes`,
     );
 
     return result;
