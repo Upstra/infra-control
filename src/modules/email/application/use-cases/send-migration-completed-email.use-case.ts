@@ -30,11 +30,13 @@ export class SendMigrationCompletedEmailUseCase {
         totalVms: migrationEvent.affectedVms.length,
         successfulVms: migrationEvent.successfulVms.length,
         failedVms: migrationEvent.failedVms.length,
-        affectedVms: migrationEvent.affectedVms.map(vm => ({
+        affectedVms: migrationEvent.affectedVms.map((vm) => ({
           name: vm.name || vm.moid,
           sourceHost: this.getSourceHost(vm, migrationEvent),
           targetHost: this.getTargetHost(vm, migrationEvent),
-          status: migrationEvent.successfulVms.includes(vm.moid) ? 'success' : 'failed',
+          status: migrationEvent.successfulVms.includes(vm.moid)
+            ? 'success'
+            : 'failed',
         })),
         events: this.formatEvents(migrationEvent.events),
         completedAt: new Date().toLocaleString('fr-FR', {
@@ -62,22 +64,22 @@ export class SendMigrationCompletedEmailUseCase {
 
   private getSourceHost(vm: any, event: MigrationCompletedEvent): string {
     const migrationEvent = event.events.find(
-      e => e.type === 'vm_migration' && e.vmMoid === vm.moid
+      (e) => e.type === 'vm_migration' && e.vmMoid === vm.moid,
     );
     return migrationEvent?.sourceMoid || vm.sourceServer || 'N/A';
   }
 
   private getTargetHost(vm: any, event: MigrationCompletedEvent): string {
     const migrationEvent = event.events.find(
-      e => e.type === 'vm_migration' && e.vmMoid === vm.moid
+      (e) => e.type === 'vm_migration' && e.vmMoid === vm.moid,
     );
     return migrationEvent?.destinationMoid || vm.destinationServer || 'N/A';
   }
 
   private formatEvents(events: any[]): any[] {
     return events
-      .filter(e => e.type !== 'grace_period')
-      .map(event => ({
+      .filter((e) => e.type !== 'grace_period')
+      .map((event) => ({
         type: this.getEventTypeLabel(event.type),
         message: event.message,
         timestamp: new Date(event.timestamp).toLocaleTimeString('fr-FR'),

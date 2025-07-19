@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { User } from '../../domain/entities/user.entity';
 import {
   FindOneByFieldOptions,

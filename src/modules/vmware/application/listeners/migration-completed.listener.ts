@@ -208,7 +208,7 @@ export class MigrationCompletedListener {
 
     try {
       const adminUsers = await this.userRepository.findAdminUsers();
-      
+
       if (adminUsers.length === 0) {
         this.logger.warn('No admin users found for migration notifications');
         return;
@@ -224,10 +224,7 @@ export class MigrationCompletedListener {
           });
           this.logger.log(`Email sent successfully to ${admin.email}`);
         } catch (error) {
-          this.logger.error(
-            `Failed to send email to ${admin.email}:`,
-            error,
-          );
+          this.logger.error(`Failed to send email to ${admin.email}:`, error);
         }
       });
 

@@ -139,8 +139,9 @@ export class VmwareDiscoveryService {
       this.logger.log(`Discovered ${allDiscoveredVms.length} VMs to save:`);
 
       try {
-        const saveResult =
-          await this.saveDiscoveredVmsUseCase.execute(allDiscoveredVms);
+        const saveResult = await this.saveDiscoveredVmsUseCase.execute({
+          vms: allDiscoveredVms,
+        });
         this.logger.log(
           `Saved ${saveResult.savedCount} VMs to database (${saveResult.failedCount} failed)`,
         );
@@ -370,8 +371,9 @@ export class VmwareDiscoveryService {
           `Saving ${discoveredVms.length} discovered VMs to database...`,
         );
 
-        const saveResult =
-          await this.saveDiscoveredVmsUseCase.execute(discoveredVms);
+        const saveResult = await this.saveDiscoveredVmsUseCase.execute({
+          vms: discoveredVms,
+        });
         this.logger.log(
           `Saved ${saveResult.savedCount} VMs to database (${saveResult.failedCount} failed)`,
         );

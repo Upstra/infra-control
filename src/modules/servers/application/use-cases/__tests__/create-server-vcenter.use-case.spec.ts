@@ -13,7 +13,6 @@ import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 import { mockRoom } from '@/modules/rooms/__mocks__/room.mock';
 import { BadRequestException } from '@nestjs/common';
 import { DuplicateServerPriorityException } from '@/modules/servers/domain/exceptions/duplicate-priority.exception';
-import { RequestContextDto } from '@/core/dto';
 
 describe('CreateServerUseCase - vCenter validation', () => {
   let useCase: CreateServerUseCase;
@@ -91,7 +90,7 @@ describe('CreateServerUseCase - vCenter validation', () => {
 
       const testRoom = mockRoom({ id: dto.roomId, name: 'Test Room' });
       roomRepo.findRoomById.mockResolvedValue(testRoom);
-      repo.save.mockResolvedValue({ 
+      repo.save.mockResolvedValue({
         id: '123',
         ...dto,
         priority: null,
@@ -115,7 +114,7 @@ describe('CreateServerUseCase - vCenter validation', () => {
 
       const testRoom = mockRoom({ id: dto.roomId, name: 'Test Room' });
       roomRepo.findRoomById.mockResolvedValue(testRoom);
-      repo.save.mockResolvedValue({ 
+      repo.save.mockResolvedValue({
         id: '123',
         ...dto,
         room: testRoom,
@@ -143,7 +142,9 @@ describe('CreateServerUseCase - vCenter validation', () => {
       roomRepo.findRoomById.mockResolvedValue(mockRoom());
 
       await expect(useCase.execute(dto, mockPayload.userId)).rejects.toThrow(
-        new BadRequestException('vCenter servers should not have iLO configuration'),
+        new BadRequestException(
+          'vCenter servers should not have iLO configuration',
+        ),
       );
     });
 
@@ -179,7 +180,9 @@ describe('CreateServerUseCase - vCenter validation', () => {
       repo.findOneByField.mockResolvedValue(null);
 
       await expect(useCase.execute(dto, mockPayload.userId)).rejects.toThrow(
-        new BadRequestException('iLO configuration is required for ESXi servers'),
+        new BadRequestException(
+          'iLO configuration is required for ESXi servers',
+        ),
       );
     });
   });

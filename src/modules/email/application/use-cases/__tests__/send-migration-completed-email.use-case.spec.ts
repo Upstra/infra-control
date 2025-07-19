@@ -81,7 +81,7 @@ describe('SendMigrationCompletedEmailUseCase', () => {
 
       expect(mockMailService.send).toHaveBeenCalledTimes(1);
       const callArgs = mockMailService.send.mock.calls[0][0];
-      
+
       expect(callArgs.to).toBeInstanceOf(EmailAddressVO);
       expect(callArgs.to.value).toBe(mockAdmin.email);
       expect(callArgs.template).toBe('migration-completed');
@@ -115,7 +115,7 @@ describe('SendMigrationCompletedEmailUseCase', () => {
 
       expect(mockMailService.send).toHaveBeenCalledTimes(1);
       const callArgs = mockMailService.send.mock.calls[0][0];
-      
+
       expect(callArgs.subject).toContain('Migration terminée avec erreurs');
       expect(callArgs.context.totalVms).toBe(2);
       expect(callArgs.context.successfulVms).toBe(1);
@@ -193,7 +193,7 @@ describe('SendMigrationCompletedEmailUseCase', () => {
 
       const callArgs = mockMailService.send.mock.calls[0][0];
       const vmDetails = callArgs.context.affectedVms[0];
-      
+
       expect(vmDetails.name).toBe('VM-Test-1');
       expect(vmDetails.sourceHost).toBe('host-1');
       expect(vmDetails.targetHost).toBe('host-2');
@@ -230,18 +230,24 @@ describe('SendMigrationCompletedEmailUseCase', () => {
 
       const callArgs = mockMailService.send.mock.calls[0][0];
       const events = callArgs.context.events;
-      
+
       expect(events.length).toBe(2);
-      expect(events.find((e: any) => e.type === 'grace_period')).toBeUndefined();
+      expect(
+        events.find((e: any) => e.type === 'grace_period'),
+      ).toBeUndefined();
     });
 
     it('should limit events to last 10', async () => {
-      const manyEvents = Array.from({ length: 15 }, (_, i) => ({
-        type: 'vm_migration' as const,
-        message: `Event ${i + 1}`,
-        timestamp: new Date().toISOString(),
-        success: true,
-      } as MigrationEvent));
+      const manyEvents = Array.from(
+        { length: 15 },
+        (_, i) =>
+          ({
+            type: 'vm_migration' as const,
+            message: `Event ${i + 1}`,
+            timestamp: new Date().toISOString(),
+            success: true,
+          }) as MigrationEvent,
+      );
 
       const migrationEvent: MigrationCompletedEvent = {
         ...baseMigrationEvent,
@@ -272,13 +278,16 @@ describe('SendMigrationCompletedEmailUseCase', () => {
 
       const callArgs = mockMailService.send.mock.calls[0][0];
       const vmDetails = callArgs.context.affectedVms[0];
-      
+
       expect(vmDetails.sourceHost).toBe('host-1');
       expect(vmDetails.targetHost).toBe('N/A');
     });
 
     it('should include formatted completion time', async () => {
-      await useCase.execute({ admin: mockAdmin, migrationEvent: baseMigrationEvent });
+      await useCase.execute({
+        admin: mockAdmin,
+        migrationEvent: baseMigrationEvent,
+      });
 
       const callArgs = mockMailService.send.mock.calls[0][0];
       expect(callArgs.context.completedAt).toBeDefined();

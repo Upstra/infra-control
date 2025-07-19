@@ -25,9 +25,10 @@ export class SaveDiscoveredVmsUseCase {
     private readonly vmDomainService: VmDomainService,
   ) {}
 
-  async execute(
-    dto: { vms: DiscoveredVmDto[]; serverId?: string },
-  ): Promise<SaveDiscoveredVmsResult> {
+  async execute(dto: {
+    vms: DiscoveredVmDto[];
+    serverId?: string;
+  }): Promise<SaveDiscoveredVmsResult> {
     const discoveredVms = dto.vms;
     this.logger.log(`Saving ${discoveredVms.length} discovered VMs`);
 
@@ -76,21 +77,29 @@ export class SaveDiscoveredVmsUseCase {
 
             if (hasChanges) {
               const changes: string[] = [];
-              
+
               if (existingVm.name !== discoveredVm.name) {
                 changes.push(`name: ${existingVm.name} → ${discoveredVm.name}`);
               }
               if (existingVm.state !== (discoveredVm.powerState ?? 'unknown')) {
-                changes.push(`state: ${existingVm.state} → ${discoveredVm.powerState}`);
+                changes.push(
+                  `state: ${existingVm.state} → ${discoveredVm.powerState}`,
+                );
               }
               if (existingVm.ip !== discoveredVm.ip) {
-                changes.push(`ip: ${existingVm.ip || 'none'} → ${discoveredVm.ip || 'none'}`);
+                changes.push(
+                  `ip: ${existingVm.ip || 'none'} → ${discoveredVm.ip || 'none'}`,
+                );
               }
               if (existingVm.numCPU !== discoveredVm.numCpu) {
-                changes.push(`cpu: ${existingVm.numCPU} → ${discoveredVm.numCpu}`);
+                changes.push(
+                  `cpu: ${existingVm.numCPU} → ${discoveredVm.numCpu}`,
+                );
               }
               if (existingVm.esxiHostMoid !== discoveredVm.esxiHostMoid) {
-                changes.push(`host: ${existingVm.esxiHostMoid || 'none'} → ${discoveredVm.esxiHostMoid || 'none'}`);
+                changes.push(
+                  `host: ${existingVm.esxiHostMoid || 'none'} → ${discoveredVm.esxiHostMoid || 'none'}`,
+                );
                 this.logger.log(
                   `VM ${discoveredVm.name} migrated from host ${existingVm.esxiHostMoid} to ${discoveredVm.esxiHostMoid}`,
                 );
@@ -167,7 +176,7 @@ export class SaveDiscoveredVmsUseCase {
 
     this.logger.log(
       `VM sync completed: ${result.created} created, ${result.updated} updated, ` +
-      `${result.failedCount} failed, ${result.changes} total changes`,
+        `${result.failedCount} failed, ${result.changes} total changes`,
     );
 
     return result;

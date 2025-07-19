@@ -42,6 +42,8 @@ describe('SaveDiscoveredVmsUseCase', () => {
     const mockVmRepository = {
       findOneByField: jest.fn(),
       save: jest.fn(),
+      findAll: jest.fn(),
+      findOne: jest.fn(),
     };
 
     const mockVmDomainService = {
@@ -74,10 +76,12 @@ describe('SaveDiscoveredVmsUseCase', () => {
   describe('execute', () => {
     it('should save new VMs successfully', async () => {
       vmRepository.findOneByField.mockResolvedValue(null);
+      vmRepository.findAll.mockResolvedValue([]);
+      vmRepository.findOne.mockResolvedValue(null);
       vmDomainService.createVmEntity.mockReturnValue(mockVm);
       vmRepository.save.mockResolvedValue(mockVm);
 
-      const result = await useCase.execute([mockDiscoveredVm]);
+      const result = await useCase.execute({ vms: [mockDiscoveredVm] });
 
       expect(result.savedCount).toBe(1);
       expect(result.failedCount).toBe(0);
@@ -85,16 +89,18 @@ describe('SaveDiscoveredVmsUseCase', () => {
       expect(result.savedVms[0]).toEqual(mockVm);
       expect(result.errors).toHaveLength(0);
 
-      expect(vmRepository.findOneByField).toHaveBeenCalledWith({
-        field: 'moid',
-        value: mockDiscoveredVm.moid,
+      expect(vmRepository.findOne).toHaveBeenCalledWith({
+        where: {
+          moid: mockDiscoveredVm.moid,
+          serverId: mockDiscoveredVm.serverId,
+        },
       });
       expect(vmDomainService.createVmEntity).toHaveBeenCalledWith({
         name: mockDiscoveredVm.name,
         state: mockDiscoveredVm.powerState,
         grace_period_on: 0,
         grace_period_off: 0,
-        priority: 100,
+        priority: 1,
         serverId: mockDiscoveredVm.serverId,
         moid: mockDiscoveredVm.moid,
         ip: mockDiscoveredVm.ip,
@@ -102,22 +108,47 @@ describe('SaveDiscoveredVmsUseCase', () => {
         numCPU: mockDiscoveredVm.numCpu,
         esxiHostMoid: mockDiscoveredVm.esxiHostMoid,
       });
-      expect(vmRepository.save).toHaveBeenCalledWith(mockVm);
+      expect(vmRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: mockDiscoveredVm.name,
+          state: mockDiscoveredVm.powerState,
+          serverId: mockDiscoveredVm.serverId,
+          moid: mockDiscoveredVm.moid,
+          ip: mockDiscoveredVm.ip,
+          guestOs: mockDiscoveredVm.guestOs,
+          numCPU: mockDiscoveredVm.numCpu,
+          esxiHostMoid: mockDiscoveredVm.esxiHostMoid,
+        }),
+      );
     });
 
-    it('should skip existing VMs', async () => {
-      vmRepository.findOneByField.mockResolvedValue(mockVm);
+    it('should skip existing VMs with no changes', async () => {
+      const existingVmWithSameValues = {
+        ...mockVm,
+        name: mockDiscoveredVm.name,
+        state: mockDiscoveredVm.powerState,
+        ip: mockDiscoveredVm.ip,
+        guestOs: mockDiscoveredVm.guestOs,
+        numCPU: mockDiscoveredVm.numCpu,
+        esxiHostMoid: mockDiscoveredVm.esxiHostMoid,
+      } as Vm;
 
-      const result = await useCase.execute([mockDiscoveredVm]);
+      vmRepository.findOneByField.mockResolvedValue(existingVmWithSameValues);
+      vmRepository.findAll.mockResolvedValue([]);
+      vmRepository.findOne.mockResolvedValue(existingVmWithSameValues);
+
+      const result = await useCase.execute({ vms: [mockDiscoveredVm] });
 
       expect(result.savedCount).toBe(0);
       expect(result.failedCount).toBe(0);
       expect(result.savedVms).toHaveLength(0);
       expect(result.errors).toHaveLength(0);
 
-      expect(vmRepository.findOneByField).toHaveBeenCalledWith({
-        field: 'moid',
-        value: mockDiscoveredVm.moid,
+      expect(vmRepository.findOne).toHaveBeenCalledWith({
+        where: {
+          moid: mockDiscoveredVm.moid,
+          serverId: mockDiscoveredVm.serverId,
+        },
       });
       expect(vmDomainService.createVmEntity).not.toHaveBeenCalled();
       expect(vmRepository.save).not.toHaveBeenCalled();
@@ -132,6 +163,8 @@ describe('SaveDiscoveredVmsUseCase', () => {
       };
 
       vmRepository.findOneByField.mockResolvedValue(null);
+      vmRepository.findAll.mockResolvedValue([]);
+      vmRepository.findOne.mockResolvedValue(null);
       vmDomainService.createVmEntity.mockReturnValue({
         ...mockVm,
         id: 'vm-2',
@@ -147,7 +180,7 @@ describe('SaveDiscoveredVmsUseCase', () => {
         state: 'unknown',
       } as Vm);
 
-      const result = await useCase.execute([minimalDiscoveredVm]);
+      const result = await useCase.execute({ vms: [minimalDiscoveredVm] });
 
       expect(result.savedCount).toBe(1);
       expect(result.failedCount).toBe(0);
@@ -157,7 +190,7 @@ describe('SaveDiscoveredVmsUseCase', () => {
         state: 'unknown',
         grace_period_on: 0,
         grace_period_off: 0,
-        priority: 100,
+        priority: 1,
         serverId: 'server-2',
         moid: 'vm-456',
         ip: undefined,
@@ -170,10 +203,12 @@ describe('SaveDiscoveredVmsUseCase', () => {
     it('should handle save errors gracefully', async () => {
       const errorMessage = 'Database error';
       vmRepository.findOneByField.mockResolvedValue(null);
+      vmRepository.findAll.mockResolvedValue([]);
+      vmRepository.findOne.mockResolvedValue(null);
       vmDomainService.createVmEntity.mockReturnValue(mockVm);
       vmRepository.save.mockRejectedValue(new Error(errorMessage));
 
-      const result = await useCase.execute([mockDiscoveredVm]);
+      const result = await useCase.execute({ vms: [mockDiscoveredVm] });
 
       expect(result.savedCount).toBe(0);
       expect(result.failedCount).toBe(1);
@@ -202,9 +237,25 @@ describe('SaveDiscoveredVmsUseCase', () => {
         name: 'VM 3',
       };
 
+      const existingVm2WithSameValues = {
+        ...mockVm,
+        id: 'vm-2',
+        name: 'VM 2',
+        state: vm2.powerState,
+        ip: vm2.ip,
+        guestOs: vm2.guestOs,
+        numCPU: vm2.numCpu,
+        esxiHostMoid: vm2.esxiHostMoid,
+      } as Vm;
+
       vmRepository.findOneByField
         .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(mockVm)
+        .mockResolvedValueOnce(existingVm2WithSameValues)
+        .mockResolvedValueOnce(null);
+      vmRepository.findAll.mockResolvedValue([]);
+      vmRepository.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(existingVm2WithSameValues)
         .mockResolvedValueOnce(null);
 
       vmDomainService.createVmEntity
@@ -215,7 +266,7 @@ describe('SaveDiscoveredVmsUseCase', () => {
         .mockResolvedValueOnce({ ...mockVm, id: 'vm-1', name: 'VM 1' } as Vm)
         .mockRejectedValueOnce(new Error('Save failed'));
 
-      const result = await useCase.execute([vm1, vm2, vm3]);
+      const result = await useCase.execute({ vms: [vm1, vm2, vm3] });
 
       expect(result.savedCount).toBe(1);
       expect(result.failedCount).toBe(1);
@@ -229,7 +280,7 @@ describe('SaveDiscoveredVmsUseCase', () => {
     });
 
     it('should handle empty input array', async () => {
-      const result = await useCase.execute([]);
+      const result = await useCase.execute({ vms: [] });
 
       expect(result.savedCount).toBe(0);
       expect(result.failedCount).toBe(0);

@@ -127,7 +127,9 @@ describe('MigrationCompletedListener', () => {
 
       expect(mockVmwareService.listVMs).not.toHaveBeenCalled();
       expect(mockUserRepository.findAdminUsers).toHaveBeenCalled();
-      expect(mockSendMigrationCompletedEmailUseCase.execute).toHaveBeenCalledTimes(2);
+      expect(
+        mockSendMigrationCompletedEmailUseCase.execute,
+      ).toHaveBeenCalledTimes(2);
     });
 
     it('should skip VM updates when no successful VMs', async () => {
@@ -190,7 +192,9 @@ describe('MigrationCompletedListener', () => {
         esxiHostMoid: 'host-2',
       });
       expect(mockUserRepository.findAdminUsers).toHaveBeenCalled();
-      expect(mockSendMigrationCompletedEmailUseCase.execute).toHaveBeenCalledTimes(2);
+      expect(
+        mockSendMigrationCompletedEmailUseCase.execute,
+      ).toHaveBeenCalledTimes(2);
     });
 
     it('should handle VM update failures gracefully', async () => {
@@ -205,20 +209,28 @@ describe('MigrationCompletedListener', () => {
       await listener.handleMigrationCompleted(event);
 
       expect(mockUserRepository.findAdminUsers).toHaveBeenCalled();
-      expect(mockSendMigrationCompletedEmailUseCase.execute).toHaveBeenCalledTimes(2);
+      expect(
+        mockSendMigrationCompletedEmailUseCase.execute,
+      ).toHaveBeenCalledTimes(2);
     });
 
     it('should send emails to all admin users', async () => {
       await listener.handleMigrationCompleted(baseMigrationEvent);
 
       expect(mockUserRepository.findAdminUsers).toHaveBeenCalled();
-      expect(mockSendMigrationCompletedEmailUseCase.execute).toHaveBeenCalledTimes(2);
-      
-      expect(mockSendMigrationCompletedEmailUseCase.execute).toHaveBeenCalledWith({
+      expect(
+        mockSendMigrationCompletedEmailUseCase.execute,
+      ).toHaveBeenCalledTimes(2);
+
+      expect(
+        mockSendMigrationCompletedEmailUseCase.execute,
+      ).toHaveBeenCalledWith({
         admin: mockAdminUsers[0],
         migrationEvent: baseMigrationEvent,
       });
-      expect(mockSendMigrationCompletedEmailUseCase.execute).toHaveBeenCalledWith({
+      expect(
+        mockSendMigrationCompletedEmailUseCase.execute,
+      ).toHaveBeenCalledWith({
         admin: mockAdminUsers[1],
         migrationEvent: baseMigrationEvent,
       });
@@ -231,7 +243,9 @@ describe('MigrationCompletedListener', () => {
 
       await listener.handleMigrationCompleted(baseMigrationEvent);
 
-      expect(mockSendMigrationCompletedEmailUseCase.execute).toHaveBeenCalledTimes(2);
+      expect(
+        mockSendMigrationCompletedEmailUseCase.execute,
+      ).toHaveBeenCalledTimes(2);
     });
 
     it('should handle when no admin users found', async () => {
@@ -240,21 +254,29 @@ describe('MigrationCompletedListener', () => {
       await listener.handleMigrationCompleted(baseMigrationEvent);
 
       expect(mockUserRepository.findAdminUsers).toHaveBeenCalled();
-      expect(mockSendMigrationCompletedEmailUseCase.execute).not.toHaveBeenCalled();
+      expect(
+        mockSendMigrationCompletedEmailUseCase.execute,
+      ).not.toHaveBeenCalled();
     });
 
     it('should handle user repository errors gracefully', async () => {
-      mockUserRepository.findAdminUsers.mockRejectedValue(new Error('DB Error'));
+      mockUserRepository.findAdminUsers.mockRejectedValue(
+        new Error('DB Error'),
+      );
 
       await listener.handleMigrationCompleted(baseMigrationEvent);
 
-      expect(mockSendMigrationCompletedEmailUseCase.execute).not.toHaveBeenCalled();
+      expect(
+        mockSendMigrationCompletedEmailUseCase.execute,
+      ).not.toHaveBeenCalled();
     });
 
     it('should handle vCenter connection failures', async () => {
-      mockVmwareConnectionService.buildVmwareConnection.mockImplementation(() => {
-        throw new Error('Connection failed');
-      });
+      mockVmwareConnectionService.buildVmwareConnection.mockImplementation(
+        () => {
+          throw new Error('Connection failed');
+        },
+      );
 
       const event: MigrationCompletedEvent = {
         ...baseMigrationEvent,

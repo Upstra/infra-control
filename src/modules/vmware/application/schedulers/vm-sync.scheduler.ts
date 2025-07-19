@@ -1,10 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
-import { StartVMDiscoveryUseCase } from '../use-cases/start-vm-discovery.use-case';
 import { SaveDiscoveredVmsUseCase } from '../use-cases/save-discovered-vms.use-case';
 import { VmwareDiscoveryService } from '../../domain/services/vmware-discovery.service';
-import { ServerRepository } from '@/modules/servers/infrastructure/repositories/server.repository';
+import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 
 @Injectable()
 export class VmSyncScheduler {
@@ -13,15 +12,16 @@ export class VmSyncScheduler {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly serverRepository: ServerRepository,
+    @Inject('ServerRepositoryInterface')
+    private readonly serverRepository: ServerRepositoryInterface,
     private readonly vmwareDiscoveryService: VmwareDiscoveryService,
     private readonly saveDiscoveredVmsUseCase: SaveDiscoveredVmsUseCase,
   ) {}
 
-  @Cron('0 */30 * * * *') // Every 30 minutes
+  @Cron('0 */30 * * * *')
   async syncVMs() {
     const isEnabled = this.configService.get<boolean>('VM_SYNC_ENABLED', true);
-    
+
     if (!isEnabled) {
       return;
     }
@@ -37,7 +37,6 @@ export class VmSyncScheduler {
     try {
       this.logger.log('Starting scheduled VM synchronization');
 
-      // Get vCenter server only - it provides all VMs from all ESXi hosts
       const vCenterServer = await this.serverRepository.findOneByField({
         field: 'type',
         value: 'vcenter',
@@ -49,11 +48,15 @@ export class VmSyncScheduler {
       }
 
       if (vCenterServer.state !== 'UP') {
-        this.logger.warn(`vCenter server ${vCenterServer.name} is not active (state: ${vCenterServer.state})`);
+        this.logger.warn(
+          `vCenter server ${vCenterServer.name} is not active (state: ${vCenterServer.state})`,
+        );
         return;
       }
 
-      this.logger.log(`Starting VM sync from vCenter: ${vCenterServer.name} (${vCenterServer.ip})`);
+      this.logger.log(
+        `Starting VM sync from vCenter: ${vCenterServer.name} (${vCenterServer.ip})`,
+      );
 
       let totalVMsDiscovered = 0;
       let totalChangesDetected = 0;
@@ -61,19 +64,17 @@ export class VmSyncScheduler {
 
       try {
         this.logger.log('Discovering all VMs from vCenter...');
-        
-        const discoveredVms = await this.vmwareDiscoveryService.discoverVmsFromServer(
-          vCenterServer.id,
-          vCenterServer.name,
-          vCenterServer.ip,
-          vCenterServer.login,
-          vCenterServer.password,
-        );
+
+        const discoveryResult =
+          await this.vmwareDiscoveryService.discoverVmsFromServer(
+            vCenterServer,
+          );
+
+        const discoveredVms = discoveryResult.vms || [];
 
         if (discoveredVms && discoveredVms.length > 0) {
-          // Group VMs by their ESXi host
           const vmsByHost = new Map<string, number>();
-          discoveredVms.forEach(vm => {
+          discoveredVms.forEach((vm) => {
             const host = vm.esxiHostMoid || 'unknown';
             vmsByHost.set(host, (vmsByHost.get(host) || 0) + 1);
           });
@@ -92,10 +93,9 @@ export class VmSyncScheduler {
 
           this.logger.log(
             `VM sync results: ${result.created || 0} created, ${result.updated || 0} updated, ` +
-            `${totalChangesDetected} total changes`,
+              `${totalChangesDetected} total changes`,
           );
 
-          // Log host distribution
           vmsByHost.forEach((count, host) => {
             this.logger.debug(`ESXi host ${host}: ${count} VMs`);
           });
@@ -112,11 +112,11 @@ export class VmSyncScheduler {
       }
 
       const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-      
+
       this.logger.log(
         `VM sync completed in ${duration}s - ` +
-        `Total VMs: ${totalVMsDiscovered}, Changes: ${totalChangesDetected}, ` +
-        `Errors: ${errors.length}`,
+          `Total VMs: ${totalVMsDiscovered}, Changes: ${totalChangesDetected}, ` +
+          `Errors: ${errors.length}`,
       );
 
       if (errors.length > 0) {
@@ -149,12 +149,12 @@ export class VmSyncScheduler {
     }
 
     const startTime = Date.now();
-    
+
     try {
       await this.syncVMs();
-      
+
       const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-      
+
       return {
         success: true,
         message: 'VM synchronization completed successfully',

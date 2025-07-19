@@ -11,80 +11,104 @@ describe('ServerCreationDto - vCenter validation', () => {
   };
   describe('vCenter servers', () => {
     it('should pass validation without priority for vCenter', async () => {
-      const dto = Object.assign(new ServerCreationDto(), createMockServerCreationDto({
-        type: 'vcenter',
-        priority: undefined,
-        ilo: undefined,
-        ...validUUIDs,
-      }));
+      const dto = Object.assign(
+        new ServerCreationDto(),
+        createMockServerCreationDto({
+          type: 'vcenter',
+          priority: undefined,
+          ilo: undefined,
+          ...validUUIDs,
+        }),
+      );
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
     });
 
     it('should pass validation with priority for vCenter', async () => {
-      const dto = Object.assign(new ServerCreationDto(), createMockServerCreationDto({
-        type: 'vcenter',
-        priority: 10,
-        ilo: undefined,
-        ...validUUIDs,
-      }));
+      const dto = Object.assign(
+        new ServerCreationDto(),
+        createMockServerCreationDto({
+          type: 'vcenter',
+          priority: 10,
+          ilo: undefined,
+          ...validUUIDs,
+        }),
+      );
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
     });
 
     it('should fail validation with invalid priority for vCenter', async () => {
-      const dto = Object.assign(new ServerCreationDto(), createMockServerCreationDto({
-        type: 'vcenter',
-        priority: 1000,
-        ilo: undefined,
-        ...validUUIDs,
-      }));
+      const dto = Object.assign(
+        new ServerCreationDto(),
+        createMockServerCreationDto({
+          type: 'vcenter',
+          priority: 1000,
+          ilo: undefined,
+          ...validUUIDs,
+        }),
+      );
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(1);
       expect(errors[0].property).toBe('priority');
-      expect(errors[0].constraints?.isConditionalPriority).toContain('between 1 and 999');
+      expect(errors[0].constraints?.isConditionalPriority).toContain(
+        'between 1 and 999',
+      );
     });
   });
 
   describe('non-vCenter servers', () => {
     it('should fail validation without priority for ESXi', async () => {
-      const dto = Object.assign(new ServerCreationDto(), createMockServerCreationDto({
-        type: 'esxi',
-        priority: undefined,
-        ...validUUIDs,
-      }));
+      const dto = Object.assign(
+        new ServerCreationDto(),
+        createMockServerCreationDto({
+          type: 'esxi',
+          priority: undefined,
+          ...validUUIDs,
+        }),
+      );
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(1);
       expect(errors[0].property).toBe('priority');
-      expect(errors[0].constraints?.isConditionalPriority).toContain('required');
+      expect(errors[0].constraints?.isConditionalPriority).toContain(
+        'required',
+      );
     });
 
     it('should pass validation with valid priority for ESXi', async () => {
-      const dto = Object.assign(new ServerCreationDto(), createMockServerCreationDto({
-        type: 'esxi',
-        priority: 10,
-        ...validUUIDs,
-      }));
+      const dto = Object.assign(
+        new ServerCreationDto(),
+        createMockServerCreationDto({
+          type: 'esxi',
+          priority: 10,
+          ...validUUIDs,
+        }),
+      );
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
     });
 
     it('should fail validation without priority for vmware', async () => {
-      const dto = Object.assign(new ServerCreationDto(), createMockServerCreationDto({
-        type: 'vmware',
-        priority: undefined,
-        ...validUUIDs,
-      }));
+      const dto = Object.assign(
+        new ServerCreationDto(),
+        createMockServerCreationDto({
+          type: 'vmware',
+          priority: undefined,
+          ...validUUIDs,
+        }),
+      );
 
       const errors = await validate(dto);
       expect(errors).toHaveLength(1);
       expect(errors[0].property).toBe('priority');
-      expect(errors[0].constraints?.isConditionalPriority).toContain('required');
+      expect(errors[0].constraints?.isConditionalPriority).toContain(
+        'required',
+      );
     });
   });
 });

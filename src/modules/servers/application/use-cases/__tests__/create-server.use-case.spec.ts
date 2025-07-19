@@ -12,7 +12,11 @@ import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { GroupRepository } from '@/modules/groups/infrastructure/repositories/group.repository';
 import { UpsRepositoryInterface } from '@/modules/ups/domain/interfaces/ups.repository.interface';
 
-import { NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { mockRoom } from '@/modules/rooms/__mocks__/room.mock';
 import { createMockGroup } from '@/modules/groups/__mocks__/group.mock';
 import { RoomNotFoundException } from '@/modules/rooms/domain/exceptions/room.exception';

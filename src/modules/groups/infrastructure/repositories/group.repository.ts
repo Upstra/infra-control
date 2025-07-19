@@ -228,11 +228,44 @@ export class GroupRepository implements IGroupRepository {
         throw new Error(`Group with id ${id} not found`);
       }
 
-      if (group.servers?.length > 0 || group.vms?.length > 0) {
-        throw new Error('Cannot delete group with associated resources');
+      const dissociationErrors: string[] = [];
+
+      if (group.servers?.length > 0) {
+        try {
+          await manager
+            .createQueryBuilder()
+            .update('Server')
+            .set({ groupId: null })
+            .where('groupId = :groupId', { groupId: id })
+            .execute();
+        } catch (error) {
+          dissociationErrors.push(
+            `Failed to dissociate servers: ${error.message}`,
+          );
+        }
+      }
+
+      if (group.vms?.length > 0) {
+        try {
+          await manager
+            .createQueryBuilder()
+            .update('Vm')
+            .set({ groupId: null })
+            .where('groupId = :groupId', { groupId: id })
+            .execute();
+        } catch (error) {
+          dissociationErrors.push(`Failed to dissociate VMs: ${error.message}`);
+        }
       }
 
       await manager.delete(Group, id);
+
+      if (dissociationErrors.length > 0) {
+        console.warn(
+          `Group ${id} deleted but with dissociation warnings:`,
+          dissociationErrors,
+        );
+      }
     });
   }
 
