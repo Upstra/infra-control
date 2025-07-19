@@ -228,7 +228,6 @@ export class UserTypeormRepository
     });
   }
 
-  // Override findOneById to exclude soft-deleted users by default
   async findOneById(id: string): Promise<User | null> {
     return await this.findOne({
       where: { id, deletedAt: IsNull() } as any,
@@ -245,5 +244,14 @@ export class UserTypeormRepository
       .getOne();
 
     return result ? { isActive: result.isActive } : null;
+  }
+
+  async findAdminUsers(): Promise<User[]> {
+    return await this.createQueryBuilder('user')
+      .innerJoinAndSelect('user.roles', 'role')
+      .where('role.name IN (:...names)', { names: ['Admin', 'admin'] })
+      .andWhere('user.isActive = :isActive', { isActive: true })
+      .andWhere('user.deletedAt IS NULL')
+      .getMany();
   }
 }

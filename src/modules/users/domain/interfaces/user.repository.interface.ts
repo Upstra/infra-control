@@ -107,5 +107,12 @@ export interface UserRepositoryInterface
    * @returns Object with isActive status or null if user not found
    */
   getUserActiveStatus(userId: string): Promise<{ isActive: boolean } | null>;
+
+  /**
+   * Find all users with admin role.
+   *
+   * @returns Array of admin users
+   */
+  findAdminUsers(): Promise<User[]>;
 }
 export { FindOneByFieldOptions, FindAllByFieldOptions };
