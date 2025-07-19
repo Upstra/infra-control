@@ -23,11 +23,16 @@ describe('DeleteUserUseCase', () => {
     useCase = new DeleteUserUseCase(repo);
   });
 
-  it('should soft delete user if user exists', async () => {
+  it('should soft delete and anonymize user if user exists', async () => {
+    const timestamp = Date.now();
     const deletedUser = createMockUser({ 
       ...mockUser, 
       deletedAt: new Date(), 
-      isActive: false 
+      isActive: false,
+      email: `deleted_${timestamp}_${mockUser.id}@deleted.local`,
+      username: `deleted_${timestamp}_${mockUser.id}`,
+      firstName: 'Deleted',
+      lastName: 'User'
     });
     repo.findOneByField.mockResolvedValue(mockUser);
     repo.softDeleteUser.mockResolvedValue(deletedUser);

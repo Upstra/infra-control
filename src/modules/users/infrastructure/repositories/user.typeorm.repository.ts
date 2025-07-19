@@ -172,8 +172,18 @@ export class UserTypeormRepository
         throw new UserNotFoundException(id);
       }
 
+      const timestamp = Date.now();
       user.deletedAt = new Date();
       user.isActive = false;
+      user.email = `deleted_${timestamp}_${user.id}@deleted.local`;
+      user.username = `deleted_${timestamp}_${user.id}`;
+      user.firstName = 'Deleted';
+      user.lastName = 'User';
+      user.password = 'DELETED';
+      user.twoFactorSecret = null;
+      user.recoveryCodes = null;
+      user.resetPasswordToken = null;
+      user.resetPasswordExpiry = null;
 
       return await this.save(user);
     } catch (error) {

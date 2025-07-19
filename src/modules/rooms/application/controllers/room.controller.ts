@@ -34,6 +34,8 @@ import {
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { RoleGuard } from '@/core/guards';
+import { RequireRole } from '@/core/decorators/role.decorator';
 
 @ApiTags('Room')
 @Controller('room')
@@ -126,7 +128,8 @@ export class RoomController {
       'Crée une salle dans le système à partir des données du `RoomCreationDto`.',
   })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
   @ApiResponse({ status: 201, type: RoomResponseDto })
   async createRoom(
     @CurrentUser() user: JwtPayload,
@@ -175,7 +178,8 @@ export class RoomController {
     description: 'Supprime une salle du système de manière permanente.',
   })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
   @ApiResponse({ status: 204, description: 'Salle supprimée avec succès' })
   async deleteRoom(
     @Param('id', ParseUUIDPipe) id: string,

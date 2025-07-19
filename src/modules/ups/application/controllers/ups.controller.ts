@@ -113,7 +113,8 @@ export class UpsController {
       'Crée un nouvel UPS dans le système à partir des informations fournies.',
   })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
   @ApiResponse({ status: 201, type: UpsResponseDto })
   async createUps(
     @Body() upsDto: UpsCreationDto,
@@ -139,8 +140,9 @@ export class UpsController {
     description:
       'Met à jour les informations d’un UPS existant à partir de son UUID.',
   })
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @ApiResponse({ status: 200, type: UpsResponseDto })
   async updateUps(
     @Param('id', ParseUUIDPipe) id: string,
@@ -163,7 +165,8 @@ export class UpsController {
       'Supprime un UPS du système en utilisant son UUID. Action définitive.',
   })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
   @ApiResponse({ status: 204, description: 'UPS supprimé avec succès' })
   async deleteUps(
     @Param('id', ParseUUIDPipe) id: string,
