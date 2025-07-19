@@ -10,6 +10,8 @@ import {
   VmUpdateResponse,
   VmUpdateBatchResults,
 } from '../../domain/interfaces/vm-update.interface';
+import { UserRepositoryInterface } from '@/modules/users/domain/interfaces/user.repository.interface';
+import { SendMigrationCompletedEmailUseCase } from '@/modules/email/application/use-cases/send-migration-completed-email.use-case';
 
 @Injectable()
 export class MigrationCompletedListener {
@@ -22,6 +24,9 @@ export class MigrationCompletedListener {
     private readonly vmRepository: VmRepositoryInterface,
     @Inject('ServerRepositoryInterface')
     private readonly serverRepository: ServerRepositoryInterface,
+    @Inject('UserRepositoryInterface')
+    private readonly userRepository: UserRepositoryInterface,
+    private readonly sendMigrationCompletedEmailUseCase: SendMigrationCompletedEmailUseCase,
   ) {}
 
   @OnEvent('migration.completed', { async: true })
@@ -46,6 +51,12 @@ export class MigrationCompletedListener {
       await this.updateAllMigratedVms(event.successfulVms, event.userId);
     } catch (error) {
       this.logger.error('Failed to update migrated VMs:', error);
+    }
+
+    try {
+      await this.sendEmailNotifications(event);
+    } catch (error) {
+      this.logger.error('Failed to send email notifications:', error);
     }
   }
 
@@ -187,6 +198,43 @@ export class MigrationCompletedListener {
     } catch (error) {
       this.logger.error('Failed to get vCenter server:', error);
       return null;
+    }
+  }
+
+  private async sendEmailNotifications(
+    event: MigrationCompletedEvent,
+  ): Promise<void> {
+    this.logger.log('Sending email notifications to administrators');
+
+    try {
+      const adminUsers = await this.userRepository.findAdminUsers();
+      
+      if (adminUsers.length === 0) {
+        this.logger.warn('No admin users found for migration notifications');
+        return;
+      }
+
+      this.logger.log(`Found ${adminUsers.length} admin users to notify`);
+
+      const emailPromises = adminUsers.map(async (admin) => {
+        try {
+          await this.sendMigrationCompletedEmailUseCase.execute({
+            admin,
+            migrationEvent: event,
+          });
+          this.logger.log(`Email sent successfully to ${admin.email}`);
+        } catch (error) {
+          this.logger.error(
+            `Failed to send email to ${admin.email}:`,
+            error,
+          );
+        }
+      });
+
+      await Promise.all(emailPromises);
+      this.logger.log('All email notifications sent');
+    } catch (error) {
+      this.logger.error('Error retrieving admin users:', error);
     }
   }
 }

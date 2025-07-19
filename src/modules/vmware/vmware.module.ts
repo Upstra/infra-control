@@ -49,6 +49,7 @@ import { HistoryModule } from '@/modules/history/history.module';
 import { EmailModule } from '@/modules/email/email.module';
 import { UserModule } from '@/modules/users/user.module';
 import { EncryptionModule } from '@/core/services/encryption/encryption.module';
+import { SendMigrationCompletedEmailUseCase } from '@/modules/email/application/use-cases/send-migration-completed-email.use-case';
 
 @Module({
   imports: [
