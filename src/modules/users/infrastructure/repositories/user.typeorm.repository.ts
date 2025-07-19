@@ -258,4 +258,15 @@ export class UserTypeormRepository
       .andWhere('user.deletedAt IS NULL')
       .getMany();
   }
+
+  async findByIds(ids: string[]): Promise<User[]> {
+    if (!ids || ids.length === 0) {
+      return [];
+    }
+
+    return await this.createQueryBuilder('user')
+      .where('user.id IN (:...ids)', { ids })
+      .andWhere('user.deletedAt IS NULL')
+      .getMany();
+  }
 }

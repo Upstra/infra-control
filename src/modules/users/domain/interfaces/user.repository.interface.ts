@@ -114,5 +114,13 @@ export interface UserRepositoryInterface
    * @returns Array of admin users
    */
   findAdminUsers(): Promise<User[]>;
+
+  /**
+   * Find multiple users by their IDs.
+   *
+   * @param ids - Array of user IDs
+   * @returns Array of users found
+   */
+  findByIds(ids: string[]): Promise<User[]>;
 }
 export { FindOneByFieldOptions, FindAllByFieldOptions };
