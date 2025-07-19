@@ -13,7 +13,8 @@ export interface VmRepositoryInterface extends GenericRepositoryInterface<Vm> {
    *
    * @param page - page number starting at 1
    * @param limit - items per page
+   * @param serverId - optional server ID to filter by
    */
-  paginate(page: number, limit: number): Promise<[Vm[], number]>;
+  paginate(page: number, limit: number, serverId?: string): Promise<[Vm[], number]>;
   countByState(state: 'UP' | 'DOWN'): Promise<number>;
 }

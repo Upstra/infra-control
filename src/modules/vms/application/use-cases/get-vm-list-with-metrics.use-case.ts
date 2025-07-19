@@ -14,8 +14,9 @@ export class GetVmListWithMetricsUseCase {
     page: number,
     limit: number,
     includeMetrics: boolean,
+    serverId?: string,
   ): Promise<VmListResponseDto> {
-    const result = await this.getVmListUseCase.execute(page, limit);
+    const result = await this.getVmListUseCase.execute(page, limit, serverId);
 
     if (includeMetrics && result.items.length > 0) {
       const enrichedVms = await this.enrichVmsWithMetricsUseCase.execute(

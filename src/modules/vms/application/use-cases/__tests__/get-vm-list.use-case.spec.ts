@@ -17,7 +17,7 @@ describe('GetVmListUseCase', () => {
 
     const result = await useCase.execute(2, 5);
 
-    expect(repo.paginate).toHaveBeenCalledWith(2, 5);
+    expect(repo.paginate).toHaveBeenCalledWith(2, 5, undefined);
     expect(result.items).toHaveLength(1);
     expect(result.totalItems).toBe(1);
     expect(result.currentPage).toBe(2);
@@ -30,5 +30,16 @@ describe('GetVmListUseCase', () => {
 
     expect(result.items).toEqual([]);
     expect(result.totalItems).toBe(0);
+  });
+
+  it('should filter by serverId when provided', async () => {
+    const vms = [createMockVm({ id: 'vm-1', serverId: 'server-123' })];
+    repo.paginate.mockResolvedValue([vms, 1]);
+
+    const result = await useCase.execute(1, 10, 'server-123');
+
+    expect(repo.paginate).toHaveBeenCalledWith(1, 10, 'server-123');
+    expect(result.items).toHaveLength(1);
+    expect(result.totalItems).toBe(1);
   });
 });

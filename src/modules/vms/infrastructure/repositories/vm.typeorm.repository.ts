@@ -57,13 +57,18 @@ export class VmTypeormRepository
     }
   }
 
-  async paginate(page: number, limit: number): Promise<[Vm[], number]> {
-    return this.findAndCount({
-      relations: ['permissions'],
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { name: 'ASC' },
-    });
+  async paginate(page: number, limit: number, serverId?: string): Promise<[Vm[], number]> {
+    const queryBuilder = this.createQueryBuilder('vm')
+      .leftJoinAndSelect('vm.permissions', 'permissions')
+      .orderBy('vm.name', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    if (serverId) {
+      queryBuilder.where('vm.serverId = :serverId', { serverId });
+    }
+
+    return queryBuilder.getManyAndCount();
   }
 
   async findVmById(id: string): Promise<Vm> {

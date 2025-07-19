@@ -93,18 +93,21 @@ export class VmController implements VmEndpointInterface {
   @ApiBearerAuth()
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'serverId', required: false, type: String })
   @ApiQuery({ name: 'includeMetrics', required: false, type: Boolean })
   @ApiOperation({ summary: 'Lister les VMs paginées' })
   @ApiResponse({ status: 200, type: VmListResponseDto })
   async getVms(
     @Query('page') page = '1',
     @Query('limit') limit = '10',
+    @Query('serverId') serverId?: string,
     @Query('includeMetrics') includeMetrics = false,
   ): Promise<VmListResponseDto> {
     return this.getVmListWithMetricsUseCase.execute(
       Number(page),
       Number(limit),
       includeMetrics,
+      serverId,
     );
   }
 
