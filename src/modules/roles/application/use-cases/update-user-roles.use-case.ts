@@ -3,10 +3,14 @@ import { DataSource } from 'typeorm';
 import { User } from '@/modules/users/domain/entities/user.entity';
 import { Role } from '../../domain/entities/role.entity';
 import { UserResponseDto } from '@/modules/users/application/dto/user.response.dto';
-import { UserExceptions } from '@/modules/users/domain/exceptions/user.exception';
+import { CannotRemoveLastAdminException } from '@/modules/users/domain/exceptions/user.exception';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 import { RequestContextDto } from '@/core/dto';
-import { RoleExceptions } from '../../domain/exceptions/role.exception';
+import {
+  CannotRemoveGuestRoleException,
+  InvalidRoleUpdateException,
+  RoleNotFoundException,
+} from '../../domain/exceptions/role.exception';
 
 @Injectable()
 export class UpdateUserRolesUseCase {
@@ -32,7 +36,7 @@ export class UpdateUserRolesUseCase {
     requestContext?: RequestContextDto,
   ): Promise<UserResponseDto> {
     if (roleId !== undefined && roleIds !== undefined) {
-      throw RoleExceptions.cannotSpecifyBothRoleIdAndRoleIds();
+      throw new InvalidRoleUpdateException();
     }
 
     return this.dataSource.transaction(async (manager) => {
@@ -117,7 +121,7 @@ export class UpdateUserRolesUseCase {
 
     const roles = await roleRepo.findByIds(roleIds);
     if (roles.length !== roleIds.length) {
-      throw RoleExceptions.roleNotFound();
+      throw new RoleNotFoundException();
     }
 
     const currentUserIsAdmin = user.roles?.some((r) => r.isAdmin) ?? false;
@@ -132,7 +136,7 @@ export class UpdateUserRolesUseCase {
         .getCount();
 
       if (adminCount === 1) {
-        throw UserExceptions.cannotRemoveLastAdminRole();
+        throw new CannotRemoveLastAdminException();
       }
     }
 
@@ -164,11 +168,11 @@ export class UpdateUserRolesUseCase {
     userRepo: any,
   ): Promise<void> {
     if (role.name === 'GUEST' && user.roles.length === 1) {
-      throw RoleExceptions.cannotRemoveGuestRole();
+      throw new CannotRemoveGuestRoleException();
     }
 
     if (role.isAdmin && (await this.isLastAdmin(user, userRepo))) {
-      throw UserExceptions.cannotRemoveLastAdminRole();
+      throw new CannotRemoveLastAdminException();
     }
 
     user.roles = user.roles.filter((r) => r.id !== role.id);

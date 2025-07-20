@@ -1,12 +1,7 @@
-import {
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  IsUUID,
-} from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { IloCreationDto } from '../../../ilos/application/dto/ilo.creation.dto';
+import { IsConditionalPriority } from '../validators/conditional-priority.validator';
 
 /**
  * DTO utilisé pour la création d'un serveur.
@@ -30,26 +25,6 @@ export class ServerCreationDto {
   @IsNotEmpty()
   @IsString()
   readonly state!: string;
-
-  @ApiProperty({
-    description:
-      'Durée de la période de grâce lorsque le serveur est allumé (en secondes)',
-    example: 10,
-    required: true,
-  })
-  @IsNotEmpty()
-  @IsNumber()
-  readonly grace_period_on!: number;
-
-  @ApiProperty({
-    description:
-      'Durée de la période de grâce lorsque le serveur est éteint (en secondes)',
-    example: 10,
-    required: true,
-  })
-  @IsNotEmpty()
-  @IsNumber()
-  readonly grace_period_off!: number;
 
   @ApiProperty({
     description: 'URL d’administration du serveur',
@@ -88,8 +63,8 @@ export class ServerCreationDto {
   readonly password!: string;
 
   @ApiProperty({
-    description: 'Type de serveur (ex: physical, virtual, cloud, etc.)',
-    example: 'physical',
+    description: 'Type de serveur (ex: esxi, vcenter, etc.)',
+    example: 'esxi',
     required: true,
   })
   @IsNotEmpty()
@@ -98,13 +73,12 @@ export class ServerCreationDto {
 
   @ApiProperty({
     description:
-      'Priorité du serveur dans son groupe ou rack (plus c’est bas, plus la priorité est haute)',
+      "Priorité du serveur dans son groupe ou rack (plus c'est bas, plus la priorité est haute). Requis pour tous les serveurs sauf vCenter",
     example: 1,
-    required: true,
+    required: false,
   })
-  @IsNotEmpty()
-  @IsNumber()
-  readonly priority!: number;
+  @IsConditionalPriority()
+  readonly priority?: number;
 
   @ApiProperty({
     description: 'UUID de la salle où le serveur est localisé',
@@ -139,6 +113,6 @@ export class ServerCreationDto {
     type: () => IloCreationDto,
     required: false,
   })
-  @IsNotEmpty()
+  @IsOptional()
   ilo?: IloCreationDto;
 }

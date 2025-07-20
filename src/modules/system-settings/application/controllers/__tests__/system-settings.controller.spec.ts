@@ -7,9 +7,12 @@ import { TestEmailConfigurationUseCase } from '../../use-cases/test-email-config
 import { ExportSettingsUseCase } from '../../use-cases/export-settings.use-case';
 import { ImportSettingsUseCase } from '../../use-cases/import-settings.use-case';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { UpdateSystemSettingsDto } from '../../dto/update-system-settings.dto';
 import { TestEmailDto } from '../../dto/test-email.dto';
 import { ImportSettingsDto } from '../../dto/import-settings.dto';
+import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { RoleGuard } from '@/core/guards/role.guard';
 
 describe('SystemSettingsController', () => {
   let controller: SystemSettingsController;
@@ -20,10 +23,10 @@ describe('SystemSettingsController', () => {
   let exportSettingsUseCase: ExportSettingsUseCase;
   let importSettingsUseCase: ImportSettingsUseCase;
 
-  const mockUser: JwtPayload = {
+  const mockUser: JwtPayload = createMockJwtPayload({
     userId: 'user123',
     email: 'test@example.com',
-  };
+  });
 
   const mockSettings = {
     security: {
@@ -126,7 +129,12 @@ describe('SystemSettingsController', () => {
           },
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: jest.fn().mockReturnValue(true) })
+      .overrideGuard(RoleGuard)
+      .useValue({ canActivate: jest.fn().mockReturnValue(true) })
+      .compile();
 
     controller = module.get<SystemSettingsController>(SystemSettingsController);
     getSystemSettingsUseCase = module.get<GetSystemSettingsUseCase>(

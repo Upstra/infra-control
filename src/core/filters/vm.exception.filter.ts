@@ -1,9 +1,10 @@
 import {
-  VmCreationException,
-  VmDeletionException,
   VmNotFoundException,
-  VmRetrievalException,
+  VmCreationException,
   VmUpdateException,
+  VmDeletionException,
+  VmRetrievalException,
+  VmInvalidQueryException,
 } from '@/modules/vms/domain/exceptions/vm.exception';
 import {
   ExceptionFilter,
@@ -18,15 +19,28 @@ import {
   VmUpdateException,
   VmDeletionException,
   VmRetrievalException,
+  VmInvalidQueryException,
 )
 export class VmExceptionFilter implements ExceptionFilter {
   catch(exception: Error, host: ArgumentsHost) {
     const response = host.switchToHttp().getResponse();
 
-    const status =
-      exception instanceof VmNotFoundException
-        ? HttpStatus.NOT_FOUND
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+    let status: HttpStatus;
+    if (
+      exception instanceof VmNotFoundException ||
+      exception instanceof VmRetrievalException
+    ) {
+      status = HttpStatus.NOT_FOUND;
+    } else if (
+      exception instanceof VmCreationException ||
+      exception instanceof VmUpdateException ||
+      exception instanceof VmDeletionException ||
+      exception instanceof VmInvalidQueryException
+    ) {
+      status = HttpStatus.BAD_REQUEST;
+    } else {
+      status = HttpStatus.INTERNAL_SERVER_ERROR;
+    }
 
     response.status(status).json({
       statusCode: status,

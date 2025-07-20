@@ -15,6 +15,7 @@ import {
 
 import { User } from '@/modules/users/domain/entities/user.entity';
 import { UserTypeormRepository } from '@/modules/users/infrastructure/repositories/user.typeorm.repository';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 
 describe('ResourcePermissionGuard', () => {
   let guard: ResourcePermissionGuard;
@@ -25,10 +26,7 @@ describe('ResourcePermissionGuard', () => {
   let mockRequest: any;
   let mockStrategy: any;
 
-  const mockUser: JwtPayload = {
-    userId: 'user-123',
-    email: 'user@example.com',
-  };
+  const mockUser: JwtPayload = createMockJwtPayload();
 
   const mockMetadata: ResourcePermissionMetadata = {
     resourceType: 'server',

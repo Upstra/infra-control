@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UserController } from '../user.controller';
 import { ResetPasswordUseCase } from '../../use-cases';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { ResetPasswordDto } from '../../dto';
 import { UserResponseDto } from '../../dto/user.response.dto';
 import { RequestContextDto } from '@/core/dto';
@@ -30,10 +31,10 @@ describe('UserController - Reset Password', () => {
 
   const mockUser = createMockUser();
   const mockUserResponse = new UserResponseDto(mockUser);
-  const mockJwtPayload: JwtPayload = {
+  const mockJwtPayload: JwtPayload = createMockJwtPayload({
     userId: 'user-123',
     email: 'user@example.com',
-  };
+  });
 
   const mockRequest = {
     ip: '192.168.1.1',
@@ -221,10 +222,10 @@ describe('UserController - Reset Password', () => {
       const dto: ResetPasswordDto = {
         newPassword: 'NewSecurePassword123!',
       };
-      const adminPayload: JwtPayload = {
+      const adminPayload: JwtPayload = createMockJwtPayload({
         userId: 'admin-123',
         email: 'admin@example.com',
-      };
+      });
 
       resetPasswordUseCase.execute.mockResolvedValue(mockUserResponse);
 
@@ -252,10 +253,10 @@ describe('UserController - Reset Password', () => {
       const dto: ResetPasswordDto = {
         newPassword: 'NewSecurePassword123!',
       };
-      const adminPayload: JwtPayload = {
+      const adminPayload: JwtPayload = createMockJwtPayload({
         userId: 'admin-123',
         email: 'admin@example.com',
-      };
+      });
 
       const complexRequest = {
         ip: '10.0.0.1',
@@ -295,10 +296,10 @@ describe('UserController - Reset Password', () => {
       const dto: ResetPasswordDto = {
         newPassword: 'NewSecurePassword123!',
       };
-      const adminPayload: JwtPayload = {
+      const adminPayload: JwtPayload = createMockJwtPayload({
         userId: 'admin-123',
         email: 'admin@example.com',
-      };
+      });
 
       const requestWithSocketIp = {
         ip: undefined,

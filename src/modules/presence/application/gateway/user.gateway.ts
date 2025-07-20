@@ -9,8 +9,11 @@ import {
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { JwtNotValid } from '@/modules/auth/domain/exceptions/auth.exception';
+import { getWebSocketCorsOptions } from '@/core/config/cors.config';
 
-@WebSocketGateway({ cors: true })
+@WebSocketGateway({
+  cors: getWebSocketCorsOptions(),
+})
 export class UserGateway {
   @WebSocketServer()
   server: Server;

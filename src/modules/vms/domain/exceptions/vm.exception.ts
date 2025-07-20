@@ -27,3 +27,9 @@ export class VmRetrievalException extends Error {
     super(message);
   }
 }
+
+export class VmInvalidQueryException extends Error {
+  constructor(field: string) {
+    super(`Invalid query value for field: ${String(field)}`);
+  }
+}

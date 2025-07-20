@@ -4,6 +4,7 @@ import { VmRepositoryInterface } from '../../domain/interfaces/vm.repository.int
 import { DataSource, Repository } from 'typeorm';
 import {
   VmDeletionException,
+  VmInvalidQueryException,
   VmNotFoundException,
   VmRetrievalException,
 } from '../../domain/exceptions/vm.exception';
@@ -32,7 +33,7 @@ export class VmTypeormRepository
     relations = [],
   }: FindOneByFieldOptions<Vm, K>): Promise<Vm | null> {
     if (value === undefined || value === null) {
-      throw new Error(`Invalid query value for field: ${String(field)}`);
+      throw new VmInvalidQueryException(String(field));
     }
 
     return this.findOne({
@@ -48,28 +49,33 @@ export class VmTypeormRepository
   }
   async findAll(): Promise<Vm[]> {
     try {
-      return await super.find({
-        relations: ['permissions'],
-      });
+      return await super.find();
     } catch (error) {
       Logger.error('Error retrieving all VMs:', error);
       throw new VmRetrievalException();
     }
   }
 
-  async paginate(page: number, limit: number): Promise<[Vm[], number]> {
-    return this.findAndCount({
-      relations: ['permissions'],
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { name: 'ASC' },
-    });
+  async paginate(
+    page: number,
+    limit: number,
+    serverId?: string,
+  ): Promise<[Vm[], number]> {
+    const queryBuilder = this.createQueryBuilder('vm')
+      .orderBy('vm.name', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    if (serverId) {
+      queryBuilder.where('vm.serverId = :serverId', { serverId });
+    }
+
+    return queryBuilder.getManyAndCount();
   }
 
   async findVmById(id: string): Promise<Vm> {
     const vm = await this.findOne({
       where: { id },
-      relations: ['permissions'],
     });
     if (!vm) {
       throw new VmNotFoundException(id);

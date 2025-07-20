@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ServerController } from '../server.controller';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { RoleGuard } from '@/core/guards/role.guard';
@@ -25,15 +25,9 @@ describe('ServerController - Admin Bypass Tests', () => {
   let deleteServerUseCase: jest.Mocked<DeleteServerUseCase>;
   let updateServerPriorityUseCase: jest.Mocked<UpdateServerPriorityUseCase>;
 
-  const mockAdminUser: JwtPayload = {
-    userId: 'admin-123',
-    email: 'admin@example.com',
-  };
+  const mockAdminUser = createMockJwtPayload({ userId: 'admin-123' });
 
-  const _mockNormalUser: JwtPayload = {
-    userId: 'user-123',
-    email: 'user@example.com',
-  };
+  const _mockNormalUser = createMockJwtPayload();
 
   beforeEach(async () => {
     updateServerUseCase = {

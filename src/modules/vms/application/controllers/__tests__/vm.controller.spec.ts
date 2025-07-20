@@ -1,12 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { VmController } from '../vm.controller';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import {
   CreateVmUseCase,
   DeleteVmUseCase,
-  GetAllVmsUseCase,
-  GetAllVmsAdminUseCase,
-  GetVmListUseCase,
-  GetVmByIdUseCase,
+  GetAllVmsWithMetricsUseCase,
+  GetAllVmsAdminWithMetricsUseCase,
+  GetVmListWithMetricsUseCase,
+  GetVmByIdWithMetricsUseCase,
   UpdateVmUseCase,
   UpdateVmPriorityUseCase,
   CheckVmPermissionUseCase,
@@ -24,10 +25,10 @@ import { Reflector } from '@nestjs/core';
 
 describe('VmController', () => {
   let controller: VmController;
-  let getAllVmsUseCase: jest.Mocked<GetAllVmsUseCase>;
-  let getAllVmsAdminUseCase: jest.Mocked<GetAllVmsAdminUseCase>;
-  let getVmListUseCase: jest.Mocked<GetVmListUseCase>;
-  let getVmByIdUseCase: jest.Mocked<GetVmByIdUseCase>;
+  let getAllVmsUseCase: jest.Mocked<GetAllVmsWithMetricsUseCase>;
+  let getAllVmsAdminUseCase: jest.Mocked<GetAllVmsAdminWithMetricsUseCase>;
+  let getVmListUseCase: jest.Mocked<GetVmListWithMetricsUseCase>;
+  let getVmByIdUseCase: jest.Mocked<GetVmByIdWithMetricsUseCase>;
   let createVmUseCase: jest.Mocked<CreateVmUseCase>;
   let updateVmUseCase: jest.Mocked<UpdateVmUseCase>;
   let deleteVmUseCase: jest.Mocked<DeleteVmUseCase>;
@@ -73,10 +74,13 @@ describe('VmController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [VmController],
       providers: [
-        { provide: GetAllVmsUseCase, useValue: getAllVmsUseCase },
-        { provide: GetAllVmsAdminUseCase, useValue: getAllVmsAdminUseCase },
-        { provide: GetVmListUseCase, useValue: getVmListUseCase },
-        { provide: GetVmByIdUseCase, useValue: getVmByIdUseCase },
+        { provide: GetAllVmsWithMetricsUseCase, useValue: getAllVmsUseCase },
+        {
+          provide: GetAllVmsAdminWithMetricsUseCase,
+          useValue: getAllVmsAdminUseCase,
+        },
+        { provide: GetVmListWithMetricsUseCase, useValue: getVmListUseCase },
+        { provide: GetVmByIdWithMetricsUseCase, useValue: getVmByIdUseCase },
         { provide: CreateVmUseCase, useValue: createVmUseCase },
         { provide: UpdateVmUseCase, useValue: updateVmUseCase },
         { provide: DeleteVmUseCase, useValue: deleteVmUseCase },
@@ -122,7 +126,12 @@ describe('VmController', () => {
       getVmListUseCase.execute.mockResolvedValue(mock);
       const result = await controller.getVms('1', '5');
       expect(result).toBe(mock);
-      expect(getVmListUseCase.execute).toHaveBeenCalledWith(1, 5);
+      expect(getVmListUseCase.execute).toHaveBeenCalledWith(
+        1,
+        5,
+        false,
+        undefined,
+      );
     });
 
     it('should use default pagination', async () => {
@@ -130,7 +139,25 @@ describe('VmController', () => {
       getVmListUseCase.execute.mockResolvedValue(mock);
       const result = await controller.getVms();
       expect(result).toBe(mock);
-      expect(getVmListUseCase.execute).toHaveBeenCalledWith(1, 10);
+      expect(getVmListUseCase.execute).toHaveBeenCalledWith(
+        1,
+        10,
+        false,
+        undefined,
+      );
+    });
+
+    it('should filter by serverId when provided', async () => {
+      const mock = { items: [createMockVm()] } as any;
+      getVmListUseCase.execute.mockResolvedValue(mock);
+      const result = await controller.getVms('1', '10', 'server-123');
+      expect(result).toBe(mock);
+      expect(getVmListUseCase.execute).toHaveBeenCalledWith(
+        1,
+        10,
+        false,
+        'server-123',
+      );
     });
   });
 
@@ -142,7 +169,7 @@ describe('VmController', () => {
       const result = await controller.getVmById('vm-1');
 
       expect(result).toEqual(vm);
-      expect(getVmByIdUseCase.execute).toHaveBeenCalledWith('vm-1');
+      expect(getVmByIdUseCase.execute).toHaveBeenCalledWith('vm-1', false);
     });
 
     it('should throw if VM is not found', async () => {
@@ -256,10 +283,7 @@ describe('VmController', () => {
   });
 
   describe('checkPermission', () => {
-    const mockPayload = {
-      userId: 'user-123',
-      email: 'test@example.com',
-    };
+    const mockPayload = createMockJwtPayload();
 
     it('should check if user has permission on a VM', async () => {
       const dto = {
@@ -337,7 +361,7 @@ describe('VmController', () => {
       const result = await controller.getAllVmsAdmin();
 
       expect(result).toEqual(vms);
-      expect(getAllVmsAdminUseCase.execute).toHaveBeenCalledWith();
+      expect(getAllVmsAdminUseCase.execute).toHaveBeenCalledWith(false);
       expect(getAllVmsAdminUseCase.execute).toHaveBeenCalledTimes(1);
     });
 
@@ -347,7 +371,7 @@ describe('VmController', () => {
       const result = await controller.getAllVmsAdmin();
 
       expect(result).toEqual([]);
-      expect(getAllVmsAdminUseCase.execute).toHaveBeenCalledWith();
+      expect(getAllVmsAdminUseCase.execute).toHaveBeenCalledWith(false);
     });
 
     it('should handle large number of VMs', async () => {

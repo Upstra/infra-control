@@ -282,6 +282,72 @@ describe('UserTypeormRepository - Soft Delete Filtering', () => {
     });
   });
 
+  describe('softDeleteUser', () => {
+    it('should soft delete and anonymize user data', async () => {
+      const userToDelete = { ...mockActiveUser };
+      jest
+        .spyOn(repository, 'findOneById')
+        .mockResolvedValue(userToDelete as any);
+      
+      const savedUser = {
+        ...userToDelete,
+        deletedAt: new Date(),
+        isActive: false,
+        email: expect.stringMatching(/^deleted_\d+_user-123@deleted\.local$/),
+        username: expect.stringMatching(/^deleted_\d+_user-123$/),
+        firstName: 'Deleted',
+        lastName: 'User',
+        password: 'DELETED',
+        twoFactorSecret: null,
+        recoveryCodes: null,
+        resetPasswordToken: null,
+        resetPasswordExpiry: null,
+      };
+      
+      jest.spyOn(repository, 'save').mockImplementation(async (user) => user as any);
+
+      const result = await repository.softDeleteUser('user-id');
+
+      expect(repository.findOneById).toHaveBeenCalledWith('user-id');
+      expect(repository.save).toHaveBeenCalledWith(expect.objectContaining({
+        deletedAt: expect.any(Date),
+        isActive: false,
+        email: expect.stringMatching(/^deleted_\d+_/),
+        username: expect.stringMatching(/^deleted_\d+_/),
+        firstName: 'Deleted',
+        lastName: 'User',
+        password: 'DELETED',
+        twoFactorSecret: null,
+        recoveryCodes: null,
+        resetPasswordToken: null,
+        resetPasswordExpiry: null,
+      }));
+      expect(result.deletedAt).toBeDefined();
+      expect(result.isActive).toBe(false);
+      expect(result.email).toMatch(/^deleted_\d+_/);
+      expect(result.username).toMatch(/^deleted_\d+_/);
+    });
+
+    it('should throw UserNotFoundException if user not found', async () => {
+      jest.spyOn(repository, 'findOneById').mockResolvedValue(null);
+      const saveSpy = jest.spyOn(repository, 'save');
+
+      await expect(
+        repository.softDeleteUser('non-existent-id'),
+      ).rejects.toThrow();
+      expect(saveSpy).not.toHaveBeenCalled();
+    });
+
+    it('should throw UserExceptions.deletionFailed on save error', async () => {
+      jest
+        .spyOn(repository, 'findOneById')
+        .mockResolvedValue(mockActiveUser as any);
+      jest.spyOn(repository, 'save').mockRejectedValue(new Error('DB Error'));
+
+      await expect(repository.softDeleteUser('user-id')).rejects.toThrow();
+    });
+  });
+
   describe('findOneById vs findById', () => {
     it('findOneById should exclude deleted users', async () => {
       jest.spyOn(repository, 'findOne').mockResolvedValue(mockActiveUser);

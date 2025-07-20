@@ -49,6 +49,88 @@ describe('IloDomainService', () => {
       expect(result.password).toBe('oldPassword');
     });
 
+    it('should update password when explicitly set to a new value', () => {
+      const ilo = new Ilo();
+      ilo.name = 'oldName';
+      ilo.ip = 'oldIp';
+      ilo.login = 'oldLogin';
+      ilo.password = 'oldPassword';
+
+      const dto: IloUpdateDto = {
+        password: 'newPassword',
+      };
+
+      const result = service.updateIloEntityFromDto(ilo, dto);
+
+      expect(result).toBe(ilo);
+      expect(result.name).toBe('oldName');
+      expect(result.ip).toBe('oldIp');
+      expect(result.login).toBe('oldLogin');
+      expect(result.password).toBe('newPassword');
+    });
+
+    it('should update password when explicitly set to null', () => {
+      const ilo = new Ilo();
+      ilo.name = 'oldName';
+      ilo.ip = 'oldIp';
+      ilo.login = 'oldLogin';
+      ilo.password = 'oldPassword';
+
+      const dto: IloUpdateDto = {
+        password: null,
+      };
+
+      const result = service.updateIloEntityFromDto(ilo, dto);
+
+      expect(result).toBe(ilo);
+      expect(result.password).toBeNull();
+    });
+
+    it('should update all fields when all are provided', () => {
+      const ilo = new Ilo();
+      ilo.name = 'oldName';
+      ilo.ip = 'oldIp';
+      ilo.login = 'oldLogin';
+      ilo.password = 'oldPassword';
+
+      const dto: IloUpdateDto = {
+        name: 'newName',
+        ip: 'newIp',
+        login: 'newLogin',
+        password: 'newPassword',
+      };
+
+      const result = service.updateIloEntityFromDto(ilo, dto);
+
+      expect(result).toBe(ilo);
+      expect(result.name).toBe('newName');
+      expect(result.ip).toBe('newIp');
+      expect(result.login).toBe('newLogin');
+      expect(result.password).toBe('newPassword');
+    });
+
+    it('should handle null values for non-password fields using nullish coalescing', () => {
+      const ilo = new Ilo();
+      ilo.name = 'oldName';
+      ilo.ip = 'oldIp';
+      ilo.login = 'oldLogin';
+      ilo.password = 'oldPassword';
+
+      const dto: IloUpdateDto = {
+        name: null,
+        ip: null,
+        login: null,
+      };
+
+      const result = service.updateIloEntityFromDto(ilo, dto);
+
+      expect(result).toBe(ilo);
+      expect(result.name).toBe('oldName');
+      expect(result.ip).toBe('oldIp');
+      expect(result.login).toBe('oldLogin');
+      expect(result.password).toBe('oldPassword');
+    });
+
     it('should not update any field if dto is empty', () => {
       const ilo = new Ilo();
       ilo.name = 'oldName';

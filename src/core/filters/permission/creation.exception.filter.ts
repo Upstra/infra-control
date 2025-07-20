@@ -4,5 +4,5 @@ import { createSimpleMessageFilter } from '../simple-message.filter';
 
 export const PermissionCreationExceptionFilter = createSimpleMessageFilter(
   PermissionCreationException,
-  HttpStatus.INTERNAL_SERVER_ERROR,
+  HttpStatus.BAD_REQUEST,
 );

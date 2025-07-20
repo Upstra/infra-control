@@ -111,7 +111,7 @@ describe('ImportSettingsUseCase', () => {
       SystemSettingsService,
     );
     logHistoryUseCase = module.get(LogHistoryUseCase);
-    
+
     // Reset mocks
     jest.clearAllMocks();
   });
@@ -321,7 +321,10 @@ describe('ImportSettingsUseCase', () => {
         .mockResolvedValue(mockSettings);
 
       // null is considered an object in JavaScript, so this should pass validation
-      const result = await useCase.execute(settingsWithNullPasswordPolicy, 'user123');
+      const result = await useCase.execute(
+        settingsWithNullPasswordPolicy,
+        'user123',
+      );
       expect(result).toEqual(mockSettings.settings);
     });
 

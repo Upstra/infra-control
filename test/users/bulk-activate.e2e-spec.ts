@@ -25,7 +25,6 @@ describe('UserController - Bulk Activate (e2e)', () => {
   });
 
   beforeEach(async () => {
-    // Create admin user and get token
     const adminResponse = await request(app.getHttpServer())
       .post('/auth/register')
       .send({
@@ -36,9 +35,6 @@ describe('UserController - Bulk Activate (e2e)', () => {
 
     adminUserId = adminResponse.body.id;
 
-    // Admin user is already created, no need to update role
-
-    // Login as admin
     const adminLoginResponse = await request(app.getHttpServer())
       .post('/auth/login')
       .send({
@@ -48,7 +44,6 @@ describe('UserController - Bulk Activate (e2e)', () => {
 
     adminToken = adminLoginResponse.body.access_token;
 
-    // Create multiple test users
     for (let i = 0; i < 3; i++) {
       const userResponse = await request(app.getHttpServer())
         .post('/auth/register')
@@ -60,14 +55,12 @@ describe('UserController - Bulk Activate (e2e)', () => {
 
       testUserIds.push(userResponse.body.id);
 
-      // Deactivate users to test activation
       await request(app.getHttpServer())
         .patch(`/user/${userResponse.body.id}/update-account`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ isActive: false });
     }
 
-    // Get regular user token
     const userLoginResponse = await request(app.getHttpServer())
       .post('/auth/login')
       .send({
@@ -79,7 +72,6 @@ describe('UserController - Bulk Activate (e2e)', () => {
   });
 
   afterEach(async () => {
-    // Clean up users
     for (const userId of testUserIds) {
       await request(app.getHttpServer())
         .delete(`/user/${userId}`)
@@ -136,7 +128,7 @@ describe('UserController - Bulk Activate (e2e)', () => {
       const bulkActivateDto: BulkActivateDto = {
         userIds: [
           testUserIds[0],
-          '123e4567-e89b-12d3-a456-426614174000', // Non-existent
+          '123e4567-e89b-12d3-a456-426614174000',
           testUserIds[1],
         ],
       };
@@ -228,7 +220,6 @@ describe('UserController - Bulk Activate (e2e)', () => {
     });
 
     it('should handle already active users', async () => {
-      // First activate a user
       await request(app.getHttpServer())
         .patch(`/user/${testUserIds[0]}/update-account`)
         .set('Authorization', `Bearer ${adminToken}`)
@@ -251,7 +242,6 @@ describe('UserController - Bulk Activate (e2e)', () => {
     });
 
     it('should handle large number of user IDs', async () => {
-      // Create more users
       const additionalUserIds: string[] = [];
       for (let i = 3; i < 10; i++) {
         const userResponse = await request(app.getHttpServer())
@@ -263,9 +253,8 @@ describe('UserController - Bulk Activate (e2e)', () => {
           });
 
         additionalUserIds.push(userResponse.body.id);
-        testUserIds.push(userResponse.body.id); // Add for cleanup
+        testUserIds.push(userResponse.body.id);
 
-        // Deactivate user
         await request(app.getHttpServer())
           .patch(`/user/${userResponse.body.id}/update-account`)
           .set('Authorization', `Bearer ${adminToken}`)

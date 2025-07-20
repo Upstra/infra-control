@@ -15,8 +15,16 @@ export interface ServerRepositoryInterface
     limit: number,
   ): Promise<[Server[], number]>;
 
-  findServerById(id: string): Promise<Server | null>;
+  findServerById(
+    id: string,
+    select?: (keyof Server)[] | string[],
+  ): Promise<Server | null>;
+  findServerByIdWithCredentials(id: string): Promise<Server | null>;
+  findServerByTypeWithCredentials(type: string): Promise<Server | null>;
+  findAllWithCredentials(): Promise<Server[]>;
+  findAllWithVms(): Promise<Server[]>;
   deleteServer(id: string): Promise<void>;
   updateServer(id: string, data: Partial<Server>): Promise<Server>;
   countByState(state: 'UP' | 'DOWN'): Promise<number>;
+  findByIloIp(iloIp: string): Promise<Server | null>;
 }

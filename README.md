@@ -111,13 +111,15 @@ RATE_LIMIT_DASHBOARD_WIDGET_MAX=200  # 200 requests per minute
 GITHUB_TOKEN=
 FRONT_REPO=Upstra/upstra-control_front
 BACK_REPO=Upstra/upstra-control
-```
 
+ENCRYPTION_KEY=your_encryption_key_here
+```
 Copy `.env-example` to `.env` (or rename `.env-local` to `.env`) and fill in your database credentials before running commands.
 
 Note:
 
 - Vous aurez besoin d'un `GITHUB_TOKEN` pour assurer le bon fonctionnement du module release, qui fetch les release front + back afin de les afficher au client
+- Le `ENCRYPTION_KEY` est utilisé pour chiffrer les données sensibles (comme les mots de passe) dans la base de données. Il doit être une chaîne hexadécimale de 32 caractères. A voir dans `docs/password-encryption.md` pour plus de détails sur la configuration et la génération de la clé.
 
 ---
 

@@ -16,7 +16,7 @@ export class ZohoMailAdapter implements IMailService {
       const enrichedContext = {
         ...dto.context,
         logoUrl,
-        loginUrl: process.env.APP_URL ?? 'http://localhost:3000',
+        loginUrl: process.env.FRONTEND_URL ?? 'http://172.23.50.2',
         currentYear: new Date().getFullYear(),
         supportEmail: process.env.SUPPORT_EMAIL || 'support@upstra.com',
       };

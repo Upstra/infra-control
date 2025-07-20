@@ -1,7 +1,11 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { UserRepositoryInterface } from '../../domain/interfaces/user.repository.interface';
-import { UserExceptions } from '../../domain/exceptions/user.exception';
-import { LogHistoryUseCase } from '../../../history/application/use-cases/log-history.use-case';
+import {
+  CannotDeleteLastAdminException,
+  CannotDeleteOwnAccountException,
+  UserNotFoundException,
+} from '../../domain/exceptions/user.exception';
+import { LogHistoryUseCase } from '@modules/history/application/use-cases';
 import { DeletionReason } from '../dto/delete-account.dto';
 import { User } from '../../domain/entities/user.entity';
 
@@ -24,45 +28,44 @@ export class SoftDeleteUserUseCase {
   ): Promise<void> {
     const targetUser = await this.userRepository.findById(targetUserId);
     if (!targetUser || targetUser.deletedAt) {
-      throw UserExceptions.notFound(targetUserId);
+      throw new UserNotFoundException(targetUserId);
     }
 
     if (targetUserId === adminUserId) {
-      throw UserExceptions.cannotDeleteOwnAccount();
+      throw new CannotDeleteOwnAccountException();
     }
 
     const adminCount = await this.userRepository.countActiveAdmins();
     const isTargetAdmin = await this.isUserAdmin(targetUser);
 
     if (isTargetAdmin && adminCount <= 1) {
-      throw UserExceptions.cannotDeleteLastAdmin();
+      throw new CannotDeleteLastAdminException();
     }
 
-    targetUser.deletedAt = new Date();
-    targetUser.isActive = false;
+    const oldValue = {
+      isActive: targetUser.isActive,
+      deletedAt: targetUser.deletedAt,
+    };
 
-    const updatedUser = await this.userRepository.save(targetUser);
+    await this.userRepository.deleteUser(targetUserId);
 
     await this.logHistory.executeStructured({
       entity: 'user',
       entityId: targetUserId,
       action: 'USER_DELETED',
       userId: adminUserId,
-      oldValue: {
-        isActive: true,
-        deletedAt: null,
-      },
+      oldValue,
       newValue: {
         isActive: false,
-        deletedAt: updatedUser.deletedAt,
+        deletedAt: new Date(),
       },
       metadata: {
-        deletedBy: adminUserId,
-        deletedAt: updatedUser.deletedAt?.toISOString(),
         reason,
         details,
-        userEmail: targetUser.email || '',
         username: targetUser.username,
+        userEmail: targetUser.email || '',
+        deletedBy: adminUserId,
+        deletedAt: new Date().toISOString(),
       },
       ipAddress,
       userAgent,

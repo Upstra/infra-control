@@ -6,7 +6,7 @@ describe('SetupProgressMapper', () => {
   it('maps entity to dto', () => {
     const entity: SetupProgress = {
       id: 'id1',
-      step: SetupStep.CREATE_ROOM,
+      step: SetupStep.ROOMS_CONFIG,
       completedAt: new Date('2025-01-01T00:00:00Z'),
       completedBy: 'user',
       metadata: { info: 'data' },
@@ -15,7 +15,7 @@ describe('SetupProgressMapper', () => {
     const dto = SetupProgressMapper.toDto(entity);
 
     expect(dto).toEqual({
-      step: SetupStep.CREATE_ROOM,
+      step: SetupStep.ROOMS_CONFIG,
       completedAt: '2025-01-01T00:00:00.000Z',
       completedBy: 'user',
       metadata: { info: 'data' },
@@ -25,7 +25,7 @@ describe('SetupProgressMapper', () => {
   it('maps dto to entity', () => {
     const dto = {
       id: 'id2',
-      step: SetupStep.CREATE_UPS,
+      step: SetupStep.UPS_CONFIG,
       completedAt: '2025-02-02T12:00:00.000Z',
       completedBy: 'admin',
       metadata: { k: 'v' },

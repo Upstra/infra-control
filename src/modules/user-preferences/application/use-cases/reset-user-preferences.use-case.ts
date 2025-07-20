@@ -29,7 +29,7 @@ export class ResetUserPreferencesUseCase {
       preferences.display = defaultPreferences.display;
       preferences.integrations = defaultPreferences.integrations;
       preferences.performance = defaultPreferences.performance;
-      
+
       try {
         return await this.userPreferencesRepository.update(preferences);
       } catch {

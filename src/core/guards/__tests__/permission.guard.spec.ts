@@ -20,6 +20,10 @@ const mockGetUserVmPermissionsUseCase = {
   execute: jest.fn(),
 };
 
+const mockUserRepository = {
+  findOneByField: jest.fn(),
+};
+
 const createMockExecutionContext = (user: any = { userId: 'user-1' }) => ({
   switchToHttp: () => ({
     getRequest: () => ({
@@ -39,10 +43,118 @@ describe('PermissionGuard', () => {
       mockReflector as any,
       mockGetUserServerPermissionsUseCase as any,
       mockGetUserVmPermissionsUseCase as any,
+      mockUserRepository as any,
     );
   });
 
+  describe('Admin Bypass', () => {
+    it('should bypass all permission checks when user is admin', async () => {
+      mockReflector.get.mockReturnValue({
+        type: 'server',
+        requiredBit: PermissionBit.DELETE,
+      });
+
+      mockUserRepository.findOneByField.mockResolvedValue({
+        id: 'user-1',
+        roles: [{ id: 'role-1', isAdmin: true }],
+      });
+
+      const context = createMockExecutionContext();
+      await expect(guard.canActivate(context as any)).resolves.toBe(true);
+
+      expect(
+        mockGetUserServerPermissionsUseCase.execute,
+      ).not.toHaveBeenCalled();
+      expect(mockGetUserVmPermissionsUseCase.execute).not.toHaveBeenCalled();
+    });
+
+    it('should bypass vm permissions when user is admin', async () => {
+      mockReflector.get.mockReturnValue({
+        type: 'vm',
+        requiredBit: PermissionBit.WRITE,
+      });
+
+      mockUserRepository.findOneByField.mockResolvedValue({
+        id: 'user-1',
+        roles: [{ id: 'role-1', isAdmin: true }],
+      });
+
+      const context = createMockExecutionContext();
+      await expect(guard.canActivate(context as any)).resolves.toBe(true);
+
+      expect(mockGetUserVmPermissionsUseCase.execute).not.toHaveBeenCalled();
+    });
+
+    it('should check permissions normally when user is not admin', async () => {
+      mockReflector.get.mockReturnValue({
+        type: 'server',
+        requiredBit: PermissionBit.READ,
+      });
+
+      mockUserRepository.findOneByField.mockResolvedValue({
+        id: 'user-1',
+        roles: [{ id: 'role-1', isAdmin: false }],
+      });
+
+      mockGetUserServerPermissionsUseCase.execute.mockResolvedValue({
+        permissionServers: [createMockPermissionServerDto({ bitmask: 1 })],
+      });
+      jest.spyOn(PermissionUtils, 'has').mockReturnValue(true);
+
+      const context = createMockExecutionContext();
+      await expect(guard.canActivate(context as any)).resolves.toBe(true);
+
+      expect(mockGetUserServerPermissionsUseCase.execute).toHaveBeenCalledWith(
+        'user-1',
+      );
+    });
+
+    it('should check permissions when user has no roles', async () => {
+      mockReflector.get.mockReturnValue({
+        type: 'server',
+        requiredBit: PermissionBit.READ,
+      });
+
+      mockUserRepository.findOneByField.mockResolvedValue({
+        id: 'user-1',
+        roles: [],
+      });
+
+      mockGetUserServerPermissionsUseCase.execute.mockResolvedValue({
+        permissionServers: [createMockPermissionServerDto({ bitmask: 1 })],
+      });
+      jest.spyOn(PermissionUtils, 'has').mockReturnValue(true);
+
+      const context = createMockExecutionContext();
+      await expect(guard.canActivate(context as any)).resolves.toBe(true);
+    });
+
+    it('should handle when user is not found', async () => {
+      mockReflector.get.mockReturnValue({
+        type: 'server',
+        requiredBit: PermissionBit.READ,
+      });
+
+      mockUserRepository.findOneByField.mockResolvedValue(null);
+
+      mockGetUserServerPermissionsUseCase.execute.mockResolvedValue({
+        permissionServers: [createMockPermissionServerDto({ bitmask: 1 })],
+      });
+      jest.spyOn(PermissionUtils, 'has').mockReturnValue(true);
+
+      const context = createMockExecutionContext();
+      await expect(guard.canActivate(context as any)).resolves.toBe(true);
+    });
+  });
+
   describe('Server Permissions', () => {
+    beforeEach(() => {
+      mockUserRepository.findOneByField.mockResolvedValue({
+        id: 'user-1',
+        roles: [{ id: 'role-1', isAdmin: false }],
+      });
+    });
+
     it('should allow access for server permission (permission OK)', async () => {
       mockReflector.get.mockReturnValue({
         type: 'server',
@@ -113,6 +225,13 @@ describe('PermissionGuard', () => {
   });
 
   describe('VM Permissions', () => {
+    beforeEach(() => {
+      mockUserRepository.findOneByField.mockResolvedValue({
+        id: 'user-1',
+        roles: [{ id: 'role-1', isAdmin: false }],
+      });
+    });
+
     it('should allow access for vm permission (permission OK)', async () => {
       mockReflector.get.mockReturnValue({
         type: 'vm',
@@ -167,6 +286,13 @@ describe('PermissionGuard', () => {
   });
 
   describe('Error Cases', () => {
+    beforeEach(() => {
+      mockUserRepository.findOneByField.mockResolvedValue({
+        id: 'user-1',
+        roles: [{ id: 'role-1', isAdmin: false }],
+      });
+    });
+
     it('should throw if type is not server/vm (Invalid permission type)', async () => {
       mockReflector.get.mockReturnValue({
         type: 'unknown',
@@ -266,6 +392,13 @@ describe('PermissionGuard', () => {
   });
 
   describe('Edge Cases', () => {
+    beforeEach(() => {
+      mockUserRepository.findOneByField.mockResolvedValue({
+        id: 'user-1',
+        roles: [{ id: 'role-1', isAdmin: false }],
+      });
+    });
+
     it('should handle server use case throwing an error', async () => {
       mockReflector.get.mockReturnValue({
         type: 'server',
@@ -344,6 +477,13 @@ describe('PermissionGuard', () => {
   });
 
   describe('Permission Lists Structure', () => {
+    beforeEach(() => {
+      mockUserRepository.findOneByField.mockResolvedValue({
+        id: 'user-1',
+        roles: [{ id: 'role-1', isAdmin: false }],
+      });
+    });
+
     it('should handle server permissions with different structures', async () => {
       mockReflector.get.mockReturnValue({
         type: 'server',

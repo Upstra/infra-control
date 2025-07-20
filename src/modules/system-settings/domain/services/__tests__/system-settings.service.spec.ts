@@ -87,7 +87,7 @@ describe('SystemSettingsService', () => {
       createSettings: jest.fn(),
       updateSettings: jest.fn(),
     };
-    
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         {
@@ -455,7 +455,7 @@ describe('SystemSettingsService', () => {
       const numberResult = (service as any).isObject(123);
       const stringResult = (service as any).isObject('string');
       const booleanResult = (service as any).isObject(true);
-      
+
       expect(undefinedResult).toBeFalsy();
       expect(numberResult).toBe(false);
       expect(stringResult).toBe(false);
@@ -553,10 +553,10 @@ describe('SystemSettingsService', () => {
 
       // First call - will cache the result
       await service.getSettings();
-      
+
       // Clear the mock to reset call count
       (repository.findSettings as jest.Mock).mockClear();
-      
+
       // Force cache expiry by modifying the cache expiry time
       (service as any).cacheExpiry = new Date(Date.now() - 1000);
 

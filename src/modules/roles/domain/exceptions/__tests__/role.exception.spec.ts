@@ -6,7 +6,7 @@ import {
   CannotDeleteLastAdminRoleException,
   SystemRoleNameAlreadyExistsException,
   CannotRemoveGuestRoleException,
-  RoleExceptions,
+  InvalidRoleUpdateException,
 } from '../role.exception';
 
 describe('Role Exceptions', () => {
@@ -83,7 +83,7 @@ describe('Role Exceptions', () => {
 
   describe('RoleExceptions static methods', () => {
     it('should create RoleNotFoundException via roleNotFound', () => {
-      const exception = RoleExceptions.roleNotFound();
+      const exception = new RoleNotFoundException();
       expect(exception).toBeInstanceOf(RoleNotFoundException);
       expect(exception.message).toBe(
         'Role with ID One or more roles not found not found',
@@ -92,13 +92,13 @@ describe('Role Exceptions', () => {
     });
 
     it('should create error via cannotSpecifyBothRoleIdAndRoleIds', () => {
-      const exception = RoleExceptions.cannotSpecifyBothRoleIdAndRoleIds();
+      const exception = new InvalidRoleUpdateException();
       expect(exception.message).toBe('Cannot specify both roleId and roleIds');
       expect(exception.name).toBe('InvalidRoleUpdateException');
     });
 
     it('should create CannotRemoveGuestRoleException via cannotRemoveGuestRole', () => {
-      const exception = RoleExceptions.cannotRemoveGuestRole();
+      const exception = new CannotRemoveGuestRoleException();
       expect(exception).toBeInstanceOf(CannotRemoveGuestRoleException);
       expect(exception.message).toBe(
         'Cannot remove last guest role from user.',

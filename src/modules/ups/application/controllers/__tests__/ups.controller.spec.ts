@@ -6,14 +6,16 @@ import { GetAllUpsUseCase } from '@/modules/ups/application/use-cases/get-all-up
 import { GetUpsListUseCase } from '@/modules/ups/application/use-cases/get-ups-list.use-case';
 import { GetUpsByIdUseCase } from '@/modules/ups/application/use-cases/get-ups-by-id.use-case';
 import { UpdateUpsUseCase } from '@/modules/ups/application/use-cases/update-ups.use-case';
+import { PingUpsUseCase } from '@/modules/ups/application/use-cases/ping-ups.use-case';
 import {
   createMockUps,
   createMockUpsDto,
 } from '@/modules/ups/__mocks__/ups.mock';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import { UpsResponseDto } from '../../dto/ups.response.dto';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
 import { RoleGuard } from '@/core/guards/role.guard';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { PingRequestDto } from '@/core/dto/ping.dto';
 
 describe('UpsController', () => {
   let controller: UpsController;
@@ -23,11 +25,9 @@ describe('UpsController', () => {
   let createUseCase: jest.Mocked<CreateUpsUseCase>;
   let updateUseCase: jest.Mocked<UpdateUpsUseCase>;
   let deleteUseCase: jest.Mocked<DeleteUpsUseCase>;
+  let pingUpsUseCase: jest.Mocked<PingUpsUseCase>;
 
-  const mockPayload: JwtPayload = {
-    userId: 'user-123',
-    email: 'john.doe@example.com',
-  };
+  const mockPayload = createMockJwtPayload();
 
   beforeEach(async () => {
     const mockJwtGuard = { canActivate: jest.fn().mockReturnValue(true) };
@@ -38,6 +38,7 @@ describe('UpsController', () => {
     createUseCase = { execute: jest.fn() } as any;
     updateUseCase = { execute: jest.fn() } as any;
     deleteUseCase = { execute: jest.fn() } as any;
+    pingUpsUseCase = { execute: jest.fn() } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UpsController],
@@ -48,6 +49,7 @@ describe('UpsController', () => {
         { provide: CreateUpsUseCase, useValue: createUseCase },
         { provide: UpdateUpsUseCase, useValue: updateUseCase },
         { provide: DeleteUpsUseCase, useValue: deleteUseCase },
+        { provide: PingUpsUseCase, useValue: pingUpsUseCase },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -157,5 +159,88 @@ describe('UpsController', () => {
     await expect(controller.deleteUps('ups-123', mockPayload)).rejects.toThrow(
       'fail',
     );
+  });
+
+  describe('pingUps', () => {
+    it('should ping UPS successfully', async () => {
+      const upsId = 'ups-123';
+      const pingDto: PingRequestDto = {
+        host: '192.168.1.200',
+        timeout: 5000,
+      };
+      const expectedResult = {
+        accessible: true,
+        host: '192.168.1.200',
+        responseTime: 20,
+      };
+
+      pingUpsUseCase.execute.mockResolvedValue(expectedResult);
+
+      const result = await controller.pingUps(upsId, pingDto, mockPayload);
+
+      expect(pingUpsUseCase.execute).toHaveBeenCalledWith(
+        upsId,
+        pingDto.host,
+        pingDto.timeout,
+      );
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should ping UPS with default timeout', async () => {
+      const upsId = 'ups-123';
+      const pingDto: PingRequestDto = {
+        host: '192.168.1.200',
+      };
+      const expectedResult = {
+        accessible: true,
+        host: '192.168.1.200',
+        responseTime: 35,
+      };
+
+      pingUpsUseCase.execute.mockResolvedValue(expectedResult);
+
+      const result = await controller.pingUps(upsId, pingDto, mockPayload);
+
+      expect(pingUpsUseCase.execute).toHaveBeenCalledWith(
+        upsId,
+        pingDto.host,
+        undefined,
+      );
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should handle ping failure for UPS', async () => {
+      const upsId = 'ups-123';
+      const pingDto: PingRequestDto = {
+        host: 'unreachable-ups',
+      };
+      const expectedResult = {
+        accessible: false,
+        host: 'unreachable-ups',
+        error: 'UPS device not responding',
+      };
+
+      pingUpsUseCase.execute.mockResolvedValue(expectedResult);
+
+      const result = await controller.pingUps(upsId, pingDto, mockPayload);
+
+      expect(pingUpsUseCase.execute).toHaveBeenCalledWith(
+        upsId,
+        pingDto.host,
+        undefined,
+      );
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should propagate error on pingUps', async () => {
+      const upsId = 'ups-123';
+      const pingDto: PingRequestDto = { host: '192.168.1.200' };
+
+      pingUpsUseCase.execute.mockRejectedValue(new Error('Network error'));
+
+      await expect(
+        controller.pingUps(upsId, pingDto, mockPayload),
+      ).rejects.toThrow('Network error');
+    });
   });
 });

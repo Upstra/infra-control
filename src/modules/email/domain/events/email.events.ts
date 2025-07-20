@@ -2,6 +2,12 @@ export enum EmailEventType {
   ACCOUNT_CREATED = 'email.account.created',
   PASSWORD_CHANGED = 'email.password.changed',
   PASSWORD_RESET = 'email.password.reset',
+  VMWARE_SYNC_REPORT = 'email.vmware.sync.report',
+}
+
+export enum EmailEvents {
+  UPS_BATTERY_CRITICAL = 'email.ups.battery.critical',
+  UPS_BATTERY_WARNING = 'email.ups.battery.warning',
 }
 
 export interface AccountCreatedEvent {
@@ -21,4 +27,15 @@ export interface PasswordResetEvent {
   email: string;
   firstName: string;
   resetLink: string;
+}
+
+export interface VmwareSyncReportEvent {
+  adminEmails: string[];
+  date: string;
+  duration: string;
+  totalServers: number;
+  successfulServers: number;
+  failedServers: number;
+  vmsUpdated: number;
+  errors: string[];
 }

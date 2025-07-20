@@ -88,4 +88,34 @@ export class RoomTypeormRepository implements RoomRepositoryInterface {
     await this.findRoomById(id);
     await this.repo.delete(id);
   }
+
+  async paginateForTree(
+    page: number,
+    limit: number,
+  ): Promise<[Room[], number]> {
+    const queryBuilder = this.repo.createQueryBuilder('room');
+
+    queryBuilder
+      .leftJoinAndSelect('room.servers', 'server')
+      .leftJoinAndSelect('server.vms', 'vm')
+      .leftJoinAndSelect('room.ups', 'ups')
+      .select([
+        'room.id',
+        'room.name',
+        'server.id',
+        'server.name',
+        'vm.id',
+        'vm.name',
+        'ups.id',
+        'ups.name',
+      ])
+      .orderBy('room.name', 'ASC')
+      .addOrderBy('server.name', 'ASC')
+      .addOrderBy('vm.name', 'ASC')
+      .addOrderBy('ups.name', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    return queryBuilder.getManyAndCount();
+  }
 }

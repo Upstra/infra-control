@@ -132,6 +132,33 @@ export class ServerTypeormRepository
     }
   }
 
+  async findServerByIdWithCredentials(id: string): Promise<Server> {
+    try {
+      const server = await this.createQueryBuilder('server')
+        .leftJoinAndSelect('server.ilo', 'ilo')
+        .leftJoinAndSelect('server.group', 'group')
+        .leftJoinAndSelect('server.room', 'room')
+        .leftJoinAndSelect('server.ups', 'ups')
+        .leftJoinAndSelect('server.vms', 'vms')
+        .addSelect('server.password')
+        .where('server.id = :id', { id })
+        .getOne();
+
+      if (!server) {
+        throw new ServerNotFoundException(id);
+      }
+      return server;
+    } catch (error) {
+      this.logger.error(
+        `Error retrieving server with credentials for id ${id}:`,
+        error,
+      );
+      throw new ServerRetrievalException(
+        `Error retrieving server with credentials for id ${id}`,
+      );
+    }
+  }
+
   async deleteServer(id: string): Promise<void> {
     await this.findServerById(id);
     try {
@@ -163,6 +190,61 @@ export class ServerTypeormRepository
     } catch (error) {
       this.logger.error('Error in findByIds:', error);
       throw new ServerRetrievalException('Error retrieving servers by IDs');
+    }
+  }
+
+  async findServerByTypeWithCredentials(type: string): Promise<Server | null> {
+    try {
+      const server = await this.createQueryBuilder('server')
+        .leftJoinAndSelect('server.ilo', 'ilo')
+        .leftJoinAndSelect('server.group', 'group')
+        .leftJoinAndSelect('server.room', 'room')
+        .leftJoinAndSelect('server.ups', 'ups')
+        .leftJoinAndSelect('server.vms', 'vms')
+        .addSelect('server.password')
+        .where('server.type = :type', { type })
+        .getOne();
+
+      return server;
+    } catch (error) {
+      this.logger.error(
+        `Error retrieving server with credentials for type ${type}:`,
+        error,
+      );
+      throw new ServerRetrievalException(
+        `Error retrieving server with credentials for type ${type}`,
+      );
+    }
+  }
+
+  async findAllWithCredentials(): Promise<Server[]> {
+    try {
+      return await this.createQueryBuilder('server')
+        .leftJoinAndSelect('server.ilo', 'ilo')
+        .leftJoinAndSelect('server.group', 'group')
+        .leftJoinAndSelect('server.room', 'room')
+        .leftJoinAndSelect('server.ups', 'ups')
+        .leftJoinAndSelect('server.vms', 'vms')
+        .addSelect('server.password')
+        .getMany();
+    } catch (error) {
+      this.logger.error('Error retrieving servers with credentials:', error);
+      throw new ServerRetrievalException(
+        'Error retrieving servers with credentials',
+      );
+    }
+  }
+
+  async findAllWithVms(): Promise<Server[]> {
+    try {
+      return await this.createQueryBuilder('server')
+        .leftJoinAndSelect('server.vms', 'vms')
+        .orderBy('server.name', 'ASC')
+        .addOrderBy('vms.name', 'ASC')
+        .getMany();
+    } catch (error) {
+      this.logger.error('Error retrieving servers with VMs:', error);
+      throw new ServerRetrievalException('Error retrieving servers with VMs');
     }
   }
 
@@ -208,6 +290,18 @@ export class ServerTypeormRepository
     } catch (error) {
       this.logger.error(`Error counting servers with state ${state}:`, error);
       throw new ServerRetrievalException(`Error counting servers by state`);
+    }
+  }
+
+  async findByIloIp(iloIp: string): Promise<Server | null> {
+    try {
+      return await this.findOne({
+        where: { ilo: { ip: iloIp } },
+        relations: ['ilo'],
+      });
+    } catch (error) {
+      this.logger.error(`Error finding server by iLO IP ${iloIp}:`, error);
+      throw new ServerRetrievalException(`Error finding server by iLO IP`);
     }
   }
 }

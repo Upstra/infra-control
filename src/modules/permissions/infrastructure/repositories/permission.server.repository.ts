@@ -1,7 +1,10 @@
 import { DataSource, Repository } from 'typeorm';
 import { PermissionServer } from '../../domain/entities/permission.server.entity';
 import { Injectable, Logger } from '@nestjs/common';
-import { PermissionNotFoundException } from '../../domain/exceptions/permission.exception';
+import {
+  PermissionInvalidValueException,
+  PermissionNotFoundException,
+} from '../../domain/exceptions/permission.exception';
 import { FindOneByFieldOptions } from '@/core/utils/index';
 import { PermissionServerRepositoryInterface } from '../interfaces/permission.server.repository.interface';
 
@@ -44,7 +47,7 @@ export class PermissionServerRepository
     K
   >): Promise<PermissionServer | null> {
     if (value === undefined || value === null) {
-      throw new Error(`Invalid value for ${String(field)}`);
+      throw new PermissionInvalidValueException(String(field));
     }
     try {
       return await this.findOneOrFail({
@@ -64,7 +67,7 @@ export class PermissionServerRepository
     relations = ['server'],
   }: FindOneByFieldOptions<PermissionServer, K>): Promise<PermissionServer[]> {
     if (value === undefined || value === null) {
-      throw new Error(`Invalid value for ${String(field)}`);
+      throw new PermissionInvalidValueException(String(field));
     }
     try {
       return await this.find({ where: { [field]: value } as any, relations });
@@ -106,7 +109,9 @@ export class PermissionServerRepository
 
   async deleteById(id: string): Promise<void> {
     const result = await this.delete({ id });
-    this.logger.log(`Deleted server permission with id ${id}, result: ${JSON.stringify(result)}`);
+    this.logger.log(
+      `Deleted server permission with id ${id}, result: ${JSON.stringify(result)}`,
+    );
   }
 
   async deleteByRoleId(roleId: string): Promise<void> {

@@ -21,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 
 import { RoomCreationDto, RoomResponseDto, RoomListResponseDto } from '../dto';
+import { RoomTreeListResponseDto } from '../dto/room-tree.dto';
 import {
   CreateRoomUseCase,
   DeleteRoomUseCase,
@@ -28,10 +29,13 @@ import {
   GetAllRoomsUseCase,
   GetRoomByIdUseCase,
   UpdateRoomUseCase,
+  GetRoomTreeListUseCase,
 } from '../use-cases';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guard';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { RoleGuard } from '@/core/guards';
+import { RequireRole } from '@/core/decorators/role.decorator';
 
 @ApiTags('Room')
 @Controller('room')
@@ -43,6 +47,7 @@ export class RoomController {
     private readonly createRoomUseCase: CreateRoomUseCase,
     private readonly updateRoomUseCase: UpdateRoomUseCase,
     private readonly deleteRoomUseCase: DeleteRoomUseCase,
+    private readonly getRoomTreeListUseCase: GetRoomTreeListUseCase,
   ) {}
 
   @Get()
@@ -73,6 +78,20 @@ export class RoomController {
   @ApiResponse({ status: 200, type: [RoomResponseDto] })
   async getAllRooms(): Promise<RoomResponseDto[]> {
     return this.getAllRoomsUseCase.execute();
+  }
+
+  @Get('tree')
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOperation({ summary: 'Lister les salles pour navigation arborescente' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiResponse({ status: 200, type: RoomTreeListResponseDto })
+  async getRoomTree(
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+  ): Promise<RoomTreeListResponseDto> {
+    return this.getRoomTreeListUseCase.execute(Number(page), Number(limit));
   }
 
   @Get(':id')
@@ -109,7 +128,8 @@ export class RoomController {
       'Crée une salle dans le système à partir des données du `RoomCreationDto`.',
   })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
   @ApiResponse({ status: 201, type: RoomResponseDto })
   async createRoom(
     @CurrentUser() user: JwtPayload,
@@ -158,7 +178,8 @@ export class RoomController {
     description: 'Supprime une salle du système de manière permanente.',
   })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @RequireRole({ isAdmin: true })
   @ApiResponse({ status: 204, description: 'Salle supprimée avec succès' })
   async deleteRoom(
     @Param('id', ParseUUIDPipe) id: string,

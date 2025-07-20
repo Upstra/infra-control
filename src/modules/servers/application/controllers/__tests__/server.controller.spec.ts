@@ -5,14 +5,15 @@ import {
   DeleteServerUseCase,
   GetAllServersUseCase,
   GetServerByIdUseCase,
-  GetServerByIdWithPermissionCheckUseCase,
   GetUserServersUseCase,
   UpdateServerUseCase,
   UpdateServerPriorityUseCase,
   CheckServerPermissionUseCase,
 } from '@/modules/servers/application/use-cases';
+import { PingServerUseCase } from '@/modules/servers/application/use-cases/ping-server.use-case';
 import { createMockServerDto } from '@/modules/servers/__mocks__/servers.mock';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { PingRequestDto } from '@/core/dto/ping.dto';
+
 import { PermissionGuard } from '@/core/guards/permission.guard';
 import { RoleGuard } from '@/core/guards/role.guard';
 import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
@@ -20,6 +21,7 @@ import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards/jwt-auth.guar
 import { GetUserWithRoleUseCase } from '@/modules/users/application/use-cases';
 import { Reflector } from '@nestjs/core';
 import { ServerListResponseDto } from '../../dto/server.list.response.dto';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 
 describe('ServerController', () => {
   let controller: ServerController;
@@ -29,14 +31,11 @@ describe('ServerController', () => {
   let updateServerUseCase: jest.Mocked<UpdateServerUseCase>;
   let deleteServerUseCase: jest.Mocked<DeleteServerUseCase>;
   let getUserServersUseCase: jest.Mocked<GetUserServersUseCase>;
-  let getServerByIdWithPermissionCheckUseCase: jest.Mocked<GetServerByIdWithPermissionCheckUseCase>;
   let updateServerPriorityUseCase: jest.Mocked<UpdateServerPriorityUseCase>;
   let checkServerPermissionUseCase: jest.Mocked<CheckServerPermissionUseCase>;
+  let pingServerUseCase: jest.Mocked<PingServerUseCase>;
 
-  const mockPayload: JwtPayload = {
-    userId: 'user-123',
-    email: 'john.doe@example.com',
-  };
+  const mockPayload = createMockJwtPayload();
 
   beforeEach(async () => {
     const mockJwtAuthGuard = {
@@ -68,9 +67,9 @@ describe('ServerController', () => {
     updateServerUseCase = { execute: jest.fn() } as any;
     deleteServerUseCase = { execute: jest.fn() } as any;
     getUserServersUseCase = { execute: jest.fn() } as any;
-    getServerByIdWithPermissionCheckUseCase = { execute: jest.fn() } as any;
     updateServerPriorityUseCase = { execute: jest.fn() } as any;
     checkServerPermissionUseCase = { execute: jest.fn() } as any;
+    pingServerUseCase = { execute: jest.fn() } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ServerController],
@@ -82,16 +81,16 @@ describe('ServerController', () => {
         { provide: DeleteServerUseCase, useValue: deleteServerUseCase },
         { provide: GetUserServersUseCase, useValue: getUserServersUseCase },
         {
-          provide: GetServerByIdWithPermissionCheckUseCase,
-          useValue: getServerByIdWithPermissionCheckUseCase,
-        },
-        {
           provide: UpdateServerPriorityUseCase,
           useValue: updateServerPriorityUseCase,
         },
         {
           provide: CheckServerPermissionUseCase,
           useValue: checkServerPermissionUseCase,
+        },
+        {
+          provide: PingServerUseCase,
+          useValue: pingServerUseCase,
         },
         {
           provide: GetUserWithRoleUseCase,
@@ -129,33 +128,22 @@ describe('ServerController', () => {
   describe('getServerById', () => {
     it('should return a server by id', async () => {
       const dto = createMockServerDto();
-      const user: JwtPayload = {
-        userId: 'user-uuid',
-        email: 'john.doe@example.com',
-      };
-      getServerByIdWithPermissionCheckUseCase.execute.mockResolvedValue(dto);
+      getServerByIdUseCase.execute.mockResolvedValue(dto);
 
-      const result = await controller.getServerById('server-uuid', user);
+      const result = await controller.getServerById('server-uuid');
 
       expect(result).toEqual(dto);
-      expect(
-        getServerByIdWithPermissionCheckUseCase.execute,
-      ).toHaveBeenCalledWith('server-uuid', 'user-uuid');
+      expect(getServerByIdUseCase.execute).toHaveBeenCalledWith('server-uuid');
     });
 
-    it('should throw if server is not found (permission check route)', async () => {
-      const user: JwtPayload = {
-        userId: 'user-uuid',
-        email: 'john.doe@example.com',
-      };
-
-      getServerByIdWithPermissionCheckUseCase.execute.mockRejectedValue(
+    it('should throw if server is not found', async () => {
+      getServerByIdUseCase.execute.mockRejectedValue(
         new Error('Server not found'),
       );
 
-      await expect(
-        controller.getServerById('nonexistent-id', user),
-      ).rejects.toThrow('Server not found');
+      await expect(controller.getServerById('nonexistent-id')).rejects.toThrow(
+        'Server not found',
+      );
     });
   });
 
@@ -252,10 +240,7 @@ describe('ServerController', () => {
   describe('getMyServers', () => {
     it('should return paginated servers accessible to the user with default pagination', async () => {
       const dto = createMockServerDto();
-      const user: JwtPayload = {
-        userId: 'user-uuid',
-        email: 'john.doe@example.com',
-      };
+      const user = createMockJwtPayload({ userId: 'user-uuid' });
 
       const mockPaginatedResponse = new ServerListResponseDto([dto], 1, 1, 10);
       getUserServersUseCase.execute.mockResolvedValue(mockPaginatedResponse);
@@ -277,10 +262,7 @@ describe('ServerController', () => {
 
     it('should return paginated servers with custom pagination parameters', async () => {
       const dto = createMockServerDto();
-      const user: JwtPayload = {
-        userId: 'user-uuid',
-        email: 'john.doe@example.com',
-      };
+      const user = createMockJwtPayload({ userId: 'user-uuid' });
 
       const mockPaginatedResponse = new ServerListResponseDto([dto], 10, 2, 5);
       getUserServersUseCase.execute.mockResolvedValue(mockPaginatedResponse);
@@ -301,10 +283,7 @@ describe('ServerController', () => {
     });
 
     it('should handle empty results with pagination', async () => {
-      const user: JwtPayload = {
-        userId: 'user-uuid',
-        email: 'john.doe@example.com',
-      };
+      const user = createMockJwtPayload({ userId: 'user-uuid' });
 
       const mockPaginatedResponse = new ServerListResponseDto([], 0, 1, 10);
       getUserServersUseCase.execute.mockResolvedValue(mockPaginatedResponse);
@@ -349,10 +328,10 @@ describe('ServerController', () => {
 
   describe('Guard Integration Tests', () => {
     it('should handle guard permission denials gracefully', async () => {
-      const user: JwtPayload = {
+      const user = createMockJwtPayload({
         userId: 'user-uuid',
         email: 'blocked@example.com',
-      };
+      });
 
       getUserServersUseCase.execute.mockRejectedValue(new Error('Forbidden'));
 
@@ -422,6 +401,78 @@ describe('ServerController', () => {
       await expect(
         controller.checkPermission(dto, mockPayload),
       ).rejects.toThrow('Server not found');
+    });
+  });
+
+  describe('pingServer', () => {
+    it('should ping server successfully', async () => {
+      const serverId = 'server-123';
+      const pingDto: PingRequestDto = {
+        host: '192.168.1.10',
+        timeout: 5000,
+      };
+      const user = createMockJwtPayload({ userId: 'user-123' });
+      const expectedResult = {
+        accessible: true,
+        host: '192.168.1.10',
+        responseTime: 25,
+      };
+
+      pingServerUseCase.execute.mockResolvedValue(expectedResult);
+
+      const result = await controller.pingServer(serverId, pingDto, user);
+
+      expect(pingServerUseCase.execute).toHaveBeenCalledWith(
+        serverId,
+        pingDto.timeout,
+      );
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should ping server with default timeout', async () => {
+      const serverId = 'server-123';
+      const pingDto: PingRequestDto = {
+        host: '192.168.1.10',
+      };
+      const user = createMockJwtPayload({ userId: 'user-123' });
+      const expectedResult = {
+        accessible: true,
+        host: '192.168.1.10',
+        responseTime: 15,
+      };
+
+      pingServerUseCase.execute.mockResolvedValue(expectedResult);
+
+      const result = await controller.pingServer(serverId, pingDto, user);
+
+      expect(pingServerUseCase.execute).toHaveBeenCalledWith(
+        serverId,
+        undefined,
+      );
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should handle ping failure', async () => {
+      const serverId = 'server-123';
+      const pingDto: PingRequestDto = {
+        host: 'unreachable-host',
+      };
+      const user = createMockJwtPayload({ userId: 'user-123' });
+      const expectedResult = {
+        accessible: false,
+        host: 'unreachable-host',
+        error: 'Host unreachable',
+      };
+
+      pingServerUseCase.execute.mockResolvedValue(expectedResult);
+
+      const result = await controller.pingServer(serverId, pingDto, user);
+
+      expect(pingServerUseCase.execute).toHaveBeenCalledWith(
+        serverId,
+        undefined,
+      );
+      expect(result).toEqual(expectedResult);
     });
   });
 });

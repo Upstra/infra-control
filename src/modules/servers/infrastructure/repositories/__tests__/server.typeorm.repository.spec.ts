@@ -1,7 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
 import { ServerTypeormRepository } from '../server.typeorm.repository';
-import { Server } from '../../../domain/entities/server.entity';
 import { ServerRetrievalException } from '../../../domain/exceptions/server.exception';
 
 describe('ServerTypeormRepository', () => {
@@ -60,5 +59,4 @@ describe('ServerTypeormRepository', () => {
       );
     });
   });
-
 });

@@ -23,7 +23,24 @@ export interface UserRepositoryInterface
     lastName: string,
     email: string,
   ): Promise<User>;
+  /**
+   * Delete a user (performs soft delete with anonymization).
+   * The user data is anonymized and marked as deleted.
+   * 
+   * @param id - The ID of the user to delete
+   * @throws UserDeletionException on error
+   */
   deleteUser(id: string): Promise<void>;
+
+  /**
+   * Soft delete a user by setting deletedAt timestamp.
+   * TODO: This method will be used for GDPR compliance in the future.
+   * For now, we use hard delete via deleteUser().
+   *
+   * @param id - The ID of the user to soft delete
+   * @returns Updated user with deletedAt set
+   */
+  softDeleteUser(id: string): Promise<User>;
 
   /**
    * Count the number of admin users in the system.
@@ -89,5 +106,38 @@ export interface UserRepositoryInterface
    * @returns Array of users
    */
   findAll(relations?: string[], includeDeleted?: boolean): Promise<User[]>;
+
+  /**
+   * Get only the isActive status of a user.
+   *
+   * @param userId - The ID of the user
+   * @returns Object with isActive status or null if user not found
+   */
+  getUserActiveStatus(userId: string): Promise<{ isActive: boolean } | null>;
+
+  /**
+   * Find all users with admin role.
+   *
+   * @returns Array of admin users
+   */
+  findAdminUsers(): Promise<User[]>;
+
+  /**
+   * Find multiple users by their IDs.
+   *
+   * @param ids - Array of user IDs
+   * @returns Array of users found
+   */
+  findByIds(ids: string[]): Promise<User[]>;
+
+  /**
+   * Permanently delete a user from the database.
+   * WARNING: This is a hard delete and cannot be undone.
+   * Use only for GDPR compliance after the retention period.
+   * 
+   * @param id - The ID of the user to permanently delete
+   * @throws UserDeletionException on database error
+   */
+  hardDeleteUser(id: string): Promise<void>;
 }
 export { FindOneByFieldOptions, FindAllByFieldOptions };

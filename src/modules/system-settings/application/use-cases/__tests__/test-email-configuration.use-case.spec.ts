@@ -2,14 +2,19 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TestEmailConfigurationUseCase } from '../test-email-configuration.use-case';
 import { SystemSettingsService } from '../../../domain/services/system-settings.service';
 import { EmailConfigurationException } from '../../../domain/exceptions/system-settings.exceptions';
-import * as nodemailer from 'nodemailer';
 
-jest.mock('nodemailer');
+const mockTransporter = {
+  verify: jest.fn(),
+  sendMail: jest.fn(),
+};
+
+jest.mock('nodemailer', () => ({
+  createTransporter: jest.fn(() => mockTransporter),
+}));
 
 describe('TestEmailConfigurationUseCase', () => {
   let useCase: TestEmailConfigurationUseCase;
   let systemSettingsService: SystemSettingsService;
-  let mockTransporter: any;
 
   const mockSettings = {
     id: 'singleton',
@@ -32,12 +37,7 @@ describe('TestEmailConfigurationUseCase', () => {
   };
 
   beforeEach(async () => {
-    mockTransporter = {
-      verify: jest.fn(),
-      sendMail: jest.fn(),
-    };
-
-    (nodemailer.createTransport as jest.Mock).mockReturnValue(mockTransporter);
+    jest.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -79,7 +79,8 @@ describe('TestEmailConfigurationUseCase', () => {
 
       await useCase.execute(testEmail);
 
-      expect(nodemailer.createTransport).toHaveBeenCalledWith({
+      const nodemailer = require('nodemailer');
+      expect(nodemailer.createTransporter).toHaveBeenCalledWith({
         host: mockSettings.settings.email.smtp.host,
         port: mockSettings.settings.email.smtp.port,
         secure: mockSettings.settings.email.smtp.secure,

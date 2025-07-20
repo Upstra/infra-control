@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcryptjs';
 import { Ups } from '../entities/ups.entity';
 import { UpsCreationDto } from '../../application/dto/ups.creation.dto';
 import { UpsUpdateDto } from '../../application/dto/ups.update.dto';
@@ -29,8 +28,6 @@ export class UpsDomainService {
     const ups = new Ups();
     ups.name = upsDto.name;
     ups.ip = upsDto.ip;
-    ups.login = upsDto.login;
-    ups.password = await bcrypt.hash(upsDto.password, 10);
     ups.grace_period_on = upsDto.grace_period_on;
     ups.grace_period_off = upsDto.grace_period_off;
     ups.roomId = upsDto.roomId;
@@ -43,10 +40,6 @@ export class UpsDomainService {
   ): Promise<Ups> {
     ups.name = upsDto.name ?? ups.name;
     ups.ip = upsDto.ip ?? ups.ip;
-    ups.login = upsDto.login ?? ups.login;
-    ups.password = upsDto.password
-      ? await bcrypt.hash(upsDto.password, 10)
-      : ups.password;
     ups.grace_period_on = upsDto.grace_period_on ?? ups.grace_period_on;
     ups.grace_period_off = upsDto.grace_period_off ?? ups.grace_period_off;
     ups.roomId = upsDto.roomId ?? ups.roomId;

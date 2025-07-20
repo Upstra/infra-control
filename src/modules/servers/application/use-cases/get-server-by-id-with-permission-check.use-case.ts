@@ -60,8 +60,6 @@ export class GetServerByIdWithPermissionCheckUseCase {
       throw new ForbiddenException('User has no role assigned');
     }
 
-    this.logger.debug(`User ${userId} has roleIds ${roleIds.join(',')}`);
-
     const permissions = await PermissionResolver.resolveServerPermissions(
       this.permissionRepo,
       roleIds,

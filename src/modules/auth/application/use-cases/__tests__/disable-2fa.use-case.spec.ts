@@ -1,10 +1,7 @@
 import { Disable2FAUseCase } from '../disable-2fa.use-case';
 import { createMockUser } from '@/modules/auth/__mocks__/user.mock';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
-import {
-  UserExceptions,
-  UserNotFoundException,
-} from '@/modules/users/domain/exceptions/user.exception';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
+import { UserNotFoundException } from '@/modules/users/domain/exceptions/user.exception';
 import {
   GetUserByEmailUseCase,
   UpdateUserFieldsUseCase,
@@ -17,10 +14,7 @@ describe('Disable2FAUseCase', () => {
   let getUserByEmailUseCase: jest.Mocked<GetUserByEmailUseCase>;
   let updateUserFieldsUseCase: jest.Mocked<UpdateUserFieldsUseCase>;
 
-  const mockPayload: JwtPayload = {
-    userId: 'user-123',
-    email: 'john.doe@example.com',
-  };
+  const mockPayload = createMockJwtPayload();
 
   beforeEach(() => {
     getUserByEmailUseCase = {
@@ -57,7 +51,7 @@ describe('Disable2FAUseCase', () => {
 
   it('should throw UserNotFoundException if user is not found', async () => {
     getUserByEmailUseCase.execute.mockRejectedValue(
-      UserExceptions.notFound('null'),
+      new UserNotFoundException('null'),
     );
     await expect(useCase.execute(mockPayload)).rejects.toThrow(
       UserNotFoundException,

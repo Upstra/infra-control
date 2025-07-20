@@ -5,7 +5,7 @@ import { UserDomainService } from '@modules/users/domain/services/user.domain.se
 import { BulkActivateDto } from '../../dto/bulk-activate.dto';
 import { UserResponseDto } from '../../dto/user.response.dto';
 import { User } from '@modules/users/domain/entities/user.entity';
-import { UserExceptions } from '@modules/users/domain/exceptions/user.exception';
+import { UserNotFoundException } from '@modules/users/domain/exceptions/user.exception';
 
 describe('BulkActivateUseCase', () => {
   let useCase: BulkActivateUseCase;
@@ -134,7 +134,7 @@ describe('BulkActivateUseCase', () => {
       userRepository.findById.mockResolvedValueOnce(null);
 
       await expect(useCase.execute(bulkActivateDto)).rejects.toThrow(
-        UserExceptions.notFound(),
+        UserNotFoundException,
       );
 
       expect(userRepository.findById).toHaveBeenCalledTimes(2);
@@ -150,7 +150,7 @@ describe('BulkActivateUseCase', () => {
       userRepository.findById.mockResolvedValue(null);
 
       await expect(useCase.execute(bulkActivateDto)).rejects.toThrow(
-        UserExceptions.notFound(),
+        UserNotFoundException,
       );
 
       expect(userRepository.findById).toHaveBeenCalledTimes(1);
@@ -161,10 +161,10 @@ describe('BulkActivateUseCase', () => {
         userIds: ['id1'],
       };
 
-      userRepository.findById.mockRejectedValueOnce(UserExceptions.notFound());
+      userRepository.findById.mockRejectedValueOnce(new UserNotFoundException('id1'));
 
       await expect(useCase.execute(bulkActivateDto)).rejects.toThrow(
-        UserExceptions.notFound(),
+        UserNotFoundException,
       );
 
       expect(userRepository.findById).toHaveBeenCalledTimes(1);

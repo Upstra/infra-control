@@ -1,21 +1,79 @@
+import { Test, TestingModule } from '@nestjs/testing';
 import { GetUserPresenceUseCase } from '../get-user-presence.use-case';
 import { PresenceService } from '../../../../../presence/application/services/presence.service';
+import { UserRepositoryInterface } from '../../../../../users/domain/interfaces/user.repository.interface';
+import { RedisSafeService } from '@/modules/redis/application/services/redis-safe.service';
 
 describe('GetUserPresenceUseCase', () => {
   let useCase: GetUserPresenceUseCase;
   let presenceService: jest.Mocked<PresenceService>;
+  let userRepository: jest.Mocked<UserRepositoryInterface>;
+  let redisSafeService: jest.Mocked<RedisSafeService>;
 
-  beforeEach(() => {
-    presenceService = {
+  const mockUsers = [
+    {
+      id: 'user-1',
+      username: 'john.doe',
+      email: 'john@example.com',
+      firstName: 'John',
+      lastName: 'Doe',
+    },
+    {
+      id: 'user-2',
+      username: 'jane.smith',
+      email: 'jane@example.com',
+      firstName: 'Jane',
+      lastName: 'Smith',
+    },
+    {
+      id: 'user-3',
+      username: 'admin',
+      email: 'admin@example.com',
+      firstName: 'Admin',
+      lastName: 'User',
+    },
+  ];
+
+  beforeEach(async () => {
+    const mockPresenceService = {
       getConnectedUserCount: jest.fn(),
       markOnline: jest.fn(),
       markOffline: jest.fn(),
       isOnline: jest.fn(),
       trackUsers: jest.fn(),
       refreshTTL: jest.fn(),
-    } as any;
+    };
 
-    useCase = new GetUserPresenceUseCase(presenceService);
+    const mockUserRepository = {
+      findByIds: jest.fn(),
+    };
+
+    const mockRedisSafeService = {
+      keys: jest.fn(),
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        GetUserPresenceUseCase,
+        {
+          provide: PresenceService,
+          useValue: mockPresenceService,
+        },
+        {
+          provide: 'UserRepositoryInterface',
+          useValue: mockUserRepository,
+        },
+        {
+          provide: RedisSafeService,
+          useValue: mockRedisSafeService,
+        },
+      ],
+    }).compile();
+
+    useCase = module.get<GetUserPresenceUseCase>(GetUserPresenceUseCase);
+    presenceService = module.get(PresenceService);
+    userRepository = module.get('UserRepositoryInterface');
+    redisSafeService = module.get(RedisSafeService);
   });
 
   afterEach(() => {
@@ -34,8 +92,8 @@ describe('GetUserPresenceUseCase', () => {
       jest.useRealTimers();
     });
 
-    it('should return user presence data when no users are online', async () => {
-      presenceService.getConnectedUserCount.mockResolvedValue(0);
+    it('should return empty data when no users are online', async () => {
+      redisSafeService.keys.mockResolvedValue([]);
 
       const result = await useCase.execute();
 
@@ -49,22 +107,24 @@ describe('GetUserPresenceUseCase', () => {
         },
       });
 
-      expect(presenceService.getConnectedUserCount).toHaveBeenCalled();
+      expect(redisSafeService.keys).toHaveBeenCalledWith('presence:*');
+      expect(userRepository.findByIds).not.toHaveBeenCalled();
     });
 
     it('should return user presence data when one user is online', async () => {
-      presenceService.getConnectedUserCount.mockResolvedValue(1);
+      redisSafeService.keys.mockResolvedValue(['presence:user-1']);
+      userRepository.findByIds.mockResolvedValue([mockUsers[0]] as any);
 
       const result = await useCase.execute();
 
       expect(result).toEqual({
         onlineUsers: [
           {
-            id: 'user-0',
-            name: 'User 1',
+            id: 'user-1',
+            name: 'john.doe',
             avatar: undefined,
             status: 'active',
-            location: 'Dashboard',
+            location: 'Unknown',
             lastSeen: mockDate,
           },
         ],
@@ -76,38 +136,44 @@ describe('GetUserPresenceUseCase', () => {
         },
       });
 
-      expect(presenceService.getConnectedUserCount).toHaveBeenCalled();
+      expect(redisSafeService.keys).toHaveBeenCalledWith('presence:*');
+      expect(userRepository.findByIds).toHaveBeenCalledWith(['user-1']);
     });
 
     it('should return user presence data when multiple users are online', async () => {
-      presenceService.getConnectedUserCount.mockResolvedValue(3);
+      redisSafeService.keys.mockResolvedValue([
+        'presence:user-1',
+        'presence:user-2',
+        'presence:user-3',
+      ]);
+      userRepository.findByIds.mockResolvedValue(mockUsers as any);
 
       const result = await useCase.execute();
 
       expect(result).toEqual({
         onlineUsers: [
           {
-            id: 'user-0',
-            name: 'User 1',
-            avatar: undefined,
-            status: 'active',
-            location: 'Dashboard',
-            lastSeen: mockDate,
-          },
-          {
             id: 'user-1',
-            name: 'User 2',
+            name: 'john.doe',
             avatar: undefined,
             status: 'active',
-            location: 'Dashboard',
+            location: 'Unknown',
             lastSeen: mockDate,
           },
           {
             id: 'user-2',
-            name: 'User 3',
+            name: 'jane.smith',
             avatar: undefined,
             status: 'active',
-            location: 'Dashboard',
+            location: 'Unknown',
+            lastSeen: mockDate,
+          },
+          {
+            id: 'user-3',
+            name: 'admin',
+            avatar: undefined,
+            status: 'active',
+            location: 'Unknown',
             lastSeen: mockDate,
           },
         ],
@@ -119,254 +185,153 @@ describe('GetUserPresenceUseCase', () => {
         },
       });
 
-      expect(presenceService.getConnectedUserCount).toHaveBeenCalled();
+      expect(redisSafeService.keys).toHaveBeenCalledWith('presence:*');
+      expect(userRepository.findByIds).toHaveBeenCalledWith(['user-1', 'user-2', 'user-3']);
     });
 
-    it('should limit online users to maximum of 5', async () => {
-      presenceService.getConnectedUserCount.mockResolvedValue(10);
+    it('should handle null keys from Redis', async () => {
+      redisSafeService.keys.mockResolvedValue(null as any);
 
       const result = await useCase.execute();
 
-      expect(result.onlineUsers).toHaveLength(5);
-      expect(result.onlineUsers).toEqual([
-        {
-          id: 'user-0',
-          name: 'User 1',
-          avatar: undefined,
-          status: 'active',
-          location: 'Dashboard',
-          lastSeen: mockDate,
+      expect(result).toEqual({
+        onlineUsers: [],
+        recentlyOffline: [],
+        summary: {
+          online: 0,
+          idle: 0,
+          offline: 0,
         },
-        {
-          id: 'user-1',
-          name: 'User 2',
-          avatar: undefined,
-          status: 'active',
-          location: 'Dashboard',
-          lastSeen: mockDate,
-        },
-        {
-          id: 'user-2',
-          name: 'User 3',
-          avatar: undefined,
-          status: 'active',
-          location: 'Dashboard',
-          lastSeen: mockDate,
-        },
-        {
-          id: 'user-3',
-          name: 'User 4',
-          avatar: undefined,
-          status: 'active',
-          location: 'Dashboard',
-          lastSeen: mockDate,
-        },
-        {
-          id: 'user-4',
-          name: 'User 5',
-          avatar: undefined,
-          status: 'active',
-          location: 'Dashboard',
-          lastSeen: mockDate,
-        },
+      });
+
+      expect(redisSafeService.keys).toHaveBeenCalledWith('presence:*');
+      expect(userRepository.findByIds).not.toHaveBeenCalled();
+    });
+
+    it('should handle users not found in repository', async () => {
+      redisSafeService.keys.mockResolvedValue([
+        'presence:user-1',
+        'presence:user-2',
+        'presence:user-3',
       ]);
-
-      expect(result.summary.online).toBe(5);
-      expect(presenceService.getConnectedUserCount).toHaveBeenCalled();
-    });
-
-    it('should handle exactly 5 users online', async () => {
-      presenceService.getConnectedUserCount.mockResolvedValue(5);
+      userRepository.findByIds.mockResolvedValue([mockUsers[0]] as any);
 
       const result = await useCase.execute();
 
-      expect(result.onlineUsers).toHaveLength(5);
-      expect(result.summary.online).toBe(5);
-      expect(presenceService.getConnectedUserCount).toHaveBeenCalled();
+      expect(result.onlineUsers).toHaveLength(1);
+      expect(result.summary.online).toBe(1);
+      expect(userRepository.findByIds).toHaveBeenCalledWith(['user-1', 'user-2', 'user-3']);
     });
 
-    it('should handle presence service failure', async () => {
-      presenceService.getConnectedUserCount.mockRejectedValue(
-        new Error('Service unavailable'),
-      );
+    it('should handle Redis service failure', async () => {
+      redisSafeService.keys.mockRejectedValue(new Error('Redis unavailable'));
 
-      await expect(useCase.execute()).rejects.toThrow('Service unavailable');
+      await expect(useCase.execute()).rejects.toThrow('Redis unavailable');
 
-      expect(presenceService.getConnectedUserCount).toHaveBeenCalled();
+      expect(redisSafeService.keys).toHaveBeenCalledWith('presence:*');
     });
 
-    it('should handle negative user count from service', async () => {
-      presenceService.getConnectedUserCount.mockResolvedValue(-1);
+    it('should handle user repository failure', async () => {
+      redisSafeService.keys.mockResolvedValue(['presence:user-1']);
+      userRepository.findByIds.mockRejectedValue(new Error('Database error'));
 
-      const result = await useCase.execute();
+      await expect(useCase.execute()).rejects.toThrow('Database error');
 
-      expect(result.onlineUsers).toEqual([]);
-      expect(result.summary.online).toBe(0);
-      expect(presenceService.getConnectedUserCount).toHaveBeenCalled();
-    });
-
-    it('should handle zero user count from service', async () => {
-      presenceService.getConnectedUserCount.mockResolvedValue(0);
-
-      const result = await useCase.execute();
-
-      expect(result.onlineUsers).toEqual([]);
-      expect(result.summary.online).toBe(0);
-      expect(result.summary.idle).toBe(0);
-      expect(result.summary.offline).toBe(0);
-      expect(presenceService.getConnectedUserCount).toHaveBeenCalled();
+      expect(redisSafeService.keys).toHaveBeenCalledWith('presence:*');
+      expect(userRepository.findByIds).toHaveBeenCalledWith(['user-1']);
     });
 
     it('should always return empty recentlyOffline array', async () => {
-      presenceService.getConnectedUserCount.mockResolvedValue(2);
+      redisSafeService.keys.mockResolvedValue(['presence:user-1']);
+      userRepository.findByIds.mockResolvedValue([mockUsers[0]] as any);
 
       const result = await useCase.execute();
 
       expect(result.recentlyOffline).toEqual([]);
-      expect(presenceService.getConnectedUserCount).toHaveBeenCalled();
     });
 
     it('should always return idle and offline counts as 0', async () => {
-      presenceService.getConnectedUserCount.mockResolvedValue(7);
+      redisSafeService.keys.mockResolvedValue(['presence:user-1', 'presence:user-2']);
+      userRepository.findByIds.mockResolvedValue([mockUsers[0], mockUsers[1]] as any);
 
       const result = await useCase.execute();
 
       expect(result.summary.idle).toBe(0);
       expect(result.summary.offline).toBe(0);
-      expect(presenceService.getConnectedUserCount).toHaveBeenCalled();
     });
 
-    it('should generate correct user IDs and names', async () => {
-      presenceService.getConnectedUserCount.mockResolvedValue(3);
+    it('should extract user IDs correctly from presence keys', async () => {
+      redisSafeService.keys.mockResolvedValue([
+        'presence:user-123',
+        'presence:user-456',
+        'presence:user-789',
+      ]);
+      userRepository.findByIds.mockResolvedValue([]);
 
-      const result = await useCase.execute();
+      await useCase.execute();
 
-      expect(result.onlineUsers[0]).toEqual({
-        id: 'user-0',
-        name: 'User 1',
-        avatar: undefined,
-        status: 'active',
-        location: 'Dashboard',
-        lastSeen: mockDate,
-      });
-
-      expect(result.onlineUsers[1]).toEqual({
-        id: 'user-1',
-        name: 'User 2',
-        avatar: undefined,
-        status: 'active',
-        location: 'Dashboard',
-        lastSeen: mockDate,
-      });
-
-      expect(result.onlineUsers[2]).toEqual({
-        id: 'user-2',
-        name: 'User 3',
-        avatar: undefined,
-        status: 'active',
-        location: 'Dashboard',
-        lastSeen: mockDate,
-      });
-
-      expect(presenceService.getConnectedUserCount).toHaveBeenCalled();
-    });
-
-    it('should handle large user count efficiently', async () => {
-      presenceService.getConnectedUserCount.mockResolvedValue(1000);
-
-      const result = await useCase.execute();
-
-      expect(result.onlineUsers).toHaveLength(5);
-      expect(result.summary.online).toBe(5);
-      expect(presenceService.getConnectedUserCount).toHaveBeenCalled();
+      expect(userRepository.findByIds).toHaveBeenCalledWith(['user-123', 'user-456', 'user-789']);
     });
 
     it('should ensure all online users have active status', async () => {
-      presenceService.getConnectedUserCount.mockResolvedValue(4);
+      redisSafeService.keys.mockResolvedValue([
+        'presence:user-1',
+        'presence:user-2',
+      ]);
+      userRepository.findByIds.mockResolvedValue([mockUsers[0], mockUsers[1]] as any);
 
       const result = await useCase.execute();
 
       result.onlineUsers.forEach((user) => {
         expect(user.status).toBe('active');
       });
-
-      expect(presenceService.getConnectedUserCount).toHaveBeenCalled();
     });
 
-    it('should ensure all online users have Dashboard location', async () => {
-      presenceService.getConnectedUserCount.mockResolvedValue(4);
+    it('should ensure all online users have Unknown location', async () => {
+      redisSafeService.keys.mockResolvedValue([
+        'presence:user-1',
+        'presence:user-2',
+      ]);
+      userRepository.findByIds.mockResolvedValue([mockUsers[0], mockUsers[1]] as any);
 
       const result = await useCase.execute();
 
       result.onlineUsers.forEach((user) => {
-        expect(user.location).toBe('Dashboard');
+        expect(user.location).toBe('Unknown');
       });
-
-      expect(presenceService.getConnectedUserCount).toHaveBeenCalled();
     });
 
     it('should ensure all online users have undefined avatar', async () => {
-      presenceService.getConnectedUserCount.mockResolvedValue(4);
+      redisSafeService.keys.mockResolvedValue([
+        'presence:user-1',
+        'presence:user-2',
+      ]);
+      userRepository.findByIds.mockResolvedValue([mockUsers[0], mockUsers[1]] as any);
 
       const result = await useCase.execute();
 
       result.onlineUsers.forEach((user) => {
         expect(user.avatar).toBeUndefined();
       });
-
-      expect(presenceService.getConnectedUserCount).toHaveBeenCalled();
     });
 
     it('should ensure all online users have same lastSeen time', async () => {
-      presenceService.getConnectedUserCount.mockResolvedValue(4);
+      redisSafeService.keys.mockResolvedValue([
+        'presence:user-1',
+        'presence:user-2',
+      ]);
+      userRepository.findByIds.mockResolvedValue([mockUsers[0], mockUsers[1]] as any);
 
       const result = await useCase.execute();
 
       result.onlineUsers.forEach((user) => {
         expect(user.lastSeen).toEqual(mockDate);
       });
-
-      expect(presenceService.getConnectedUserCount).toHaveBeenCalled();
-    });
-
-    it('should handle Math.min edge case with exactly 5 users', async () => {
-      presenceService.getConnectedUserCount.mockResolvedValue(5);
-
-      const result = await useCase.execute();
-
-      expect(result.onlineUsers).toHaveLength(5);
-      expect(result.onlineUsers[4]).toEqual({
-        id: 'user-4',
-        name: 'User 5',
-        avatar: undefined,
-        status: 'active',
-        location: 'Dashboard',
-        lastSeen: mockDate,
-      });
-
-      expect(presenceService.getConnectedUserCount).toHaveBeenCalled();
-    });
-
-    it('should handle Math.min edge case with 1 user', async () => {
-      presenceService.getConnectedUserCount.mockResolvedValue(1);
-
-      const result = await useCase.execute();
-
-      expect(result.onlineUsers).toHaveLength(1);
-      expect(result.onlineUsers[0]).toEqual({
-        id: 'user-0',
-        name: 'User 1',
-        avatar: undefined,
-        status: 'active',
-        location: 'Dashboard',
-        lastSeen: mockDate,
-      });
-
-      expect(presenceService.getConnectedUserCount).toHaveBeenCalled();
     });
 
     it('should handle concurrent execution', async () => {
-      presenceService.getConnectedUserCount.mockResolvedValue(2);
+      redisSafeService.keys.mockResolvedValue(['presence:user-1']);
+      userRepository.findByIds.mockResolvedValue([mockUsers[0]] as any);
 
       const results = await Promise.all([
         useCase.execute(),
@@ -375,21 +340,70 @@ describe('GetUserPresenceUseCase', () => {
       ]);
 
       results.forEach((result) => {
-        expect(result.onlineUsers).toHaveLength(2);
-        expect(result.summary.online).toBe(2);
+        expect(result.onlineUsers).toHaveLength(1);
+        expect(result.summary.online).toBe(1);
       });
 
-      expect(presenceService.getConnectedUserCount).toHaveBeenCalledTimes(3);
+      expect(redisSafeService.keys).toHaveBeenCalledTimes(3);
+      expect(userRepository.findByIds).toHaveBeenCalledTimes(3);
     });
 
     it('should maintain consistent structure across calls', async () => {
-      presenceService.getConnectedUserCount.mockResolvedValue(3);
+      redisSafeService.keys.mockResolvedValue(['presence:user-1', 'presence:user-2']);
+      userRepository.findByIds.mockResolvedValue([mockUsers[0], mockUsers[1]] as any);
 
       const result1 = await useCase.execute();
       const result2 = await useCase.execute();
 
       expect(result1).toEqual(result2);
-      expect(presenceService.getConnectedUserCount).toHaveBeenCalledTimes(2);
+      expect(redisSafeService.keys).toHaveBeenCalledTimes(2);
+      expect(userRepository.findByIds).toHaveBeenCalledTimes(2);
+    });
+
+    it('should handle large number of online users', async () => {
+      const manyKeys = Array.from({ length: 100 }, (_, i) => `presence:user-${i}`);
+      const manyUsers = Array.from({ length: 100 }, (_, i) => ({
+        id: `user-${i}`,
+        username: `user${i}`,
+      }));
+
+      redisSafeService.keys.mockResolvedValue(manyKeys);
+      userRepository.findByIds.mockResolvedValue(manyUsers as any);
+
+      const result = await useCase.execute();
+
+      expect(result.onlineUsers).toHaveLength(100);
+      expect(result.summary.online).toBe(100);
+      expect(userRepository.findByIds).toHaveBeenCalledWith(
+        manyKeys.map(key => key.replace('presence:', ''))
+      );
+    });
+
+    it('should handle empty user data from repository', async () => {
+      redisSafeService.keys.mockResolvedValue(['presence:user-1']);
+      userRepository.findByIds.mockResolvedValue([]);
+
+      const result = await useCase.execute();
+
+      expect(result.onlineUsers).toEqual([]);
+      expect(result.summary.online).toBe(0);
+    });
+
+    it('should use username as the name field', async () => {
+      redisSafeService.keys.mockResolvedValue(['presence:user-1']);
+      userRepository.findByIds.mockResolvedValue([
+        {
+          id: 'user-1',
+          username: 'custom.username',
+          email: 'test@example.com',
+          firstName: 'First',
+          lastName: 'Last',
+        }
+      ] as any);
+
+      const result = await useCase.execute();
+
+      expect(result.onlineUsers[0].name).toBe('custom.username');
     });
   });
 });

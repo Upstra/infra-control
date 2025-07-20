@@ -7,10 +7,8 @@ describe('UpsCreationDto', () => {
     const dto = plainToInstance(UpsCreationDto, {
       name: 'Onduleur',
       ip: '192.168.0.10',
-      login: 'admin',
-      password: 'pass',
-      grace_period_on: 10,
-      grace_period_off: 5,
+      grace_period_on: 30,
+      grace_period_off: 10,
       roomId: '2c43bb4c-f39e-4a49-817e-d4c28be83150',
     });
 
@@ -37,10 +35,8 @@ describe('UpsCreationDto', () => {
   const validData = {
     name: 'Onduleur',
     ip: '192.168.0.10',
-    login: 'admin',
-    password: 'pass',
-    grace_period_on: 10,
-    grace_period_off: 5,
+    grace_period_on: 30,
+    grace_period_off: 10,
     roomId: '2c43bb4c-f39e-4a49-817e-d4c28be83150',
   };
 });

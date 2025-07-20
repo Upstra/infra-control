@@ -282,3 +282,9 @@ $RECYCLE.BIN/
 # Grafana 
 # Ignore data directory
 grafana/data/*
+
+perso/*
+
+# SBOM files (generated)
+sbom/
+infra-control.postman_collection.json

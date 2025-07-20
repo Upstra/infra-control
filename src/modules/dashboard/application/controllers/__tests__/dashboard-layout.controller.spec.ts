@@ -8,7 +8,7 @@ import {
   ListLayoutsUseCase,
   SetDefaultLayoutUseCase,
 } from '../../use-cases/layouts';
-import { JwtPayload } from '@/core/types/jwt-payload.interface';
+import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
 import {
   CreateDashboardLayoutDto,
   UpdateDashboardLayoutDto,
@@ -25,10 +25,7 @@ describe('DashboardLayoutController', () => {
   let listLayoutsUseCase: jest.Mocked<ListLayoutsUseCase>;
   let setDefaultLayoutUseCase: jest.Mocked<SetDefaultLayoutUseCase>;
 
-  const mockUser: JwtPayload = {
-    userId: 'test-user-id',
-    email: 'test@example.com',
-  };
+  const mockUser = createMockJwtPayload();
 
   const mockLayout: DashboardLayoutResponseDto = {
     id: 'layout-1',
