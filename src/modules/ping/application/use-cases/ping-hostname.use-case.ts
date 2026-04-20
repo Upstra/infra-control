@@ -35,6 +35,11 @@ export class PingHostnameUseCase {
       return false;
     }
 
+    // HTTP/HTTPS URL (ex: http://mock-ups:8000)
+    if (hostname.startsWith('http://') || hostname.startsWith('https://')) {
+      return true;
+    }
+
     // IP address validation (IPv4)
     const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
     if (ipv4Regex.test(hostname)) {

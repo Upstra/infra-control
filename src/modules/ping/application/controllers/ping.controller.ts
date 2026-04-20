@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -18,28 +18,19 @@ export class PingController {
   constructor(private readonly pingHostnameUseCase: PingHostnameUseCase) {}
 
   @Get('hostname/:hostname')
-  @ApiOperation({
-    summary: 'Ping a hostname or IP address',
-    description:
-      'Test connectivity to a hostname or IP address without persisting to database',
-  })
-  @ApiParam({
-    name: 'hostname',
-    description: 'IP address or hostname to ping',
-    example: '192.168.1.100',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Ping result',
-    type: PingResponseDto,
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid hostname or IP address format',
-  })
+  @ApiOperation({ summary: 'Ping a hostname or IP address' })
+  @ApiParam({ name: 'hostname', example: '192.168.1.100' })
+  @ApiResponse({ status: 200, type: PingResponseDto })
   async pingHostname(
     @Param('hostname') hostname: string,
   ): Promise<PingResponseDto> {
     return this.pingHostnameUseCase.execute(hostname);
+  }
+
+  @Get('check')
+  @ApiOperation({ summary: 'Ping a host via query param (supporte les URLs HTTP)' })
+  @ApiResponse({ status: 200, type: PingResponseDto })
+  async pingCheck(@Query('host') host: string): Promise<PingResponseDto> {
+    return this.pingHostnameUseCase.execute(host);
   }
 }

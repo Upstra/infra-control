@@ -21,27 +21,38 @@ export class PingService {
     const startTime = Date.now();
 
     try {
-      // Try ICMP ping
+      if (hostname.startsWith('http://') || hostname.startsWith('https://')) {
+        return await this.performHttpCheck(hostname, startTime);
+      }
+
       const pingResult = await this.performICMPPing(hostname);
       const responseTime = Date.now() - startTime;
 
       if (!pingResult.success) {
-        return {
-          success: false,
-          error: pingResult.error,
-        };
+        return { success: false, error: pingResult.error };
       }
 
-      return {
-        success: true,
-        responseTime,
-      };
+      return { success: true, responseTime };
     } catch (error) {
       this.logger.error(`Ping failed for ${hostname}:`, error);
-      return {
-        success: false,
-        error: error.message || 'Unknown error occurred',
-      };
+      return { success: false, error: error.message || 'Unknown error occurred' };
+    }
+  }
+
+  private async performHttpCheck(
+    baseUrl: string,
+    startTime: number,
+  ): Promise<{ success: boolean; responseTime?: number; error?: string }> {
+    try {
+      const url = `${baseUrl.replace(/\/$/, '')}/health`;
+      const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      const responseTime = Date.now() - startTime;
+      if (response.ok) {
+        return { success: true, responseTime };
+      }
+      return { success: false, error: `HTTP ${response.status}` };
+    } catch (error) {
+      return { success: false, error: error.message || 'HTTP check failed' };
     }
   }
 
