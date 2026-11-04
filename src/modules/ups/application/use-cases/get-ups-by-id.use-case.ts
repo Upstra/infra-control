@@ -2,6 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { UpsRepositoryInterface } from '../../domain/interfaces/ups.repository.interface';
 import { UpsResponseDto } from '../../application/dto/ups.response.dto';
 import { UpsNotFoundException } from '../../domain/exceptions/ups.exception';
+import { UpsBatteryCacheService } from '../services/ups-battery-cache.service';
+import { BatteryStatusResponseDto } from '../dto/battery-status.response.dto';
 
 /**
  * Fetches details for a single UPS device by its unique identifier.
@@ -25,6 +27,7 @@ export class GetUpsByIdUseCase {
   constructor(
     @Inject('UpsRepositoryInterface')
     private readonly upsRepository: UpsRepositoryInterface,
+    private readonly upsBatteryCacheService: UpsBatteryCacheService,
   ) {}
 
   async execute(id: string): Promise<UpsResponseDto> {
@@ -36,6 +39,10 @@ export class GetUpsByIdUseCase {
       result.ups.servers && result.ups.servers.length > 0
         ? result.ups.servers.length
         : result.serverCount;
-    return new UpsResponseDto(result.ups, serverCount);
+    const cachedStatus = await this.upsBatteryCacheService.get(id);
+    const batteryStatus = cachedStatus
+      ? new BatteryStatusResponseDto(cachedStatus)
+      : undefined;
+    return new UpsResponseDto(result.ups, serverCount, batteryStatus);
   }
 }

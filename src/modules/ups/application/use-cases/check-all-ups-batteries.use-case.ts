@@ -1,27 +1,46 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
-
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { UpsRepositoryInterface } from '../../domain/interfaces/ups.repository.interface';
 import { GetUpsBatteryUseCase } from './get-ups-battery.use-case';
-import { UpsTypeormRepository } from '../../infrastructure/repositories/ups.typeorm.repository';
+
+export interface CheckAllUpsBatteriesResult {
+  checked: number;
+  failed: number;
+  onBattery: number;
+}
 
 @Injectable()
 export class CheckAllUpsBatteriesUseCase {
+  private readonly logger = new Logger(CheckAllUpsBatteriesUseCase.name);
+
   constructor(
-    @Inject(UpsTypeormRepository)
-    private upsRepository: UpsTypeormRepository,
-    private getUpsBatteryUseCase: GetUpsBatteryUseCase,
+    @Inject('UpsRepositoryInterface')
+    private readonly upsRepository: UpsRepositoryInterface,
+    private readonly getUpsBatteryUseCase: GetUpsBatteryUseCase,
   ) {}
 
-  @Cron('*/1 * * * *')
-  async execute(): Promise<void> {
+  async execute(): Promise<CheckAllUpsBatteriesResult> {
     const upsList = await this.upsRepository.findAll();
+    const result: CheckAllUpsBatteriesResult = {
+      checked: 0,
+      failed: 0,
+      onBattery: 0,
+    };
 
     for (const ups of upsList) {
       try {
-        await this.getUpsBatteryUseCase.execute(ups.id);
+        const status = await this.getUpsBatteryUseCase.execute(ups.id, {
+          forceRefresh: true,
+        });
+        result.checked++;
+        if (status.onBattery === true) result.onBattery++;
       } catch (error) {
-        console.error(`Failed to check UPS ${ups.name} (${ups.ip}):`, error);
+        result.failed++;
+        this.logger.warn(
+          `Failed to check UPS ${ups.name} (${ups.ip}): ${error?.message}`,
+        );
       }
     }
+
+    return result;
   }
 }

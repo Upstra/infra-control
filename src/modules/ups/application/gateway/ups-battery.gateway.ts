@@ -7,7 +7,11 @@ import {
 import { Server } from 'socket.io';
 import { OnEvent } from '@nestjs/event-emitter';
 import { getWebSocketCorsOptions } from '@/core/config/cors.config';
-import { UpsBatteryEvents } from '../../domain/events/ups-battery.events';
+import {
+  UpsBatteryAlertEvent,
+  UpsBatteryEvents,
+  UpsStatusChangedEvent,
+} from '../../domain/events/ups-battery.events';
 import { UPSBatteryStatusDto } from '../../domain/interfaces/ups-battery-status.interface';
 import { GetUpsBatteryUseCase } from '../use-cases/get-ups-battery.use-case';
 
@@ -27,8 +31,13 @@ export class UpsBatteryGateway {
   }
 
   @OnEvent(UpsBatteryEvents.BATTERY_ALERT)
-  handleBatteryAlert(payload: any) {
+  handleBatteryAlert(payload: UpsBatteryAlertEvent) {
     this.server.emit('battery:alert', payload);
+  }
+
+  @OnEvent(UpsBatteryEvents.STATUS_CHANGED)
+  handleStatusChanged(payload: UpsStatusChangedEvent) {
+    this.server.emit('battery:status-changed', payload);
   }
 
   @SubscribeMessage('battery:request-status')
