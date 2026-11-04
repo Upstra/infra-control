@@ -19,7 +19,10 @@ describe('CreateRoomUseCase', () => {
 
     const result = await useCase.execute(roomDto);
 
-    expect(roomRepository.createRoom).toHaveBeenCalledWith(roomDto.name);
+    expect(roomRepository.createRoom).toHaveBeenCalledWith(roomDto.name, {
+      inletWarnC: undefined,
+      inletCritC: undefined,
+    });
     expect(result).toEqual(RoomResponseDto.from(room));
   });
 });

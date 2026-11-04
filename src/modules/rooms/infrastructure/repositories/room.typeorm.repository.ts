@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { RoomInletThresholds } from '../../domain/interfaces/room-inlet-thresholds.interface';
 import { Room } from '../../domain/entities/room.entity';
 import { RoomRepositoryInterface } from '../../domain/interfaces/room.repository.interface';
 import { Repository } from 'typeorm';
@@ -69,19 +70,36 @@ export class RoomTypeormRepository implements RoomRepositoryInterface {
     return room;
   }
 
-  async createRoom(name: string): Promise<Room> {
+  async createRoom(
+    name: string,
+    thresholds: RoomInletThresholds = {},
+  ): Promise<Room> {
     const room = this.repo.create({
       name,
       servers: [],
       ups: [],
+      ...this.definedThresholds(thresholds),
     });
     return await this.repo.save(room);
   }
 
-  async updateRoom(id: string, name: string): Promise<Room> {
+  async updateRoom(
+    id: string,
+    name: string,
+    thresholds: RoomInletThresholds = {},
+  ): Promise<Room> {
     const room = await this.findRoomById(id);
     room.name = name;
+    Object.assign(room, this.definedThresholds(thresholds));
     return await this.repo.save(room);
+  }
+
+  private definedThresholds(
+    thresholds: RoomInletThresholds,
+  ): RoomInletThresholds {
+    return Object.fromEntries(
+      Object.entries(thresholds).filter(([, value]) => value !== undefined),
+    );
   }
 
   async deleteRoom(id: string): Promise<void> {

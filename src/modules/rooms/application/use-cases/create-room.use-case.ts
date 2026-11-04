@@ -32,7 +32,10 @@ export class CreateRoomUseCase {
     dto: RoomCreationDto,
     userId?: string,
   ): Promise<RoomResponseDto> {
-    const room = await this.roomRepository.createRoom(dto.name);
+    const room = await this.roomRepository.createRoom(dto.name, {
+      inletWarnC: dto.inletWarnC,
+      inletCritC: dto.inletCritC,
+    });
     await this.logHistory?.execute('room', room.id, 'CREATE', userId);
     return RoomResponseDto.from(room);
   }
