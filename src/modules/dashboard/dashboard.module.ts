@@ -1,3 +1,4 @@
+import { AlertsModule } from '../alerts/alerts.module';
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DashboardController } from './application/controllers/dashboard.controller';
@@ -70,6 +71,7 @@ import {
     HistoryModule,
     AuditModule,
     HealthModule,
+    forwardRef(() => AlertsModule),
   ],
 })
 export class DashboardModule {}
