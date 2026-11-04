@@ -14,9 +14,11 @@ import { AuditModule } from '../audit/audit.module';
 import { UpsModule } from '../ups/ups.module';
 import { PingModule } from '@/core/services/ping';
 import { PingServerUseCase } from './application/use-cases/ping-server.use-case';
+import { ServerHostsController } from './application/controllers/server-hosts.controller';
+import { VmwareModule } from '../vmware/vmware.module';
 
 @Module({
-  controllers: [ServerController],
+  controllers: [ServerHostsController, ServerController],
   exports: [...ServerUseCases, 'ServerRepositoryInterface'],
   imports: [
     TypeOrmModule.forFeature([Server]),
@@ -29,6 +31,7 @@ import { PingServerUseCase } from './application/use-cases/ping-server.use-case'
     PermissionModule,
     AuditModule,
     PingModule,
+    forwardRef(() => VmwareModule),
   ],
   providers: [
     ...ServerUseCases,

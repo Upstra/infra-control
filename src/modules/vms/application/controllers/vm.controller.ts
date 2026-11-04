@@ -95,6 +95,12 @@ export class VmController implements VmEndpointInterface {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'serverId', required: false, type: String })
   @ApiQuery({ name: 'includeMetrics', required: false, type: Boolean })
+  @ApiQuery({
+    name: 'health',
+    required: false,
+    enum: ['issues'],
+    description: 'issues = every VM not up, sorted down, unknown, degraded',
+  })
   @ApiOperation({ summary: 'Lister les VMs paginées' })
   @ApiResponse({ status: 200, type: VmListResponseDto })
   async getVms(
@@ -102,12 +108,14 @@ export class VmController implements VmEndpointInterface {
     @Query('limit') limit = '10',
     @Query('serverId') serverId?: string,
     @Query('includeMetrics') includeMetrics = false,
+    @Query('health') health?: string,
   ): Promise<VmListResponseDto> {
     return this.getVmListWithMetricsUseCase.execute(
       Number(page),
       Number(limit),
       includeMetrics,
       serverId,
+      health === 'issues' ? 'issues' : undefined,
     );
   }
 

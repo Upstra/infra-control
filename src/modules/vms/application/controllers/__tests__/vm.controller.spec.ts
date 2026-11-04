@@ -131,6 +131,7 @@ describe('VmController', () => {
         5,
         false,
         undefined,
+        undefined,
       );
     });
 
@@ -143,6 +144,7 @@ describe('VmController', () => {
         1,
         10,
         false,
+        undefined,
         undefined,
       );
     });
@@ -157,6 +159,19 @@ describe('VmController', () => {
         10,
         false,
         'server-123',
+        undefined,
+      );
+    });
+
+    it('should forward the issues health filter', async () => {
+      getVmListUseCase.execute.mockResolvedValue({ items: [] } as any);
+      await controller.getVms('1', '10', undefined, true, 'issues');
+      expect(getVmListUseCase.execute).toHaveBeenCalledWith(
+        1,
+        10,
+        true,
+        undefined,
+        'issues',
       );
     });
   });
