@@ -20,6 +20,7 @@ import { EventsFeedController } from './application/controllers/events-feed.cont
 import { AlertsGateway } from './application/gateway/alerts.gateway';
 import { UpsAlertsListener } from './application/listeners/ups-alerts.listener';
 import { AlertEmailListener } from './application/listeners/alert-email.listener';
+import { AlertSummaryPublisher } from './application/listeners/alert-summary.publisher';
 import { AlertPermissionService } from './application/services/alert-permission.service';
 
 @Module({
@@ -43,6 +44,7 @@ import { AlertPermissionService } from './application/services/alert-permission.
     VmwareAlertsListener,
     IloAlertsListener,
     AlertEmailListener,
+    AlertSummaryPublisher,
     {
       provide: 'AlertRepositoryInterface',
       useClass: AlertTypeormRepository,
