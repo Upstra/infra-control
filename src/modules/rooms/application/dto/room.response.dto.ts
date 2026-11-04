@@ -50,6 +50,12 @@ export class RoomResponseDto {
   @IsNumber()
   readonly upsCount?: number;
 
+  @ApiProperty({ type: Number, nullable: true, required: false })
+  readonly inletWarnC?: number | null;
+
+  @ApiProperty({ type: Number, nullable: true, required: false })
+  readonly inletCritC?: number | null;
+
   constructor(
     id: string,
     name: string,
@@ -66,6 +72,13 @@ export class RoomResponseDto {
     this.upsCount = upsCount;
   }
 
+  withThresholds(room: Room): RoomResponseDto {
+    return Object.assign(this, {
+      inletWarnC: room.inletWarnC ?? null,
+      inletCritC: room.inletCritC ?? null,
+    });
+  }
+
   static from(room: Room, includeCounts = false): RoomResponseDto {
     const servers =
       room.servers?.map((s) => ServerResponseDto.fromEntity(s)) ?? [];
@@ -79,6 +92,6 @@ export class RoomResponseDto {
       ups,
       serverCount,
       upsCount,
-    );
+    ).withThresholds(room);
   }
 }

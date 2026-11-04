@@ -16,6 +16,12 @@ export class Room extends BaseEntity {
   @Column({ type: 'varchar' })
   name!: string;
 
+  @Column({ type: 'float', nullable: true })
+  inletWarnC!: number | null;
+
+  @Column({ type: 'float', nullable: true })
+  inletCritC!: number | null;
+
   @OneToMany(() => Server, (server) => server.room)
   servers: Server[];
 

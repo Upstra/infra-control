@@ -1,11 +1,16 @@
+import { RoomInletThresholds } from './room-inlet-thresholds.interface';
 import { GenericRepositoryInterface } from '@/core/types/generic-repository.interface';
 import { Room } from '../entities/room.entity';
 
 export interface RoomRepositoryInterface
   extends GenericRepositoryInterface<Room> {
   findRoomById(id: string): Promise<Room>;
-  createRoom(name: string): Promise<Room>;
-  updateRoom(id: string, name: string): Promise<Room>;
+  createRoom(name: string, thresholds?: RoomInletThresholds): Promise<Room>;
+  updateRoom(
+    id: string,
+    name: string,
+    thresholds?: RoomInletThresholds,
+  ): Promise<Room>;
   deleteRoom(id: string): Promise<void>;
 
   /**

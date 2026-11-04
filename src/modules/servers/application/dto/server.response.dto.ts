@@ -1,3 +1,4 @@
+import { ServerHardwareDto } from '@/modules/ilos/application/dto/room-environment.response.dto';
 import {
   IsNotEmpty,
   IsNumber,
@@ -99,6 +100,14 @@ export class ServerResponseDto {
   @ApiProperty({ type: ServerMetricsExtendedDto, required: false })
   @IsOptional()
   readonly metrics?: ServerMetricsExtendedDto;
+
+  @ApiProperty({
+    type: ServerHardwareDto,
+    nullable: true,
+    required: false,
+    description: 'Latest iLO Redfish health summary, null without data',
+  })
+  hardware?: ServerHardwareDto | null;
 
   constructor(server: Server, ilo?: IloResponseDto) {
     this.id = server.id;

@@ -1,3 +1,4 @@
+import { EnrichServersWithHardwareUseCase } from './enrich-servers-with-hardware.use-case';
 import { GetUserServersUseCase } from './get-user-servers.use-case';
 import { GetUserServersWithMetricsUseCase } from './get-user-servers-with-metrics.use-case';
 import { CreateServerUseCase } from './create-server.use-case';
@@ -13,6 +14,7 @@ import { GetServerWithIloUseCase } from './get-server-with-ilo.use-case';
 import { GetServersWithVmsUseCase } from './get-servers-with-vms.use-case';
 
 export const ServerUseCases = [
+  EnrichServersWithHardwareUseCase,
   GetAllServersUseCase,
   GetServerByIdUseCase,
   CreateServerUseCase,
@@ -29,6 +31,7 @@ export const ServerUseCases = [
 ];
 
 export {
+  EnrichServersWithHardwareUseCase,
   GetAllServersUseCase,
   GetServerByIdUseCase,
   CreateServerUseCase,

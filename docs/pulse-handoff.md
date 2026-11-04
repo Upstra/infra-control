@@ -1,0 +1,109 @@
+# Refonte « Pulse » : où on en est
+
+_Mis à jour le 04/11/2026, fin de session. Note de passation, à supprimer une fois les briefs terminés._
+
+## Résumé express
+
+| # | Brief | État | Vérifié de bout en bout |
+|---|---|---|---|
+| 01 | Télémétrie onduleur | ✅ Fini, poussé | ✅ back + mock_ups + vrai Postgres/Redis |
+| 02 | Alertes + acquittement + fil | ✅ Fini, poussé | ✅ scénario coupure → alerte → retour secteur |
+| 03 | Métriques VMware + événements vCenter | ✅ Fini, poussé | ✅ contre vcsim (arrêt manuel, compte Upstra, hôte déconnecté) |
+| 04 | Santé iLO Redfish | ✅ Fini, poussé | ✅ back + mock_ilo en scénario maquette (PSU 2 absente, entrée d'air 31 °C, Warning, mot de passe masqué dans les logs) |
+| 05 | Historique Prometheus | ⏳ Pas commencé | — |
+| 06 | Dashboard, présence, puissance nominale, layouts, déplacement UPS | ⏳ Pas commencé | — |
+| 07 | Durcissement sécu (4 failles) + licence AGPL-3.0 | ⏳ Pas commencé (ajouté à ta demande) | — |
+
+## Git : branches et règles suivies
+
+- Il n'existait **aucune `develop`** sur `infra-control`, `ups_manager`, `mock_ups` ni `mock_ilo`. Comme tu l'as demandé, je suis parti de `master`/`main`.
+- Une branche `feature/*` par brief, **empilées dans l'ordre** (chacune part de la précédente) : à merger dans l'ordre 01 → 02 → 03 → 04.
+- Rien n'a été poussé sur `master`/`main`. Aucune PR n'a été ouverte.
+- Tous les commits sont signés `James ABIB <james.bidule@gmail.com>`, **sans aucun Co-Authored-By**, messages en anglais au format conventional commits.
+
+| Repo | Branches poussées (dans l'ordre) |
+|---|---|
+| `Upstra/infra-control` | `feature/ups-telemetry` → `feature/alerts` → `feature/vmware-telemetry` → `feature/ilo-health` |
+| `Upstra/ups_manager` | `feature/ups-telemetry` → `feature/vmware-telemetry` → `feature/ilo-health` |
+| `Upstra/mock_ups` | `feature/ups-telemetry` |
+| `Upstra/mock_ilo` | `feature/ilo-health` |
+| `infra-control_stack`, `infra-control_front`, `mock_vcsim` | rien touché |
+
+## Ce qui a été fait, brief par brief
+
+### 01 — Télémétrie onduleur
+- `ups_manager` : `ups_battery.sh --format json`, avec les sources SNMP UPS-MIB, NUT (`--source nut --ups-name`) et mock HTTP. Sans le flag, l'ancien entier est conservé. Tests unitaires dans `tests/`.
+- `mock_ups` : `/telemetry` au format du contrat, plus les scénarios `/scenario/on-battery`, `/scenario/online`, `overload`, `replace-battery` et `load`. La batterie se décharge **avec le temps**.
+- `infra-control` :
+  - interface `UpsTelemetry` et parser pur `parseUpsTelemetry` ;
+  - nouveau `calculateAlertLevel(telemetry, minutes)` basé sur le **vrai** statut secteur ;
+  - événements `ups.status.changed` et `ups.battery.check-failed` ;
+  - `BATTERY_ALERT` n'est plus émis que si le niveau change ;
+  - le faux % batterie du dashboard est supprimé ;
+  - `GET /ups/:id` inclut désormais le `batteryStatus` ;
+  - polling via `UPS_POLL_CRON`, qui passe automatiquement à `UPS_POLL_ON_BATTERY_SECONDS` dès qu'un onduleur est sur batterie.
+- Bug corrigé au passage : le cron appelait le use case qui renvoyait le cache (TTL 300 s), donc on ne pollait en réalité que toutes les 5 min. Ajout de `forceRefresh`.
+
+### 02 — Alertes
+- Nouveau module `alerts` en DDD :
+  - entités `Alert` et `AlertTransition` ;
+  - migration `1762286400000-CreateAlertTables`, **validée sur un vrai Postgres 16** (up/down, diff nul) ;
+  - index unique partiel `dedupKey WHERE status='open'`.
+- `AlertService` :
+  - `raise` / `resolve` / `acknowledge` / `unacknowledge` idempotents ;
+  - une aggravation fait perdre l'acquittement ;
+  - historique `ACKNOWLEDGE` / `UNACKNOWLEDGE` ;
+  - chaque transition émet `alerts.transition`.
+- API : `GET /alerts`, `/alerts/summary`, `/alerts/:id`, `POST /alerts/:id/(un)acknowledge` (409 si résolue, 403 sans permission), `GET /events/feed` avec curseur.
+- WebSocket `/alerts` : `alert:opened|updated|resolved|acknowledged` et `alerts:summary`.
+- Le mail part uniquement sur `opened`/`escalated` d'une alerte critique d'onduleur. L'ancien listener « un mail par minute » est supprimé.
+- Le widget dashboard lit maintenant les vraies alertes, plus rien de codé en dur.
+- Choix assumé : le fil ne prend **pas** les lignes d'historique `alert/ACKNOWLEDGE`, parce que les transitions les couvrent déjà. Sinon on aurait eu « jbidule a acquitté UPS-B2 » en double.
+
+### 03 — VMware
+- `ups_manager` :
+  - `inventory_metrics.sh` : une seule session et un `PropertyCollector` par type d'objet, soit 20 VMs + 4 hôtes en 0,2 s sur vcsim ;
+  - `vcenter_events.sh --since --max`, avec un filtre côté client parce que vcsim ignore le filtre serveur.
+- `infra-control` :
+  - `VmHealthDomainService` (up/degraded/down/unknown, CPU élevé sur 2 mesures) et `PowerOffCauseDomainService` (ha/upstra/manual) ;
+  - collecte derrière un verrou Redis `SET NX EX` ;
+  - curseur d'événements avec dédoublonnage ;
+  - cache en masse par pipeline (`vmware:vm:*`, `vmware:host:*`) ;
+  - `getVMMetrics` lit ce cache en priorité.
+- API :
+  - `GET /vm?includeMetrics=true` ne lance plus aucun script et ajoute `health`, `cpuPercent`, `uptimeSeconds` et `powerOff` ;
+  - `GET /vm?health=issues` ;
+  - `GET /server/hosts/metrics`, enregistrée avant `/server/:id`.
+- WebSocket `/vmware` → `vmware:metrics` (diff seulement).
+- Alertes `vm_powered_off` (critique si `priority <= VM_HIGH_PRIORITY_MAX`), `vm_heartbeat_lost`, `host_disconnected` et `host_cpu_high`.
+
+### 04 — iLO Redfish
+- `ups_manager` : `ilo_health.sh`, qui prend le premier membre de Chassis/Systems, lit Thermal/Power/Managers et accepte `http(s)://` pour le mock. Les capteurs absents sont listés mais valent `null`.
+- `mock_ilo` : routes Chassis/Thermal/Power/Managers et scénarios `nominal`, `maquette` (PSU 2 absente + entrée d'air 31 °C + Warning) et `ilo4-no-inlet`.
+- `infra-control` :
+  - `IloHealthDomainService` : seuils de la salle, sinon ceux de Redfish, sinon 30/35 °C ; PSU dégradée ; hystérésis de 1 °C ;
+  - `IloHealthScheduler` avec une concurrence limitée et un verrou ;
+  - cache `ilo:health:<serverId>` ;
+  - `GET /room/:id/environment` ;
+  - champ `hardware` sur `GET /server` et `GET /server/:id` ;
+  - colonnes `room.inletWarnC` / `inletCritC` (migration `1762286500000`, validée) ;
+  - alertes d'entrée d'air, de PSU, de santé matérielle et d'iLO injoignable ;
+  - agrégat global prêt pour le brief 06 (`GetHardwareEnvironmentUseCase.global()`).
+
+## Reprendre ici
+
+1. **Brief 05.** Vérifier d'abord le port dans `prometheus.yml` (il scrape `backend:8080` alors que l'API écoute sur `3000`). Ensuite les jauges `upstra_*`, `GET /metrics/series` avec liste blanche, et la rétention de 7 j minimum.
+2. **Brief 06.** `nominalPowerW` sur `Ups`, KPI de `/dashboard/full` (tout depuis Redis), présence `active`/`idle` avec la page consultée, nouveaux types de widgets + migration des layouts, suppression de l'uptime codé en dur, `PATCH /ups/:id` avec `moveServers` dans une transaction.
+3. **Brief 07 (sécu + licence).** Les 4 failles : credentials, SSL configurable (aujourd'hui `verify=False` en dur dans `ilo.py` et `vm_ware_connection.py`), timeout de 30 min, verrou Redis `SET NX` (déjà en place pour VMware et iLO, à généraliser à l'orchestrateur de migration). Puis `LICENSE` AGPL-3.0 à la racine des repos, et un README avec capture et schéma d'architecture.
+
+## Points d'attention
+
+- **Tests préexistants cassés sur `master` :** 51 suites et 261 tests en échec avant mon passage. Après le brief 03, on est à 49 suites et 244 tests, et **aucune nouvelle suite cassée**. Quelques exemples : `ups.controller.spec` (signature de `pingUps`), les specs du contrôleur serveur (dépendance `RoleGuard`), et les specs email, iLO et vmware.service.
+- **`dump.rdb` dans l'historique** de `feature/vmware-telemetry` (commit `25c3173`) : c'est la sauvegarde du Redis de test, qui ne contient que des données de démo. Le force-push pour le retirer a été refusé, je l'ai donc supprimé dans le commit suivant et ajouté au `.gitignore`. Si tu veux un historique propre, il faut faire un rebase et un force-push toi-même.
+- **Ports :** `VmwareConnectionService` force le port 443 (comportement existant, que je n'ai pas modifié).
+- **Variables d'env ajoutées** dans `.env.prod.example` :
+  - onduleurs : `UPS_POLL_CRON`, `UPS_POLL_ON_BATTERY_SECONDS` ;
+  - VMware : `VMWARE_TELEMETRY_ENABLED`, `VMWARE_METRICS_INTERVAL_SECONDS`, `VMWARE_EVENTS_INTERVAL_SECONDS`, `VM_CPU_WARN_PERCENT`, `VM_HIGH_PRIORITY_MAX`, `VMWARE_SERVICE_ACCOUNT` ;
+  - iLO : `ILO_HEALTH_ENABLED`, `ILO_HEALTH_INTERVAL_SECONDS`, `ILO_HEALTH_CONCURRENCY`.
+- **Nouvelle dépendance :** `cron@4.3.0`, déclarée en direct. Elle était déjà présente via `@nestjs/schedule` mais pnpm ne la rendait pas accessible.
+- **Front non touché :** les nouveaux champs sont tous additifs, rien n'a été retiré des DTO.

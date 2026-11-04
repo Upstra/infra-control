@@ -34,6 +34,7 @@ import {
   UpdateServerPriorityUseCase,
   CheckServerPermissionUseCase,
   GetServersWithVmsUseCase,
+  EnrichServersWithHardwareUseCase,
 } from '@/modules/servers/application/use-cases';
 import { PingServerUseCase } from '@/modules/servers/application/use-cases/ping-server.use-case';
 
@@ -73,6 +74,7 @@ export class ServerController {
     private readonly checkServerPermissionUseCase: CheckServerPermissionUseCase,
     private readonly pingServerUseCase: PingServerUseCase,
     private readonly getServersWithVmsUseCase: GetServersWithVmsUseCase,
+    private readonly enrichServersWithHardwareUseCase: EnrichServersWithHardwareUseCase,
   ) {}
 
   @Get('admin/all')
@@ -187,20 +189,21 @@ export class ServerController {
     @Query('limit') limit = '10',
     @Query('includeMetrics') includeMetrics = false,
   ): Promise<ServerListResponseDto> {
-    if (includeMetrics) {
-      return this.getUserServersWithMetricsUseCase.execute(
-        user.userId,
-        Number(page),
-        Number(limit),
-        includeMetrics,
-      );
-    }
+    const list = includeMetrics
+      ? await this.getUserServersWithMetricsUseCase.execute(
+          user.userId,
+          Number(page),
+          Number(limit),
+          includeMetrics,
+        )
+      : await this.getUserServersUseCase.execute(
+          user.userId,
+          Number(page),
+          Number(limit),
+        );
 
-    return this.getUserServersUseCase.execute(
-      user.userId,
-      Number(page),
-      Number(limit),
-    );
+    await this.enrichServersWithHardwareUseCase.execute(list.items);
+    return list;
   }
 
   @Get(':id')
@@ -223,7 +226,10 @@ export class ServerController {
   async getServerById(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<ServerResponseDto> {
-    return this.getServerByIdUseCase.execute(id);
+    const [server] = await this.enrichServersWithHardwareUseCase.execute([
+      await this.getServerByIdUseCase.execute(id),
+    ]);
+    return server;
   }
 
   @Post()

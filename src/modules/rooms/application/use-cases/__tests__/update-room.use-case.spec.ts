@@ -21,6 +21,7 @@ describe('UpdateRoomUseCase', () => {
     expect(roomRepository.updateRoom).toHaveBeenCalledWith(
       room.id,
       roomDto.name,
+      { inletWarnC: undefined, inletCritC: undefined },
     );
     expect(result).toEqual(RoomResponseDto.from(room));
   });

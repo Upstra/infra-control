@@ -36,7 +36,10 @@ export class UpdateRoomUseCase {
     dto: RoomCreationDto,
     userId?: string,
   ): Promise<RoomResponseDto> {
-    const room = await this.roomRepository.updateRoom(id, dto.name);
+    const room = await this.roomRepository.updateRoom(id, dto.name, {
+      inletWarnC: dto.inletWarnC,
+      inletCritC: dto.inletCritC,
+    });
     await this.logHistory?.execute('room', room.id, 'UPDATE', userId);
     return RoomResponseDto.from(room);
   }
