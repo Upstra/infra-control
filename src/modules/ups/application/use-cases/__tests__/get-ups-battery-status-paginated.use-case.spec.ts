@@ -59,6 +59,10 @@ describe('GetUpsBatteryStatusPaginatedUseCase', () => {
     alertLevel: 'normal',
     statusLabel: 'Normal',
     timestamp: new Date('2023-06-01'),
+    telemetry: null,
+    onBattery: null,
+    batteryPercentage: null,
+    loadPercent: null,
   };
 
   const mockBatteryStatus2: UPSBatteryStatusDto = {
@@ -69,6 +73,10 @@ describe('GetUpsBatteryStatusPaginatedUseCase', () => {
     alertLevel: 'warning',
     statusLabel: 'Battery Low',
     timestamp: new Date('2023-06-01'),
+    telemetry: null,
+    onBattery: null,
+    batteryPercentage: null,
+    loadPercent: null,
   };
 
   beforeEach(async () => {

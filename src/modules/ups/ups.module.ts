@@ -21,6 +21,7 @@ import { UpsGateway } from './infrastructure/gateways/ups.gateway';
 import { UpsBatteryGateway } from './application/gateway/ups-battery.gateway';
 import { UpsBatteryCacheService } from './application/services/ups-battery-cache.service';
 import { RedisModule } from '../redis/redis.module';
+import { UpsPollScheduler } from './application/schedulers/ups-poll.scheduler';
 
 @Module({
   controllers: [UpsController, UpsBatteryController],
@@ -44,6 +45,7 @@ import { RedisModule } from '../redis/redis.module';
     PingUpsUseCase,
     GetUpsBatteryUseCase,
     CheckAllUpsBatteriesUseCase,
+    UpsPollScheduler,
     GetUpsBatteryStatusPaginatedUseCase,
     UpsDomainService,
     UpsBatteryDomainService,

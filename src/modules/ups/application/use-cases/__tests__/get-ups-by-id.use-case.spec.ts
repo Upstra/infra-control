@@ -5,6 +5,8 @@ import { Ups } from '../../../domain/entities/ups.entity';
 import { UpsResponseDto } from '../../dto/ups.response.dto';
 import { UpsNotFoundException } from '../../../domain/exceptions/ups.exception';
 import { Server } from '../../../../servers/domain/entities/server.entity';
+import { UpsBatteryCacheService } from '../../services/ups-battery-cache.service';
+import { createMockBatteryStatus } from '../../../__mocks__/ups-telemetry.mock';
 
 describe('GetUpsByIdUseCase', () => {
   let useCase: GetUpsByIdUseCase;
@@ -14,6 +16,10 @@ describe('GetUpsByIdUseCase', () => {
     findByIdWithServerCount: jest.fn(),
   };
 
+  const mockCacheService = {
+    get: jest.fn().mockResolvedValue(null),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -21,6 +27,10 @@ describe('GetUpsByIdUseCase', () => {
         {
           provide: 'UpsRepositoryInterface',
           useValue: mockUpsRepository,
+        },
+        {
+          provide: UpsBatteryCacheService,
+          useValue: mockCacheService,
         },
       ],
     }).compile();
@@ -34,6 +44,22 @@ describe('GetUpsByIdUseCase', () => {
   });
 
   describe('execute', () => {
+    it('should include the cached battery status and telemetry', async () => {
+      const ups = { id: 'ups-telemetry', servers: [] } as unknown as Ups;
+      mockUpsRepository.findByIdWithServerCount.mockResolvedValue({
+        ups,
+        serverCount: 0,
+      });
+      mockCacheService.get.mockResolvedValueOnce(
+        createMockBatteryStatus({ upsId: 'ups-telemetry', onBattery: true }),
+      );
+
+      const result = await useCase.execute('ups-telemetry');
+
+      expect(result.batteryStatus?.onBattery).toBe(true);
+      expect(mockCacheService.get).toHaveBeenCalledWith('ups-telemetry');
+    });
+
     it('should return UPS with server count when found', async () => {
       const mockUps: Ups = {
         id: 'test-id',

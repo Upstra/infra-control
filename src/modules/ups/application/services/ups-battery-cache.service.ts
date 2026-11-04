@@ -79,11 +79,6 @@ export class UpsBatteryCacheService {
     );
   }
 
-  @OnEvent(UpsBatteryEvents.BATTERY_CHECKED)
-  async handleBatteryChecked(status: UPSBatteryStatusDto) {
-    await this.set(status.upsId, status);
-  }
-
   @OnEvent(UpsBatteryEvents.BATCH_CHECKED)
   async handleBatchChecked(payload: { results: UPSBatteryStatusDto[] }) {
     const statusMap: Record<string, UPSBatteryStatusDto> = {};

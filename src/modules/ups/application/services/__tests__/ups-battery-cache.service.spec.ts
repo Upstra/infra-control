@@ -29,6 +29,10 @@ describe('UpsBatteryCacheService', () => {
     alertLevel: 'normal',
     statusLabel: 'Normal',
     timestamp: new Date('2025-07-18T23:35:34.417Z'),
+    telemetry: null,
+    onBattery: null,
+    batteryPercentage: null,
+    loadPercent: null,
   };
 
   beforeEach(async () => {
@@ -62,6 +66,10 @@ describe('UpsBatteryCacheService', () => {
       expect(result).toEqual({
         ...mockBatteryStatus,
         timestamp: mockBatteryStatus.timestamp.toISOString(),
+        telemetry: null,
+        onBattery: null,
+        batteryPercentage: null,
+        loadPercent: null,
       });
       expect(mockRedisSafeService.safeGet).toHaveBeenCalledWith(
         'ups:battery:ups-123',
@@ -130,10 +138,18 @@ describe('UpsBatteryCacheService', () => {
         'ups-123': {
           ...mockBatteryStatus,
           timestamp: mockBatteryStatus.timestamp.toISOString(),
+          telemetry: null,
+          onBattery: null,
+          batteryPercentage: null,
+          loadPercent: null,
         },
         'ups-456': {
           ...mockStatus2,
           timestamp: mockStatus2.timestamp.toISOString(),
+          telemetry: null,
+          onBattery: null,
+          batteryPercentage: null,
+          loadPercent: null,
         },
         'ups-789': null,
       });
@@ -164,6 +180,10 @@ describe('UpsBatteryCacheService', () => {
         'ups-456': {
           ...mockBatteryStatus,
           timestamp: mockBatteryStatus.timestamp.toISOString(),
+          telemetry: null,
+          onBattery: null,
+          batteryPercentage: null,
+          loadPercent: null,
         },
       });
     });
@@ -188,16 +208,6 @@ describe('UpsBatteryCacheService', () => {
   });
 
   describe('event handlers', () => {
-    it('should cache battery status on BATTERY_CHECKED event', async () => {
-      await service.handleBatteryChecked(mockBatteryStatus);
-
-      expect(mockRedisSafeService.safeSetEx).toHaveBeenCalledWith(
-        'ups:battery:ups-123',
-        300,
-        JSON.stringify(mockBatteryStatus),
-      );
-    });
-
     it('should cache multiple statuses on BATCH_CHECKED event', async () => {
       const payload = {
         results: [

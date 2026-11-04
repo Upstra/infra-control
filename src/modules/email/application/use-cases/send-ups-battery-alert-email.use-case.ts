@@ -9,7 +9,7 @@ import { EmailAddressVO } from '../../domain/value-objects/email-address.vo';
 export interface SendUpsBatteryAlertEmailDto {
   upsName: string;
   upsIp: string;
-  minutesRemaining: number;
+  minutesRemaining: number | null;
   alertLevel: 'warning' | 'critical';
   statusLabel: string;
 }
@@ -36,7 +36,10 @@ export class SendUpsBatteryAlertEmailUseCase {
     const sendPromises = adminEmails.map((email) => {
       const emailDto = new SendEmailDto();
       emailDto.to = EmailAddressVO.create(email);
-      emailDto.subject = `[${dto.alertLevel.toUpperCase()}] UPS ${dto.upsName} - ${dto.minutesRemaining} minutes restantes`;
+      emailDto.subject =
+        dto.minutesRemaining === null
+          ? `[${dto.alertLevel.toUpperCase()}] UPS ${dto.upsName} - ${dto.statusLabel}`
+          : `[${dto.alertLevel.toUpperCase()}] UPS ${dto.upsName} - ${dto.minutesRemaining} minutes restantes`;
       emailDto.template = 'ups-battery-alert';
       emailDto.context = {
         ...dto,
