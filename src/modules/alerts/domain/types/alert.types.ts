@@ -35,6 +35,10 @@ export enum AlertType {
   VM_HEARTBEAT_LOST = 'vm_heartbeat_lost',
   HOST_DISCONNECTED = 'host_disconnected',
   HOST_CPU_HIGH = 'host_cpu_high',
+  SERVER_INLET_TEMPERATURE_HIGH = 'server_inlet_temperature_high',
+  SERVER_PSU_DEGRADED = 'server_psu_degraded',
+  SERVER_HEALTH_DEGRADED = 'server_health_degraded',
+  SERVER_ILO_UNREACHABLE = 'server_ilo_unreachable',
 }
 
 export const SEVERITY_RANK: Record<AlertSeverity, number> = {

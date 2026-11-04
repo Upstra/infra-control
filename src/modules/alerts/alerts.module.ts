@@ -7,6 +7,8 @@ import { ServerModule } from '../servers/server.module';
 import { VmModule } from '../vms/vm.module';
 import { VmwareModule } from '../vmware/vmware.module';
 import { VmwareAlertsListener } from './application/listeners/vmware-alerts.listener';
+import { IloAlertsListener } from './application/listeners/ilo-alerts.listener';
+import { IloModule } from '../ilos/ilo.module';
 import { Alert } from './domain/entities/alert.entity';
 import { AlertTransition } from './domain/entities/alert-transition.entity';
 import { AlertService } from './domain/services/alert.service';
@@ -29,6 +31,7 @@ import { AlertPermissionService } from './application/services/alert-permission.
     forwardRef(() => ServerModule),
     forwardRef(() => VmModule),
     forwardRef(() => VmwareModule),
+    forwardRef(() => IloModule),
   ],
   controllers: [AlertsController, EventsFeedController],
   providers: [
@@ -38,6 +41,7 @@ import { AlertPermissionService } from './application/services/alert-permission.
     AlertsGateway,
     UpsAlertsListener,
     VmwareAlertsListener,
+    IloAlertsListener,
     AlertEmailListener,
     {
       provide: 'AlertRepositoryInterface',
