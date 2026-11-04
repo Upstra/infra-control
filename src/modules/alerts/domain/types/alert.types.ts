@@ -31,6 +31,10 @@ export enum AlertType {
   UPS_UNREACHABLE = 'ups_unreachable',
   UPS_OVERLOAD = 'ups_overload',
   UPS_REPLACE_BATTERY = 'ups_replace_battery',
+  VM_POWERED_OFF = 'vm_powered_off',
+  VM_HEARTBEAT_LOST = 'vm_heartbeat_lost',
+  HOST_DISCONNECTED = 'host_disconnected',
+  HOST_CPU_HIGH = 'host_cpu_high',
 }
 
 export const SEVERITY_RANK: Record<AlertSeverity, number> = {

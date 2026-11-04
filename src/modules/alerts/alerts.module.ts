@@ -4,6 +4,9 @@ import { AuditModule } from '../audit/audit.module';
 import { RedisModule } from '../redis/redis.module';
 import { UserModule } from '../users/user.module';
 import { ServerModule } from '../servers/server.module';
+import { VmModule } from '../vms/vm.module';
+import { VmwareModule } from '../vmware/vmware.module';
+import { VmwareAlertsListener } from './application/listeners/vmware-alerts.listener';
 import { Alert } from './domain/entities/alert.entity';
 import { AlertTransition } from './domain/entities/alert-transition.entity';
 import { AlertService } from './domain/services/alert.service';
@@ -24,6 +27,8 @@ import { AlertPermissionService } from './application/services/alert-permission.
     RedisModule,
     forwardRef(() => UserModule),
     forwardRef(() => ServerModule),
+    forwardRef(() => VmModule),
+    forwardRef(() => VmwareModule),
   ],
   controllers: [AlertsController, EventsFeedController],
   providers: [
@@ -32,6 +37,7 @@ import { AlertPermissionService } from './application/services/alert-permission.
     AlertPermissionService,
     AlertsGateway,
     UpsAlertsListener,
+    VmwareAlertsListener,
     AlertEmailListener,
     {
       provide: 'AlertRepositoryInterface',
