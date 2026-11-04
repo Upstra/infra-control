@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsIP, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsIpHostnameOrUrl } from '../../../servers/application/validators/is-ip-hostname-or-url.validator';
 
 /**
  * DTO for validating IP address availability
@@ -9,7 +10,7 @@ export class IpValidationRequestDto {
     description: 'IP address to validate',
     example: '192.168.1.100',
   })
-  @IsIP()
+  @IsIpHostnameOrUrl()
   @IsNotEmpty()
   ip: string;
 
