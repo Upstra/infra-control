@@ -1,109 +1,68 @@
 import { GetVmListWithMetricsUseCase } from '../get-vm-list-with-metrics.use-case';
-import { GetVmListUseCase } from '../get-vm-list.use-case';
-import { EnrichVmsWithMetricsUseCase } from '../enrich-vms-with-metrics.use-case';
 import { VmResponseDto } from '../../dto';
-import { createMockVm } from '@/modules/vms/__mocks__/vms.mock';
+import { createMockVmResponseDto } from '@/modules/vms/__mocks__/vms.mock';
 
 describe('GetVmListWithMetricsUseCase', () => {
-  let getVmListUseCase: jest.Mocked<GetVmListUseCase>;
-  let enrichVmsWithMetricsUseCase: jest.Mocked<EnrichVmsWithMetricsUseCase>;
-  let useCase: GetVmListWithMetricsUseCase;
-
-  beforeEach(() => {
-    getVmListUseCase = {
-      execute: jest.fn(),
-    } as any;
-
-    enrichVmsWithMetricsUseCase = {
-      execute: jest.fn(),
-    } as any;
-
-    useCase = new GetVmListWithMetricsUseCase(
-      getVmListUseCase,
-      enrichVmsWithMetricsUseCase,
-    );
+  const getVmList = { execute: jest.fn() };
+  const enrich = { execute: jest.fn() };
+  const getAll = { execute: jest.fn() };
+  const useCase = new GetVmListWithMetricsUseCase(
+    getVmList as any,
+    enrich as any,
+    getAll as any,
+  );
+  const page = (items: VmResponseDto[]) => ({
+    items,
+    totalItems: items.length,
+    currentPage: 1,
+    totalPages: 1,
   });
 
-  it('should return VMs without metrics when includeMetrics is false', async () => {
-    const mockVm = createMockVm({ id: 'vm-1' });
-    const mockResponse = {
-      items: [new VmResponseDto(mockVm)],
-      totalItems: 1,
-      currentPage: 1,
-      totalPages: 1,
-    };
+  beforeEach(() => jest.clearAllMocks());
 
-    getVmListUseCase.execute.mockResolvedValue(mockResponse);
+  it('returns the plain page without metrics', async () => {
+    getVmList.execute.mockResolvedValue(page([createMockVmResponseDto()]));
 
-    const result = await useCase.execute(1, 10, false);
+    await useCase.execute(1, 10, false, 'server-1');
 
-    expect(getVmListUseCase.execute).toHaveBeenCalledWith(1, 10, undefined);
-    expect(enrichVmsWithMetricsUseCase.execute).not.toHaveBeenCalled();
-    expect(result).toEqual(mockResponse);
+    expect(getVmList.execute).toHaveBeenCalledWith(1, 10, 'server-1');
+    expect(enrich.execute).not.toHaveBeenCalled();
   });
 
-  it('should enrich VMs with metrics when includeMetrics is true', async () => {
-    const mockVm = createMockVm({ id: 'vm-1' });
-    const mockVmDto = new VmResponseDto(mockVm);
-    const mockResponse = {
-      items: [mockVmDto],
-      totalItems: 1,
-      currentPage: 1,
-      totalPages: 1,
-    };
-    const enrichedVm = {
-      ...mockVmDto,
-      metrics: {
-        cpuUsage: 50,
-        memoryUsage: 2048,
-        memoryMB: 4096,
-        powerState: 'poweredOn',
-      },
-    };
-
-    getVmListUseCase.execute.mockResolvedValue(mockResponse);
-    enrichVmsWithMetricsUseCase.execute.mockResolvedValue([enrichedVm]);
+  it('enriches the page with metrics when asked', async () => {
+    const vms = [createMockVmResponseDto()];
+    getVmList.execute.mockResolvedValue(page(vms));
+    enrich.execute.mockResolvedValue([{ ...vms[0], health: 'up' }]);
 
     const result = await useCase.execute(1, 10, true);
 
-    expect(getVmListUseCase.execute).toHaveBeenCalledWith(1, 10, undefined);
-    expect(enrichVmsWithMetricsUseCase.execute).toHaveBeenCalledWith([
-      mockVmDto,
+    expect(result.items[0].health).toBe('up');
+  });
+
+  it('lists issues only, sorted down, unknown then degraded', async () => {
+    const vm = (id: string, name: string) =>
+      createMockVmResponseDto({ id, name });
+    getAll.execute.mockResolvedValue([
+      vm('1', 'a'),
+      vm('2', 'b'),
+      vm('3', 'c'),
+      vm('4', 'd'),
     ]);
-    expect(result.items[0]).toEqual(enrichedVm);
-  });
+    enrich.execute.mockImplementation(async (items: VmResponseDto[]) =>
+      items.map((item, index) => ({
+        ...item,
+        health: ['degraded', 'up', 'down', 'unknown'][index],
+      })),
+    );
 
-  it('should not enrich when items list is empty', async () => {
-    const mockResponse = {
-      items: [],
-      totalItems: 0,
-      currentPage: 1,
-      totalPages: 0,
-    };
+    const result = await useCase.execute(1, 10, true, undefined, 'issues');
 
-    getVmListUseCase.execute.mockResolvedValue(mockResponse);
-
-    const result = await useCase.execute(1, 10, true);
-
-    expect(enrichVmsWithMetricsUseCase.execute).not.toHaveBeenCalled();
-    expect(result).toEqual(mockResponse);
-  });
-
-  it('should pass serverId to getVmListUseCase', async () => {
-    const serverId = 'server-123';
-    const mockVm = createMockVm({ id: 'vm-1', serverId });
-    const mockResponse = {
-      items: [new VmResponseDto(mockVm)],
-      totalItems: 1,
-      currentPage: 1,
-      totalPages: 1,
-    };
-
-    getVmListUseCase.execute.mockResolvedValue(mockResponse);
-
-    const result = await useCase.execute(1, 10, false, serverId);
-
-    expect(getVmListUseCase.execute).toHaveBeenCalledWith(1, 10, serverId);
-    expect(result).toEqual(mockResponse);
+    expect(result.items.map((item) => item.health)).toEqual([
+      'down',
+      'unknown',
+      'degraded',
+    ]);
+    expect(result.totalItems).toBe(3);
+    expect(getVmList.execute).not.toHaveBeenCalled();
   });
 });

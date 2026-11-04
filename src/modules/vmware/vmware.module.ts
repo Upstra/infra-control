@@ -1,3 +1,12 @@
+import { VmwareTelemetryCacheService } from './application/services/vmware-telemetry-cache.service';
+import { UpstraPlanStatusService } from './application/services/upstra-plan-status.service';
+import { VmHealthDomainService } from './domain/services/vm-health.domain.service';
+import { PowerOffCauseDomainService } from './domain/services/power-off-cause.domain.service';
+import { CollectInventoryMetricsUseCase } from './application/use-cases/collect-inventory-metrics.use-case';
+import { CollectVcenterEventsUseCase } from './application/use-cases/collect-vcenter-events.use-case';
+import { GetHostsMetricsUseCase } from './application/use-cases/get-hosts-metrics.use-case';
+import { VmwareTelemetryScheduler } from './application/schedulers/vmware-telemetry.scheduler';
+import { VmwareTelemetryGateway } from './application/gateway/vmware-telemetry.gateway';
 import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -110,8 +119,21 @@ import { EncryptionModule } from '@/core/services/encryption/encryption.module';
     RemoveMigrationDestinationUseCase,
     GetVmsForMigrationUseCase,
     SyncServerVmwareDataUseCase,
+    VmwareTelemetryCacheService,
+    UpstraPlanStatusService,
+    VmHealthDomainService,
+    PowerOffCauseDomainService,
+    CollectInventoryMetricsUseCase,
+    CollectVcenterEventsUseCase,
+    GetHostsMetricsUseCase,
+    VmwareTelemetryScheduler,
+    VmwareTelemetryGateway,
   ],
   exports: [
+    VmwareTelemetryCacheService,
+    VmHealthDomainService,
+    UpstraPlanStatusService,
+    GetHostsMetricsUseCase,
     VmwareService,
     VmwareDiscoveryService,
     VmwareDiscoveryGateway,

@@ -1,48 +1,72 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { VmwareTelemetryCacheService } from '@/modules/vmware/application/services/vmware-telemetry-cache.service';
+import { VmHealthDomainService } from '@/modules/vmware/domain/services/vm-health.domain.service';
+import {
+  PowerOffCause,
+  VmHealth,
+  VmTelemetry,
+} from '@/modules/vmware/domain/interfaces/vmware-telemetry.interface';
 import { VmResponseDto, VmMetricsDto } from '../dto';
-import { GetVmMetricsUseCase } from '@/modules/vmware/application/use-cases/get-vm-metrics.use-case';
+
+const DEFAULT_METRICS_INTERVAL_SECONDS = 60;
 
 @Injectable()
 export class EnrichVmsWithMetricsUseCase {
-  private readonly logger = new Logger(EnrichVmsWithMetricsUseCase.name);
-
-  constructor(private readonly getVmMetricsUseCase: GetVmMetricsUseCase) {}
+  constructor(
+    private readonly telemetryCache: VmwareTelemetryCacheService,
+    private readonly healthService: VmHealthDomainService,
+    private readonly configService: ConfigService,
+  ) {}
 
   async execute(vms: VmResponseDto[]): Promise<VmResponseDto[]> {
-    const enrichedVms: VmResponseDto[] = [];
+    const moids = vms
+      .map((vm) => vm.moid)
+      .filter((moid): moid is string => !!moid);
+    const [telemetry, powerOffs] = await Promise.all([
+      this.telemetryCache.getVms(moids),
+      this.telemetryCache.getPowerOffs(moids),
+    ]);
+    const interval = Number(
+      this.configService.get('VMWARE_METRICS_INTERVAL_SECONDS') ??
+        DEFAULT_METRICS_INTERVAL_SECONDS,
+    );
 
-    for (const vm of vms) {
-      let metrics: VmMetricsDto | undefined;
-
-      if (vm.serverId && vm.moid) {
-        try {
-          const vmwareMetrics = await this.getVmMetricsUseCase.execute(
-            vm.serverId,
-            vm.moid,
-          );
-
-          metrics = {
-            cpuUsage: vmwareMetrics.overallCpuUsage ?? 0,
-            memoryUsage: vmwareMetrics.guestMemoryUsage ?? 0,
-            memoryMB: vmwareMetrics.maxMemoryUsage ?? 0,
-            powerState: vmwareMetrics.powerState ?? 'unknown',
-            guestToolsStatus: vmwareMetrics.guestHeartbeatStatus ?? 'unknown',
-          };
-        } catch (error) {
-          this.logger.warn(
-            `Failed to get metrics for VM ${vm.id}: ${error.message}`,
-          );
-        }
-      }
-
-      const enrichedVm: VmResponseDto = {
+    return vms.map((vm) => {
+      const cached = vm.moid ? telemetry[vm.moid] : undefined;
+      const health = this.health(cached, interval);
+      return {
         ...vm,
-        metrics,
+        metrics: cached ? this.toMetrics(cached) : undefined,
+        health,
+        cpuPercent: cached?.cpuPercent ?? null,
+        uptimeSeconds: cached?.uptimeSeconds ?? null,
+        powerOff:
+          health === 'down' && vm.moid
+            ? this.toPowerOff(powerOffs[vm.moid])
+            : null,
       };
+    });
+  }
 
-      enrichedVms.push(enrichedVm);
+  private health(cached: VmTelemetry | undefined, interval: number): VmHealth {
+    if (!cached || this.healthService.isStale(cached.metricsAt, interval)) {
+      return 'unknown';
     }
+    return cached.health;
+  }
 
-    return enrichedVms;
+  private toMetrics(vm: VmTelemetry): VmMetricsDto {
+    return {
+      cpuUsage: vm.cpuUsageMhz ?? 0,
+      memoryUsage: vm.memoryUsageMb ?? 0,
+      memoryMB: vm.memoryMb ?? 0,
+      powerState: vm.powerState ?? 'unknown',
+      guestToolsStatus: vm.heartbeat ?? 'unknown',
+    };
+  }
+
+  private toPowerOff(cause: PowerOffCause | undefined): PowerOffCause | null {
+    return cause ? { at: cause.at, cause: cause.cause, by: cause.by } : null;
   }
 }

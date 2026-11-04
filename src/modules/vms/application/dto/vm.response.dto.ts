@@ -12,6 +12,7 @@ import {
 import { Type } from 'class-transformer';
 import { Vm } from '../../domain/entities/vm.entity';
 import { VmMetricsDto } from './vm-metrics.dto';
+import { VmPowerOffDto } from './vm-power-off.dto';
 
 export class VmResponseDto {
   @ApiProperty()
@@ -123,6 +124,26 @@ export class VmResponseDto {
   @ValidateNested()
   @Type(() => VmMetricsDto)
   readonly metrics?: VmMetricsDto;
+
+  @ApiProperty({
+    enum: ['up', 'degraded', 'down', 'unknown'],
+    required: false,
+    description: 'Normalized health (only when includeMetrics=true)',
+  })
+  @IsOptional()
+  readonly health?: 'up' | 'degraded' | 'down' | 'unknown';
+
+  @ApiProperty({ type: Number, nullable: true, required: false })
+  @IsOptional()
+  readonly cpuPercent?: number | null;
+
+  @ApiProperty({ type: Number, nullable: true, required: false })
+  @IsOptional()
+  readonly uptimeSeconds?: number | null;
+
+  @ApiProperty({ type: VmPowerOffDto, nullable: true, required: false })
+  @IsOptional()
+  readonly powerOff?: VmPowerOffDto | null;
 
   constructor(vm: Vm, metrics?: VmMetricsDto) {
     this.id = vm.id;
