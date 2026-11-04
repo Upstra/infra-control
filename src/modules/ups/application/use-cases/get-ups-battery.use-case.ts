@@ -5,6 +5,7 @@ import { UpsRepositoryInterface } from '../../domain/interfaces/ups.repository.i
 import {
   UpsBatteryAlertEvent,
   UpsBatteryEvents,
+  UpsCheckFailedEvent,
   UpsStatusChangedEvent,
 } from '../../domain/events/ups-battery.events';
 import { UPSBatteryStatusDto } from '../../domain/interfaces/ups-battery-status.interface';
@@ -43,7 +44,20 @@ export class GetUpsBatteryUseCase {
       throw new UpsNotFoundException(upsId);
     }
 
-    const status = await this.readStatus(ups);
+    let status: UPSBatteryStatusDto;
+    try {
+      status = await this.readStatus(ups);
+    } catch (error) {
+      const failure: UpsCheckFailedEvent = {
+        upsId: ups.id,
+        upsName: ups.name,
+        ip: ups.ip,
+        error: error?.message ?? 'Unknown error',
+        at: new Date(),
+      };
+      this.eventEmitter.emit(UpsBatteryEvents.CHECK_FAILED, failure);
+      throw error;
+    }
     await this.upsBatteryCacheService.set(ups.id, status);
     this.emitTransitions(ups, previous, status);
     this.eventEmitter.emit(UpsBatteryEvents.BATTERY_CHECKED, status);
