@@ -6,6 +6,7 @@ import {
   HistoryStatsData,
 } from '../../domain/interfaces/history.repository.interface';
 import { HistoryListFilters } from '../../domain/interfaces/history-filter.interface';
+import { HistoryFeedQuery } from '../../domain/interfaces/history-feed.interface';
 
 @Injectable()
 export class HistoryEventTypeormRepository
@@ -218,5 +219,32 @@ export class HistoryEventTypeormRepository
       activityTrends,
       topUsers,
     };
+  }
+
+  async findFeedEvents(query: HistoryFeedQuery): Promise<HistoryEvent[]> {
+    const qb = this.repository
+      .createQueryBuilder('history')
+      .leftJoinAndSelect('history.user', 'user')
+      .where('history.entity IN (:...entities)', { entities: query.entities })
+      .andWhere('history.action IN (:...actions)', { actions: query.actions });
+
+    if (query.from) {
+      qb.andWhere('history.createdAt >= :from', { from: query.from });
+    }
+    if (query.to) {
+      qb.andWhere('history.createdAt <= :to', { to: query.to });
+    }
+    if (query.before) {
+      qb.andWhere(
+        '(history.createdAt < :beforeAt OR (history.createdAt = :beforeAt AND history.id < :beforeId))',
+        { beforeAt: query.before.at, beforeId: query.before.id },
+      );
+    }
+
+    return qb
+      .orderBy('history.createdAt', 'DESC')
+      .addOrderBy('history.id', 'DESC')
+      .take(query.limit)
+      .getMany();
   }
 }

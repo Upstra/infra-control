@@ -18,6 +18,7 @@ describe('GetHistoryEntityTypesUseCase', () => {
       countCreatedByMonth: jest.fn(),
       paginate: jest.fn(),
       getStats: jest.fn(),
+      findFeedEvents: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
