@@ -8,6 +8,7 @@ export enum UpsBatteryEvents {
   BATTERY_CHECKED = 'ups.battery.checked',
   BATCH_CHECKED = 'ups.battery.batch-checked',
   STATUS_CHANGED = 'ups.status.changed',
+  CHECK_FAILED = 'ups.battery.check-failed',
 }
 
 export interface UpsBatteryAlertEvent {
@@ -32,4 +33,12 @@ export interface UpsStatusChangedEvent {
   current: boolean;
   at: Date;
   status: UPSBatteryStatusDto;
+}
+
+export interface UpsCheckFailedEvent {
+  upsId: string;
+  upsName: string;
+  ip: string;
+  error: string;
+  at: Date;
 }

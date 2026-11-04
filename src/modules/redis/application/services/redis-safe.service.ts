@@ -170,4 +170,74 @@ export class RedisSafeService {
       this.scheduleReconnect();
     }
   }
+
+  async safeIncr(key: string, ttlSeconds?: number): Promise<number | null> {
+    const client = this.redisClient;
+    if (!client) return null;
+    try {
+      const value = await client.incr(key);
+      if (ttlSeconds) await client.expire(key, ttlSeconds);
+      return value;
+    } catch (e) {
+      this.handleError(e);
+      return null;
+    }
+  }
+
+  async safeSetNxEx(
+    key: string,
+    seconds: number,
+    value: string,
+  ): Promise<boolean> {
+    const client = this.redisClient;
+    if (!client) return false;
+    try {
+      return (await client.set(key, value, 'EX', seconds, 'NX')) === 'OK';
+    } catch (e) {
+      this.handleError(e);
+      return false;
+    }
+  }
+
+  async safeReleaseLock(key: string, value: string): Promise<boolean> {
+    const client = this.redisClient;
+    if (!client) return false;
+    try {
+      const released = await client.eval(
+        "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end",
+        1,
+        key,
+        value,
+      );
+      return released === 1;
+    } catch (e) {
+      this.handleError(e);
+      return false;
+    }
+  }
+
+  async safeMSetEx(
+    entries: Array<[string, string]>,
+    seconds: number,
+  ): Promise<boolean> {
+    const client = this.redisClient;
+    if (!client || entries.length === 0) return false;
+    try {
+      const pipeline = client.pipeline();
+      entries.forEach(([key, value]) =>
+        pipeline.set(key, value, 'EX', seconds),
+      );
+      await pipeline.exec();
+      return true;
+    } catch (e) {
+      this.handleError(e);
+      return false;
+    }
+  }
+
+  private handleError(e: Error): void {
+    this.online = false;
+    this.logger.error('Erreur Redis: ' + e.message);
+    this.scheduleReconnect();
+  }
 }

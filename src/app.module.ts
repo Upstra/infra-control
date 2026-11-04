@@ -33,6 +33,7 @@ import { PythonExecutorModule } from './core/services/python-executor';
 import { VmwareModule } from './modules/vmware/vmware.module';
 import { EncryptionModule } from './core/services/encryption';
 import { PingModule } from './modules/ping/ping.module';
+import { AlertsModule } from './modules/alerts/alerts.module';
 
 @Module({
   controllers: [],
@@ -49,6 +50,7 @@ import { PingModule } from './modules/ping/ping.module';
     IloModule,
     PermissionModule,
     UpsModule,
+    AlertsModule,
     RoleModule,
     RoomModule,
     ServerModule,

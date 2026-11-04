@@ -16,7 +16,6 @@ import { GetUpsBatteryUseCase } from './application/use-cases/get-ups-battery.us
 import { CheckAllUpsBatteriesUseCase } from './application/use-cases/check-all-ups-batteries.use-case';
 import { GetUpsBatteryStatusPaginatedUseCase } from './application/use-cases/get-ups-battery-status-paginated.use-case';
 import { UpsBatteryDomainService } from './domain/services/ups-battery.domain.service';
-import { UpsBatteryAlertListener } from './infrastructure/listeners/ups-battery-alert.listener';
 import { UpsGateway } from './infrastructure/gateways/ups.gateway';
 import { UpsBatteryGateway } from './application/gateway/ups-battery.gateway';
 import { UpsBatteryCacheService } from './application/services/ups-battery-cache.service';
@@ -49,7 +48,6 @@ import { UpsPollScheduler } from './application/schedulers/ups-poll.scheduler';
     GetUpsBatteryStatusPaginatedUseCase,
     UpsDomainService,
     UpsBatteryDomainService,
-    UpsBatteryAlertListener,
     UpsGateway,
     UpsBatteryGateway,
     UpsBatteryCacheService,

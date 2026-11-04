@@ -1,70 +1,51 @@
 import { Injectable } from '@nestjs/common';
+import { ListOpenAlertsUseCase } from '@/modules/alerts/application/use-cases/list-open-alerts.use-case';
+import { GetAlertSummaryUseCase } from '@/modules/alerts/application/use-cases/get-alert-summary.use-case';
+import { Alert } from '@/modules/alerts/domain/entities/alert.entity';
 import {
+  AlertDto,
   AlertsResponseDto,
   WidgetDataQueryDto,
 } from '../../dto/widget-data.dto';
 
+const WIDGET_ALERT_LIMIT = 50;
+
 @Injectable()
 export class GetAlertsUseCase {
+  constructor(
+    private readonly listOpenAlertsUseCase: ListOpenAlertsUseCase,
+    private readonly getAlertSummaryUseCase: GetAlertSummaryUseCase,
+  ) {}
+
   async execute(query: WidgetDataQueryDto): Promise<AlertsResponseDto> {
-    // TODO: Implement real alerts logic
-    // This is a placeholder implementation
+    const [alerts, summary] = await Promise.all([
+      this.listOpenAlertsUseCase.execute(WIDGET_ALERT_LIMIT),
+      this.getAlertSummaryUseCase.execute(),
+    ]);
 
-    const mockAlerts = [
-      {
-        id: 'alert-001',
-        severity: 'critical' as const,
-        type: 'server_down',
-        resource: {
-          type: 'server',
-          id: 'server-123',
-          name: 'web-server-01',
-        },
-        message: 'Server is not responding',
-        timestamp: new Date(),
-        acknowledged: false,
-      },
-      {
-        id: 'alert-002',
-        severity: 'warning' as const,
-        type: 'high_cpu',
-        resource: {
-          type: 'vm',
-          id: 'vm-456',
-          name: 'app-vm-02',
-        },
-        message: 'CPU usage above 90%',
-        timestamp: new Date(),
-        acknowledged: false,
-      },
-      {
-        id: 'alert-003',
-        severity: 'info' as const,
-        type: 'maintenance_scheduled',
-        resource: {
-          type: 'server',
-          id: 'server-789',
-          name: 'backup-server-01',
-        },
-        message: 'Scheduled maintenance in 2 hours',
-        timestamp: new Date(),
-        acknowledged: false,
-      },
-    ];
-
-    const filteredAlerts = query.severity
-      ? mockAlerts.filter((alert) => alert.severity === query.severity)
-      : mockAlerts;
-
-    const summary = {
-      critical: mockAlerts.filter((a) => a.severity === 'critical').length,
-      warning: mockAlerts.filter((a) => a.severity === 'warning').length,
-      info: mockAlerts.filter((a) => a.severity === 'info').length,
-    };
+    const filtered = query.severity
+      ? alerts.filter((alert) => alert.severity === query.severity)
+      : alerts;
 
     return {
-      alerts: filteredAlerts,
-      summary,
+      alerts: filtered.map((alert) => this.toDto(alert)),
+      summary: summary.open,
+    };
+  }
+
+  private toDto(alert: Alert): AlertDto {
+    return {
+      id: alert.id,
+      severity: alert.severity,
+      type: alert.type,
+      resource: {
+        type: alert.resourceType,
+        id: alert.resourceId,
+        name: alert.resourceName,
+      },
+      message: alert.message,
+      timestamp: alert.openedAt,
+      acknowledged: alert.acknowledgedAt !== null,
     };
   }
 }

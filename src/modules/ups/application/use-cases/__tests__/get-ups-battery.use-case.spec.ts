@@ -88,5 +88,9 @@ describe('GetUpsBatteryUseCase', () => {
     await expect(useCase.execute('ups-1')).rejects.toBeInstanceOf(
       BadRequestException,
     );
+    expect(eventEmitter.emit).toHaveBeenCalledWith(
+      UpsBatteryEvents.CHECK_FAILED,
+      expect.objectContaining({ upsId: 'ups-1', upsName: 'UPS-B2' }),
+    );
   });
 });

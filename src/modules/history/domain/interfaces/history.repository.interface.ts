@@ -1,6 +1,7 @@
 import { GenericRepositoryInterface } from '@/core/types/generic-repository.interface';
 import { HistoryEvent } from '../entities/history-event.entity';
 import { HistoryListFilters } from './history-filter.interface';
+import { HistoryFeedQuery } from './history-feed.interface';
 
 export interface HistoryStatsData {
   totalEvents: number;
@@ -25,4 +26,5 @@ export interface HistoryRepositoryInterface
   findDistinctEntityTypes(): Promise<string[]>;
   findDistinctActionTypes(): Promise<string[]>;
   getStats(): Promise<HistoryStatsData>;
+  findFeedEvents(query: HistoryFeedQuery): Promise<HistoryEvent[]>;
 }
