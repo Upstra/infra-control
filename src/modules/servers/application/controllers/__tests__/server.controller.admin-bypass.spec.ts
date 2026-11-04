@@ -1,3 +1,4 @@
+import { EnrichServersWithHardwareUseCase } from '../../use-cases/enrich-servers-with-hardware.use-case';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ServerController } from '../server.controller';
 import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
@@ -65,6 +66,10 @@ describe('ServerController - Admin Bypass Tests', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ServerController],
       providers: [
+        {
+          provide: EnrichServersWithHardwareUseCase,
+          useValue: { execute: jest.fn(async (items) => items) },
+        },
         {
           provide: UpdateServerUseCase,
           useValue: updateServerUseCase,

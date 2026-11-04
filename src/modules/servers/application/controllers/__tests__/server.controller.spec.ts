@@ -1,3 +1,4 @@
+import { EnrichServersWithHardwareUseCase } from '../../use-cases/enrich-servers-with-hardware.use-case';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ServerController } from '../server.controller';
 import {
@@ -74,6 +75,10 @@ describe('ServerController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ServerController],
       providers: [
+        {
+          provide: EnrichServersWithHardwareUseCase,
+          useValue: { execute: jest.fn(async (items) => items) },
+        },
         { provide: GetAllServersUseCase, useValue: getAllServersUseCase },
         { provide: GetServerByIdUseCase, useValue: getServerByIdUseCase },
         { provide: CreateServerUseCase, useValue: createServerUseCase },
