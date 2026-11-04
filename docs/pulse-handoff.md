@@ -9,7 +9,7 @@ _Mis à jour le 04/11/2026, fin de session. Note de passation, à supprimer une 
 | 01 | Télémétrie onduleur | ✅ Fini, poussé | ✅ back + mock_ups + vrai Postgres/Redis |
 | 02 | Alertes + acquittement + fil | ✅ Fini, poussé | ✅ scénario coupure → alerte → retour secteur |
 | 03 | Métriques VMware + événements vCenter | ✅ Fini, poussé | ✅ contre vcsim (arrêt manuel, compte Upstra, hôte déconnecté) |
-| 04 | Santé iLO Redfish | ✅ Code + tests poussés | ⚠️ **pas encore testé de bout en bout** (voir « Reprendre ici ») |
+| 04 | Santé iLO Redfish | ✅ Fini, poussé | ✅ back + mock_ilo en scénario maquette (PSU 2 absente, entrée d'air 31 °C, Warning, mot de passe masqué dans les logs) |
 | 05 | Historique Prometheus | ⏳ Pas commencé | — |
 | 06 | Dashboard, présence, puissance nominale, layouts, déplacement UPS | ⏳ Pas commencé | — |
 | 07 | Durcissement sécu (4 failles) + licence AGPL-3.0 | ⏳ Pas commencé (ajouté à ta demande) | — |
@@ -92,12 +92,9 @@ _Mis à jour le 04/11/2026, fin de session. Note de passation, à supprimer une 
 
 ## Reprendre ici
 
-1. **Finir la vérif de bout en bout du brief 04.** Démarrer `mock_ilo` en scénario `maquette`, créer un serveur avec un iLO qui pointe dessus, puis vérifier :
-   - `GET /room/<baie>/environment` renvoie `maxInletC: 31` ;
-   - une alerte `server_psu_degraded` est ouverte.
-2. **Brief 05.** Vérifier d'abord le port dans `prometheus.yml` (il scrape `backend:8080` alors que l'API écoute sur `3000`). Ensuite les jauges `upstra_*`, `GET /metrics/series` avec liste blanche, et la rétention de 7 j minimum.
-3. **Brief 06.** `nominalPowerW` sur `Ups`, KPI de `/dashboard/full` (tout depuis Redis), présence `active`/`idle` avec la page consultée, nouveaux types de widgets + migration des layouts, suppression de l'uptime codé en dur, `PATCH /ups/:id` avec `moveServers` dans une transaction.
-4. **Brief 07 (sécu + licence).** Les 4 failles : credentials, SSL configurable (aujourd'hui `verify=False` en dur dans `ilo.py` et `vm_ware_connection.py`), timeout de 30 min, verrou Redis `SET NX` (déjà en place pour VMware et iLO, à généraliser à l'orchestrateur de migration). Puis `LICENSE` AGPL-3.0 à la racine des repos, et un README avec capture et schéma d'architecture.
+1. **Brief 05.** Vérifier d'abord le port dans `prometheus.yml` (il scrape `backend:8080` alors que l'API écoute sur `3000`). Ensuite les jauges `upstra_*`, `GET /metrics/series` avec liste blanche, et la rétention de 7 j minimum.
+2. **Brief 06.** `nominalPowerW` sur `Ups`, KPI de `/dashboard/full` (tout depuis Redis), présence `active`/`idle` avec la page consultée, nouveaux types de widgets + migration des layouts, suppression de l'uptime codé en dur, `PATCH /ups/:id` avec `moveServers` dans une transaction.
+3. **Brief 07 (sécu + licence).** Les 4 failles : credentials, SSL configurable (aujourd'hui `verify=False` en dur dans `ilo.py` et `vm_ware_connection.py`), timeout de 30 min, verrou Redis `SET NX` (déjà en place pour VMware et iLO, à généraliser à l'orchestrateur de migration). Puis `LICENSE` AGPL-3.0 à la racine des repos, et un README avec capture et schéma d'architecture.
 
 ## Points d'attention
 
