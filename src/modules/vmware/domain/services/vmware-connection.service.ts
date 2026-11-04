@@ -16,6 +16,21 @@ export class VmwareConnectionService {
     };
   }
 
+  buildConnectionArgs(connection: VmwareConnectionDto): string[] {
+    const args = [
+      '--ip',
+      connection.host,
+      '--user',
+      connection.user,
+      '--password',
+      connection.password,
+    ];
+    if (connection.port && connection.port !== 443) {
+      args.push('--port', connection.port.toString());
+    }
+    return args;
+  }
+
   /**
    * Validates if a server can be used for VMware connection
    */

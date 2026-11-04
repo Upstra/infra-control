@@ -116,13 +116,29 @@ export class VmwareCacheService implements VmwareCacheServiceInterface {
    * @returns VM metrics or null if not in cache
    */
   async getVmMetrics(moid: string): Promise<any | null> {
+    const telemetry = await this.redis.safeGet(`vmware:vm:${moid}`);
+    if (telemetry) {
+      return this.toLegacyVmMetrics(JSON.parse(telemetry));
+    }
     const key = JSON.stringify({ type: 'VM', moid: moid });
     const data = await this.redis.safeHGet('metrics:metrics', key);
-    this.logger.debug(
-      `Fetching metrics for VM ${moid} from cache with key: ${key}`,
-    );
-    this.logger.debug(`Data fetched: ${data}`);
     return data ? JSON.parse(data) : null;
+  }
+
+  private toLegacyVmMetrics(vm: Record<string, any>): Record<string, any> {
+    return {
+      powerState: vm.powerState ?? undefined,
+      guestState: vm.guestState ?? undefined,
+      connectionState: vm.connectionState ?? undefined,
+      guestHeartbeatStatus: vm.heartbeat ?? undefined,
+      overallStatus: vm.overallStatus ?? undefined,
+      maxCpuUsage: vm.cpuMaxMhz ?? undefined,
+      maxMemoryUsage: vm.memoryMb ?? undefined,
+      bootTime: vm.bootTime ?? undefined,
+      overallCpuUsage: vm.cpuUsageMhz ?? undefined,
+      guestMemoryUsage: vm.memoryUsageMb ?? undefined,
+      uptimeSeconds: vm.uptimeSeconds ?? undefined,
+    };
   }
 
   /**
