@@ -8,10 +8,10 @@ import {
   IsString,
   IsUUID,
   ValidateNested,
-  IsIP,
   Allow,
 } from 'class-validator';
 import { IsConditionalPriority } from '../../../servers/application/validators/conditional-priority.validator';
+import { IsIpHostnameOrUrl } from '../../../servers/application/validators/is-ip-hostname-or-url.validator';
 
 /**
  * DTO for creating a room in bulk operation
@@ -69,7 +69,7 @@ export class BulkUpsDto {
     example: '192.168.1.100',
     required: false,
   })
-  @IsIP()
+  @IsIpHostnameOrUrl()
   @IsOptional()
   ip?: string;
 
@@ -137,7 +137,7 @@ export class BulkServerDto {
     description: 'Server IP address',
     example: '192.168.1.10',
   })
-  @IsIP()
+  @IsIpHostnameOrUrl()
   @IsNotEmpty()
   ip: string;
 
@@ -213,7 +213,7 @@ export class BulkServerDto {
     example: '192.168.1.11',
     required: false,
   })
-  @IsIP()
+  @IsIpHostnameOrUrl()
   @IsOptional()
   ilo_ip?: string;
 
