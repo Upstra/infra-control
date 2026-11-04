@@ -7,7 +7,7 @@ rule_files:
   # - "second_rules.yml"
 
 scrape_configs:
-  # Backend NestJS metrics
+  # Backend NestJS (docker-compose.prod.yml / rasp.yml : le back écoute sur PORT=8080)
   - job_name: 'infra-control-backend'
     static_configs:
       - targets: ['backend:8080']

@@ -5,6 +5,7 @@ export type UpsAlertLevel = 'normal' | 'low' | 'warning' | 'critical';
 export interface UPSBatteryStatusDto {
   upsId: string;
   upsName?: string;
+  roomId?: string | null;
   ip: string;
   minutesRemaining: number | null;
   hoursRemaining: number | null;

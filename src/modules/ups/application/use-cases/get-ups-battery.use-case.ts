@@ -58,6 +58,7 @@ export class GetUpsBatteryUseCase {
       this.eventEmitter.emit(UpsBatteryEvents.CHECK_FAILED, failure);
       throw error;
     }
+    status.roomId = ups.roomId ?? null;
     await this.upsBatteryCacheService.set(ups.id, status);
     this.emitTransitions(ups, previous, status);
     this.eventEmitter.emit(UpsBatteryEvents.BATTERY_CHECKED, status);

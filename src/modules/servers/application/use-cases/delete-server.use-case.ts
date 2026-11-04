@@ -1,4 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+
+export const SERVER_DELETED_EVENT = 'server.deleted';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 
 /**
@@ -24,9 +27,11 @@ export class DeleteServerUseCase {
   constructor(
     @Inject('ServerRepositoryInterface')
     private readonly serverRepository: ServerRepositoryInterface,
+    @Optional() private readonly eventEmitter?: EventEmitter2,
   ) {}
 
   async execute(id: string, _userId?: string): Promise<void> {
     await this.serverRepository.deleteServer(id);
+    this.eventEmitter?.emit(SERVER_DELETED_EVENT, { serverId: id });
   }
 }

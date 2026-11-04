@@ -4,11 +4,11 @@ import { Server } from 'socket.io';
 import { getWebSocketCorsOptions } from '@/core/config/cors.config';
 import {
   AlertEvents,
+  AlertSummaryChangedEvent,
   AlertTransitionEvent,
 } from '../../domain/events/alert.events';
 import { AlertTransitionType } from '../../domain/types/alert.types';
 import { AlertResponseDto } from '../dto/alert.response.dto';
-import { GetAlertSummaryUseCase } from '../use-cases/get-alert-summary.use-case';
 
 const SOCKET_EVENTS: Record<AlertTransitionType, string> = {
   [AlertTransitionType.OPENED]: 'alert:opened',
@@ -27,19 +27,16 @@ export class AlertsGateway {
   @WebSocketServer()
   server: Server;
 
-  constructor(
-    private readonly getAlertSummaryUseCase: GetAlertSummaryUseCase,
-  ) {}
-
-  @OnEvent(AlertEvents.TRANSITION, { async: true })
-  async handleTransition({ alert, transition }: AlertTransitionEvent) {
+  @OnEvent(AlertEvents.TRANSITION)
+  handleTransition({ alert, transition }: AlertTransitionEvent): void {
     this.server.emit(
       SOCKET_EVENTS[transition.type],
       new AlertResponseDto(alert),
     );
-    this.server.emit(
-      'alerts:summary',
-      await this.getAlertSummaryUseCase.execute(),
-    );
+  }
+
+  @OnEvent(AlertEvents.SUMMARY_CHANGED)
+  handleSummary(summary: AlertSummaryChangedEvent): void {
+    this.server.emit('alerts:summary', summary);
   }
 }

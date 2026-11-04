@@ -1,4 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { UpsBatteryEvents } from '../../domain/events/ups-battery.events';
 import { UpsRepositoryInterface } from '../../domain/interfaces/ups.repository.interface';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 
@@ -27,11 +29,13 @@ export class DeleteUpsUseCase {
     @Inject('UpsRepositoryInterface')
     private readonly upsRepository: UpsRepositoryInterface,
     private readonly logHistory?: LogHistoryUseCase,
+    @Optional() private readonly eventEmitter?: EventEmitter2,
   ) {}
 
   async execute(id: string, userId?: string): Promise<void> {
     await this.upsRepository.findUpsById(id);
     await this.upsRepository.deleteUps(id);
     await this.logHistory?.execute('ups', id, 'DELETE', userId);
+    this.eventEmitter?.emit(UpsBatteryEvents.DELETED, { upsId: id });
   }
 }

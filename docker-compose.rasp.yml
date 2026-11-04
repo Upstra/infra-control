@@ -115,7 +115,7 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=7d'  # Réduire la rétention
+      - '--storage.tsdb.retention.time=8d'  # 7 j de courbes visibles + 1 j de marge
       - '--storage.tsdb.retention.size=1GB'  # Limiter la taille
     restart: unless-stopped
     networks:
