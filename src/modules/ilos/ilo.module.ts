@@ -1,3 +1,11 @@
+import { IloHealthDomainService } from './domain/services/ilo-health.domain.service';
+import { IloHealthCacheService } from './application/services/ilo-health-cache.service';
+import { CollectIloHealthUseCase } from './application/use-cases/collect-ilo-health.use-case';
+import { GetHardwareEnvironmentUseCase } from './application/use-cases/get-hardware-environment.use-case';
+import { IloHealthScheduler } from './application/schedulers/ilo-health.scheduler';
+import { RoomEnvironmentController } from './application/controllers/room-environment.controller';
+import { RedisModule } from '../redis/redis.module';
+import { RoomModule } from '../rooms/room.module';
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PythonExecutorModule } from '@/core/services/python-executor';
@@ -28,8 +36,10 @@ import { AuditModule } from '../audit/audit.module';
     AuditModule,
     forwardRef(() => ServerModule),
     forwardRef(() => VmwareModule),
+    forwardRef(() => RoomModule),
+    RedisModule,
   ],
-  controllers: [IloPowerController],
+  controllers: [IloPowerController, RoomEnvironmentController],
   providers: [
     IloDomainService,
     IloPowerService,
@@ -40,6 +50,11 @@ import { AuditModule } from '../audit/audit.module';
     ControlServerPowerUseCase,
     GetServerStatusUseCase,
     PingIloUseCase,
+    IloHealthDomainService,
+    IloHealthCacheService,
+    CollectIloHealthUseCase,
+    GetHardwareEnvironmentUseCase,
+    IloHealthScheduler,
     {
       provide: 'IloRepositoryInterface',
       useClass: IloTypeormRepository,
@@ -51,6 +66,9 @@ import { AuditModule } from '../audit/audit.module';
     DeleteIloUseCase,
     IloPowerService,
     GetServerStatusUseCase,
+    IloHealthDomainService,
+    IloHealthCacheService,
+    GetHardwareEnvironmentUseCase,
   ],
 })
 export class IloModule {}
