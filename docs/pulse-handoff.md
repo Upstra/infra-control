@@ -10,23 +10,24 @@ _Mis à jour le 04/11/2026, fin de session. Note de passation, à supprimer une 
 | 02 | Alertes + acquittement + fil | ✅ Fini, poussé | ✅ scénario coupure → alerte → retour secteur |
 | 03 | Métriques VMware + événements vCenter | ✅ Fini, poussé | ✅ contre vcsim (arrêt manuel, compte Upstra, hôte déconnecté) |
 | 04 | Santé iLO Redfish | ✅ Fini, poussé | ✅ back + mock_ilo en scénario maquette (PSU 2 absente, entrée d'air 31 °C, Warning, mot de passe masqué dans les logs) |
-| 05 | Historique Prometheus | ⏳ Pas commencé | — |
+| 05 | Historique Prometheus | ✅ Fini, poussé | ✅ back + vrai Prometheus 2.55 : séries `upstra_*` réelles, `/metrics/series` à 15 s, 400 hors liste blanche |
 | 06 | Dashboard, présence, puissance nominale, layouts, déplacement UPS | ⏳ Pas commencé | — |
 | 07 | Durcissement sécu (4 failles) + licence AGPL-3.0 | ⏳ Pas commencé (ajouté à ta demande) | — |
 
 ## Git : branches et règles suivies
 
 - Il n'existait **aucune `develop`** sur `infra-control`, `ups_manager`, `mock_ups` ni `mock_ilo`. Comme tu l'as demandé, je suis parti de `master`/`main`.
-- Une branche `feature/*` par brief, **empilées dans l'ordre** (chacune part de la précédente) : à merger dans l'ordre 01 → 02 → 03 → 04.
+- Une branche `feature/*` par brief, **empilées dans l'ordre** (chacune part de la précédente).
+- **Branche de recette globale `flow`** (à ta demande) : créée depuis `master`/`main` dans chaque repo back, chaque brief y est mergé en `--no-ff` dès qu'il est fini.
 - Rien n'a été poussé sur `master`/`main`. Aucune PR n'a été ouverte.
 - Tous les commits sont signés `James ABIB <james.bidule@gmail.com>`, **sans aucun Co-Authored-By**, messages en anglais au format conventional commits.
 
 | Repo | Branches poussées (dans l'ordre) |
 |---|---|
-| `Upstra/infra-control` | `feature/ups-telemetry` → `feature/alerts` → `feature/vmware-telemetry` → `feature/ilo-health` |
-| `Upstra/ups_manager` | `feature/ups-telemetry` → `feature/vmware-telemetry` → `feature/ilo-health` |
-| `Upstra/mock_ups` | `feature/ups-telemetry` |
-| `Upstra/mock_ilo` | `feature/ilo-health` |
+| `Upstra/infra-control` | `feature/ups-telemetry` → `feature/alerts` → `feature/vmware-telemetry` → `feature/ilo-health` → `feature/metrics-history`, tout mergé dans `flow` |
+| `Upstra/ups_manager` | `feature/ups-telemetry` → `feature/vmware-telemetry` → `feature/ilo-health`, tout mergé dans `flow` |
+| `Upstra/mock_ups` | `feature/ups-telemetry`, mergé dans `flow` |
+| `Upstra/mock_ilo` | `feature/ilo-health`, mergé dans `flow` |
 | `infra-control_stack`, `infra-control_front`, `mock_vcsim` | rien touché |
 
 ## Ce qui a été fait, brief par brief
@@ -90,20 +91,32 @@ _Mis à jour le 04/11/2026, fin de session. Note de passation, à supprimer une 
   - alertes d'entrée d'air, de PSU, de santé matérielle et d'iLO injoignable ;
   - agrégat global prêt pour le brief 06 (`GetHardwareEnvironmentUseCase.global()`).
 
+### 05 — Historique Prometheus
+- **Port vérifié** : en prod et sur le Raspberry, le back écoute sur 8080, donc `backend:8080` était correct. En revanche, `docker-compose.monitoring.yml` (le compose de dev) n'a pas de service `backend` : rien n'était collecté en dev. J'ai ajouté `prometheus.dev.yml`, qui vise `host.docker.internal:3000`.
+- **Rétention** : 15 j en prod et en dev ; 8 j + 1 GB sur le Raspberry (7 j visibles + 1 j de marge).
+- **`MetricsRegistryService`** : jauges `upstra_ups_*`, `upstra_host_*`, `upstra_server_*` et `upstra_alerts_open`, alimentées par les événements. Une valeur `null` retire la série au lieu de la mettre à 0. Les séries sont aussi retirées à la suppression d'un onduleur ou d'un serveur (nouveaux événements `ups.deleted` / `server.deleted`) ou à la disparition d'un hôte.
+- **`GET /metrics/series`** :
+  - la PromQL est construite côté back à partir d'une liste blanche (metric, scope, range, id validé) ;
+  - pas de 15 s / 2 min / 15 min selon la plage ;
+  - cache Redis de 15 s ;
+  - 503 `HISTORY_UNAVAILABLE` si Prometheus est KO.
+- **Découplage** : `alerts` publie `alerts.summary.changed`, que la gateway WebSocket et les métriques écoutent. `PrometheusModule` ne dépend donc plus du module `alerts`.
+- **Vérifié en HTTP avec un vrai token** (briefs 01 à 05) : `/ups/:id`, `/alerts/summary`, l'acquittement (« jbidule a acquitté UPS-B2 » dans le fil, historique `ACKNOWLEDGE`, 409 sur une alerte résolue), `/room/:id/environment` (`maxInletC: 31`), `hardware` sur `/server/:id`, et `/metrics/series`.
+
 ## Reprendre ici
 
-1. **Brief 05.** Vérifier d'abord le port dans `prometheus.yml` (il scrape `backend:8080` alors que l'API écoute sur `3000`). Ensuite les jauges `upstra_*`, `GET /metrics/series` avec liste blanche, et la rétention de 7 j minimum.
-2. **Brief 06.** `nominalPowerW` sur `Ups`, KPI de `/dashboard/full` (tout depuis Redis), présence `active`/`idle` avec la page consultée, nouveaux types de widgets + migration des layouts, suppression de l'uptime codé en dur, `PATCH /ups/:id` avec `moveServers` dans une transaction.
-3. **Brief 07 (sécu + licence).** Les 4 failles : credentials, SSL configurable (aujourd'hui `verify=False` en dur dans `ilo.py` et `vm_ware_connection.py`), timeout de 30 min, verrou Redis `SET NX` (déjà en place pour VMware et iLO, à généraliser à l'orchestrateur de migration). Puis `LICENSE` AGPL-3.0 à la racine des repos, et un README avec capture et schéma d'architecture.
+1. **Brief 06** (en attente de ton feu vert). `nominalPowerW` sur `Ups`, KPI de `/dashboard/full` (tout depuis Redis), présence `active`/`idle` avec la page consultée, nouveaux types de widgets + migration des layouts, suppression de l'uptime codé en dur, `PATCH /ups/:id` avec `moveServers` dans une transaction.
+2. **Brief 07 (sécu + licence).** Les 4 failles : credentials, SSL configurable (aujourd'hui `verify=False` en dur dans `ilo.py` et `vm_ware_connection.py`), timeout de 30 min, verrou Redis `SET NX` (déjà en place pour VMware et iLO, à généraliser à l'orchestrateur de migration). Puis `LICENSE` AGPL-3.0 à la racine des repos, et un README avec capture et schéma d'architecture.
 
 ## Points d'attention
 
-- **Tests préexistants cassés sur `master` :** 51 suites et 261 tests en échec avant mon passage. Après le brief 03, on est à 49 suites et 244 tests, et **aucune nouvelle suite cassée**. Quelques exemples : `ups.controller.spec` (signature de `pingUps`), les specs du contrôleur serveur (dépendance `RoleGuard`), et les specs email, iLO et vmware.service.
+- **Tests préexistants cassés sur `master` :** 51 suites et 261 tests en échec avant mon passage. Après le brief 05, on est à 49 suites et 244 tests sur 3 260, et **aucune nouvelle suite cassée**. Quelques exemples : `ups.controller.spec` (signature de `pingUps`), les specs du contrôleur serveur (dépendance `RoleGuard`), et les specs email, iLO et vmware.service.
 - **`dump.rdb` dans l'historique** de `feature/vmware-telemetry` (commit `25c3173`) : c'est la sauvegarde du Redis de test, qui ne contient que des données de démo. Le force-push pour le retirer a été refusé, je l'ai donc supprimé dans le commit suivant et ajouté au `.gitignore`. Si tu veux un historique propre, il faut faire un rebase et un force-push toi-même.
 - **Ports :** `VmwareConnectionService` force le port 443 (comportement existant, que je n'ai pas modifié).
 - **Variables d'env ajoutées** dans `.env.prod.example` :
   - onduleurs : `UPS_POLL_CRON`, `UPS_POLL_ON_BATTERY_SECONDS` ;
   - VMware : `VMWARE_TELEMETRY_ENABLED`, `VMWARE_METRICS_INTERVAL_SECONDS`, `VMWARE_EVENTS_INTERVAL_SECONDS`, `VM_CPU_WARN_PERCENT`, `VM_HIGH_PRIORITY_MAX`, `VMWARE_SERVICE_ACCOUNT` ;
-  - iLO : `ILO_HEALTH_ENABLED`, `ILO_HEALTH_INTERVAL_SECONDS`, `ILO_HEALTH_CONCURRENCY`.
+  - iLO : `ILO_HEALTH_ENABLED`, `ILO_HEALTH_INTERVAL_SECONDS`, `ILO_HEALTH_CONCURRENCY` ;
+  - historique : `PROMETHEUS_URL` (défaut `http://prometheus:9090`).
 - **Nouvelle dépendance :** `cron@4.3.0`, déclarée en direct. Elle était déjà présente via `@nestjs/schedule` mais pnpm ne la rendait pas accessible.
 - **Front non touché :** les nouveaux champs sont tous additifs, rien n'a été retiré des DTO.
