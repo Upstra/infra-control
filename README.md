@@ -362,13 +362,15 @@ pnpm format    # beautifie le code
 ## 🗄️ Migrations
 
 ```bash
-pnpm migration:generate
-pnpm migration:run
+pnpm migration:generate AddSomething   # génère src/core/migrations/<timestamp>-AddSomething.ts depuis les entités
+pnpm migration:run:dev                 # applique les migrations en dev (ts-node)
+pnpm migration:run                     # applique les migrations depuis dist/
+pnpm migration:check                   # base vide → migrations → vérifie qu'il ne reste aucun écart avec les entités
 ```
 
-Ces commandes utilisent `-r dotenv/config` pour charger automatiquement les variables d'environnement.
-
-> ⚠️ En production (`migrationsRun`), TypeORM ne charge que `src/core/migrations`. Toute nouvelle migration doit y être placée.
+- En production (`migrationsRun`), TypeORM ne charge que `src/core/migrations`.
+- `1700000000000-BaselineSchema` crée le schéma de départ sur une base vide et ne fait rien sur une base déjà provisionnée (table `user` présente). Une nouvelle installation et une base existante convergent ainsi vers le même schéma.
+- La CI rejoue `pnpm migration:check` sur un PostgreSQL vide : une entité modifiée sans migration fait échouer le build.
 
 ---
 
