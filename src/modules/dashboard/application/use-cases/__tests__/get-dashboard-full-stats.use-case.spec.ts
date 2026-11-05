@@ -13,6 +13,19 @@ describe('GetDashboardFullStatsUseCase', () => {
     safeSet: jest.fn(),
     safeExpire: jest.fn(),
   } as any;
+  const kpis = {
+    hostsTotal: 3,
+    hostsConnected: 3,
+    vmsByHealth: { up: 9, degraded: 0, down: 1, unknown: 0 },
+    totalPowerW: 1830,
+    totalCapacityW: 3000,
+    maxInletC: 31,
+    maxInletRoomId: 'room-b',
+    maxInletServerName: 'srv-b2-03',
+    upsOnBattery: 1,
+    openAlerts: { critical: 1, warning: 2, info: 0 },
+  };
+  const kpisUseCase = { execute: jest.fn().mockResolvedValue(kpis) } as any;
   let useCase: GetDashboardFullStatsUseCase;
 
   beforeEach(() => {
@@ -24,6 +37,7 @@ describe('GetDashboardFullStatsUseCase', () => {
       vmRepo,
       progressRepo,
       redisService,
+      kpisUseCase,
     );
   });
 
@@ -62,8 +76,12 @@ describe('GetDashboardFullStatsUseCase', () => {
       setupComplete: false,
       setupProgress: 0,
       onlineUsers: 5,
+      ...kpis,
     });
-    expect(redisService.safeSet).toHaveBeenCalled();
+    expect(redisService.safeSet).toHaveBeenCalledWith(
+      'dashboard:full-stats',
+      expect.not.stringContaining('totalPowerW'),
+    );
     expect(redisService.safeExpire).toHaveBeenCalledWith(
       'dashboard:full-stats',
       60,
@@ -90,7 +108,8 @@ describe('GetDashboardFullStatsUseCase', () => {
 
     const result = await useCase.execute();
 
-    expect(result).toEqual(cachedData);
+    expect(result).toEqual({ ...cachedData, ...kpis });
+    expect(kpisUseCase.execute).toHaveBeenCalled();
     expect(statisticsPort.getStatistics).not.toHaveBeenCalled();
     expect(serverRepo.countByState).not.toHaveBeenCalled();
     expect(vmRepo.countByState).not.toHaveBeenCalled();

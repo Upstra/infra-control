@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { InfrastructureKpisDto } from './infrastructure-kpis.dto';
 
-export class FullDashboardStatsDto {
+export class FullDashboardStatsDto extends InfrastructureKpisDto {
   @ApiProperty({ example: 100 })
   totalUsers: number;
 

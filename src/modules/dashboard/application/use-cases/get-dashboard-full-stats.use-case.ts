@@ -3,12 +3,16 @@ import { Inject, Injectable } from '@nestjs/common';
 import { SetupProgress } from '@/modules/setup/domain/entities/setup-progress.entity';
 import { SetupStep } from '@/modules/setup/application/dto';
 import { FullDashboardStatsDto } from '../dto/fullDashboardStats.dto';
+import { InfrastructureKpisDto } from '../dto/infrastructure-kpis.dto';
 import { SetupProgressRepositoryInterface } from '@/modules/setup/domain/interfaces/setup.repository.interface';
 import { VmRepositoryInterface } from '@/modules/vms/domain/interfaces/vm.repository.interface';
 import { ServerRepositoryInterface } from '@/modules/servers/domain/interfaces/server.repository.interface';
 import { PresenceService } from '@/modules/presence/application/services/presence.service';
 import { StatisticsPort } from '../ports/statistics.port';
 import { RedisSafeService } from '@/modules/redis/application/services/redis-safe.service';
+import { GetInfrastructureKpisUseCase } from './get-infrastructure-kpis.use-case';
+
+type BaseStats = Omit<FullDashboardStatsDto, keyof InfrastructureKpisDto>;
 
 @Injectable()
 export class GetDashboardFullStatsUseCase {
@@ -36,6 +40,7 @@ export class GetDashboardFullStatsUseCase {
     @Inject('SetupProgressRepositoryInterface')
     private readonly setupProgressRepo: SetupProgressRepositoryInterface,
     private readonly redisService: RedisSafeService,
+    private readonly getInfrastructureKpis: GetInfrastructureKpisUseCase,
   ) {}
 
   /**
@@ -45,6 +50,14 @@ export class GetDashboardFullStatsUseCase {
    * @returns `FullDashboardStatsDto` containing counts and setup progress
    */
   async execute(): Promise<FullDashboardStatsDto> {
+    const [base, kpis] = await Promise.all([
+      this.baseStats(),
+      this.getInfrastructureKpis.execute(),
+    ]);
+    return { ...base, ...kpis };
+  }
+
+  private async baseStats(): Promise<BaseStats> {
     const cached = await this.redisService.safeGet(this.CACHE_KEY);
     if (cached) {
       return JSON.parse(cached);
@@ -70,7 +83,7 @@ export class GetDashboardFullStatsUseCase {
 
     const progressPercentage = this.computeProgress(progressRecords);
 
-    const result: FullDashboardStatsDto = {
+    const result: BaseStats = {
       ...stats,
       serversUp,
       serversDown,
