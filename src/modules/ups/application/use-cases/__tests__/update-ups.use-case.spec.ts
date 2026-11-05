@@ -2,16 +2,22 @@ import { UpdateUpsUseCase } from '../update-ups.use-case';
 import { UpsDomainService } from '../../../domain/services/ups.domain.service';
 import { UpsResponseDto } from '../../dto/ups.response.dto';
 import { createMockUps } from '../../../__mocks__/ups.mock';
+import {
+  createMockBatteryStatus,
+  createMockUpsTelemetry,
+} from '../../../__mocks__/ups-telemetry.mock';
 
 describe('UpdateUpsUseCase', () => {
   const repo = { findUpsById: jest.fn(), findByIdWithServerCount: jest.fn() };
   const manager = { save: jest.fn(), find: jest.fn(), update: jest.fn() };
   const dataSource = { transaction: jest.fn((work) => work(manager)) };
   const logHistory = { execute: jest.fn(), executeStructured: jest.fn() };
+  const batteryCache = { get: jest.fn() };
   const useCase = new UpdateUpsUseCase(
     repo as any,
     new UpsDomainService(),
     dataSource as any,
+    batteryCache as any,
     logHistory as any,
   );
 
@@ -59,6 +65,10 @@ describe('UpdateUpsUseCase', () => {
   });
 
   it('only updates the UPS fields without moveServers', async () => {
+    batteryCache.get.mockResolvedValue(
+      createMockBatteryStatus({ telemetry: createMockUpsTelemetry() }),
+    );
+
     const result = await useCase.execute('ups-1', {
       roomId: 'room-b',
       nominalPowerW: 3000,
@@ -71,6 +81,7 @@ describe('UpdateUpsUseCase', () => {
     expect(manager.find).not.toHaveBeenCalled();
     expect(manager.update).not.toHaveBeenCalled();
     expect(result.movedServerIds).toBeUndefined();
+    expect(result.nominalPowerSource).toBe('device');
   });
 
   it('propagates a server failure so the transaction rolls everything back', async () => {

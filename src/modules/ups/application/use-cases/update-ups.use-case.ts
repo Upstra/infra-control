@@ -7,6 +7,8 @@ import { UpsResponseDto } from '../../application/dto/ups.response.dto';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
 import { Ups } from '../../domain/entities/ups.entity';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
+import { UpsBatteryCacheService } from '../services/ups-battery-cache.service';
+import { BatteryStatusResponseDto } from '../dto/battery-status.response.dto';
 
 @Injectable()
 export class UpdateUpsUseCase {
@@ -15,6 +17,7 @@ export class UpdateUpsUseCase {
     private readonly upsRepository: UpsRepositoryInterface,
     private readonly upsDomainService: UpsDomainService,
     private readonly dataSource: DataSource,
+    private readonly upsBatteryCacheService: UpsBatteryCacheService,
     private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
@@ -60,7 +63,12 @@ export class UpdateUpsUseCase {
     );
 
     const result = await this.upsRepository.findByIdWithServerCount(ups.id);
-    const response = new UpsResponseDto(result.ups, result.serverCount);
+    const cachedStatus = await this.upsBatteryCacheService.get(ups.id);
+    const response = new UpsResponseDto(
+      result.ups,
+      result.serverCount,
+      cachedStatus ? new BatteryStatusResponseDto(cachedStatus) : undefined,
+    );
     if (moveServers) response.movedServerIds = movedServerIds;
     return response;
   }
