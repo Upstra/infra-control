@@ -5,6 +5,8 @@ import { UserModule } from '../users/user.module';
 import { RedisModule } from '@/modules/redis/redis.module';
 import { AuthModule } from '../auth/auth.module';
 import { PresenceController } from './application/controllers/presence.controller';
+import { PresenceDomainService } from './domain/services/presence.domain.service';
+import { PresenceIdleScheduler } from './application/schedulers/presence-idle.scheduler';
 
 @Module({
   controllers: [PresenceController],
@@ -13,7 +15,12 @@ import { PresenceController } from './application/controllers/presence.controlle
     forwardRef(() => UserModule),
     forwardRef(() => AuthModule),
   ],
-  providers: [UserGateway, PresenceService],
+  providers: [
+    UserGateway,
+    PresenceService,
+    PresenceDomainService,
+    PresenceIdleScheduler,
+  ],
   exports: [PresenceService],
 })
 export class PresenceModule {}

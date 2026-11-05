@@ -1,5 +1,7 @@
 import { AlertsModule } from '../alerts/alerts.module';
 import { forwardRef, Module } from '@nestjs/common';
+import { VmwareModule } from '../vmware/vmware.module';
+import { IloModule } from '../ilos/ilo.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DashboardController } from './application/controllers/dashboard.controller';
 import { DashboardLayoutController } from './application/controllers/dashboard-layout.controller';
@@ -72,6 +74,8 @@ import {
     AuditModule,
     HealthModule,
     forwardRef(() => AlertsModule),
+    forwardRef(() => VmwareModule),
+    forwardRef(() => IloModule),
   ],
 })
 export class DashboardModule {}

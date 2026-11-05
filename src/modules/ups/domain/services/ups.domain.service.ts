@@ -31,6 +31,7 @@ export class UpsDomainService {
     ups.grace_period_on = upsDto.grace_period_on;
     ups.grace_period_off = upsDto.grace_period_off;
     ups.roomId = upsDto.roomId;
+    ups.nominalPowerW = upsDto.nominalPowerW ?? null;
     return ups;
   }
 
@@ -43,6 +44,9 @@ export class UpsDomainService {
     ups.grace_period_on = upsDto.grace_period_on ?? ups.grace_period_on;
     ups.grace_period_off = upsDto.grace_period_off ?? ups.grace_period_off;
     ups.roomId = upsDto.roomId ?? ups.roomId;
+    if (upsDto.nominalPowerW !== undefined) {
+      ups.nominalPowerW = upsDto.nominalPowerW;
+    }
     return ups;
   }
 }

@@ -1,6 +1,7 @@
 // Legacy use cases
 import { GetDashboardFullStatsUseCase } from './get-dashboard-full-stats.use-case';
 import { GetSetupStatisticsUseCase } from './get-setup-statistics.use-case';
+import { GetInfrastructureKpisUseCase } from './get-infrastructure-kpis.use-case';
 
 // Layout use cases
 import {
@@ -32,6 +33,7 @@ import {
 } from './templates';
 
 export const DashboardUseCases = [
+  GetInfrastructureKpisUseCase,
   // Legacy
   GetDashboardFullStatsUseCase,
   GetSetupStatisticsUseCase,

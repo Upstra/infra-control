@@ -3,6 +3,10 @@ import { IsNotEmpty, IsNumber, IsString, IsUUID } from 'class-validator';
 import { Ups } from '../../domain/entities/ups.entity';
 import { ServerInUpsResponseDto } from './server-in-ups.response.dto';
 import { BatteryStatusResponseDto } from './battery-status.response.dto';
+import {
+  effectiveNominalPower,
+  NominalPowerSource,
+} from '../../domain/services/ups-power';
 
 export class UpsResponseDto {
   @ApiProperty()
@@ -52,6 +56,30 @@ export class UpsResponseDto {
   })
   readonly batteryStatus?: BatteryStatusResponseDto;
 
+  @ApiProperty({
+    type: Number,
+    nullable: true,
+    description: 'Puissance nominale saisie (W)',
+  })
+  readonly nominalPowerW: number | null;
+
+  @ApiProperty({
+    type: Number,
+    nullable: true,
+    description: "Puissance nominale remontée par l'onduleur, sinon saisie",
+  })
+  readonly effectiveNominalPowerW: number | null;
+
+  @ApiProperty({ enum: ['device', 'manual'], nullable: true })
+  readonly nominalPowerSource: NominalPowerSource;
+
+  @ApiProperty({
+    type: [String],
+    required: false,
+    description: "Serveurs déplacés avec l'onduleur (PATCH avec moveServers)",
+  })
+  movedServerIds?: string[];
+
   constructor(
     ups: Ups,
     serverCount = 0,
@@ -68,5 +96,12 @@ export class UpsResponseDto {
     );
     this.serverCount = serverCount;
     this.batteryStatus = batteryStatus;
+    this.nominalPowerW = ups.nominalPowerW ?? null;
+    const power = effectiveNominalPower(
+      ups.nominalPowerW,
+      batteryStatus?.telemetry,
+    );
+    this.effectiveNominalPowerW = power.effectiveNominalPowerW;
+    this.nominalPowerSource = power.nominalPowerSource;
   }
 }

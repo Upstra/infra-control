@@ -1,3 +1,4 @@
+import { DashboardLayoutDomainService } from '../../../../domain/services/dashboard-layout.domain.service';
 import { ListLayoutsUseCase } from '../list-layouts.use-case';
 import { DashboardLayoutRepository } from '../../../../infrastructure/repositories/dashboard-layout.repository';
 import { DashboardLayout } from '../../../../domain/entities/dashboard-layout.entity';
@@ -21,7 +22,10 @@ describe('ListLayoutsUseCase', () => {
       unsetAllDefaultLayouts: jest.fn(),
     } as any;
 
-    useCase = new ListLayoutsUseCase(layoutRepository);
+    useCase = new ListLayoutsUseCase(
+      layoutRepository,
+      new DashboardLayoutDomainService(),
+    );
   });
 
   afterEach(() => {
@@ -41,16 +45,34 @@ describe('ListLayoutsUseCase', () => {
       jest.useRealTimers();
     });
 
-    it('should return empty list when no layouts exist', async () => {
+    it('creates the default layout for a user without any layout', async () => {
       layoutRepository.findByUserId.mockResolvedValue([]);
+      layoutRepository.save.mockImplementation(async (layout) => ({
+        ...layout,
+        id: 'layout-default',
+      }));
 
       const result = await useCase.execute(userId);
 
-      expect(result).toEqual({
-        layouts: [],
+      const widgets = result.layouts[0].widgets;
+      expect(result.layouts[0]).toMatchObject({
+        name: 'Tableau principal',
+        isDefault: true,
+        userId,
       });
-
-      expect(layoutRepository.findByUserId).toHaveBeenCalledWith(userId);
+      expect(widgets.map((widget) => [widget.type, widget.position.w])).toEqual(
+        [
+          ['incident', 12],
+          ['kpis', 12],
+          ['ups', 8],
+          ['hosts', 4],
+          ['vms', 8],
+          ['events', 4],
+        ],
+      );
+      expect(widgets.map((widget) => widget.position.x)).toEqual([
+        0, 1, 2, 3, 4, 5,
+      ]);
     });
 
     it('should return single layout without widgets', async () => {
@@ -584,16 +606,6 @@ describe('ListLayoutsUseCase', () => {
 
       expect(result.layouts[0].widgets[0].settings).toEqual({});
       expect(layoutRepository.findByUserId).toHaveBeenCalledWith(userId);
-    });
-
-    it('should handle null layouts list', async () => {
-      layoutRepository.findByUserId.mockResolvedValue(null as any);
-
-      const result = await useCase.execute(userId);
-
-      expect(result).toEqual({
-        layouts: [],
-      });
     });
 
     it('should handle large number of layouts', async () => {

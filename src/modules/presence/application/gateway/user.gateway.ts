@@ -10,6 +10,20 @@ import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { JwtNotValid } from '@/modules/auth/domain/exceptions/auth.exception';
 import { getWebSocketCorsOptions } from '@/core/config/cors.config';
+import { PresenceDomainService } from '../../domain/services/presence.domain.service';
+import {
+  PresenceRecord,
+  PresenceViewer,
+} from '../../domain/interfaces/presence.interface';
+
+export const PRESENCE_FULL_ROOM = 'presence:full';
+export const PRESENCE_LIMITED_ROOM = 'presence:limited';
+
+interface PingBody {
+  route?: unknown;
+  title?: unknown;
+  active?: unknown;
+}
 
 @WebSocketGateway({
   cors: getWebSocketCorsOptions(),
@@ -17,15 +31,23 @@ import { getWebSocketCorsOptions } from '@/core/config/cors.config';
 export class UserGateway {
   @WebSocketServer()
   server: Server;
+
   constructor(
     private readonly presenceService: PresenceService,
     private readonly jwtService: JwtService,
+    private readonly presenceDomain: PresenceDomainService,
   ) {}
-  handleConnection(client: Socket) {
+
+  async handleConnection(client: Socket) {
     try {
-      const userId = this.extractUserIdFromToken(client.handshake);
-      this.presenceService.markOnline(userId);
-      this.server.emit('presence:update', { userId, online: true });
+      const viewer = this.extractViewer(client.handshake);
+      await client.join(
+        this.presenceDomain.canSeeActivity(viewer)
+          ? PRESENCE_FULL_ROOM
+          : PRESENCE_LIMITED_ROOM,
+      );
+      const record = await this.presenceService.markOnline(viewer.userId);
+      this.broadcast(viewer.userId, record);
     } catch (error) {
       if (error instanceof JwtNotValid) {
         this.handleInvalidToken(client);
@@ -35,11 +57,11 @@ export class UserGateway {
     }
   }
 
-  handleDisconnect(client: Socket) {
+  async handleDisconnect(client: Socket) {
     try {
-      const userId = this.extractUserIdFromToken(client.handshake);
-      this.presenceService.markOffline(userId);
-      this.server.emit('presence:update', { userId, online: false });
+      const viewer = this.extractViewer(client.handshake);
+      await this.presenceService.markOffline(viewer.userId);
+      this.broadcast(viewer.userId, null);
     } catch (error) {
       if (error instanceof JwtNotValid) {
         this.handleInvalidToken(client);
@@ -50,10 +72,18 @@ export class UserGateway {
   }
 
   @SubscribeMessage('user:ping')
-  handlePing(@ConnectedSocket() client: Socket) {
+  async handlePing(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body?: PingBody,
+  ) {
     try {
-      const userId = this.extractUserIdFromToken(client.handshake);
-      this.presenceService.refreshTTL(userId);
+      const viewer = this.extractViewer(client.handshake);
+      const record = await this.presenceService.recordActivity(viewer.userId, {
+        route: this.presenceDomain.sanitizeRoute(body?.route),
+        title: this.presenceDomain.sanitizeTitle(body?.title),
+        active: body?.active !== false,
+      });
+      this.broadcast(viewer.userId, record);
     } catch (error) {
       if (error instanceof JwtNotValid) {
         this.handleInvalidToken(client);
@@ -84,18 +114,34 @@ export class UserGateway {
     return results;
   }
 
+  broadcast(userId: string, record: PresenceRecord | null): void {
+    this.server
+      .to(PRESENCE_FULL_ROOM)
+      .emit(
+        'presence:update',
+        this.presenceDomain.toView(userId, record, true),
+      );
+    this.server
+      .to(PRESENCE_LIMITED_ROOM)
+      .emit(
+        'presence:update',
+        this.presenceDomain.toView(userId, record, false),
+      );
+  }
+
   private handleInvalidToken(client: Socket) {
     client.emit('auth:refresh');
     client.disconnect();
   }
 
-  private extractUserIdFromToken(handshake: any): string {
+  private extractViewer(handshake: any): PresenceViewer {
     const token = handshake.auth?.token;
     if (!token) throw new JwtNotValid();
 
     try {
       const payload = this.jwtService.verify(token);
-      return payload.userId;
+      if (!payload?.userId) throw new JwtNotValid();
+      return { userId: payload.userId, isActive: payload.isActive };
     } catch {
       throw new JwtNotValid();
     }

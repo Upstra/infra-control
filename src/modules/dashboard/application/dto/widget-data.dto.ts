@@ -224,8 +224,12 @@ export class SystemComponentDto {
   @ApiProperty()
   responseTime: number;
 
-  @ApiProperty()
-  uptime: number;
+  @ApiProperty({
+    type: Number,
+    nullable: true,
+    description: "null tant qu'aucun historique de disponibilité n'est mesuré",
+  })
+  uptime: number | null;
 
   @ApiPropertyOptional({ type: [String] })
   issues?: string[];

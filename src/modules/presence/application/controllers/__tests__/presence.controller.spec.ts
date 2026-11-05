@@ -1,60 +1,60 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { PresenceController } from '../presence.controller';
-
-import { GetUserByIdUseCase } from '@/modules/users/application/use-cases';
-import { createMockUserDto } from '@/modules/auth/__mocks__/user.mock';
-import { PresenceService } from '../../services/presence.service';
+import { PresenceDomainService } from '../../../domain/services/presence.domain.service';
 
 describe('PresenceController', () => {
-  let controller: PresenceController;
-  let presenceService: jest.Mocked<PresenceService>;
-  let getUserByIdUseCase: jest.Mocked<GetUserByIdUseCase>;
+  const presence = { isOnline: jest.fn(), listOnline: jest.fn() };
+  const getUser = { execute: jest.fn() };
+  const controller = new PresenceController(
+    presence as any,
+    getUser as any,
+    new PresenceDomainService(),
+  );
+  const record = {
+    route: '/ups',
+    title: 'Onduleurs',
+    lastActivityAt: new Date().toISOString(),
+    connectedAt: null,
+  };
 
-  beforeEach(async () => {
-    presenceService = {
-      isOnline: jest.fn(),
-    } as any;
+  beforeEach(() => jest.clearAllMocks());
 
-    getUserByIdUseCase = {
-      execute: jest.fn(),
-    } as any;
+  it('lists online users with their page for an active viewer', async () => {
+    presence.listOnline.mockResolvedValue([{ userId: 'zoe', record }]);
 
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [PresenceController],
-      providers: [
-        { provide: PresenceService, useValue: presenceService },
-        { provide: GetUserByIdUseCase, useValue: getUserByIdUseCase },
-      ],
-    }).compile();
+    const result = await controller.listOnline({
+      userId: 'jbidule',
+      isActive: true,
+    } as any);
 
-    controller = module.get<PresenceController>(PresenceController);
+    expect(result).toEqual([
+      {
+        userId: 'zoe',
+        online: true,
+        status: 'active',
+        route: '/ups',
+        title: 'Onduleurs',
+        lastActivityAt: record.lastActivityAt,
+      },
+    ]);
   });
 
-  it('should return online: true when user is online', async () => {
-    getUserByIdUseCase.execute.mockResolvedValue(createMockUserDto());
-    presenceService.isOnline.mockResolvedValue(true);
+  it('masks the page for an inactive viewer', async () => {
+    presence.listOnline.mockResolvedValue([{ userId: 'zoe', record }]);
 
-    const result = await controller.isUserOnline('user-id');
+    const [view] = await controller.listOnline({
+      userId: 'x',
+      isActive: false,
+    } as any);
 
-    expect(getUserByIdUseCase.execute).toHaveBeenCalledWith('user-id');
-    expect(presenceService.isOnline).toHaveBeenCalledWith('user-id');
-    expect(result).toEqual({ online: true });
+    expect(view).toMatchObject({ online: true, route: null, title: null });
   });
 
-  it('should return online: false when user is offline', async () => {
-    getUserByIdUseCase.execute.mockResolvedValue(createMockUserDto());
-    presenceService.isOnline.mockResolvedValue(false);
+  it('checks that the user exists before answering online status', async () => {
+    getUser.execute.mockRejectedValue(new Error('User not found'));
 
-    const result = await controller.isUserOnline('user-id');
-
-    expect(result).toEqual({ online: false });
-  });
-
-  it('should throw if user does not exist', async () => {
-    getUserByIdUseCase.execute.mockRejectedValue(new Error('User not found'));
-
-    await expect(controller.isUserOnline('bad-id')).rejects.toThrow(
+    await expect(controller.isUserOnline('missing')).rejects.toThrow(
       'User not found',
     );
+    expect(presence.isOnline).not.toHaveBeenCalled();
   });
 });

@@ -1,23 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { DashboardWidget } from '../entities/dashboard-widget.entity';
 import { InvalidWidgetPositionException } from '../exceptions/dashboard.exception';
+import {
+  DEFAULT_LAYOUT_WIDGETS,
+  isValidOrderedPosition,
+} from './dashboard-layout-rules';
 
 @Injectable()
 export class DashboardLayoutDomainService {
   validateWidgetPosition(widget: DashboardWidget, layoutColumns: number): void {
-    const { x, y, w, h } = widget.position;
-
-    if (x < 0 || y < 0 || w <= 0 || h <= 0) {
+    if (!isValidOrderedPosition(widget.position)) {
       throw new InvalidWidgetPositionException(
-        'Widget position values must be positive',
+        'Widget position must use x as a rank (integer >= 0) and w in 4, 6, 8 or 12',
       );
     }
 
-    if (x + w > layoutColumns) {
+    if (widget.position.w > layoutColumns) {
       throw new InvalidWidgetPositionException(
-        `Widget exceeds layout columns (${x + w} > ${layoutColumns})`,
+        `Widget wider than the layout (${widget.position.w} > ${layoutColumns})`,
       );
     }
+  }
+
+  buildDefaultWidgets(): DashboardWidget[] {
+    return DEFAULT_LAYOUT_WIDGETS.map((definition, rank) => {
+      const widget = new DashboardWidget();
+      widget.type = definition.type;
+      widget.title = definition.title;
+      widget.position = { x: rank, y: 0, w: definition.w, h: 1 };
+      widget.visible = true;
+      return widget;
+    });
   }
 
   checkWidgetOverlap(

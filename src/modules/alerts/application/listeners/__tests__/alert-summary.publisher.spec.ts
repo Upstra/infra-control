@@ -8,9 +8,11 @@ describe('AlertSummaryPublisher', () => {
   };
   const getSummary = { execute: jest.fn() };
   const emitter = { emit: jest.fn() };
+  const redis = { safeSet: jest.fn() };
   const publisher = new AlertSummaryPublisher(
     getSummary as any,
     emitter as any,
+    redis as any,
   );
 
   beforeEach(() => jest.clearAllMocks());
@@ -25,6 +27,10 @@ describe('AlertSummaryPublisher', () => {
     expect(emitter.emit).toHaveBeenCalledWith(
       AlertEvents.SUMMARY_CHANGED,
       summary,
+    );
+    expect(redis.safeSet).toHaveBeenCalledWith(
+      'alerts:summary',
+      JSON.stringify(summary),
     );
   });
 
