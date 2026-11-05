@@ -17,6 +17,8 @@ import { MigrationPlanAnalysis } from '../interfaces/migration-plan-analysis.int
 import type { VmInfo } from '../interfaces/migration-plan-analysis.interface';
 import { MigrationCompletedEvent } from '../interfaces/migration-completed-event.interface';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ConfigService } from '@nestjs/config';
+import { randomUUID } from 'crypto';
 import * as fs from 'fs/promises';
 import * as yaml from 'js-yaml';
 import { RequestContextDto } from '@/core/dto/request-context.dto';
@@ -31,6 +33,9 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
   private readonly REDIS_START_TIME_KEY = 'migration:start_time';
   private readonly REDIS_END_TIME_KEY = 'migration:end_time';
   private readonly REDIS_ERROR_KEY = 'migration:error';
+  private readonly REDIS_LOCK_KEY = 'migration:lock';
+  private readonly DEFAULT_PLAN_TIMEOUT_MS = 30 * 60 * 1000;
+  private readonly LOCK_MARGIN_SECONDS = 300;
   private pollingInterval: NodeJS.Timeout | null = null;
 
   constructor(
@@ -40,9 +45,49 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
     @Optional()
     @Inject('VmRepositoryInterface')
     private readonly vmRepository?: VmRepositoryInterface,
+    @Optional()
+    private readonly configService?: ConfigService,
   ) {}
 
+  planTimeoutMs(): number {
+    return Number(
+      this.configService?.get('MIGRATION_PLAN_TIMEOUT_MS') ??
+        this.DEFAULT_PLAN_TIMEOUT_MS,
+    );
+  }
+
+  private async withPlanLock<T>(run: () => Promise<T>): Promise<T> {
+    const token = randomUUID();
+    const ttlSeconds =
+      Math.ceil(this.planTimeoutMs() / 1000) + this.LOCK_MARGIN_SECONDS;
+    const acquired = await this.redis.safeSetNxEx(
+      this.REDIS_LOCK_KEY,
+      ttlSeconds,
+      token,
+    );
+    if (!acquired) {
+      throw new BadRequestException(
+        'A migration or restart plan is already running',
+      );
+    }
+    try {
+      return await run();
+    } finally {
+      await this.redis.safeReleaseLock(this.REDIS_LOCK_KEY, token);
+    }
+  }
+
   async executeMigrationPlan(
+    planPath: string,
+    userId?: string,
+    requestContext?: RequestContextDto,
+  ): Promise<void> {
+    return this.withPlanLock(() =>
+      this.runMigrationPlan(planPath, userId, requestContext),
+    );
+  }
+
+  private async runMigrationPlan(
     planPath: string,
     userId?: string,
     requestContext?: RequestContextDto,
@@ -88,7 +133,7 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
       const result = await this.pythonExecutor.executePython(
         'migration_plan.py',
         ['--plan', planPath],
-        { timeout: 600000 }, // 10 minutes timeout
+        { timeout: this.planTimeoutMs() },
       );
 
       this.logger.debug('Migration result:', JSON.stringify(result));
@@ -135,6 +180,13 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
     userId?: string,
     requestContext?: RequestContextDto,
   ): Promise<void> {
+    return this.withPlanLock(() => this.runRestartPlan(userId, requestContext));
+  }
+
+  private async runRestartPlan(
+    userId?: string,
+    requestContext?: RequestContextDto,
+  ): Promise<void> {
     const currentState = await this.getState();
     if (currentState !== MigrationState.MIGRATED) {
       throw new BadRequestException(
@@ -153,7 +205,7 @@ export class MigrationOrchestratorService implements IMigrationOrchestrator {
       const result = await this.pythonExecutor.executePython(
         'restart_plan.py',
         [],
-        { timeout: 600000 }, // 10 minutes timeout
+        { timeout: this.planTimeoutMs() },
       );
 
       this.logger.debug('Restart script output:', result);
