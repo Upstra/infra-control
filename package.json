@@ -24,6 +24,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "NODE_OPTIONS='-r tsconfig-paths/register' jest --config ./test/jest-e2e.json",
+    "test:e2e:pulse": "jest --config ./test/jest-e2e.json test/pulse",
     "migration:generate": "sh scripts/migration-generate.sh",
     "migration:run": "node ./node_modules/typeorm/cli.js -d dist/src/core/config/data-source.js migration:run",
     "migration:run:dev": "ts-node -r dotenv/config -r tsconfig-paths/register ./node_modules/typeorm/cli.js -d src/core/config/data-source.ts migration:run",
