@@ -12,7 +12,7 @@ _Mis à jour le 04/11/2026, fin de session. Note de passation, à supprimer une 
 | 04 | Santé iLO Redfish | ✅ Fini, poussé | ✅ back + mock_ilo en scénario maquette (PSU 2 absente, entrée d'air 31 °C, Warning, mot de passe masqué dans les logs) |
 | 05 | Historique Prometheus | ✅ Fini, poussé | ✅ back + vrai Prometheus 2.55 : séries `upstra_*` réelles, `/metrics/series` à 15 s, 400 hors liste blanche |
 | 06 | Dashboard, présence, puissance nominale, layouts, déplacement UPS | ✅ Fini, poussé | ✅ back + simulateurs + 2 navigateurs WebSocket simulés + rollback forcé en base |
-| 07 | Durcissement sécu (4 failles) + licence AGPL-3.0 | ⏳ Pas commencé (ajouté à ta demande) | — |
+| 07 | Durcissement sécu (4 failles) + licence AGPL-3.0 | ✅ Fini, poussé | ✅ scripts réels (mot de passe par l'environnement, TLS refusé sur certificat auto-signé), verrou et timeout testés |
 
 ## Git : branches et règles suivies
 
@@ -24,10 +24,10 @@ _Mis à jour le 04/11/2026, fin de session. Note de passation, à supprimer une 
 
 | Repo | Branches poussées (dans l'ordre) |
 |---|---|
-| `Upstra/infra-control` | `feature/ups-telemetry` → `feature/alerts` → `feature/vmware-telemetry` → `feature/ilo-health` → `feature/metrics-history` → `feature/dashboard-presence`, tout mergé dans `flow` |
-| `Upstra/ups_manager` | `feature/ups-telemetry` → `feature/vmware-telemetry` → `feature/ilo-health`, tout mergé dans `flow` |
-| `Upstra/mock_ups` | `feature/ups-telemetry`, mergé dans `flow` |
-| `Upstra/mock_ilo` | `feature/ilo-health`, mergé dans `flow` |
+| `Upstra/infra-control` | `feature/ups-telemetry` → `feature/alerts` → `feature/vmware-telemetry` → `feature/ilo-health` → `feature/metrics-history` → `feature/dashboard-presence` → `feature/security-hardening` → `feature/agpl-license`, tout mergé dans `flow` |
+| `Upstra/ups_manager` | `feature/ups-telemetry` → `feature/vmware-telemetry` → `feature/ilo-health` → `feature/security-hardening` → `feature/agpl-license`, tout mergé dans `flow` |
+| `Upstra/mock_ups` | `feature/ups-telemetry` → `feature/agpl-license`, mergés dans `flow` |
+| `Upstra/mock_ilo` | `feature/ilo-health` → `feature/agpl-license`, mergés dans `flow` |
 | `infra-control_stack`, `infra-control_front`, `mock_vcsim` | rien touché |
 
 ## Ce qui a été fait, brief par brief
@@ -122,19 +122,34 @@ _Mis à jour le 04/11/2026, fin de session. Note de passation, à supprimer une 
 - **Nettoyage :** l'uptime codé en dur de `GetSystemHealthUseCase` vaut maintenant `null`. `resource-usage` reste dans l'enum du back pour les tableaux existants ; le retrait est à faire côté front.
 - **Déplacement d'onduleur :** `PATCH /ups/:id` avec `moveServers`, onduleur et serveurs dans une seule transaction (rollback vérifié avec un trigger qui force l'échec), entrée d'historique avec `movedServerIds`, et la réponse renvoie les serveurs déplacés.
 
+### 07 — Sécurité et licence
+- **Credentials** : `PythonExecutorService` sort `--password` et `--community` de la ligne de commande et les passe en `UPSTRA_PASSWORD` / `UPSTRA_SNMP_COMMUNITY`. Avant, ils étaient lisibles par n'importe quel utilisateur local via `ps`. Les 13 scripts concernés de `ups_manager` lisent la variable d'environnement (`data_retriever/cli_security.py`).
+- **SSL configurable** : `PYTHON_VERIFY_SSL` / `PYTHON_CA_BUNDLE` côté back, transmis en `UPSTRA_VERIFY_SSL` / `UPSTRA_CA_BUNDLE` aux scripts. La vérification couvre vCenter (pyVmomi) et les iLO (requests). Elle reste désactivée par défaut, parce que la plupart des iLO ont des certificats auto-signés. Vérifié : avec la vérification activée, le certificat auto-signé de vcsim est bien refusé.
+- **Timeout 30 min** : les plans de migration et de redémarrage passent de 10 à 30 min, réglables via `MIGRATION_PLAN_TIMEOUT_MS`.
+- **Verrou Redis `SET NX`** : `migration:lock` empêche deux plans de tourner en même temps. Avant, il y avait une course entre la lecture de l'état et son écriture. Le verrou est relâché même en cas d'échec et expire tout seul (timeout + 5 min).
+- **Licence AGPL-3.0-only** :
+  - `LICENSE` (texte officiel, 661 lignes) à la racine de `infra-control`, `ups_manager`, `mock_ups` et `mock_ilo` ;
+  - `package.json` passe à `AGPL-3.0-only` ;
+  - README d'`infra-control` : capture Swagger (`docs/images/swagger-alerts.png`) et schéma d'architecture Mermaid (rendu vérifié) ;
+  - README d'`ups_manager` : schéma d'architecture.
+- **Non fait** : `infra-control_front`, `infra-control_stack` et `mock_vcsim` n'ont pas encore de `LICENSE` (hors du périmètre back).
+
 ## Reprendre ici
 
-1. **Brief 07 (sécu + licence).** Les 4 failles : credentials, SSL configurable (aujourd'hui `verify=False` en dur dans `ilo.py` et `vm_ware_connection.py`), timeout de 30 min, verrou Redis `SET NX` (déjà en place pour VMware et iLO, à généraliser à l'orchestrateur de migration). Puis `LICENSE` AGPL-3.0 à la racine des repos, et un README avec capture et schéma d'architecture.
+1. **Recette globale sur `flow`.**
+2. **Accord des co-auteurs sur la licence.** Ronan KIELT et Charles CRETOIS ont du code dans ces repos : un changement de licence demande leur accord écrit.
+3. **Migrations historiques de `src/migrations`.** Elles ne sont jamais chargées en prod : décider si on les rapatrie dans `src/core/migrations` (avec précaution sur les bases existantes).
 
 ## Points d'attention
 
-- **Tests préexistants cassés sur `master` :** 51 suites et 261 tests en échec avant mon passage. Après le brief 06, on est à 49 suites et 244 tests sur 3 245, et **aucune nouvelle suite cassée**. Quelques exemples : `ups.controller.spec` (signature de `pingUps`), les specs du contrôleur serveur (dépendance `RoleGuard`), et les specs email, iLO et vmware.service.
+- **Tests préexistants cassés sur `master` :** 51 suites et 261 tests en échec avant mon passage. Après le brief 07, on est toujours à 49 suites en échec, toutes préexistantes, et **aucune nouvelle suite cassée**. Quelques exemples : `ups.controller.spec` (signature de `pingUps`), les specs du contrôleur serveur (dépendance `RoleGuard`), et les specs email, iLO et vmware.service.
 - **`dump.rdb` dans l'historique** de `feature/vmware-telemetry` (commit `25c3173`) : c'est la sauvegarde du Redis de test, qui ne contient que des données de démo. Le force-push pour le retirer a été refusé, je l'ai donc supprimé dans le commit suivant et ajouté au `.gitignore`. Si tu veux un historique propre, il faut faire un rebase et un force-push toi-même.
 - **Ports :** `VmwareConnectionService` force le port 443 (comportement existant, que je n'ai pas modifié).
 - **Variables d'env ajoutées** dans `.env.prod.example` :
   - onduleurs : `UPS_POLL_CRON`, `UPS_POLL_ON_BATTERY_SECONDS` ;
   - VMware : `VMWARE_TELEMETRY_ENABLED`, `VMWARE_METRICS_INTERVAL_SECONDS`, `VMWARE_EVENTS_INTERVAL_SECONDS`, `VM_CPU_WARN_PERCENT`, `VM_HIGH_PRIORITY_MAX`, `VMWARE_SERVICE_ACCOUNT` ;
   - iLO : `ILO_HEALTH_ENABLED`, `ILO_HEALTH_INTERVAL_SECONDS`, `ILO_HEALTH_CONCURRENCY` ;
-  - historique : `PROMETHEUS_URL` (défaut `http://prometheus:9090`).
+  - historique : `PROMETHEUS_URL` (défaut `http://prometheus:9090`) ;
+  - sécurité : `MIGRATION_PLAN_TIMEOUT_MS`, `PYTHON_VERIFY_SSL`, `PYTHON_CA_BUNDLE`.
 - **Nouvelle dépendance :** `cron@4.3.0`, déclarée en direct. Elle était déjà présente via `@nestjs/schedule` mais pnpm ne la rendait pas accessible.
 - **Front non touché :** les nouveaux champs sont tous additifs, rien n'a été retiré des DTO.
