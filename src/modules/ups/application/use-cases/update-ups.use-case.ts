@@ -1,28 +1,12 @@
-import { UpsDomainService } from './../../domain/services/ups.domain.service';
 import { Inject, Injectable } from '@nestjs/common';
+import { DataSource } from 'typeorm';
+import { UpsDomainService } from '../../domain/services/ups.domain.service';
 import { UpsRepositoryInterface } from '../../domain/interfaces/ups.repository.interface';
 import { UpsUpdateDto } from '../../application/dto/ups.update.dto';
 import { UpsResponseDto } from '../../application/dto/ups.response.dto';
 import { LogHistoryUseCase } from '@/modules/history/application/use-cases';
-
-/**
- * Updates an existing UPS device’s configuration and status.
- *
- * Responsibilities:
- * - Validates the UPS ID and input DTO (capacity, thresholds).
- * - Fetches the current entity and applies updates via UpsDomainService.
- * - Persists changes and returns the updated UpsDto.
- *
- * @param id   UUID of the UPS to update.
- * @param dto  UpdateUpsDto with fields to modify.
- * @returns    Promise<UpsDto> the updated UPS DTO.
- *
- * @throws NotFoundException if the UPS does not exist.
- * @throws ValidationException if input data is invalid.
- *
- * @example
- * const updated = await updateUpsUseCase.execute('ups-uuid-123', { capacity:600 });
- */
+import { Ups } from '../../domain/entities/ups.entity';
+import { Server } from '@/modules/servers/domain/entities/server.entity';
 
 @Injectable()
 export class UpdateUpsUseCase {
@@ -30,6 +14,7 @@ export class UpdateUpsUseCase {
     @Inject('UpsRepositoryInterface')
     private readonly upsRepository: UpsRepositoryInterface,
     private readonly upsDomainService: UpsDomainService,
+    private readonly dataSource: DataSource,
     private readonly logHistory?: LogHistoryUseCase,
   ) {}
 
@@ -38,14 +23,67 @@ export class UpdateUpsUseCase {
     dto: UpsUpdateDto,
     userId?: string,
   ): Promise<UpsResponseDto> {
-    let ups = await this.upsRepository.findUpsById(id);
+    const current = await this.upsRepository.findUpsById(id);
+    const previousRoomId = current.roomId;
+    const ups = await this.upsDomainService.createUpsEntityFromUpdateDto(
+      current,
+      dto,
+    );
+    const roomChanged = ups.roomId !== previousRoomId;
+    const moveServers = roomChanged && dto.moveServers === true;
 
-    ups = await this.upsDomainService.createUpsEntityFromUpdateDto(ups, dto);
-    const saved = await this.upsRepository.save(ups);
-    ups = Array.isArray(saved) ? saved[0] : saved;
-    await this.logHistory?.execute('ups', ups.id, 'UPDATE', userId);
+    const movedServerIds = await this.dataSource.transaction(
+      async (manager) => {
+        await manager.save(Ups, ups);
+        if (!moveServers) return [];
+        const servers = await manager.find(Server, {
+          where: { upsId: ups.id },
+          select: ['id'],
+        });
+        for (const server of servers) {
+          await manager.update(
+            Server,
+            { id: server.id },
+            { roomId: ups.roomId },
+          );
+        }
+        return servers.map((server) => server.id);
+      },
+    );
+
+    await this.logChange(
+      ups,
+      previousRoomId,
+      roomChanged,
+      movedServerIds,
+      userId,
+    );
 
     const result = await this.upsRepository.findByIdWithServerCount(ups.id);
-    return new UpsResponseDto(result.ups, result.serverCount);
+    const response = new UpsResponseDto(result.ups, result.serverCount);
+    if (moveServers) response.movedServerIds = movedServerIds;
+    return response;
+  }
+
+  private async logChange(
+    ups: Ups,
+    previousRoomId: string,
+    roomChanged: boolean,
+    movedServerIds: string[],
+    userId?: string,
+  ): Promise<void> {
+    if (!roomChanged) {
+      await this.logHistory?.execute('ups', ups.id, 'UPDATE', userId);
+      return;
+    }
+    await this.logHistory?.executeStructured({
+      entity: 'ups',
+      entityId: ups.id,
+      action: 'UPDATE',
+      userId,
+      oldValue: { roomId: previousRoomId },
+      newValue: { roomId: ups.roomId },
+      metadata: { movedServerIds },
+    });
   }
 }

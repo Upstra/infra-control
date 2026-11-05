@@ -1,83 +1,86 @@
 import { UpdateUpsUseCase } from '../update-ups.use-case';
-import { UpsRepositoryInterface } from '../../../domain/interfaces/ups.repository.interface';
 import { UpsDomainService } from '../../../domain/services/ups.domain.service';
-import { UpsUpdateDto } from '../../dto/ups.update.dto';
 import { UpsResponseDto } from '../../dto/ups.response.dto';
 import { createMockUps } from '../../../__mocks__/ups.mock';
-import { UpsNotFoundException } from '../../../domain/exceptions/ups.exception';
 
 describe('UpdateUpsUseCase', () => {
-  let useCase: UpdateUpsUseCase;
-  let repo: jest.Mocked<UpsRepositoryInterface>;
-  let domain: jest.Mocked<UpsDomainService>;
+  const repo = { findUpsById: jest.fn(), findByIdWithServerCount: jest.fn() };
+  const manager = { save: jest.fn(), find: jest.fn(), update: jest.fn() };
+  const dataSource = { transaction: jest.fn((work) => work(manager)) };
+  const logHistory = { execute: jest.fn(), executeStructured: jest.fn() };
+  const useCase = new UpdateUpsUseCase(
+    repo as any,
+    new UpsDomainService(),
+    dataSource as any,
+    logHistory as any,
+  );
 
   beforeEach(() => {
-    repo = {
-      findUpsById: jest.fn(),
-      save: jest.fn(),
-      findByIdWithServerCount: jest.fn(),
-    } as any;
-
-    domain = {
-      createUpsEntityFromUpdateDto: jest.fn(),
-    } as any;
-
-    useCase = new UpdateUpsUseCase(repo, domain);
+    jest.clearAllMocks();
+    repo.findUpsById.mockImplementation(async () =>
+      createMockUps({ id: 'ups-1', roomId: 'room-a' }),
+    );
+    repo.findByIdWithServerCount.mockImplementation(async () => ({
+      ups: createMockUps({ id: 'ups-1', roomId: 'room-b' }),
+      serverCount: 2,
+    }));
   });
 
-  it('should update and return UpsResponseDto', async () => {
-    const existing = createMockUps({ name: 'Old UPS' });
-    const updated = createMockUps({ name: 'New UPS' });
-    const dto: UpsUpdateDto = { name: 'New UPS' };
+  it('moves the UPS and its servers in one transaction when moveServers is set', async () => {
+    manager.find.mockResolvedValue([{ id: 'srv-1' }, { id: 'srv-2' }]);
 
-    repo.findUpsById.mockResolvedValue(existing);
-    domain.createUpsEntityFromUpdateDto.mockResolvedValue(updated);
-    repo.save.mockResolvedValue(updated);
-    repo.findByIdWithServerCount.mockResolvedValue({
-      ups: updated,
-      serverCount: 3,
-    });
-
-    const result = await useCase.execute('ups-id', dto);
-
-    expect(repo.findUpsById).toHaveBeenCalledWith('ups-id');
-    expect(domain.createUpsEntityFromUpdateDto).toHaveBeenCalledWith(
-      existing,
-      dto,
+    const result = await useCase.execute(
+      'ups-1',
+      { roomId: 'room-b', moveServers: true },
+      'user-1',
     );
-    expect(repo.save).toHaveBeenCalledWith(updated);
-    expect(repo.findByIdWithServerCount).toHaveBeenCalledWith(updated.id);
+
+    expect(dataSource.transaction).toHaveBeenCalledTimes(1);
+    expect(manager.save).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ roomId: 'room-b' }),
+    );
+    expect(manager.update).toHaveBeenCalledWith(
+      expect.anything(),
+      { id: 'srv-2' },
+      { roomId: 'room-b' },
+    );
     expect(result).toBeInstanceOf(UpsResponseDto);
-    expect(result.name).toBe('New UPS');
-    expect(result.serverCount).toBe(3);
+    expect(result.movedServerIds).toEqual(['srv-1', 'srv-2']);
+    expect(logHistory.executeStructured).toHaveBeenCalledWith(
+      expect.objectContaining({
+        entity: 'ups',
+        action: 'UPDATE',
+        oldValue: { roomId: 'room-a' },
+        newValue: { roomId: 'room-b' },
+        metadata: { movedServerIds: ['srv-1', 'srv-2'] },
+      }),
+    );
   });
 
-  it('should handle partial update', async () => {
-    const existing = createMockUps({ name: 'Partial UPS' });
-    const updated = createMockUps({ name: 'Partial UPS', ip: '192.168.1.100' });
-    const dto: UpsUpdateDto = { ip: '192.168.1.100' };
-
-    repo.findUpsById.mockResolvedValue(existing);
-    domain.createUpsEntityFromUpdateDto.mockResolvedValue(updated);
-    repo.save.mockResolvedValue(updated);
-    repo.findByIdWithServerCount.mockResolvedValue({
-      ups: updated,
-      serverCount: 0,
+  it('only updates the UPS fields without moveServers', async () => {
+    const result = await useCase.execute('ups-1', {
+      roomId: 'room-b',
+      nominalPowerW: 3000,
     });
 
-    const result = await useCase.execute('ups-id', dto);
-
-    expect(result.ip).toBe('192.168.1.100');
-    expect(result.name).toBe('Partial UPS');
-    expect(result.serverCount).toBe(0);
+    expect(manager.save).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ roomId: 'room-b', nominalPowerW: 3000 }),
+    );
+    expect(manager.find).not.toHaveBeenCalled();
+    expect(manager.update).not.toHaveBeenCalled();
+    expect(result.movedServerIds).toBeUndefined();
   });
 
-  it('should throw UpsNotFoundException if UPS does not exist', async () => {
-    repo.findUpsById.mockRejectedValue(new UpsNotFoundException('ups-id'));
+  it('propagates a server failure so the transaction rolls everything back', async () => {
+    manager.find.mockResolvedValue([{ id: 'srv-1' }]);
+    manager.update.mockRejectedValue(new Error('constraint violation'));
 
-    await expect(useCase.execute('ups-id', {})).rejects.toThrow(
-      UpsNotFoundException,
-    );
-    expect(repo.findUpsById).toHaveBeenCalledWith('ups-id');
+    await expect(
+      useCase.execute('ups-1', { roomId: 'room-b', moveServers: true }),
+    ).rejects.toThrow('constraint violation');
+    expect(logHistory.executeStructured).not.toHaveBeenCalled();
+    expect(repo.findByIdWithServerCount).not.toHaveBeenCalled();
   });
 });
