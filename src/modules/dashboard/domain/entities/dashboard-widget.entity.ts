@@ -17,6 +17,14 @@ export enum WidgetType {
   USER_PRESENCE = 'user-presence',
   SYSTEM_HEALTH = 'system-health',
   UPS_STATUS = 'ups-status',
+  INCIDENT = 'incident',
+  KPIS = 'kpis',
+  UPS = 'ups',
+  VMS = 'vms',
+  HOSTS = 'hosts',
+  EVENTS = 'events',
+  POWER = 'power',
+  PRESENCE = 'presence',
 }
 
 interface WidgetPosition {

@@ -10,13 +10,16 @@ import {
   ValidateNested,
   IsEnum,
   IsUUID,
+  IsInt,
+  IsIn,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { WidgetType } from '../../domain/entities/dashboard-widget.entity';
+import { ALLOWED_WIDGET_WIDTHS } from '../../domain/services/dashboard-layout-rules';
 
 export class WidgetPositionDto {
-  @ApiProperty({ example: 0 })
-  @IsNumber()
+  @ApiProperty({ example: 0, description: 'Rang du widget dans le tableau' })
+  @IsInt()
   @Min(0)
   x: number;
 
@@ -25,10 +28,12 @@ export class WidgetPositionDto {
   @Min(0)
   y: number;
 
-  @ApiProperty({ example: 4 })
-  @IsNumber()
-  @Min(1)
-  @Max(12)
+  @ApiProperty({
+    example: 4,
+    enum: ALLOWED_WIDGET_WIDTHS,
+    description: 'Largeur sur 12 colonnes',
+  })
+  @IsIn(ALLOWED_WIDGET_WIDTHS as unknown as number[])
   w: number;
 
   @ApiProperty({ example: 3 })

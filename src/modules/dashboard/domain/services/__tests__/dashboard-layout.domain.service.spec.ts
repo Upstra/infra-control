@@ -10,122 +10,37 @@ describe('DashboardLayoutDomainService', () => {
   });
 
   describe('validateWidgetPosition', () => {
-    it('should validate a valid widget position', () => {
+    it('accepts a rank and an allowed width', () => {
       const widget = {
-        position: { x: 0, y: 0, w: 4, h: 3 },
+        position: { x: 7, y: 0, w: 8, h: 1 },
       } as DashboardWidget;
 
       expect(() => service.validateWidgetPosition(widget, 12)).not.toThrow();
     });
 
-    it('should throw error when x is negative', () => {
-      const widget = {
-        position: { x: -1, y: 0, w: 4, h: 3 },
+    it('rejects a negative or fractional rank', () => {
+      const negative = {
+        position: { x: -1, y: 0, w: 4, h: 1 },
+      } as DashboardWidget;
+      const fractional = {
+        position: { x: 1.5, y: 0, w: 4, h: 1 },
       } as DashboardWidget;
 
-      expect(() => service.validateWidgetPosition(widget, 12)).toThrow(
+      expect(() => service.validateWidgetPosition(negative, 12)).toThrow(
         InvalidWidgetPositionException,
       );
-      expect(() => service.validateWidgetPosition(widget, 12)).toThrow(
-        'Widget position values must be positive',
-      );
-    });
-
-    it('should throw error when y is negative', () => {
-      const widget = {
-        position: { x: 0, y: -1, w: 4, h: 3 },
-      } as DashboardWidget;
-
-      expect(() => service.validateWidgetPosition(widget, 12)).toThrow(
-        InvalidWidgetPositionException,
-      );
-      expect(() => service.validateWidgetPosition(widget, 12)).toThrow(
-        'Widget position values must be positive',
-      );
-    });
-
-    it('should throw error when width is zero', () => {
-      const widget = {
-        position: { x: 0, y: 0, w: 0, h: 3 },
-      } as DashboardWidget;
-
-      expect(() => service.validateWidgetPosition(widget, 12)).toThrow(
-        InvalidWidgetPositionException,
-      );
-      expect(() => service.validateWidgetPosition(widget, 12)).toThrow(
-        'Widget position values must be positive',
-      );
-    });
-
-    it('should throw error when height is zero', () => {
-      const widget = {
-        position: { x: 0, y: 0, w: 4, h: 0 },
-      } as DashboardWidget;
-
-      expect(() => service.validateWidgetPosition(widget, 12)).toThrow(
-        InvalidWidgetPositionException,
-      );
-      expect(() => service.validateWidgetPosition(widget, 12)).toThrow(
-        'Widget position values must be positive',
-      );
-    });
-
-    it('should throw error when width is negative', () => {
-      const widget = {
-        position: { x: 0, y: 0, w: -4, h: 3 },
-      } as DashboardWidget;
-
-      expect(() => service.validateWidgetPosition(widget, 12)).toThrow(
+      expect(() => service.validateWidgetPosition(fractional, 12)).toThrow(
         InvalidWidgetPositionException,
       );
     });
 
-    it('should throw error when height is negative', () => {
+    it('rejects a width outside 4, 6, 8 and 12', () => {
       const widget = {
-        position: { x: 0, y: 0, w: 4, h: -3 },
+        position: { x: 0, y: 0, w: 5, h: 1 },
       } as DashboardWidget;
 
       expect(() => service.validateWidgetPosition(widget, 12)).toThrow(
-        InvalidWidgetPositionException,
-      );
-    });
-
-    it('should throw error when widget exceeds layout columns', () => {
-      const widget = {
-        position: { x: 10, y: 0, w: 4, h: 3 },
-      } as DashboardWidget;
-
-      expect(() => service.validateWidgetPosition(widget, 12)).toThrow(
-        InvalidWidgetPositionException,
-      );
-      expect(() => service.validateWidgetPosition(widget, 12)).toThrow(
-        'Widget exceeds layout columns (14 > 12)',
-      );
-    });
-
-    it('should allow widget that exactly fits layout columns', () => {
-      const widget = {
-        position: { x: 8, y: 0, w: 4, h: 3 },
-      } as DashboardWidget;
-
-      expect(() => service.validateWidgetPosition(widget, 12)).not.toThrow();
-    });
-
-    it('should handle edge case of single column layout', () => {
-      const widget = {
-        position: { x: 0, y: 0, w: 1, h: 1 },
-      } as DashboardWidget;
-
-      expect(() => service.validateWidgetPosition(widget, 1)).not.toThrow();
-    });
-
-    it('should throw error when widget position is at column boundary', () => {
-      const widget = {
-        position: { x: 12, y: 0, w: 1, h: 1 },
-      } as DashboardWidget;
-
-      expect(() => service.validateWidgetPosition(widget, 12)).toThrow(
-        'Widget exceeds layout columns (13 > 12)',
+        'Widget position must use x as a rank (integer >= 0) and w in 4, 6, 8 or 12',
       );
     });
   });
