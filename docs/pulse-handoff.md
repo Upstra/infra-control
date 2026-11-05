@@ -124,7 +124,6 @@ _Mis à jour le 04/11/2026, fin de session. Note de passation, à supprimer une 
 
 ## Reprendre ici
 
-1. **Brief 06** (en attente de ton feu vert). `nominalPowerW` sur `Ups`, KPI de `/dashboard/full` (tout depuis Redis), présence `active`/`idle` avec la page consultée, nouveaux types de widgets + migration des layouts, suppression de l'uptime codé en dur, `PATCH /ups/:id` avec `moveServers` dans une transaction.
 1. **Brief 07 (sécu + licence).** Les 4 failles : credentials, SSL configurable (aujourd'hui `verify=False` en dur dans `ilo.py` et `vm_ware_connection.py`), timeout de 30 min, verrou Redis `SET NX` (déjà en place pour VMware et iLO, à généraliser à l'orchestrateur de migration). Puis `LICENSE` AGPL-3.0 à la racine des repos, et un README avec capture et schéma d'architecture.
 
 ## Points d'attention
