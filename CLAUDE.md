@@ -22,7 +22,8 @@ pnpm test -- src/modules/auth/__tests__/auth.controller.spec.ts  # single file
 pnpm test:watch                     # watch mode
 pnpm test:cov                       # coverage (global threshold: 80%)
 pnpm test:cov -- src/modules/auth   # coverage for one module
-pnpm test:e2e                       # e2e tests (test/jest-e2e.json config)
+pnpm test:e2e                       # e2e tests (test/jest-e2e.json config, full AppModule: needs PostgreSQL + Redis)
+pnpm test:e2e:pulse                 # Pulse e2e scenarios over HTTP with in-memory infrastructure (no services needed)
 
 pnpm lint                 # lint + auto-fix
 pnpm format               # prettier + eslint fix
