@@ -13,6 +13,11 @@
 - 🏢 Gestion d’utilisateurs, rôles et permissions
 - 🖥️ Contrôle d’objets d’infrastructure (machines, VMs, serveurs, racks)
 - 🧩 Architecture modulaire et scalable (feature-first, DDD)
+- 🔋 Télémétrie complète des onduleurs (secteur/batterie, charge, puissance, température) via SNMP, NUT ou simulateur
+- 🚨 Alertes dédupliquées avec acquittement, résolution automatique et fil d'événements unifié
+- 🖥️ Santé de tout le parc VMware en une seule session vCenter, avec la cause de chaque arrêt de VM (HA, plan Upstra, manuel)
+- 🌡️ Santé matérielle des serveurs via Redfish (température d'entrée d'air, alimentations, consommation)
+- 📈 Historique des mesures dans Prometheus, servi au front sur 1 h / 24 h / 7 j
 
 ---
 
@@ -27,6 +32,72 @@
 - **Docker** ready
 - **Prometheus** pour le monitoring
 - **Grafana** pour les dashboards
+
+## 📸 Aperçu
+
+![Swagger : endpoints des alertes](docs/images/swagger-alerts.png)
+
+La documentation interactive complète est servie sur `http://localhost:3000/docs`.
+
+---
+
+## 🏗️ Architecture
+
+```mermaid
+flowchart LR
+    subgraph Client
+        FRONT[Front Vue 3 Upstra]
+    end
+
+    subgraph API[infra-control · NestJS]
+        REST[Controllers REST]
+        WS["Gateways WebSocket<br/>/ups · /alerts · /vmware · présence"]
+        UC[Use cases]
+        DOM["Domain services<br/>santé, alertes, seuils"]
+        SCHED["Schedulers<br/>onduleurs, VMware, iLO"]
+        EVT((EventEmitter2))
+        PY[PythonExecutorService]
+        METRICS["/metrics · prom-client"]
+    end
+
+    subgraph Scripts[ups_manager · Python]
+        UPS_S[ups_battery]
+        VMW_S["inventory_metrics<br/>vcenter_events"]
+        ILO_S[ilo_health]
+        PLAN["migration_plan<br/>restart_plan"]
+    end
+
+    PG[(PostgreSQL)]
+    REDIS[("Redis<br/>cache, verrous, présence")]
+    PROM[(Prometheus)]
+    VC["vCenter / ESXi"]
+    ILO[HP iLO Redfish]
+    UPSDEV["Onduleur SNMP / NUT"]
+
+    FRONT -- "HTTPS + JWT" --> REST
+    FRONT <-- "Socket.io" --> WS
+    REST --> UC --> DOM
+    UC --> PG
+    UC --> REDIS
+    SCHED --> UC
+    SCHED -- "verrou SET NX" --> REDIS
+    UC --> PY
+    PY -- "secrets en variables d'env" --> Scripts
+    UPS_S --> UPSDEV
+    VMW_S --> VC
+    PLAN --> VC
+    PLAN --> ILO
+    ILO_S --> ILO
+    UC -- "événements" --> EVT
+    EVT --> WS
+    EVT --> METRICS
+    PROM -- "scrape" --> METRICS
+    REST -- "/metrics/series" --> PROM
+```
+
+Chaque module suit la même découpe DDD (`application/`, `domain/`, `infrastructure/`) décrite dans `CLAUDE.md`. Les schedulers ne lancent jamais un script par objet : une collecte = un process Python, protégé par un verrou Redis pour qu'une seule instance tourne à la fois.
+
+---
 
 ## 🔄 Flux complet de la requête
 
@@ -297,6 +368,8 @@ pnpm migration:run
 
 Ces commandes utilisent `-r dotenv/config` pour charger automatiquement les variables d'environnement.
 
+> ⚠️ En production (`migrationsRun`), TypeORM ne charge que `src/core/migrations`. Toute nouvelle migration doit y être placée.
+
 ---
 
 ## 🔒 Sécurité et Rate Limiting
@@ -327,6 +400,14 @@ Les variables peuvent être ajustées selon l'environnement :
 
 ---
 
+### 🔑 Secrets, TLS et plans de migration
+
+- Les mots de passe vCenter / iLO et la communauté SNMP ne passent plus en arguments des scripts Python (lisibles par `ps`) : `PythonExecutorService` les transmet par variables d'environnement (`UPSTRA_PASSWORD`, `UPSTRA_SNMP_COMMUNITY`) et ils restent masqués dans les logs.
+- La vérification des certificats vCenter / iLO se règle avec `PYTHON_VERIFY_SSL=true` et `PYTHON_CA_BUNDLE=/chemin/ca.pem` (désactivée par défaut à cause des certificats auto-signés des iLO).
+- Un seul plan de migration ou de redémarrage à la fois : verrou Redis atomique `migration:lock` (`SET NX EX`), délai maximal configurable via `MIGRATION_PLAN_TIMEOUT_MS` (30 min par défaut).
+
+---
+
 ## ❤️ Tips
 
 - Créer des mocks avec `__mocks__/createMockUser.ts` pour simplifier tes tests
@@ -343,3 +424,13 @@ Projet réalisé dans le cadre du Master 2 en Architecture des Logiciels par :
 [Ronan KIELT](https://www.linkedin.com/in/ronan-kielt/)
 
 [Charles CRETOIS](https://www.linkedin.com/in/charles-cretois-43882a17b/)
+
+---
+
+## 📜 Licence
+
+Infra Control est distribué sous licence **GNU Affero General Public License v3.0** (`AGPL-3.0-only`), voir [`LICENSE`](LICENSE).
+
+En résumé : vous pouvez utiliser, modifier et redistribuer le code, y compris commercialement, à condition de publier sous la même licence le code source de toute version modifiée, **y compris lorsqu'elle est seulement proposée comme service accessible par le réseau**.
+
+Copyright (C) 2025-2026 James ABIB, Ronan KIELT, Charles CRETOIS
