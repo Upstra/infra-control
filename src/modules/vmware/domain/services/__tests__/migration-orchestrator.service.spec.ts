@@ -32,6 +32,8 @@ describe('MigrationOrchestratorService', () => {
           provide: RedisSafeService,
           useValue: {
             safeGet: jest.fn(),
+            safeSetNxEx: jest.fn().mockResolvedValue(true),
+            safeReleaseLock: jest.fn(),
             safeSet: jest.fn(),
             safeDel: jest.fn(),
             safeLRange: jest.fn().mockResolvedValue([]),

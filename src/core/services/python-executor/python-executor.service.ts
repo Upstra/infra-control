@@ -9,6 +9,16 @@ export interface PythonExecutionResult {
   duration: number;
 }
 
+export const SECRET_ARGUMENTS: Record<string, string> = {
+  '--password': 'UPSTRA_PASSWORD',
+  '--community': 'UPSTRA_SNMP_COMMUNITY',
+};
+
+export interface PreparedArguments {
+  args: string[];
+  env: Record<string, string>;
+}
+
 export interface PythonScriptOptions {
   timeout?: number;
   env?: Record<string, string>;
@@ -41,14 +51,20 @@ export class PythonExecutorService {
     const bashScriptName = scriptName.replace('.py', '.sh');
     const scriptPath = `${this.scriptsBasePath}/${bashScriptName}`;
 
-    const maskedArgs = this.maskSensitiveArgs(args);
+    const prepared = this.prepareArguments(args);
+    const maskedArgs = this.maskSensitiveArgs(prepared.args);
     this.logger.log(
       `Executing bash script: ${scriptPath} with args: ${maskedArgs.join(' ')}`,
     );
 
     return new Promise((resolve, reject) => {
-      const pythonProcess = spawn('bash', [scriptPath, ...args], {
-        env: { ...process.env, ...options.env },
+      const pythonProcess = spawn('bash', [scriptPath, ...prepared.args], {
+        env: {
+          ...process.env,
+          ...this.tlsEnvironment(),
+          ...options.env,
+          ...prepared.env,
+        },
         cwd: this.scriptsBasePath,
       });
 
@@ -145,6 +161,32 @@ export class PythonExecutorService {
     }
   }
 
+  prepareArguments(args: string[]): PreparedArguments {
+    const kept: string[] = [];
+    const env: Record<string, string> = {};
+    for (let i = 0; i < args.length; i++) {
+      const variable = SECRET_ARGUMENTS[args[i]?.toLowerCase()];
+      if (variable && i + 1 < args.length) {
+        env[variable] = args[i + 1];
+        i++;
+        continue;
+      }
+      kept.push(args[i]);
+    }
+    return { args: kept, env };
+  }
+
+  tlsEnvironment(): Record<string, string> {
+    const env: Record<string, string> = {
+      UPSTRA_VERIFY_SSL: String(
+        this.configService.get('PYTHON_VERIFY_SSL') ?? 'false',
+      ),
+    };
+    const caBundle = this.configService.get<string>('PYTHON_CA_BUNDLE');
+    if (caBundle) env.UPSTRA_CA_BUNDLE = caBundle;
+    return env;
+  }
+
   private maskSensitiveArgs(args: string[]): string[] {
     const sensitiveKeys = [
       '--password',
@@ -153,6 +195,7 @@ export class PythonExecutorService {
       '--secret',
       '--key',
       '--token',
+      '--community',
     ];
     const maskedArgs = [...args];
 
