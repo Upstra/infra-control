@@ -35,6 +35,10 @@ export class Ups extends BaseEntity {
   @Column()
   grace_period_off: number;
 
+  @ApiProperty({ type: Number, nullable: true })
+  @Column({ type: 'int', nullable: true })
+  nominalPowerW: number | null;
+
   @ApiProperty({ type: () => Server, isArray: true })
   @OneToMany(() => Server, (server) => server.ups)
   servers: Server[];
