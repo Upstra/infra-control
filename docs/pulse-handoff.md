@@ -134,11 +134,23 @@ _Mis à jour le 04/11/2026, fin de session. Note de passation, à supprimer une 
   - README d'`ups_manager` : schéma d'architecture.
 - **Non fait** : `infra-control_front`, `infra-control_stack` et `mock_vcsim` n'ont pas encore de `LICENSE` (hors du périmètre back).
 
+### Après les briefs : migrations et tests
+- **Migrations réparées** (`fix/migrations-baseline`) :
+  - une baseline `1700000000000-BaselineSchema` provisionne une base vide et ne fait rien sur une base existante (table `user` présente) ;
+  - les 19 migrations mortes de `src/migrations` sont supprimées ;
+  - la CLI pointe enfin sur les entités et sur `src/core/migrations` (`pnpm migration:generate <Nom>`) ;
+  - `pnpm migration:check` (base vide → migrations → aucun écart avec les entités) tourne en CI sur un vrai PostgreSQL.
+  Vérifié sur une base vide (5 migrations, schéma identique aux entités), sur une base de type prod avec données (baseline ignorée, données intactes), et en cas d'oubli volontaire (le check échoue en nommant la requête manquante).
+- **Tests e2e** (`test/pulse-e2e`) : 4 scénarios rejoués par HTTP sur la vraie application Nest, avec infrastructure en mémoire (`pnpm test:e2e:pulse`, job CI dédié sans service externe) :
+  - coupure de courant : une seule alerte critique, acquittement visible dans l'historique et dans le fil, résolution au retour secteur, 409 ensuite ;
+  - VM éteinte à la main : alerte critique qui nomme l'utilisateur, aucune alerte avec le compte Upstra, résolution au rallumage ;
+  - historique Prometheus : un point toutes les 15 s, 400 hors liste blanche, 503 `HISTORY_UNAVAILABLE` ;
+  - tableaux : tableau par défaut, nouveaux types de widgets, 400 sur une largeur interdite.
+
 ## Reprendre ici
 
 1. **Recette globale sur `flow`.**
-2. **Accord des co-auteurs sur la licence.** Ronan KIELT et Charles CRETOIS ont du code dans ces repos : un changement de licence demande leur accord écrit.
-3. **Migrations historiques de `src/migrations`.** Elles ne sont jamais chargées en prod : décider si on les rapatrie dans `src/core/migrations` (avec précaution sur les bases existantes).
+2. **Les e2e historiques** (`test/users/*.e2e-spec.ts`) démarrent toute l'application et demandent PostgreSQL + Redis : ils restent hors CI tant qu'on ne leur fournit pas ces services.
 
 ## Points d'attention
 
