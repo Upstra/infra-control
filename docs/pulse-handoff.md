@@ -146,6 +146,7 @@ _Mis à jour le 04/11/2026, fin de session. Note de passation, à supprimer une 
   - VM éteinte à la main : alerte critique qui nomme l'utilisateur, aucune alerte avec le compte Upstra, résolution au rallumage ;
   - historique Prometheus : un point toutes les 15 s, 400 hors liste blanche, 503 `HISTORY_UNAVAILABLE` ;
   - tableaux : tableau par défaut, nouveaux types de widgets, 400 sur une largeur interdite.
+- **Couverture** (`pnpm test:cov`) : 91,6 % des instructions, 79,05 % des branches, 84,5 % des fonctions, 91,4 % des lignes. Les 4 seuils du projet sont tenus. Le code des briefs est à 85,1 % de branches couvertes, contre 75,8 % pour le reste. La commande sort toujours en erreur à cause des 49 suites cassées avant les briefs.
 
 ## Reprendre ici
 
