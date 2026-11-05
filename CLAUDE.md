@@ -27,9 +27,10 @@ pnpm test:e2e                       # e2e tests (test/jest-e2e.json config)
 pnpm lint                 # lint + auto-fix
 pnpm format               # prettier + eslint fix
 
-pnpm migration:generate   # generate TypeORM migration (uses ts-node + dotenv)
-pnpm migration:run:dev    # run migrations in dev (ts-node)
-pnpm migration:run        # run migrations against compiled dist/
+pnpm migration:generate <Name>  # generate src/core/migrations/<timestamp>-<Name>.ts from the entities
+pnpm migration:run:dev          # run migrations in dev (ts-node)
+pnpm migration:run              # run migrations against compiled dist/
+pnpm migration:check            # run all migrations then fail if the schema still differs from the entities (CI)
 ```
 
 API is available at `http://localhost:3000`. Swagger docs at `http://localhost:3000/docs`.
@@ -67,6 +68,7 @@ src/modules/<feature>/
 Cross-cutting concerns shared across all modules:
 
 - `config/` — TypeORM config, data-source (used by CLI), environment validation
+- `migrations/` — the only migrations TypeORM loads (`migrationsRun` in production); `1700000000000-BaselineSchema` provisions an empty database
 - `guards/` — `JwtAuthGuard`, `RolesGuard`, `PermissionGuard`, rate-limit guards (base + variants for auth/sensitive/API/dashboard routes)
 - `interceptors/` — Logging, response transformation
 - `filters/` — Global exception filters

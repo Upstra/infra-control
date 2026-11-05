@@ -102,7 +102,7 @@ create_migration() {
             migration_name="SchemaBackup"
         fi
         
-        pnpm typeorm migration:create "src/migrations/${migration_name}"
+        pnpm typeorm migration:create "src/core/migrations/${migration_name}"
         
         echo -e "${GREEN}✓ Empty migration created${NC}"
         echo "  You can now manually add the SQL from $OUTPUT_FILE"

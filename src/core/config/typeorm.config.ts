@@ -11,7 +11,7 @@ export const buildTypeOrmOptions = (): TypeOrmModuleOptions => ({
   database: process.env.DB_NAME,
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
-  entities: [__dirname + '/../modules/**/*.entity{.ts,.js}'],
+  entities: [__dirname + '/../../modules/**/*.entity{.ts,.js}'],
   migrations: [__dirname + '/../migrations/*{.ts,.js}'],
   synchronize: process.env.NODE_ENV !== 'production',
   migrationsRun: process.env.NODE_ENV === 'production',
