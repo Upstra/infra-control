@@ -11,7 +11,7 @@ _Mis à jour le 04/11/2026, fin de session. Note de passation, à supprimer une 
 | 03 | Métriques VMware + événements vCenter | ✅ Fini, poussé | ✅ contre vcsim (arrêt manuel, compte Upstra, hôte déconnecté) |
 | 04 | Santé iLO Redfish | ✅ Fini, poussé | ✅ back + mock_ilo en scénario maquette (PSU 2 absente, entrée d'air 31 °C, Warning, mot de passe masqué dans les logs) |
 | 05 | Historique Prometheus | ✅ Fini, poussé | ✅ back + vrai Prometheus 2.55 : séries `upstra_*` réelles, `/metrics/series` à 15 s, 400 hors liste blanche |
-| 06 | Dashboard, présence, puissance nominale, layouts, déplacement UPS | ⏳ Pas commencé | — |
+| 06 | Dashboard, présence, puissance nominale, layouts, déplacement UPS | ✅ Fini, poussé | ✅ back + simulateurs + 2 navigateurs WebSocket simulés + rollback forcé en base |
 | 07 | Durcissement sécu (4 failles) + licence AGPL-3.0 | ⏳ Pas commencé (ajouté à ta demande) | — |
 
 ## Git : branches et règles suivies
@@ -24,7 +24,7 @@ _Mis à jour le 04/11/2026, fin de session. Note de passation, à supprimer une 
 
 | Repo | Branches poussées (dans l'ordre) |
 |---|---|
-| `Upstra/infra-control` | `feature/ups-telemetry` → `feature/alerts` → `feature/vmware-telemetry` → `feature/ilo-health` → `feature/metrics-history`, tout mergé dans `flow` |
+| `Upstra/infra-control` | `feature/ups-telemetry` → `feature/alerts` → `feature/vmware-telemetry` → `feature/ilo-health` → `feature/metrics-history` → `feature/dashboard-presence`, tout mergé dans `flow` |
 | `Upstra/ups_manager` | `feature/ups-telemetry` → `feature/vmware-telemetry` → `feature/ilo-health`, tout mergé dans `flow` |
 | `Upstra/mock_ups` | `feature/ups-telemetry`, mergé dans `flow` |
 | `Upstra/mock_ilo` | `feature/ilo-health`, mergé dans `flow` |
@@ -103,14 +103,33 @@ _Mis à jour le 04/11/2026, fin de session. Note de passation, à supprimer une 
 - **Découplage** : `alerts` publie `alerts.summary.changed`, que la gateway WebSocket et les métriques écoutent. `PrometheusModule` ne dépend donc plus du module `alerts`.
 - **Vérifié en HTTP avec un vrai token** (briefs 01 à 05) : `/ups/:id`, `/alerts/summary`, l'acquittement (« jbidule a acquitté UPS-B2 » dans le fil, historique `ACKNOWLEDGE`, 409 sur une alerte résolue), `/room/:id/environment` (`maxInletC: 31`), `hardware` sur `/server/:id`, et `/metrics/series`.
 
+### 06 — Dashboard, présence, puissance nominale, layouts, déplacement d'onduleur
+- **Correctif important au passage :** TypeORM ne charge que `src/core/migrations` (chemin `__dirname + '/../migrations'` dans `typeorm.config.ts`). Les 19 migrations de `src/migrations` ne sont jamais jouées en prod. J'ai déplacé mes migrations (alertes, seuils de salle, brief 06) dans `src/core/migrations`, sans toucher au chemin pour ne pas rejouer `InitialSchema` sur des bases existantes. **À trancher de ton côté** pour les anciennes migrations.
+- **Puissance nominale :** colonne `ups.nominalPowerW` dans les DTO de création et de modification. La valeur effective est celle remontée par l'onduleur, sinon celle saisie, sinon `null`. Elle est exposée via `effectiveNominalPowerW` et `nominalPowerSource` (`device` / `manual`).
+- **KPI de `/dashboard/full` :** hôtes, santé des VMs, puissance consommée, capacité (`null` si un onduleur n'a pas de nominale), entrée d'air max avec salle et serveur, onduleurs sur batterie, alertes ouvertes. Tout est lu depuis Redis. Le résumé des alertes est mis en cache par le publisher, et les KPI ne sont pas figés par le cache de 60 s des stats de base.
+- **Présence :**
+  - `presence:<userId>` contient `{ route, title, lastActivityAt, connectedAt }` ;
+  - statut `active` / `idle` à 2 min, avec un balayage toutes les 30 s qui pousse le passage en `idle` ;
+  - nouveau `GET /presence` ;
+  - la page consultée est masquée pour les comptes inactifs (même règle que `GET /user`) ;
+  - un ping `active: false` maintient en ligne sans compter comme activité ;
+  - doc mise à jour : `docs/presence-storage.md`.
+- **Tableaux personnalisés :**
+  - nouveaux types `incident`, `kpis`, `ups`, `vms`, `hosts`, `events`, `power` et `presence` ;
+  - règle `x` = rang, `w` ∈ {4, 6, 8, 12} ;
+  - migration de données : tri par `(y, x)`, largeur arrondie vers la valeur autorisée la plus proche (la plus petite en cas d'égalité), anciens types convertis. Validée sur Postgres, que la colonne soit un enum ou un varchar ;
+  - tableau par défaut créé au premier affichage pour un nouvel utilisateur.
+- **Nettoyage :** l'uptime codé en dur de `GetSystemHealthUseCase` vaut maintenant `null`. `resource-usage` reste dans l'enum du back pour les tableaux existants ; le retrait est à faire côté front.
+- **Déplacement d'onduleur :** `PATCH /ups/:id` avec `moveServers`, onduleur et serveurs dans une seule transaction (rollback vérifié avec un trigger qui force l'échec), entrée d'historique avec `movedServerIds`, et la réponse renvoie les serveurs déplacés.
+
 ## Reprendre ici
 
 1. **Brief 06** (en attente de ton feu vert). `nominalPowerW` sur `Ups`, KPI de `/dashboard/full` (tout depuis Redis), présence `active`/`idle` avec la page consultée, nouveaux types de widgets + migration des layouts, suppression de l'uptime codé en dur, `PATCH /ups/:id` avec `moveServers` dans une transaction.
-2. **Brief 07 (sécu + licence).** Les 4 failles : credentials, SSL configurable (aujourd'hui `verify=False` en dur dans `ilo.py` et `vm_ware_connection.py`), timeout de 30 min, verrou Redis `SET NX` (déjà en place pour VMware et iLO, à généraliser à l'orchestrateur de migration). Puis `LICENSE` AGPL-3.0 à la racine des repos, et un README avec capture et schéma d'architecture.
+1. **Brief 07 (sécu + licence).** Les 4 failles : credentials, SSL configurable (aujourd'hui `verify=False` en dur dans `ilo.py` et `vm_ware_connection.py`), timeout de 30 min, verrou Redis `SET NX` (déjà en place pour VMware et iLO, à généraliser à l'orchestrateur de migration). Puis `LICENSE` AGPL-3.0 à la racine des repos, et un README avec capture et schéma d'architecture.
 
 ## Points d'attention
 
-- **Tests préexistants cassés sur `master` :** 51 suites et 261 tests en échec avant mon passage. Après le brief 05, on est à 49 suites et 244 tests sur 3 260, et **aucune nouvelle suite cassée**. Quelques exemples : `ups.controller.spec` (signature de `pingUps`), les specs du contrôleur serveur (dépendance `RoleGuard`), et les specs email, iLO et vmware.service.
+- **Tests préexistants cassés sur `master` :** 51 suites et 261 tests en échec avant mon passage. Après le brief 06, on est à 49 suites et 244 tests sur 3 245, et **aucune nouvelle suite cassée**. Quelques exemples : `ups.controller.spec` (signature de `pingUps`), les specs du contrôleur serveur (dépendance `RoleGuard`), et les specs email, iLO et vmware.service.
 - **`dump.rdb` dans l'historique** de `feature/vmware-telemetry` (commit `25c3173`) : c'est la sauvegarde du Redis de test, qui ne contient que des données de démo. Le force-push pour le retirer a été refusé, je l'ai donc supprimé dans le commit suivant et ajouté au `.gitignore`. Si tu veux un historique propre, il faut faire un rebase et un force-push toi-même.
 - **Ports :** `VmwareConnectionService` force le port 443 (comportement existant, que je n'ai pas modifié).
 - **Variables d'env ajoutées** dans `.env.prod.example` :
