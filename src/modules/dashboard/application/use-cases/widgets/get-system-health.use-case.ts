@@ -16,7 +16,7 @@ export class GetSystemHealthUseCase {
       name: this.formatServiceName(check.name),
       status: this.mapHealthStatus(check.status),
       responseTime: check.responseTime ?? 0,
-      uptime: this.calculateUptime(check.status),
+      uptime: null,
       issues:
         check.status === 'down' && check.message ? [check.message] : undefined,
     }));
@@ -70,19 +70,6 @@ export class GetSystemHealthUseCase {
         return 'down';
       default:
         return 'degraded';
-    }
-  }
-
-  private calculateUptime(status: 'up' | 'down' | 'unknown'): number {
-    switch (status) {
-      case 'up':
-        return 99.95;
-      case 'unknown':
-        return 97.0;
-      case 'down':
-        return 25.0;
-      default:
-        return 99.0;
     }
   }
 }
