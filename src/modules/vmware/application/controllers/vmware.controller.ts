@@ -272,7 +272,7 @@ export class VmwareController {
     status: 403,
     description: 'Insufficient permissions',
   })
-  async startVMDiscovery(@Body() body?: { serverIds?: number[] }) {
+  async startVMDiscovery(@Body() body?: { serverIds?: string[] }) {
     return this.startVMDiscoveryUseCase.execute({ serverIds: body?.serverIds });
   }
 
