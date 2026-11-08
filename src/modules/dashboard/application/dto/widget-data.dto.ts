@@ -215,8 +215,18 @@ export class UserPresenceResponseDto {
 
 // System Health DTOs
 export class SystemComponentDto {
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Stable id the front translates (database, redis, system, python, vcenter, ups, prometheus)',
+  })
+  key: string;
+
+  @ApiProperty({ description: 'English display name, fallback for the key' })
   name: string;
+
+  @ApiPropertyOptional({
+    description: 'One line on the current state (snapshot age, stale UPS…)',
+  })
+  detail?: string;
 
   @ApiProperty({ enum: ['operational', 'degraded', 'down'] })
   status: 'operational' | 'degraded' | 'down';

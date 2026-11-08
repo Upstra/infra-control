@@ -3,10 +3,16 @@ import type { GithubGatewayInterface } from '../../domain/interfaces/github.gate
 import type { Release } from '../../domain/interfaces/release.interface';
 import { ReleaseResponseDto } from '../dto/release.response.dto';
 import { ReleaseListResponseDto } from '../dto/release.list.response.dto';
+import {
+  releaseStats,
+  type ReleaseStats,
+} from '../../domain/services/release-stats';
 
 export interface Changelog {
   frontend: ReleaseListResponseDto;
   backend: ReleaseListResponseDto;
+  /** Totals over every release of both repositories, not just this page. */
+  stats: ReleaseStats;
 }
 
 /**
@@ -57,6 +63,7 @@ export class GetReleasesUseCase {
     return {
       frontend: build(frontReleases),
       backend: build(backReleases),
+      stats: releaseStats([...frontReleases, ...backReleases]),
     };
   }
 }

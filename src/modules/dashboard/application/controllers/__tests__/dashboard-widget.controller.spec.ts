@@ -100,12 +100,14 @@ describe('DashboardWidgetController', () => {
     score: 95,
     components: [
       {
+        key: 'database',
         name: 'database',
         status: 'operational',
         responseTime: 15,
         uptime: 99.9,
       },
       {
+        key: 'redis',
         name: 'redis',
         status: 'operational',
         responseTime: 8,
@@ -282,6 +284,7 @@ describe('DashboardWidgetController', () => {
         score: 25,
         components: [
           {
+            key: 'database',
             name: 'database',
             status: 'down',
             responseTime: 0,

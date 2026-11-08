@@ -13,7 +13,9 @@ export class GetSystemHealthUseCase {
     const healthStatus = await this.getHealthStatusUseCase.execute();
 
     const components = healthStatus.checks.map((check) => ({
+      key: check.name,
       name: this.formatServiceName(check.name),
+      detail: check.message,
       status: this.mapHealthStatus(check.status),
       responseTime: check.responseTime ?? 0,
       uptime: null,
@@ -50,10 +52,13 @@ export class GetSystemHealthUseCase {
 
   private formatServiceName(serviceName: string): string {
     const nameMap: Record<string, string> = {
-      database: 'Database',
-      redis: 'Redis Cache',
-      system: 'System Resources',
-      github: 'GitHub API',
+      database: 'PostgreSQL',
+      redis: 'Redis',
+      system: 'Upstra host (RAM / disk)',
+      python: 'Python bridge (ups_manager)',
+      vcenter: 'vCenter telemetry',
+      ups: 'UPS telemetry',
+      prometheus: 'Prometheus',
     };
     return nameMap[serviceName] ?? serviceName;
   }

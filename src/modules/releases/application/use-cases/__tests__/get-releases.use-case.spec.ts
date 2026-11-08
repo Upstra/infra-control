@@ -31,4 +31,18 @@ describe('GetReleasesUseCase', () => {
     expect(result.frontend.currentPage).toBe(1);
     expect(result.backend.items[0].tagName).toBe('b1');
   });
+
+  it('computes stats over every release, not only the requested page', async () => {
+    gateway.getReleases.mockResolvedValueOnce([
+      createMockRelease({ body: '### Features\n- a\n- b\n### Bug Fixes\n- c' }),
+      createMockRelease({ body: '- feat: d' }),
+    ]);
+    gateway.getReleases.mockResolvedValueOnce([
+      createMockRelease({ body: '- fix(api): e\n- chore: f' }),
+    ]);
+
+    const result = await useCase.execute(1, 1);
+
+    expect(result.stats).toEqual({ releases: 3, features: 3, fixes: 2 });
+  });
 });

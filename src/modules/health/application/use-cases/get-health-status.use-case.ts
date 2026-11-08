@@ -2,44 +2,60 @@ import { Injectable } from '@nestjs/common';
 import { DatabaseHealthService } from '../../domain/services/database-health.service';
 import { RedisHealthService } from '../../domain/services/redis-health.service';
 import { SystemHealthService } from '../../domain/services/system-health.service';
-import { GitHubHealthService } from '../../domain/services/github-health.service';
+import { PythonBridgeHealthService } from '../../domain/services/python-bridge-health.service';
+import { VcenterTelemetryHealthService } from '../../domain/services/vcenter-telemetry-health.service';
+import { UpsTelemetryHealthService } from '../../domain/services/ups-telemetry-health.service';
+import { PrometheusHealthService } from '../../domain/services/prometheus-health.service';
 import { HealthResponseDto } from '../dto/health-response.dto';
-import { HealthCheckResult } from '../../domain/interfaces/health-check.interface';
+import {
+  HealthCheckResult,
+  IHealthCheckService,
+} from '../../domain/interfaces/health-check.interface';
+
+/** Without these the API cannot serve anything: their loss is an outage. */
+export const CRITICAL_SERVICES = ['database', 'redis'];
 
 @Injectable()
 export class GetHealthStatusUseCase {
+  private readonly checks: Array<[string, IHealthCheckService]>;
+
   constructor(
-    private readonly databaseHealthService: DatabaseHealthService,
-    private readonly redisHealthService: RedisHealthService,
-    private readonly systemHealthService: SystemHealthService,
-    private readonly githubHealthService: GitHubHealthService,
-  ) {}
+    databaseHealthService: DatabaseHealthService,
+    redisHealthService: RedisHealthService,
+    systemHealthService: SystemHealthService,
+    pythonBridgeHealthService: PythonBridgeHealthService,
+    vcenterTelemetryHealthService: VcenterTelemetryHealthService,
+    upsTelemetryHealthService: UpsTelemetryHealthService,
+    prometheusHealthService: PrometheusHealthService,
+  ) {
+    this.checks = [
+      ['database', databaseHealthService],
+      ['redis', redisHealthService],
+      ['system', systemHealthService],
+      ['python', pythonBridgeHealthService],
+      ['vcenter', vcenterTelemetryHealthService],
+      ['ups', upsTelemetryHealthService],
+      ['prometheus', prometheusHealthService],
+    ];
+  }
 
   async execute(): Promise<HealthResponseDto> {
     const startTime = Date.now();
 
-    const healthChecks = await Promise.allSettled([
-      this.databaseHealthService.checkHealth(),
-      this.redisHealthService.checkHealth(),
-      this.systemHealthService.checkHealth(),
-      this.githubHealthService.checkHealth(),
-    ]);
+    const settled = await Promise.allSettled(
+      this.checks.map(([, service]) => service.checkHealth()),
+    );
 
-    const checks: HealthCheckResult[] = healthChecks.map((result, index) => {
-      if (result.status === 'fulfilled') {
-        return result.value;
-      }
-
-      const serviceNames = ['database', 'redis', 'system', 'github'];
-      return {
-        name: serviceNames[index],
-        status: 'down' as const,
-        message: `Health check failed: ${result.reason?.message || 'Unknown error'}`,
-        responseTime: 0,
-      };
-    });
-
-    const totalResponseTime = Date.now() - startTime;
+    const checks: HealthCheckResult[] = settled.map((result, index) =>
+      result.status === 'fulfilled'
+        ? result.value
+        : {
+            name: this.checks[index][0],
+            status: 'down' as const,
+            message: `Health check failed: ${result.reason?.message || 'Unknown error'}`,
+            responseTime: 0,
+          },
+    );
 
     const summary = {
       total: checks.length,
@@ -50,12 +66,11 @@ export class GetHealthStatusUseCase {
 
     let overallStatus: 'up' | 'down' | 'degraded';
     if (summary.down > 0) {
-      const criticalServices = ['database', 'redis'];
-      const criticalDown = checks.filter(
+      const criticalDown = checks.some(
         (check) =>
-          check.status === 'down' && criticalServices.includes(check.name),
+          check.status === 'down' && CRITICAL_SERVICES.includes(check.name),
       );
-      overallStatus = criticalDown.length > 0 ? 'down' : 'degraded';
+      overallStatus = criticalDown ? 'down' : 'degraded';
     } else if (summary.unknown > 0) {
       overallStatus = 'degraded';
     } else {
@@ -65,7 +80,7 @@ export class GetHealthStatusUseCase {
     return {
       status: overallStatus,
       timestamp: new Date().toISOString(),
-      totalResponseTime,
+      totalResponseTime: Date.now() - startTime,
       checks,
       summary,
     };
