@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM node:20-slim AS base
 
 RUN addgroup --gid 1001 nodegroup && adduser --uid 1001 --ingroup nodegroup --disabled-password nodeuser
@@ -7,7 +8,9 @@ FROM base AS dependencies
 
 WORKDIR /app
 COPY --chown=nodeuser:nodegroup package.json pnpm-lock.yaml ./
-RUN pnpm install
+# Cache mount : pnpm store survit entre builds → pnpm install ~5x plus rapide
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
 
 FROM base AS build
 
@@ -32,9 +35,11 @@ COPY --chown=nodeuser:nodegroup ./scripts/docker-entrypoint.sh ./scripts/
 # "ups_manager" build context is a sibling repo folder, wired up via
 # docker-compose's additional_contexts for this service.
 COPY --chown=nodeuser:nodegroup --from=ups_manager . /home/upstra/ups_manager
-RUN python3 -m venv /home/upstra/ups_manager/.venv \
-    && /home/upstra/ups_manager/.venv/bin/pip install --no-cache-dir --upgrade pip \
-    && /home/upstra/ups_manager/.venv/bin/pip install --no-cache-dir -r /home/upstra/ups_manager/requirements.txt \
+# Cache mount : pip cache survit entre builds → pip install ~3x plus rapide
+RUN --mount=type=cache,id=pip-cache,target=/root/.cache/pip \
+    python3 -m venv /home/upstra/ups_manager/.venv \
+    && /home/upstra/ups_manager/.venv/bin/pip install --upgrade pip \
+    && /home/upstra/ups_manager/.venv/bin/pip install -r /home/upstra/ups_manager/requirements.txt \
     && chown -R nodeuser:nodegroup /home/upstra/ups_manager/.venv \
     && chmod +x /home/upstra/ups_manager/*.sh
 
