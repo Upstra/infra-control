@@ -1,6 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Optional } from '@nestjs/common';
 import { GetServerWithIloUseCase } from '@/modules/servers/application/use-cases/get-server-with-ilo.use-case';
 import { VmwareService } from '@/modules/vmware/domain/services/vmware.service';
+import { extractPortFromAdminUrl } from '@/modules/vmware/domain/services/vmware-connection.service';
+import { VmwareTelemetryCacheService } from '@/modules/vmware/application/services/vmware-telemetry-cache.service';
 import { IloStatusResponseDto, IloServerStatus } from '../dto/ilo-status.dto';
 import { ServerMetricsDto } from '../dto/server-metrics.dto';
 import { VmwareConnectionDto } from '@/modules/vmware/application/dto';
@@ -11,7 +13,32 @@ export class GetServerStatusUseCase {
   constructor(
     private readonly vmwareService: VmwareService,
     private readonly getServerWithIloUseCase: GetServerWithIloUseCase,
+    @Optional()
+    private readonly telemetry?: VmwareTelemetryCacheService,
   ) {}
+
+  /**
+   * The Pulse collector already snapshots every host through the vCenter
+   * (`vmware:host:<moid>`). Reading it avoids a direct ESXi round-trip, which
+   * also fails whenever the host is only reachable through the vCenter
+   * (the demo stack, or a vCenter-scoped moid queried on the ESXi itself).
+   */
+  private async fromTelemetry(
+    moid: string,
+  ): Promise<VmwareServerMetrics | null> {
+    const host = (await this.telemetry?.getHosts([moid]))?.[moid];
+    if (!host?.powerState) return null;
+    return {
+      powerState: host.powerState as VmwareServerMetrics['powerState'],
+      overallStatus: (host.overallStatus ??
+        'gray') as VmwareServerMetrics['overallStatus'],
+      rebootRequired: false,
+      cpuUsagePercent: host.cpuPercent ?? 0,
+      ramUsageMB: host.memoryPercent ?? 0,
+      uptime: host.uptimeSeconds ?? 0,
+      boottime: '',
+    };
+  }
 
   async execute(
     serverId: string,
@@ -31,18 +58,18 @@ export class GetServerStatusUseCase {
       );
     }
 
-    const vCenterConnection: VmwareConnectionDto = {
-      host: server.ip,
-      user: server.login,
-      password: server.password,
-      port: 443,
-    };
-
-    const metrics = await this.vmwareService.getServerMetrics(
-      server.vmwareHostMoid,
-      vCenterConnection,
-      force,
-    );
+    const metrics =
+      (!force && (await this.fromTelemetry(server.vmwareHostMoid))) ||
+      (await this.vmwareService.getServerMetrics(
+        server.vmwareHostMoid,
+        {
+          host: server.ip,
+          user: server.login,
+          password: server.password,
+          port: extractPortFromAdminUrl(server.adminUrl, 443),
+        } satisfies VmwareConnectionDto,
+        force,
+      ));
 
     const status = this.extractStatusFromMetrics(metrics);
 
