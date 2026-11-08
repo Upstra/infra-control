@@ -48,6 +48,10 @@ Commits signés `James ABIB`, sans co-auteur, conventional commits en anglais. L
 - **Cause** : `StartVMDiscoveryUseCase` interrogeait chaque ESXi directement ; en démo leurs adresses sont les mocks iLO, et en production les identifiants ESXi ne sont pas toujours ouverts à l'API VIM.
 - **Correctif** : s'il existe un vCenter, découverte **via le vCenter** (comme le wizard), avec tous les ESXi pour rattacher les VMs ; sinon, repli ESXi par ESXi.
 
+### Page d'une salle : « Aucun serveur dans cette salle » pour l'admin
+- **Cause** : `GetRoomByIdUseCase` filtre les serveurs selon les permissions serveur des rôles de l'utilisateur. Le bulk-create du wizard ne crée aucune permission serveur (contrairement à la création unitaire), donc l'admin recevait une liste vide ; la liste réapparaissait seulement après un enregistrement de seuil (réponse non filtrée).
+- **Correctif** : un rôle `isAdmin` voit tous les serveurs de la salle, comme sur les endpoints serveurs.
+
 ## Nouveautés
 
 ### Widget « Santé du système »

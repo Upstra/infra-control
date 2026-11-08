@@ -207,4 +207,32 @@ describe('GetRoomByIdUseCase', () => {
     expect(result.servers?.length).toBe(2);
     expect(permissionRepo.findAllByField).toHaveBeenCalled();
   });
+
+  // A wizard setup grants no per-server permission: the admin used to get
+  // "no server in this room" on the room page.
+  it('returns every server to an admin without any server permission', async () => {
+    const roomRepository =
+      mockRoomRepository() as jest.Mocked<RoomRepositoryInterface>;
+    const permissionRepo = { findAllByField: jest.fn() } as any;
+    const userRepo = { findOneByField: jest.fn() } as any;
+    const useCase = new GetRoomByIdUseCase(
+      roomRepository,
+      permissionRepo,
+      userRepo,
+    );
+
+    roomRepository.findRoomById.mockResolvedValue(
+      mockRoom({
+        servers: [createMockServer({ id: 's1' }), createMockServer({ id: 's2' })],
+      }),
+    );
+    userRepo.findOneByField.mockResolvedValue(
+      createMockUser({ roles: [{ id: 'admin-role', isAdmin: true }] as any }),
+    );
+
+    const result = await useCase.execute('room-id', 'admin-1');
+
+    expect(result.servers?.map((server) => server.id)).toEqual(['s1', 's2']);
+    expect(permissionRepo.findAllByField).not.toHaveBeenCalled();
+  });
 });
