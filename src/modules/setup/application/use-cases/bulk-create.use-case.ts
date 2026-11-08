@@ -94,6 +94,8 @@ export class BulkCreateUseCase {
         idMapping.ups[tempId] = ups.id;
       }
 
+      await this.assignMissingPriorities(queryRunner, dto.servers);
+
       for (const serverData of dto.servers) {
         const roomId = this.resolveId(serverData.roomId, idMapping.rooms);
         const upsId = this.resolveId(serverData.upsId, idMapping.ups);
@@ -200,6 +202,34 @@ export class BulkCreateUseCase {
     ups.roomId = roomId;
 
     return await queryRunner.manager.save(Ups, ups);
+  }
+
+  /**
+   * The DTO lets a vCenter omit its priority, but the column is NOT NULL.
+   * Such servers get the next free slots after every priority already used
+   * (in this batch and in the database): the vCenter drives the ESXi
+   * shutdowns, so it must come last in the order.
+   */
+  private async assignMissingPriorities(
+    queryRunner: QueryRunner,
+    servers: BulkServerDto[],
+  ): Promise<void> {
+    const missing = servers.filter(
+      (server) => server.priority === undefined || server.priority === null,
+    );
+    if (!missing.length) return;
+
+    const existingMax =
+      (await queryRunner.manager.getRepository(Server).maximum('priority')) ??
+      0;
+    let next =
+      Math.max(
+        existingMax,
+        ...servers
+          .map((server) => server.priority)
+          .filter((p): p is number => p !== undefined && p !== null),
+      ) + 1;
+    missing.forEach((server) => (server.priority = next++));
   }
 
   private async createServer(

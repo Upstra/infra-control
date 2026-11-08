@@ -95,6 +95,46 @@ describe('BulkValidationUseCase', () => {
       expect(result.connectivityResults).toBeUndefined();
     });
 
+    // The demo seed's vCenter has no priority: the repository used to be
+    // queried with `priority: undefined`, threw, and /setup/validate answered
+    // 400 — which killed the wizard's automatic connectivity check.
+    it('skips the priority lookup for a vCenter without priority', async () => {
+      jest.spyOn(roomRepository, 'findOneByField').mockResolvedValue(null);
+      jest.spyOn(upsRepository, 'findOneByField').mockResolvedValue(null);
+      const lookup = jest
+        .spyOn(serverRepository, 'findOneByField')
+        .mockImplementation(async ({ field, value }: any) => {
+          if (field === 'priority' && value === undefined) {
+            throw new Error("Invalid value 'undefined' for field 'priority'");
+          }
+          return null;
+        });
+
+      const result = await useCase.execute({
+        ...validRequest,
+        resources: {
+          ...validRequest.resources,
+          servers: [
+            ...validRequest.resources.servers,
+            {
+              name: 'vCenter',
+              adminUrl: 'http://vcsim:8989',
+              ip: 'vcsim',
+              login: 'user',
+              password: 'pass',
+              type: 'vcenter',
+              roomId: 'temp_room_1',
+            } as any,
+          ],
+        },
+      });
+
+      expect(result.valid).toBe(true);
+      expect(lookup).not.toHaveBeenCalledWith(
+        expect.objectContaining({ field: 'priority', value: undefined }),
+      );
+    });
+
     it('should detect duplicate room names in batch', async () => {
       const requestWithDuplicates: ValidationRequestDto = {
         resources: {
