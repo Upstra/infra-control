@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto';
 import { BulkCreateUseCase } from './bulk-create.use-case';
 import { VmwareDiscoveryService } from '../../../vmware/domain/services/vmware-discovery.service';
 import { VmwareService } from '../../../vmware/domain/services/vmware.service';
+import { extractPortFromAdminUrl } from '../../../vmware/domain/services/vmware-connection.service';
 import { ServerRepositoryInterface } from '../../../servers/domain/interfaces/server.repository.interface';
 import { BulkCreateRequestDto } from '../dto';
 import { Server } from '../../../servers/domain/entities/server.entity';
@@ -164,7 +165,7 @@ export class BulkCreateWithDiscoveryUseCase {
         host: vCenter.ip,
         user: vCenter.login,
         password: vCenter.password,
-        port: 443,
+        port: extractPortFromAdminUrl(vCenter.adminUrl, 443),
       };
 
       const discoveredServers =
@@ -175,12 +176,29 @@ export class BulkCreateWithDiscoveryUseCase {
       );
 
       const esxiByIp = new Map<string, Server>();
+      const esxiByName = new Map<string, Server>();
       esxiServers.forEach((server) => {
         esxiByIp.set(server.ip, server);
+        esxiByName.set(server.name.toLowerCase(), server);
       });
 
+      const remainingEsxi = esxiServers.filter((s) => !s.vmwareHostMoid);
+      let remainingIndex = 0;
+
       for (const discoveredServer of discoveredServers) {
-        const esxiServer = esxiByIp.get(discoveredServer.ip);
+        let esxiServer =
+          esxiByIp.get(discoveredServer.ip) ??
+          esxiByName.get(discoveredServer.name.toLowerCase());
+
+        if (
+          !esxiServer &&
+          (discoveredServer.ip === '0.0.0.0' || !discoveredServer.ip)
+        ) {
+          if (remainingIndex < remainingEsxi.length) {
+            esxiServer = remainingEsxi[remainingIndex++];
+          }
+        }
+
         if (esxiServer && discoveredServer.moid) {
           this.logger.debug(
             `Updating MOID for server ${esxiServer.name}: ${discoveredServer.moid}`,

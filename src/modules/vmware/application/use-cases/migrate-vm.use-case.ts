@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
 import { VmwareService } from '@/modules/vmware/domain/services/vmware.service';
+import { extractPortFromAdminUrl } from '@/modules/vmware/domain/services/vmware-connection.service';
 
 export interface VmMigrationResult {
   success: boolean;
@@ -35,7 +36,7 @@ export class MigrateVmUseCase {
       host: server.ip,
       user: server.login,
       password: server.password,
-      port: 443,
+      port: extractPortFromAdminUrl(server.adminUrl, 443),
     };
 
     return await this.vmwareService.migrateVM(

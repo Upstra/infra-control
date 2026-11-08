@@ -3,6 +3,7 @@ import { VmwareCacheServiceInterface } from '../interfaces/vmware-cache.service.
 import { Server } from '@modules/servers/domain/entities/server.entity';
 import { RedisSafeService } from '@/modules/redis/application/services/redis-safe.service';
 import { EncryptionService } from '@/core/services/encryption';
+import { extractPortFromAdminUrl } from './vmware-connection.service';
 
 @Injectable()
 export class VmwareCacheService implements VmwareCacheServiceInterface {
@@ -96,7 +97,7 @@ export class VmwareCacheService implements VmwareCacheServiceInterface {
       ip: vcenter.ip,
       user: vcenter.login,
       password: vcenter.password,
-      port: 443,
+      port: extractPortFromAdminUrl(vcenter.adminUrl, 443),
     });
 
     const elements: Array<{ type: 'VM' | 'Server'; moid: string }> = [];

@@ -2,6 +2,23 @@ import { Injectable } from '@nestjs/common';
 import { VmwareConnectionDto } from '../../application/dto/vmware-connection.dto';
 import { Server } from '@/modules/servers/domain/entities/server.entity';
 
+export function extractPortFromAdminUrl(
+  adminUrl?: string,
+  defaultPort = 443,
+): number {
+  if (!adminUrl) return defaultPort;
+  try {
+    const raw = adminUrl.includes('://') ? adminUrl : `https://${adminUrl}`;
+    const parsed = new URL(raw);
+    if (parsed.port) {
+      return parseInt(parsed.port, 10);
+    }
+  } catch {
+    // fallback to defaultPort
+  }
+  return defaultPort;
+}
+
 @Injectable()
 export class VmwareConnectionService {
   /**
@@ -12,7 +29,7 @@ export class VmwareConnectionService {
       host: server.ip,
       user: server.login,
       password: server.password,
-      port: 443,
+      port: extractPortFromAdminUrl(server.adminUrl, 443),
     };
   }
 
