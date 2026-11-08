@@ -6,7 +6,7 @@ import { ServerRepositoryInterface } from '../../../servers/domain/interfaces/se
 import { Server } from '../../../servers/domain/entities/server.entity';
 
 export interface StartVMDiscoveryCommand {
-  readonly serverIds?: number[];
+  readonly serverIds?: string[];
 }
 
 export interface StartVMDiscoveryResult {

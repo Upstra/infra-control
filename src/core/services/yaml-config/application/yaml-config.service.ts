@@ -10,6 +10,7 @@ import {
 } from '../domain/interfaces/yaml-config.interface';
 import { YamlParserService } from '../domain/services/yaml-parser.service';
 import { MigrationPlanBuilderService } from '../domain/services/migration-plan-builder.service';
+import { extractPortFromAdminUrl } from '@/modules/vmware/domain/services/vmware-connection.service';
 import { YamlFileRepository } from '../infrastructure/yaml-file.repository';
 
 @Injectable()
@@ -35,7 +36,9 @@ export class YamlConfigService implements IYamlConfigService {
   ): Promise<string> {
     const config: VCenterConfig = {
       ...vCenterConfig,
-      port: 443,
+      port:
+        (vCenterConfig as any).port ??
+        extractPortFromAdminUrl((vCenterConfig as any).adminUrl, 443),
     };
 
     this.logger.debug(

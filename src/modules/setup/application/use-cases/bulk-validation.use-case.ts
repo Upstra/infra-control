@@ -14,6 +14,10 @@ import { RoomRepositoryInterface } from '../../../rooms/domain/interfaces/room.r
 import { UpsRepositoryInterface } from '../../../ups/domain/interfaces/ups.repository.interface';
 import { ServerRepositoryInterface } from '../../../servers/domain/interfaces/server.repository.interface';
 
+// RFC 1123 hostname; never starts with '-', so it can't be read as a ping flag.
+const HOSTNAME_PATTERN =
+  /^(?=.{1,253}$)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
 @Injectable()
 export class BulkValidationUseCase {
   private readonly logger = new Logger(BulkValidationUseCase.name);
@@ -326,36 +330,35 @@ export class BulkValidationUseCase {
   private async checkConnectivity(
     resources: any,
   ): Promise<ConnectivityResultsDto> {
-    const upsResults: UpsConnectivityResultDto[] = [];
-    const serverResults: ServerConnectivityResultDto[] = [];
+    // Pings run in parallel: each one can take up to 5s on an unreachable host.
+    const upsResults: UpsConnectivityResultDto[] = (
+      await Promise.all(
+        resources.upsList.map(async (ups: any, index: number) =>
+          ups.ip
+            ? { index, ip: ups.ip, accessible: await this.pingHost(ups.ip) }
+            : null,
+        ),
+      )
+    ).filter((result): result is UpsConnectivityResultDto => result !== null);
 
-    for (let i = 0; i < resources.upsList.length; i++) {
-      const ups = resources.upsList[i];
-      if (ups.ip) {
-        const accessible = await this.pingHost(ups.ip);
-        upsResults.push({
-          index: i,
-          ip: ups.ip,
+    const serverResults: ServerConnectivityResultDto[] = await Promise.all(
+      resources.servers.map(async (server: any, index: number) => {
+        const [accessible, iloAccessible] = await Promise.all([
+          this.pingHost(server.ip),
+          server.ilo_ip ? this.pingHost(server.ilo_ip) : undefined,
+        ]);
+        const result: ServerConnectivityResultDto = {
+          index,
+          ip: server.ip,
           accessible,
-        });
-      }
-    }
-
-    for (let i = 0; i < resources.servers.length; i++) {
-      const server = resources.servers[i];
-      const result: ServerConnectivityResultDto = {
-        index: i,
-        ip: server.ip,
-        accessible: await this.pingHost(server.ip),
-      };
-
-      if (server.ilo_ip) {
-        result.iloIp = server.ilo_ip;
-        result.iloAccessible = await this.pingHost(server.ilo_ip);
-      }
-
-      serverResults.push(result);
-    }
+        };
+        if (server.ilo_ip) {
+          result.iloIp = server.ilo_ip;
+          result.iloAccessible = iloAccessible;
+        }
+        return result;
+      }),
+    );
 
     return {
       ups: upsResults,
@@ -363,9 +366,32 @@ export class BulkValidationUseCase {
     };
   }
 
-  private async pingHost(ip: string): Promise<boolean> {
-    if (!isIP(ip)) {
-      this.logger.warn(`Invalid IP address format: ${ip}`);
+  /**
+   * Accepts an IP, a hostname (e.g. `mock-ilo-1` on the demo network) or a
+   * URL such as `http://mock-ups:8000/battery`, and returns its host part.
+   */
+  private toPingTarget(address: string): string | null {
+    const raw = address?.trim();
+    if (!raw) return null;
+    let host = raw;
+    if (raw.includes('://')) {
+      try {
+        host = new URL(raw).hostname;
+      } catch {
+        return null;
+      }
+    } else if (!isIP(raw)) {
+      host = raw.replace(/:\d+$/, '');
+    }
+    host = host.replace(/^\[|\]$/g, '');
+    if (isIP(host)) return host;
+    return HOSTNAME_PATTERN.test(host) ? host : null;
+  }
+
+  private async pingHost(address: string): Promise<boolean> {
+    const ip = this.toPingTarget(address);
+    if (!ip) {
+      this.logger.warn(`Invalid IP address or hostname: ${address}`);
       return false;
     }
 

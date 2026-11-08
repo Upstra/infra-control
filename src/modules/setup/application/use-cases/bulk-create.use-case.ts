@@ -22,6 +22,15 @@ import { Ups } from '../../../ups/domain/entities/ups.entity';
 import { Server } from '../../../servers/domain/entities/server.entity';
 import { Ilo } from '../../../ilos/domain/entities/ilo.entity';
 
+const DOWN_STATES = new Set(['down', 'inactive', 'off', 'stopped', 'poweredoff']);
+
+/**
+ * The app reads `UP` / `DOWN` everywhere (UPS page, health fallback). Older
+ * wizard builds sent `active` / `inactive`, and the field is now optional.
+ */
+export const normalizeServerState = (state?: string | null): 'UP' | 'DOWN' =>
+  state && DOWN_STATES.has(state.trim().toLowerCase()) ? 'DOWN' : 'UP';
+
 @Injectable()
 export class BulkCreateUseCase {
   private readonly logger = new Logger(BulkCreateUseCase.name);
@@ -207,7 +216,7 @@ export class BulkCreateUseCase {
 
     const server = new Server();
     server.name = serverData.name;
-    server.state = serverData.state;
+    server.state = normalizeServerState(serverData.state);
     server.adminUrl = serverData.adminUrl;
     server.ip = serverData.ip;
     server.login = serverData.login;
