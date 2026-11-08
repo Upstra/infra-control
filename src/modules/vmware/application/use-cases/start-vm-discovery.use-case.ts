@@ -51,11 +51,28 @@ export class StartVMDiscoveryUseCase {
     );
 
     this.logger.log(`Found ${vmwareServers.length} VMware servers`);
-    vmwareServers.forEach((server) => {
-      this.logger.debug(
-        `Server ${server.name}: password exists = ${!!server.password}`,
-      );
-    });
+
+    // Same strategy as the setup wizard: the vCenter sees every VM of the
+    // hosts it manages, so query it once instead of each ESXi directly (ESXi
+    // credentials are often not set up for the VIM API, and in the demo the
+    // ESXi addresses are the iLO simulators).
+    const vCenter = vmwareServers.find(
+      (server) => server.type?.toLowerCase() === 'vcenter',
+    );
+    if (vCenter) {
+      const esxiServers = (
+        command.serverIds?.length
+          ? await this.serversRepository.findAllWithCredentials()
+          : servers
+      ).filter((server) => server.type?.toLowerCase() === 'esxi');
+
+      this.vmwareDiscoveryService
+        .discoverVmsFromVCenter(vCenter, esxiServers, sessionId)
+        .catch((error) =>
+          this.logger.error(`vCenter discovery failed: ${error?.message}`),
+        );
+      return { sessionId, serverCount: 1 };
+    }
 
     this.vmwareDiscoveryService.discoverVmsFromServers(
       vmwareServers,
