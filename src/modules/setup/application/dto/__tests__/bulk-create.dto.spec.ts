@@ -139,7 +139,8 @@ describe('BulkCreateDto', () => {
       const errors = await validate(dto);
       expect(errors.length).toBeGreaterThan(0);
       const propertyNames = errors.map((e) => e.property);
-      expect(propertyNames).toContain('state');
+      // state is optional: the wizard derives it from the ping (defaults to UP)
+      expect(propertyNames).not.toContain('state');
       expect(propertyNames).toContain('adminUrl');
       expect(propertyNames).toContain('ip');
       expect(propertyNames).toContain('login');

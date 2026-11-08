@@ -118,12 +118,14 @@ export class BulkServerDto {
   name: string;
 
   @ApiProperty({
-    description: 'Server state',
-    example: 'stopped',
+    description:
+      'Initial power state (UP or DOWN). Optional: defaults to UP, live telemetry takes over afterwards. Legacy values active/inactive are accepted.',
+    example: 'UP',
+    required: false,
   })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  state: string;
+  state?: string;
 
   @ApiProperty({
     description: 'Administration URL',
