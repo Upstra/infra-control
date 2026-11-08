@@ -50,6 +50,13 @@ export class GetRoomByIdUseCase {
       relations: ['roles'],
     });
 
+    // Admins see every server, as on the servers endpoints. Without this, a
+    // setup done through the wizard (bulk create grants no per-server
+    // permission) showed "no server in this room" to the admin itself.
+    if (user?.roles?.some((role) => role.isAdmin)) {
+      return RoomResponseDto.from(room);
+    }
+
     const roleIds = user?.roles?.map((r) => r.id) ?? [];
     if (!roleIds.length) {
       room.servers = [];
