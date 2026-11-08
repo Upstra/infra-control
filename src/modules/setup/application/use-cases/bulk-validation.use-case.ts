@@ -293,9 +293,14 @@ export class BulkValidationUseCase {
     errors: ValidationErrorDto[],
   ): Promise<void> {
     const prioritiesInBatch = new Set<number>();
+    // A vCenter may have no priority: nothing to compare, and querying the
+    // repository with an undefined value makes it throw (400 on /validate).
+    const hasPriority = (server: any) =>
+      server.priority !== undefined && server.priority !== null;
 
     for (let i = 0; i < servers.length; i++) {
       const server = servers[i];
+      if (!hasPriority(server)) continue;
 
       if (prioritiesInBatch.has(server.priority)) {
         errors.push({
@@ -311,6 +316,7 @@ export class BulkValidationUseCase {
 
     for (let i = 0; i < servers.length; i++) {
       const server = servers[i];
+      if (!hasPriority(server)) continue;
       const existingServer = await this.serverRepository.findOneByField({
         field: 'priority',
         value: server.priority,
