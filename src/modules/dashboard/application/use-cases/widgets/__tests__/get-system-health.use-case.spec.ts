@@ -40,7 +40,7 @@ describe('GetSystemHealthUseCase', () => {
             responseTime: 50,
           },
           {
-            name: 'github',
+            name: 'prometheus',
             status: 'up' as const,
             responseTime: 20,
           },
@@ -62,22 +62,22 @@ describe('GetSystemHealthUseCase', () => {
         score: 100,
         components: expect.arrayContaining([
           expect.objectContaining({
-            name: 'Database',
+            name: 'PostgreSQL',
             status: 'operational',
             responseTime: 25,
           }),
           expect.objectContaining({
-            name: 'Redis Cache',
+            name: 'Redis',
             status: 'operational',
             responseTime: 5,
           }),
           expect.objectContaining({
-            name: 'System Resources',
+            name: 'Upstra host (RAM / disk)',
             status: 'operational',
             responseTime: 50,
           }),
           expect.objectContaining({
-            name: 'GitHub API',
+            name: 'Prometheus',
             status: 'operational',
             responseTime: 20,
           }),
@@ -123,7 +123,7 @@ describe('GetSystemHealthUseCase', () => {
         score: 50,
         components: expect.arrayContaining([
           expect.objectContaining({
-            name: 'Database',
+            name: 'PostgreSQL',
             status: 'down',
             responseTime: 0,
             issues: ['Connection failed'],
@@ -167,7 +167,7 @@ describe('GetSystemHealthUseCase', () => {
         score: 50,
         components: expect.arrayContaining([
           expect.objectContaining({
-            name: 'Redis Cache',
+            name: 'Redis',
             status: 'down',
             responseTime: 0,
             issues: ['Redis connection failed'],
@@ -188,7 +188,7 @@ describe('GetSystemHealthUseCase', () => {
             responseTime: 25,
           },
           {
-            name: 'github',
+            name: 'prometheus',
             status: 'unknown' as const,
             message: 'Request timeout',
           },
@@ -210,11 +210,11 @@ describe('GetSystemHealthUseCase', () => {
         score: 50,
         components: expect.arrayContaining([
           expect.objectContaining({
-            name: 'Database',
+            name: 'PostgreSQL',
             status: 'operational',
           }),
           expect.objectContaining({
-            name: 'GitHub API',
+            name: 'Prometheus',
             status: 'degraded',
           }),
         ]),
@@ -282,7 +282,7 @@ describe('GetSystemHealthUseCase', () => {
             responseTime: 10,
           },
           {
-            name: 'github',
+            name: 'prometheus',
             status: 'up' as const,
             responseTime: 15,
           },
@@ -300,10 +300,35 @@ describe('GetSystemHealthUseCase', () => {
       const result = await useCase.execute();
 
       const componentNames = result.components.map((c) => c.name);
-      expect(componentNames).toContain('Database');
-      expect(componentNames).toContain('Redis Cache');
-      expect(componentNames).toContain('System Resources');
-      expect(componentNames).toContain('GitHub API');
+      expect(componentNames).toContain('PostgreSQL');
+      expect(componentNames).toContain('Redis');
+      expect(componentNames).toContain('Upstra host (RAM / disk)');
+      expect(componentNames).toContain('Prometheus');
+    });
+
+    it('exposes a translatable key and the check message as detail', async () => {
+      healthStatusUseCase.execute.mockResolvedValue({
+        status: 'degraded' as const,
+        timestamp: '2024-07-03T10:30:00.000Z',
+        totalResponseTime: 10,
+        checks: [
+          {
+            name: 'vcenter',
+            status: 'down' as const,
+            message: 'Last vCenter snapshot 420s ago',
+            responseTime: 2,
+          },
+        ],
+        summary: { total: 1, up: 0, down: 1, unknown: 0 },
+      });
+
+      const [component] = (await useCase.execute()).components;
+      expect(component).toMatchObject({
+        key: 'vcenter',
+        name: 'vCenter telemetry',
+        detail: 'Last vCenter snapshot 420s ago',
+        status: 'down',
+      });
     });
   });
 });
