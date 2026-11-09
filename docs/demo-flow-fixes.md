@@ -75,11 +75,24 @@ Seuls `database` et `redis` font passer le statut global à `down` ; les autres 
 ### Images Docker
 `Dockerfile` : caches BuildKit pour `pnpm` et `pip` (rebuilds nettement plus rapides). `Dockerfile.demo` + `.dockerignore` ajoutés.
 
+## Suite du 09/11 : tests réparés et 4 vrais bugs
+
+Les 15 suites en échec de `setup`, `ilos` et `vmware` (68 tests) sont réparées. La plupart étaient des tests en retard sur le code (scripts `.sh` au lieu de `.py`, dépendances ajoutées sans mise à jour des modules de test, iLO sauvegardé avant le serveur, `saveDiscoveredVms({ vms })`, sockets désormais authentifiés…). En chemin, quatre vrais problèmes :
+
+- **Mot de passe vCenter dans les logs** : `YamlConfigService` (2 logs) et `MigrationPlanBuilderService` écrivaient la config vCenter complète, mot de passe compris, en debug. Ils ne loggent plus que `ip:port`. Vérifié dans la démo : aucune trace du secret après génération d'un plan.
+- **Emails de fin de migration** : `MigrationCompletedListener` sortait avant l'envoi pour une migration `shutdown` ou sans VM réussie. Seule la mise à jour des VMs est sautée désormais ; les admins sont toujours prévenus.
+- **Port vCenter dans le plan de migration** : les trois générateurs de plan transmettent l'`adminUrl` du vCenter, le port n'est plus figé à 443.
+- **DTO setup** : `ValidationRequestDto.resources` devient obligatoire (`@IsDefined`) ; `IdMappingDto` reçoit `@IsObject()` (il était rejeté comme valeur inconnue).
+
+Choix assumé : un mot de passe iLO `null` **ne remplace pas** le mot de passe enregistré (le test qui voulait l'effacer a été aligné sur le code).
+
+Résultat : `setup`, `ilos`, `vmware`, `yaml-config` → 98 suites vertes. Il reste **41 suites en échec ailleurs** dans le backend (`servers`, `priorities`, `email`, `auth`, `rooms`, `ping`…), toutes antérieures à cette session.
+
 ## Tests
 
 - Nouveaux specs : `normalize-server-state`, `assign-missing-priorities`, `start-vm-discovery.use-case`, `telemetry-health.services`, `release-stats` ; specs mis à jour pour `bulk-validation`, `bulk-create.dto`, `get-health-status`, `get-system-health`, `get-releases`, `dashboard-widget.controller`.
 - Suites touchées : toutes vertes.
-- **Échecs préexistants, non traités** : 15 suites de `setup`, `ilos` et `vmware` échouaient déjà sur `flow` avant cette session (notamment `bulk-create.dto.spec` « invalid IP » depuis le passage `@IsIP` → `@IsString`). Elles sont à reprendre à part.
+- Les 15 suites qui échouaient déjà dans `setup`, `ilos` et `vmware` ont été réparées le 09/11 (section plus haut).
 
 ## Vérifié dans la démo
 
@@ -87,5 +100,5 @@ Base vide → wizard → import du seed → ping auto « Connecté » partout �
 
 ## Reste à faire
 
-- Page migration : les hôtes affichent « Aucune salle » au lieu de leur salle.
-- Les 15 suites en échec citées plus haut.
+- Les 41 suites backend encore en échec hors `setup` / `ilos` / `vmware` (antérieures).
+- Page migration « Aucune salle » : corrigée côté front (voir `infra-control_front/docs/demo-flow-fixes.md`).
