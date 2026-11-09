@@ -150,30 +150,38 @@ describe('VmwareCacheService', () => {
       expect(redis.safeSet).not.toHaveBeenCalled();
     });
 
-    it('should initialize with first server config if not configured', async () => {
+    it('initializes from the vCenter server, port read from its adminUrl', async () => {
       redis.safeGet.mockResolvedValue(null);
       encryptionService.encrypt.mockReturnValue('encrypted_password');
 
       const servers = [
         {
           id: '1',
-          vmwareVCenterIp: '192.168.1.100',
+          type: 'vcenter',
+          ip: '192.168.1.100',
+          adminUrl: 'https://192.168.1.100:8443',
           login: 'admin',
           password: 'secret',
-          vmwareHostMoid: 'host-123',
         } as unknown as Server,
         {
           id: '2',
+          type: 'esxi',
+          vmwareHostMoid: 'host-123',
+        } as unknown as Server,
+        {
+          id: '3',
+          type: 'esxi',
           vmwareHostMoid: 'host-456',
         } as unknown as Server,
       ];
 
       await service.initializeIfNeeded(servers);
 
-      expect(redis.safeSet).toHaveBeenCalledWith(
-        'metrics:vcenter',
-        expect.stringContaining('"ip":"192.168.1.100"'),
+      const config = JSON.parse(
+        (redis.safeSet.mock.calls.find(([key]) => key === 'metrics:vcenter') ??
+          [])[1] as string,
       );
+      expect(config).toMatchObject({ ip: '192.168.1.100', port: 8443 });
       expect(redis.safeLPush).toHaveBeenCalledTimes(2);
     });
 

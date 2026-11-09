@@ -32,7 +32,9 @@ describe('VmwareService', () => {
         {
           provide: 'ServerRepositoryInterface',
           useValue: {
-            findAll: jest.fn(),
+            // ensureVcenterInitialized() reads every server once with credentials.
+            findAll: jest.fn().mockResolvedValue([]),
+            findAllWithCredentials: jest.fn().mockResolvedValue([]),
             updateServer: jest.fn(),
           },
         },
@@ -699,6 +701,8 @@ describe('VmwareService', () => {
         vendor: 'HP',
         model: 'ProLiant DL380 Gen10',
         ip: '192.168.1.10',
+        // Host MOID used to link vCenter hosts to Upstra servers ('' if absent).
+        moid: '',
         cpuCores: 16,
         cpuThreads: 32,
         cpuMHz: 2400,
@@ -1130,18 +1134,17 @@ describe('VmwareService', () => {
       ]);
     });
 
-    it('should log debug information when building connection args', async () => {
+    // The connection args used to be logged with password presence and length;
+    // that was dropped on purpose and must not come back.
+    it('never logs anything about the password when building connection args', async () => {
       const loggerSpy = jest.spyOn(service['logger'], 'debug');
       pythonExecutor.executePython.mockResolvedValue({ vms: [] });
 
       await service.listVMs(mockConnection);
 
-      expect(loggerSpy).toHaveBeenCalledWith(
-        'Building connection args for 192.168.1.10:',
-      );
-      expect(loggerSpy).toHaveBeenCalledWith('- User: admin');
-      expect(loggerSpy).toHaveBeenCalledWith('- Password exists: true');
-      expect(loggerSpy).toHaveBeenCalledWith('- Password length: 11');
+      const logged = loggerSpy.mock.calls.flat().map(String).join('\n');
+      expect(logged).not.toMatch(/password/i);
+      expect(logged).not.toContain(mockConnection.password);
     });
 
     it('should log when no VMs found', async () => {

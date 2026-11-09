@@ -108,7 +108,8 @@ describe('GetSetupProgressEnhancedUseCase', () => {
         SetupStep.RESOURCE_PLANNING,
       ]);
       expect(result.totalSteps).toBe(8);
-      expect(result.percentComplete).toBe(25); // 2/8 * 100
+      // Index-based so the final COMPLETE step reads 100%: 2 / (8 - 1) → 29%
+      expect(result.percentComplete).toBe(29);
     });
 
     it('should detect when setup is complete', async () => {
