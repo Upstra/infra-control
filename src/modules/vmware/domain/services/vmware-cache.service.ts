@@ -33,7 +33,8 @@ export class VmwareCacheService implements VmwareCacheServiceInterface {
       port: config.port || 443,
     };
     this.logger.debug(
-      `Setting vCenter config in Redis: ${JSON.stringify(vcenterConfig)}`,
+      // Address only: even the encrypted password stays out of the logs.
+      `Setting vCenter config in Redis: ${vcenterConfig.ip}:${vcenterConfig.port}`,
     );
 
     await this.redis.safeSet('metrics:vcenter', JSON.stringify(vcenterConfig));
