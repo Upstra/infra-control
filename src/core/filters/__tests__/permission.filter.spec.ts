@@ -18,20 +18,20 @@ describe('PermissionFilters', () => {
     return { host, response, json };
   };
 
-  it('PermissionCreationExceptionFilter returns 500', () => {
+  it('PermissionCreationExceptionFilter returns 400', () => {
     const filter = new PermissionCreationExceptionFilter();
     const { host, response, json } = createHost();
     filter.catch(new PermissionCreationException('oops'), host);
     expect(response.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
-    expect(json).toHaveBeenCalledWith({ statusCode: 500, message: 'oops' });
+    expect(json).toHaveBeenCalledWith({ statusCode: 400, message: 'oops' });
   });
 
-  it('PermissionDeletionExceptionFilter returns 500', () => {
+  it('PermissionDeletionExceptionFilter returns 400', () => {
     const filter = new PermissionDeletionExceptionFilter();
     const { host, response, json } = createHost();
     filter.catch(new PermissionDeletionException('del'), host);
     expect(response.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
-    expect(json).toHaveBeenCalledWith({ statusCode: 500, message: 'del' });
+    expect(json).toHaveBeenCalledWith({ statusCode: 400, message: 'del' });
   });
 
   it('PermissionNotFoundExceptionFilter returns 404', () => {

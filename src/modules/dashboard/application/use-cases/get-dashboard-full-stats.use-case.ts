@@ -12,6 +12,17 @@ import { StatisticsPort } from '../ports/statistics.port';
 import { RedisSafeService } from '@/modules/redis/application/services/redis-safe.service';
 import { GetInfrastructureKpisUseCase } from './get-infrastructure-kpis.use-case';
 
+/** The wizard steps a setup goes through before COMPLETE, in order. */
+const ACTIVE_SETUP_STEPS: SetupStep[] = [
+  SetupStep.WELCOME,
+  SetupStep.RESOURCE_PLANNING,
+  SetupStep.ROOMS_CONFIG,
+  SetupStep.UPS_CONFIG,
+  SetupStep.SERVERS_CONFIG,
+  SetupStep.RELATIONSHIPS,
+  SetupStep.REVIEW,
+];
+
 type BaseStats = Omit<FullDashboardStatsDto, keyof InfrastructureKpisDto>;
 
 @Injectable()
@@ -109,12 +120,12 @@ export class GetDashboardFullStatsUseCase {
    * @returns a whole number between 0 and 100 representing completion
    */
   private computeProgress(records: SetupProgress[]): number {
-    const completed = new Set(
-      records.map((r) => r.step).filter((s) => s !== SetupStep.COMPLETE),
-    );
-    const total = Object.values(SetupStep).filter(
-      (s) => s !== SetupStep.COMPLETE,
-    ).length;
-    return total === 0 ? 0 : Math.round((completed.size / total) * 100);
+    const steps = new Set(records.map((r) => r.step));
+    if (steps.has(SetupStep.COMPLETE)) return 100;
+    // Only the steps the wizard still walks through count. The enum also keeps
+    // deprecated ones (create-room, vm-discovery…) that used to inflate the
+    // total, so a nearly finished setup read as ~27%.
+    const done = ACTIVE_SETUP_STEPS.filter((step) => steps.has(step)).length;
+    return Math.round((done / ACTIVE_SETUP_STEPS.length) * 100);
   }
 }

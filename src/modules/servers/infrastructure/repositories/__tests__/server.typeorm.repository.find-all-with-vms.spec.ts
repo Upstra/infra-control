@@ -76,6 +76,11 @@ describe('ServerTypeormRepository - findAllWithVms', () => {
     }).compile();
 
     repository = module.get<ServerTypeormRepository>(ServerTypeormRepository);
+    // TypeORM's createQueryBuilder reads entity metadata from a live
+    // connection; the query itself is what these tests check.
+    jest
+      .spyOn(repository, 'createQueryBuilder')
+      .mockReturnValue(queryBuilder as any);
   });
 
   afterEach(() => {
@@ -248,17 +253,11 @@ describe('ServerTypeormRepository - findAllWithVms', () => {
     });
 
     it('should use createQueryBuilder with correct entity', async () => {
-      // Arrange
-      const mockEntityManager = dataSource.createEntityManager();
       queryBuilder.getMany.mockResolvedValue(mockServers);
 
-      // Act
       await repository.findAllWithVms();
 
-      // Assert
-      expect(mockEntityManager.createQueryBuilder).toHaveBeenCalledWith(
-        'server',
-      );
+      expect(repository.createQueryBuilder).toHaveBeenCalledWith('server');
     });
   });
 });

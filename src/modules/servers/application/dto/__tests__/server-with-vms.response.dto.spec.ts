@@ -4,29 +4,34 @@ import { VmLightDto } from '../../../../vms/application/dto/vm.light.dto';
 import { Server } from '../../../domain/entities/server.entity';
 import { Vm } from '../../../../vms/domain/entities/vm.entity';
 
+// The DTOs validate ids as UUIDs.
+const SERVER_ID = '7d1f3a52-5b1e-4c55-9c1f-1d2b6f7a8e01';
+const VM1_ID = '0a5c2f6e-3d4b-4a1e-8f2c-9b7d6e5a4c01';
+const VM2_ID = '0a5c2f6e-3d4b-4a1e-8f2c-9b7d6e5a4c02';
+
 describe('ServerWithVmsResponseDto', () => {
   const mockVm1: Vm = {
-    id: 'vm-1',
+    id: VM1_ID,
     name: 'VM-Server1-01',
     state: 'running',
-    serverId: 'server-1',
+    serverId: SERVER_ID,
     grace_period_on: 300,
     grace_period_off: 300,
     priority: 1,
   } as Vm;
 
   const mockVm2: Vm = {
-    id: 'vm-2',
+    id: VM2_ID,
     name: 'VM-Server1-02',
     state: 'stopped',
-    serverId: 'server-1',
+    serverId: SERVER_ID,
     grace_period_on: 300,
     grace_period_off: 300,
     priority: 2,
   } as Vm;
 
   const mockServer = {
-    id: 'server-1',
+    id: SERVER_ID,
     name: 'ESXi-Server-01',
     ip: '192.168.1.10',
     vmwareHostMoid: 'host-123',
@@ -56,12 +61,12 @@ describe('ServerWithVmsResponseDto', () => {
       expect(dto.hostMoid).toBe(mockServer.vmwareHostMoid);
       expect(dto.vms).toHaveLength(2);
       expect(dto.vms[0]).toEqual({
-        id: 'vm-1',
+        id: VM1_ID,
         name: 'VM-Server1-01',
         state: 'running',
       });
       expect(dto.vms[1]).toEqual({
-        id: 'vm-2',
+        id: VM2_ID,
         name: 'VM-Server1-02',
         state: 'stopped',
       });
@@ -103,7 +108,7 @@ describe('ServerWithVmsResponseDto', () => {
       expect(dto.hostMoid).toBe(mockServer.vmwareHostMoid);
       expect(dto.vms).toHaveLength(2);
       expect(dto.vms[0]).toEqual({
-        id: 'vm-1',
+        id: VM1_ID,
         name: 'VM-Server1-01',
         state: 'running',
       });
@@ -204,11 +209,12 @@ describe('ServerWithVmsResponseDto', () => {
 
     it('should fail validation when vms array contains invalid VmLightDto', async () => {
       // Arrange
-      const invalidVmDto = {
+      // A real VmLightDto instance: a plain object is rejected as unknown.
+      const invalidVmDto = new VmLightDto({
+        ...mockVm1,
         id: 'not-a-uuid',
         name: '',
-        state: 'running',
-      } as any;
+      } as Vm);
       const dto = new ServerWithVmsResponseDto(mockServer, [invalidVmDto]);
 
       // Act
@@ -217,7 +223,9 @@ describe('ServerWithVmsResponseDto', () => {
       // Assert
       expect(errors).toHaveLength(1);
       expect(errors[0].property).toBe('vms');
-      expect(errors[0].constraints).toHaveProperty('nestedValidation');
+      // Nested failures are reported as children of the `vms` error.
+      const vmErrors = errors[0].children?.[0]?.children ?? [];
+      expect(vmErrors.map((e) => e.property).sort()).toEqual(['id', 'name']);
     });
   });
 
@@ -228,7 +236,7 @@ describe('ServerWithVmsResponseDto', () => {
 
       // Assert
       expect(dto).toEqual({
-        id: 'server-1',
+        id: SERVER_ID,
         name: 'ESXi-Server-01',
         ip: '192.168.1.10',
         hostMoid: 'host-123',

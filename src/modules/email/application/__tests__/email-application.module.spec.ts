@@ -1,59 +1,42 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { EmailApplicationModule } from '../email-application.module';
 import { SendAccountCreatedEmailUseCase } from '../use-cases/send-account-created-email.use-case';
 import { SendResetPasswordEmailUseCase } from '../use-cases/send-reset-password-email.use-case';
 import { SendPasswordChangedEmailUseCase } from '../use-cases/send-password-changed-email.use-case';
+import { SendVmwareSyncReportEmailUseCase } from '../use-cases/send-vmware-sync-report-email.use-case';
+import { SendUpsBatteryAlertEmailUseCase } from '../use-cases/send-ups-battery-alert-email.use-case';
+import { SendMigrationCompletedEmailUseCase } from '../use-cases/send-migration-completed-email.use-case';
 import { MAIL_SERVICE_TOKEN } from '../../domain/constants/injection-tokens';
-import { IMailService } from '../../domain/services/mail.service';
+import { ZohoMailAdapter } from '../../adapters/zoho-mail.adapter';
 
+/**
+ * The module imports UserModule (and through it most of the app, TypeORM
+ * included): compiling it would need a database. Its wiring is checked from
+ * the module metadata instead.
+ */
 describe('EmailApplicationModule', () => {
-  let module: TestingModule;
+  const useCases = [
+    SendAccountCreatedEmailUseCase,
+    SendResetPasswordEmailUseCase,
+    SendPasswordChangedEmailUseCase,
+    SendVmwareSyncReportEmailUseCase,
+    SendUpsBatteryAlertEmailUseCase,
+    SendMigrationCompletedEmailUseCase,
+  ];
+  const providers = Reflect.getMetadata('providers', EmailApplicationModule);
+  const exports = Reflect.getMetadata('exports', EmailApplicationModule);
 
-  beforeEach(async () => {
-    const mockMailService: IMailService = {
-      send: jest.fn(),
-    };
-
-    module = await Test.createTestingModule({
-      imports: [EmailApplicationModule],
-    })
-      .overrideProvider(MAIL_SERVICE_TOKEN)
-      .useValue(mockMailService)
-      .compile();
+  it('binds the mail service token to the Zoho adapter', () => {
+    expect(providers).toContainEqual({
+      provide: MAIL_SERVICE_TOKEN,
+      useClass: ZohoMailAdapter,
+    });
   });
 
-  it('should be defined', () => {
-    expect(module).toBeDefined();
-  });
-
-  it('should provide SendAccountCreatedEmailUseCase', () => {
-    const useCase = module.get<SendAccountCreatedEmailUseCase>(
-      SendAccountCreatedEmailUseCase,
-    );
-    expect(useCase).toBeDefined();
-    expect(useCase).toBeInstanceOf(SendAccountCreatedEmailUseCase);
-  });
-
-  it('should provide SendResetPasswordEmailUseCase', () => {
-    const useCase = module.get<SendResetPasswordEmailUseCase>(
-      SendResetPasswordEmailUseCase,
-    );
-    expect(useCase).toBeDefined();
-    expect(useCase).toBeInstanceOf(SendResetPasswordEmailUseCase);
-  });
-
-  it('should provide SendPasswordChangedEmailUseCase', () => {
-    const useCase = module.get<SendPasswordChangedEmailUseCase>(
-      SendPasswordChangedEmailUseCase,
-    );
-    expect(useCase).toBeDefined();
-    expect(useCase).toBeInstanceOf(SendPasswordChangedEmailUseCase);
-  });
-
-  it('should export all use cases', () => {
-    const exports = Reflect.getMetadata('exports', EmailApplicationModule);
-    expect(exports).toContain(SendAccountCreatedEmailUseCase);
-    expect(exports).toContain(SendResetPasswordEmailUseCase);
-    expect(exports).toContain(SendPasswordChangedEmailUseCase);
-  });
+  it.each(useCases.map((useCase) => [useCase.name, useCase]))(
+    'provides and exports %s',
+    (_, useCase) => {
+      expect(providers).toContain(useCase);
+      expect(exports).toContain(useCase);
+    },
+  );
 });

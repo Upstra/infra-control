@@ -30,8 +30,9 @@ describe('CreateServerUseCase - vCenter validation', () => {
 
   beforeEach(() => {
     repo = {
-      save: jest.fn(),
+      save: jest.fn(async (entity) => ({ id: '123', ...entity })),
       findOneByField: jest.fn(),
+      findAll: jest.fn().mockResolvedValue([{ priority: 2 }, { priority: 4 }]),
     } as any;
 
     domain = new ServerDomainService();
@@ -90,17 +91,19 @@ describe('CreateServerUseCase - vCenter validation', () => {
 
       const testRoom = mockRoom({ id: dto.roomId, name: 'Test Room' });
       roomRepo.findRoomById.mockResolvedValue(testRoom);
-      repo.save.mockResolvedValue({
-        id: '123',
-        ...dto,
-        priority: null,
-        room: testRoom,
-      } as any);
 
       const result = await useCase.execute(dto, mockPayload.userId);
 
-      expect(repo.findOneByField).not.toHaveBeenCalled();
-      expect(result).toBeDefined();
+      // Only the single-vCenter rule is checked, not the priority uniqueness.
+      expect(repo.findOneByField).toHaveBeenCalledTimes(1);
+      expect(repo.findOneByField).toHaveBeenCalledWith({
+        field: 'type',
+        value: 'vcenter',
+      });
+      // NOT NULL column: the vCenter takes the slot after every server.
+      expect(repo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ priority: 5 }),
+      );
       expect(result.id).toBe('123');
     });
 
@@ -114,17 +117,31 @@ describe('CreateServerUseCase - vCenter validation', () => {
 
       const testRoom = mockRoom({ id: dto.roomId, name: 'Test Room' });
       roomRepo.findRoomById.mockResolvedValue(testRoom);
-      repo.save.mockResolvedValue({
-        id: '123',
-        ...dto,
-        room: testRoom,
-      } as any);
 
       const result = await useCase.execute(dto, mockPayload.userId);
 
-      expect(repo.findOneByField).not.toHaveBeenCalled();
-      expect(result).toBeDefined();
+      expect(repo.findOneByField).toHaveBeenCalledTimes(1);
+      expect(repo.findOneByField).toHaveBeenCalledWith({
+        field: 'type',
+        value: 'vcenter',
+      });
+      expect(repo.findAll).not.toHaveBeenCalled();
       expect(result.priority).toBe(10);
+    });
+
+    it('refuses a second vCenter', async () => {
+      const dto = createMockServerCreationDto({
+        type: 'vcenter',
+        ilo: undefined,
+        upsId: undefined,
+      });
+      roomRepo.findRoomById.mockResolvedValue(mockRoom({ id: dto.roomId }));
+      repo.findOneByField.mockResolvedValueOnce({ id: 'vc-1' } as any);
+
+      await expect(useCase.execute(dto, mockPayload.userId)).rejects.toThrow(
+        /Only one vCenter is allowed/,
+      );
+      expect(repo.save).not.toHaveBeenCalled();
     });
 
     it('should not allow vCenter server with iLO configuration', async () => {

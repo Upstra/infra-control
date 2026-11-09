@@ -47,6 +47,8 @@ describe('CreateServerUseCase', () => {
     repo = {
       save: jest.fn(),
       findOneByField: jest.fn(),
+      // Read to place a vCenter without priority after every server.
+      findAll: jest.fn().mockResolvedValue([]),
     } as any;
 
     domain = new ServerDomainService();

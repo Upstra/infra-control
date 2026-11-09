@@ -52,7 +52,7 @@ describe('TwoFAController', () => {
     );
   });
 
-  it('should call get2FAStatus with user email', async () => {
+  it('sets no refresh cookie when verification returns no refresh token', async () => {
     const mockUser = createMockJwtPayload({
       email: 'john@example.com',
       userId: 'id123',
@@ -60,7 +60,11 @@ describe('TwoFAController', () => {
     const mockResponse = {
       cookie: jest.fn(),
     } as any;
+    verify2FAUseCase.execute.mockResolvedValueOnce({ isValid: false } as any);
+
     await controller.verify(mockUser, { code: '123456' }, mockResponse);
+
+    expect(mockResponse.cookie).not.toHaveBeenCalled();
   });
 
   it('should disable 2FA', async () => {

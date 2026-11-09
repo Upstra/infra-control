@@ -1,8 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
+import { isIP } from 'net';
 import { promisify } from 'util';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
+
+// RFC 1123 hostname. It can never start with '-' (no option injection) and
+// holds no shell metacharacter.
+const HOSTNAME_PATTERN =
+  /^(?=.{1,253}$)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+const PING_TIMEOUT_MS = 5000;
+
+export const isPingableHost = (host: string): boolean =>
+  typeof host === 'string' && (isIP(host) !== 0 || HOSTNAME_PATTERN.test(host));
 
 @Injectable()
 export class PingService {
@@ -57,19 +68,29 @@ export class PingService {
   }
 
   /**
-   * Perform ICMP ping using system ping command
+   * Perform an ICMP ping with the system `ping` binary.
+   *
+   * The target comes straight from the request URL: it is validated and passed
+   * as a separate argument through execFile (no shell), so a value such as
+   * `8.8.8.8;id` can never run a command.
    */
   private async performICMPPing(hostname: string): Promise<{
     success: boolean;
     error?: string;
   }> {
+    if (!isPingableHost(hostname)) {
+      return { success: false, error: 'Invalid hostname or IP address' };
+    }
+
     try {
       const isWindows = process.platform === 'win32';
-      const pingCommand = isWindows
-        ? `ping -n 1 -w 2000 ${hostname}`
-        : `ping -c 1 -W 2 ${hostname}`;
+      const args = isWindows
+        ? ['-n', '1', '-w', '2000', hostname]
+        : ['-c', '1', '-W', '2', hostname];
 
-      const { stdout, stderr } = await execAsync(pingCommand);
+      const { stdout, stderr } = await execFileAsync('ping', args, {
+        timeout: PING_TIMEOUT_MS,
+      });
 
       if (stderr) {
         return {

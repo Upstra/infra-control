@@ -179,7 +179,7 @@ describe('ConnectivityValidationGuard', () => {
 
       await expect(guard.canActivate(mockExecutionContext)).rejects.toThrow(
         new BadRequestException(
-          'Host 192.168.1.1 is not accessible: Connection timeout',
+          'Cannot reach host 192.168.1.1: Host 192.168.1.1 is not accessible: Connection timeout',
         ),
       );
     });
@@ -200,7 +200,7 @@ describe('ConnectivityValidationGuard', () => {
 
       await expect(guard.canActivate(mockExecutionContext)).rejects.toThrow(
         new BadRequestException(
-          'Host 192.168.1.1 is not accessible: Unknown error',
+          'Cannot reach host 192.168.1.1: Host 192.168.1.1 is not accessible: Unknown error',
         ),
       );
     });

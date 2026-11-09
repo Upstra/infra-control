@@ -61,8 +61,9 @@ export class GenerateMigrationPlanUseCase {
       adminUrl: vCenterServer.adminUrl,
     };
 
+    // Never log the config itself: it carries the vCenter password.
     this.logger.debug(
-      `Generating migration plan with vCenter config: ${JSON.stringify(vCenterConfig)} with a password length of ${vCenterServer.password?.length ?? 0}`,
+      `Generating migration plan for vCenter ${vCenterConfig.ip} (${servers.length} ESXi)`,
     );
 
     const serverWithUps = servers.find((server) => server.ups);

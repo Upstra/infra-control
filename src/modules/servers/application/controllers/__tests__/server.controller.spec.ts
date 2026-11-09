@@ -23,6 +23,7 @@ import { GetUserWithRoleUseCase } from '@/modules/users/application/use-cases';
 import { Reflector } from '@nestjs/core';
 import { ServerListResponseDto } from '../../dto/server.list.response.dto';
 import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
+import { GetUserServersWithMetricsUseCase, GetServersWithVmsUseCase } from '@/modules/servers/application/use-cases';
 
 describe('ServerController', () => {
   let controller: ServerController;
@@ -75,6 +76,9 @@ describe('ServerController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ServerController],
       providers: [
+        // Added to the controller after this spec was written.
+        { provide: GetUserServersWithMetricsUseCase, useValue: { execute: jest.fn() } },
+        { provide: GetServersWithVmsUseCase, useValue: { execute: jest.fn() } },
         {
           provide: EnrichServersWithHardwareUseCase,
           useValue: { execute: jest.fn(async (items) => items) },

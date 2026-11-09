@@ -28,6 +28,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           ? exceptionResponse
           : (exceptionResponse as any).message || exception.message;
     } else if (exception instanceof Error) {
+      // Plain errors thrown by use cases are client errors (see "fix: remove
+      // internal server error"). The status was never set here, so these
+      // responses went out with res.status(undefined).
+      status = HttpStatus.BAD_REQUEST;
       message = exception.message;
 
       if (process.env.NODE_ENV !== 'production') {

@@ -13,6 +13,8 @@ import {
   mockRoomResponseDto,
 } from '@/modules/rooms/__mocks__';
 import { createMockJwtPayload } from '@/core/__mocks__/jwt-payload.mock';
+import { RoleGuard } from '@/core/guards/role.guard';
+import { GetRoomTreeListUseCase } from '../use-cases/get-room-tree-list.use-case';
 
 describe('RoomController', () => {
   let controller: RoomController;
@@ -38,8 +40,15 @@ describe('RoomController', () => {
         { provide: CreateRoomUseCase, useValue: createRoomUseCase },
         { provide: UpdateRoomUseCase, useValue: updateRoomUseCase },
         { provide: DeleteRoomUseCase, useValue: deleteRoomUseCase },
+        // Added to the controller after this spec was written.
+        { provide: GetRoomTreeListUseCase, useValue: { execute: jest.fn() } },
       ],
-    }).compile();
+    })
+      // RoleGuard resolves the user's role from the database; role checks are
+      // covered by the guard's own spec, not by these controller tests.
+      .overrideGuard(RoleGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<RoomController>(RoomController);
   });

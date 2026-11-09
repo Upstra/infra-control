@@ -9,7 +9,16 @@ describe('ZohoMailAdapter', () => {
   let adapter: ZohoMailAdapter;
   let mockMailerService: jest.Mocked<MailerService>;
 
+  const env = { ...process.env };
+
+  afterEach(() => {
+    process.env = { ...env };
+  });
+
   beforeEach(async () => {
+    // The login link comes from FRONTEND_URL, with a fixed fallback.
+    delete process.env.FRONTEND_URL;
+    delete process.env.SUPPORT_EMAIL;
     mockMailerService = {
       sendMail: jest.fn(),
     } as any;
@@ -52,7 +61,7 @@ describe('ZohoMailAdapter', () => {
           name: 'John',
           logoUrl:
             'https://github.com/Upstra/.github/blob/dcd1f2dc99276f0fd22eea7b8dd7f35902c562cc/PA2025%20Upstra%20Logo.png?raw=true',
-          loginUrl: 'http://localhost:3000',
+          loginUrl: 'http://172.23.50.2',
           currentYear: new Date().getFullYear(),
           supportEmail: 'support@upstra.com',
         },
@@ -78,7 +87,7 @@ describe('ZohoMailAdapter', () => {
           message: 'Hello everyone',
           logoUrl:
             'https://github.com/Upstra/.github/blob/dcd1f2dc99276f0fd22eea7b8dd7f35902c562cc/PA2025%20Upstra%20Logo.png?raw=true',
-          loginUrl: 'http://localhost:3000',
+          loginUrl: 'http://172.23.50.2',
           currentYear: new Date().getFullYear(),
           supportEmail: 'support@upstra.com',
         },
@@ -153,7 +162,7 @@ describe('ZohoMailAdapter', () => {
         context: {
           logoUrl:
             'https://github.com/Upstra/.github/blob/dcd1f2dc99276f0fd22eea7b8dd7f35902c562cc/PA2025%20Upstra%20Logo.png?raw=true',
-          loginUrl: 'http://localhost:3000',
+          loginUrl: 'http://172.23.50.2',
           currentYear: new Date().getFullYear(),
           supportEmail: 'support@upstra.com',
         },
@@ -189,7 +198,7 @@ describe('ZohoMailAdapter', () => {
           ...dto.context,
           logoUrl:
             'https://github.com/Upstra/.github/blob/dcd1f2dc99276f0fd22eea7b8dd7f35902c562cc/PA2025%20Upstra%20Logo.png?raw=true',
-          loginUrl: 'http://localhost:3000',
+          loginUrl: 'http://172.23.50.2',
           currentYear: new Date().getFullYear(),
           supportEmail: 'support@upstra.com',
         },
@@ -304,8 +313,8 @@ describe('ZohoMailAdapter', () => {
       );
     });
 
-    it('should use APP_URL from environment when set', async () => {
-      process.env.APP_URL = 'https://app.example.com';
+    it('should use FRONTEND_URL from environment when set', async () => {
+      process.env.FRONTEND_URL = 'https://app.example.com';
 
       const dto = new SendEmailDto();
       dto.to = new EmailAddressVO('test@example.com');

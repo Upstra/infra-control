@@ -1,12 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PingService } from '../ping.service';
-import { promisify } from 'util';
+import { execFile } from 'child_process';
+import { PingService, isPingableHost } from '../ping.service';
 
-jest.mock('child_process');
-jest.mock('util', () => ({
-  ...jest.requireActual('util'),
-  promisify: jest.fn(() => jest.fn()),
-}));
+// The service runs `ping` through execFile (no shell). Each call is routed to
+// mockExecAsync(file, args, options), which resolves { stdout, stderr }.
+jest.mock('child_process', () => ({ execFile: jest.fn() }));
 
 describe('PingService', () => {
   let service: PingService;
@@ -15,7 +13,14 @@ describe('PingService', () => {
 
   beforeEach(async () => {
     mockExecAsync = jest.fn();
-    (promisify as unknown as jest.Mock).mockReturnValue(mockExecAsync);
+    (execFile as unknown as jest.Mock).mockImplementation(
+      (file, args, options, callback) => {
+        mockExecAsync(file, args, options).then(
+          (value: unknown) => callback(null, value),
+          (error: unknown) => callback(error),
+        );
+      },
+    );
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [PingService],
@@ -32,6 +37,38 @@ describe('PingService', () => {
     }
   });
 
+  // The target comes from the request URL (/ping/hostname/:hostname).
+  describe('command injection', () => {
+    it.each(['8.8.8.8;id', 'host && reboot', '$(whoami)', '`id`', '-c 99 host', 'a|b', ''])(
+      'refuses %p without running anything',
+      async (target) => {
+        const result = await service.pingHost(target);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Invalid hostname or IP address');
+        expect(execFile).not.toHaveBeenCalled();
+      },
+    );
+
+    it('passes the target as a separate argument, never through a shell', async () => {
+      mockExecAsync.mockResolvedValue({ stdout: '64 bytes from 1.1.1.1', stderr: '' });
+
+      await service.pingHost('example.com');
+
+      expect(mockExecAsync).toHaveBeenCalledWith(
+        'ping',
+        ['-c', '1', '-W', '2', 'example.com'],
+        expect.objectContaining({ timeout: 5000 }),
+      );
+    });
+
+    it('accepts IPv4, IPv6 and hostnames', () => {
+      ['192.168.1.1', '2001:db8::2', 'mock-ilo-1', 'vcenter.lab.local'].forEach(
+        (host) => expect(isPingableHost(host)).toBe(true),
+      );
+    });
+  });
+
   describe('pingHost', () => {
     it('should return success with response time for successful ping on Linux', async () => {
       mockExecAsync.mockResolvedValue({
@@ -46,7 +83,11 @@ describe('PingService', () => {
       expect(result.responseTime).toBeDefined();
       expect(result.responseTime).toBeGreaterThanOrEqual(0);
       expect(result.error).toBeUndefined();
-      expect(mockExecAsync).toHaveBeenCalledWith('ping -c 1 -W 2 example.com');
+      expect(mockExecAsync).toHaveBeenCalledWith(
+        'ping',
+        ['-c', '1', '-W', '2', 'example.com'],
+        expect.anything(),
+      );
     });
 
     it('should return success with response time for successful ping on Windows', async () => {
@@ -67,7 +108,9 @@ describe('PingService', () => {
       expect(result.responseTime).toBeDefined();
       expect(result.error).toBeUndefined();
       expect(mockExecAsync).toHaveBeenCalledWith(
-        'ping -n 1 -w 2000 example.com',
+        'ping',
+        ['-n', '1', '-w', '2000', 'example.com'],
+        expect.anything(),
       );
     });
 
@@ -118,7 +161,8 @@ describe('PingService', () => {
       const result = await service.pingHost('example.com');
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Unknown error occurred');
+      // Caught inside the ICMP step, which reports its own fallback message.
+      expect(result.error).toBe('Ping command failed');
     });
 
     it('should handle performICMPPing error with no message', async () => {
@@ -142,7 +186,11 @@ describe('PingService', () => {
 
       expect(result.success).toBe(true);
       expect(result.responseTime).toBeDefined();
-      expect(mockExecAsync).toHaveBeenCalledWith('ping -c 1 -W 2 2001:db8::2');
+      expect(mockExecAsync).toHaveBeenCalledWith(
+        'ping',
+        ['-c', '1', '-W', '2', '2001:db8::2'],
+        expect.anything(),
+      );
     });
 
     it('should handle localhost', async () => {

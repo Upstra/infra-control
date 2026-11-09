@@ -204,10 +204,12 @@ describe('LoggingInterceptor', () => {
 
       interceptor.intercept(mockExecutionContext, mockCallHandler).subscribe({
         next: (result) => {
+          // The response is passed through untouched, but only its keys are
+          // logged (no values: they may hold sensitive data).
           expect(result).toEqual(responseData);
           expect(logSpy).toHaveBeenCalledWith(
             expect.objectContaining({
-              result: responseData,
+              result: { keys: ['priority1', 'priority2'] },
             }),
           );
           done();

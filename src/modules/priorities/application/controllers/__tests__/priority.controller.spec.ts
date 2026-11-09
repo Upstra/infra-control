@@ -15,6 +15,7 @@ import {
   SwapServerResponseDto,
   SwapVmResponseDto,
 } from '../../dto';
+import { RoleGuard } from '@/core/guards/role.guard';
 
 describe('PriorityController', () => {
   let controller: PriorityController;
@@ -89,7 +90,12 @@ describe('PriorityController', () => {
           },
         },
       ],
-    }).compile();
+    })
+      // RoleGuard resolves the user's role from the database; role checks are
+      // covered by the guard's own spec, not by these controller tests.
+      .overrideGuard(RoleGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<PriorityController>(PriorityController);
     getServerPriorities = module.get(GetServerPrioritiesUseCase);
