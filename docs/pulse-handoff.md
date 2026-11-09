@@ -30,6 +30,8 @@ _Mis à jour le 04/11/2026, fin de session. Note de passation, à supprimer une 
 | `Upstra/mock_ilo` | `feature/ilo-health` → `feature/agpl-license`, mergés dans `flow` |
 | `infra-control_stack`, `infra-control_front`, `mock_vcsim` | rien touché |
 
+> **Mise à jour du 08/11/2026** : toutes ces branches de brief (plus `test/pulse-e2e`, `docs/frontend-integration` et `fix/migrations-baseline` ici, et les `feature/pulse-*` / `docs/pulse-briefs` du front) ont été **supprimées sur GitHub** après vérification qu'elles étaient entièrement contenues dans `flow`. Leur historique reste intact dans `flow` ; les noms ci-dessus ne pointent simplement plus vers une branche distante.
+
 ## Ce qui a été fait, brief par brief
 
 ### 01 — Télémétrie onduleur
@@ -156,7 +158,7 @@ _Mis à jour le 04/11/2026, fin de session. Note de passation, à supprimer une 
 ## Points d'attention
 
 - **Tests préexistants cassés sur `master` :** 51 suites et 261 tests en échec avant mon passage. Après le brief 07, on est toujours à 49 suites en échec, toutes préexistantes, et **aucune nouvelle suite cassée**. Quelques exemples : `ups.controller.spec` (signature de `pingUps`), les specs du contrôleur serveur (dépendance `RoleGuard`), et les specs email, iLO et vmware.service.
-- **`dump.rdb` dans l'historique** de `feature/vmware-telemetry` (commit `25c3173`) : c'est la sauvegarde du Redis de test, qui ne contient que des données de démo. Le force-push pour le retirer a été refusé, je l'ai donc supprimé dans le commit suivant et ajouté au `.gitignore`. Si tu veux un historique propre, il faut faire un rebase et un force-push toi-même.
+- **`dump.rdb` dans l'historique** de `flow` (commit `25c3173`, venu de l'ancienne branche `feature/vmware-telemetry`) : c'est la sauvegarde du Redis de test, qui ne contient que des données de démo. Le force-push pour le retirer a été refusé, je l'ai donc supprimé dans le commit suivant et ajouté au `.gitignore`. Si tu veux un historique propre, il faut faire un rebase et un force-push toi-même.
 - **Ports :** `VmwareConnectionService` force le port 443 (comportement existant, que je n'ai pas modifié).
 - **Variables d'env ajoutées** dans `.env.prod.example` :
   - onduleurs : `UPS_POLL_CRON`, `UPS_POLL_ON_BATTERY_SECONDS` ;

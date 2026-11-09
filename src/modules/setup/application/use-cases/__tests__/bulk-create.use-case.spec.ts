@@ -2,16 +2,25 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DataSource, QueryRunner } from 'typeorm';
 import { BadRequestException } from '@nestjs/common';
 import { BulkCreateUseCase } from '../bulk-create.use-case';
-import { CompleteSetupStepUseCase } from '../complete-setup-step.use-case';
-import { BulkCreateRequestDto, SetupStep } from '../../dto';
+import { BulkCreateRequestDto } from '../../dto';
 import { Room } from '../../../../rooms/domain/entities/room.entity';
 import { Ups } from '../../../../ups/domain/entities/ups.entity';
 import { Server } from '../../../../servers/domain/entities/server.entity';
 import { Ilo } from '../../../../ilos/domain/entities/ilo.entity';
 
+/**
+ * `manager.save(Entity, obj)` answers from a per-entity queue, so the test does
+ * not depend on the save order (rooms, UPS, then iLO before each server).
+ */
+const savesByEntity =
+  (queues: Map<unknown, any[]>) =>
+  async (entity: unknown, value: any) => {
+    const queue = queues.get(entity);
+    return queue?.length ? queue.shift() : { ...value, id: `${value?.name}-id` };
+  };
+
 describe('BulkCreateUseCase', () => {
   let useCase: BulkCreateUseCase;
-  let completeSetupStepUseCase: CompleteSetupStepUseCase;
   let queryRunner: QueryRunner;
 
   beforeEach(async () => {
@@ -21,8 +30,12 @@ describe('BulkCreateUseCase', () => {
       commitTransaction: jest.fn(),
       rollbackTransaction: jest.fn(),
       release: jest.fn(),
+      isTransactionActive: true,
       manager: {
         save: jest.fn(),
+        getRepository: jest.fn(() => ({
+          maximum: jest.fn().mockResolvedValue(null),
+        })),
       },
     } as any;
 
@@ -56,19 +69,10 @@ describe('BulkCreateUseCase', () => {
             findServerById: jest.fn(),
           },
         },
-        {
-          provide: CompleteSetupStepUseCase,
-          useValue: {
-            execute: jest.fn(),
-          },
-        },
       ],
     }).compile();
 
     useCase = module.get<BulkCreateUseCase>(BulkCreateUseCase);
-    completeSetupStepUseCase = module.get<CompleteSetupStepUseCase>(
-      CompleteSetupStepUseCase,
-    );
   });
 
   describe('execute', () => {
@@ -113,12 +117,15 @@ describe('BulkCreateUseCase', () => {
       const mockUps = { id: 'ups-uuid-1', name: 'UPS-01' } as Ups;
       const mockServer = { id: 'server-uuid-1', name: 'WEB-01' } as Server;
 
-      queryRunner.manager.save = jest
-        .fn()
-        .mockResolvedValueOnce(mockRoom1)
-        .mockResolvedValueOnce(mockRoom2)
-        .mockResolvedValueOnce(mockUps)
-        .mockResolvedValueOnce(mockServer);
+      queryRunner.manager.save = jest.fn(
+        savesByEntity(
+          new Map<unknown, any[]>([
+            [Room, [mockRoom1, mockRoom2]],
+            [Ups, [mockUps]],
+            [Server, [mockServer]],
+          ]),
+        ),
+      ) as any;
 
       const result = await useCase.execute(validRequest);
 
@@ -135,11 +142,6 @@ describe('BulkCreateUseCase', () => {
       expect(result.idMapping.rooms['temp_room_1']).toBe('room-uuid-1');
       expect(result.idMapping.rooms['temp_room_2']).toBe('room-uuid-2');
       expect(result.idMapping.ups['temp_ups_1']).toBe('ups-uuid-1');
-
-      expect(completeSetupStepUseCase.execute).toHaveBeenCalledWith(
-        SetupStep.REVIEW,
-        undefined,
-      );
     });
 
     it('should create server with ILO', async () => {
@@ -192,7 +194,6 @@ describe('BulkCreateUseCase', () => {
 
       expect(queryRunner.rollbackTransaction).toHaveBeenCalled();
       expect(queryRunner.release).toHaveBeenCalled();
-      expect(completeSetupStepUseCase.execute).not.toHaveBeenCalled();
     });
 
     it('should throw error if UPS missing required IP', async () => {
@@ -210,7 +211,7 @@ describe('BulkCreateUseCase', () => {
       };
 
       const mockRoom = { id: 'room-uuid-1', name: 'Room 1' } as Room;
-      queryRunner.manager.save = jest.fn().mockResolvedValueOnce(mockRoom);
+      queryRunner.manager.save = jest.fn().mockResolvedValue(mockRoom);
 
       await expect(useCase.execute(invalidRequest)).rejects.toThrow(
         BadRequestException,
@@ -266,11 +267,15 @@ describe('BulkCreateUseCase', () => {
       const mockUps = { id: 'ups-uuid-1', name: 'UPS-01' } as Ups;
       const mockServer = { id: 'server-uuid-1', name: 'WEB-01' } as Server;
 
-      queryRunner.manager.save = jest
-        .fn()
-        .mockResolvedValueOnce(mockRoom)
-        .mockResolvedValueOnce(mockUps)
-        .mockResolvedValueOnce(mockServer);
+      queryRunner.manager.save = jest.fn(
+        savesByEntity(
+          new Map<unknown, any[]>([
+            [Room, [mockRoom]],
+            [Ups, [mockUps]],
+            [Server, [mockServer]],
+          ]),
+        ),
+      ) as any;
 
       await useCase.execute(validRequest);
 
@@ -335,11 +340,15 @@ describe('BulkCreateUseCase', () => {
         ],
       };
 
-      queryRunner.manager.save = jest
-        .fn()
-        .mockResolvedValueOnce(mockRoom)
-        .mockResolvedValueOnce(mockUps)
-        .mockResolvedValueOnce(mockServer);
+      queryRunner.manager.save = jest.fn(
+        savesByEntity(
+          new Map<unknown, any[]>([
+            [Room, [mockRoom]],
+            [Ups, [mockUps]],
+            [Server, [mockServer]],
+          ]),
+        ),
+      ) as any;
 
       const result = await useCase.execute(frontendRequest);
 

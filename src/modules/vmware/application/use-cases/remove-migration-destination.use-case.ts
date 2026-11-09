@@ -56,6 +56,7 @@ export class RemoveMigrationDestinationUseCase {
       ip: vCenterServer.ip,
       user: vCenterServer.login,
       password: vCenterServer.password,
+      adminUrl: vCenterServer.adminUrl,
     };
 
     const serverWithUps = allServers.find((server) => server.ups);

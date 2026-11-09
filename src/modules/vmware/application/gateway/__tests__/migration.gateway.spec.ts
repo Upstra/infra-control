@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { JwtService } from '@nestjs/jwt';
 import { MigrationGateway } from '../migration.gateway';
 import { MigrationOrchestratorService } from '../../../domain/services/migration-orchestrator.service';
 import { Server, Socket } from 'socket.io';
@@ -19,9 +20,16 @@ describe('MigrationGateway', () => {
       emit: jest.fn(),
     } as any;
 
+    // Sockets authenticate with the access token sent in the handshake.
     mockClient = {
       id: 'test-client-id',
       emit: jest.fn(),
+      disconnect: jest.fn(),
+      handshake: {
+        auth: { token: 'valid-token' },
+        address: '127.0.0.1',
+        headers: { 'user-agent': 'jest' },
+      },
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -37,6 +45,10 @@ describe('MigrationGateway', () => {
             clearMigrationData: jest.fn(),
           },
         },
+        {
+          provide: JwtService,
+          useValue: { verify: jest.fn().mockReturnValue({ userId: 'user-1' }) },
+        },
       ],
     }).compile();
 
@@ -44,6 +56,8 @@ describe('MigrationGateway', () => {
     migrationOrchestrator = module.get(MigrationOrchestratorService);
 
     gateway.server = mockServer;
+    // Start / restart / cancel require a socket authenticated at connection.
+    (gateway as any).userSessions.set(mockClient.id, 'user-1');
   });
 
   describe('handleConnection', () => {
@@ -127,6 +141,8 @@ describe('MigrationGateway', () => {
 
       expect(migrationOrchestrator.executeMigrationPlan).toHaveBeenCalledWith(
         planPath,
+        'user-1',
+        expect.objectContaining({ correlationId: 'test-client-id' }),
       );
       expect(mockClient.emit).toHaveBeenCalledWith('migration:started', {
         success: true,
@@ -236,6 +252,8 @@ describe('MigrationGateway', () => {
       const mockClient2 = {
         id: 'test-client-id-2',
         emit: jest.fn(),
+        disconnect: jest.fn(),
+        handshake: { auth: { token: 'valid-token' } },
       } as any;
 
       migrationOrchestrator.getMigrationStatus.mockResolvedValue({
@@ -283,6 +301,8 @@ describe('MigrationGateway', () => {
 
       expect(migrationOrchestrator.executeMigrationPlan).toHaveBeenCalledWith(
         '',
+        'user-1',
+        expect.objectContaining({ correlationId: 'test-client-id' }),
       );
     });
 

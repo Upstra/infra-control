@@ -92,7 +92,10 @@ describe('IloPowerController', () => {
         headers: {
           'user-agent': 'jest-test',
         },
-      };
+        // The controller builds its request context through Express' req.get().
+        get: (header: string) =>
+          header.toLowerCase() === 'user-agent' ? 'jest-test' : undefined,
+      } as any;
 
       controlServerPowerUseCase.execute.mockResolvedValue(expectedResult);
 
@@ -145,7 +148,10 @@ describe('IloPowerController', () => {
         headers: {
           'user-agent': 'jest-test',
         },
-      };
+        // The controller builds its request context through Express' req.get().
+        get: (header: string) =>
+          header.toLowerCase() === 'user-agent' ? 'jest-test' : undefined,
+      } as any;
 
       controlServerPowerUseCase.execute.mockResolvedValue(expectedResult);
 
@@ -192,7 +198,10 @@ describe('IloPowerController', () => {
         headers: {
           'user-agent': 'jest-test',
         },
-      };
+        // The controller builds its request context through Express' req.get().
+        get: (header: string) =>
+          header.toLowerCase() === 'user-agent' ? 'jest-test' : undefined,
+      } as any;
 
       await expect(
         controller.controlServerPower('server-1', dto, mockUser, mockReq),

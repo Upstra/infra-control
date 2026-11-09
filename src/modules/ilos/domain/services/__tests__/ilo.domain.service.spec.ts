@@ -69,7 +69,9 @@ describe('IloDomainService', () => {
       expect(result.password).toBe('newPassword');
     });
 
-    it('should update password when explicitly set to null', () => {
+    // A null password must not wipe the stored iLO secret (power actions would
+    // then fail); only an actual new value replaces it.
+    it('keeps the stored password when null is sent', () => {
       const ilo = new Ilo();
       ilo.name = 'oldName';
       ilo.ip = 'oldIp';
@@ -83,7 +85,7 @@ describe('IloDomainService', () => {
       const result = service.updateIloEntityFromDto(ilo, dto);
 
       expect(result).toBe(ilo);
-      expect(result.password).toBeNull();
+      expect(result.password).toBe('oldPassword');
     });
 
     it('should update all fields when all are provided', () => {

@@ -11,140 +11,114 @@ import { Ilo } from '../../../../ilos/domain/entities/ilo.entity';
 import { Ups } from '../../../../ups/domain/entities/ups.entity';
 import { YamlConfigService } from '@/core/services/yaml-config/application/yaml-config.service';
 
+/** A TypeORM query builder whose terminal call resolves to `result`. */
+const queryBuilder = (terminal: 'getRawOne' | 'getRawMany', result: unknown) => {
+  const qb: Record<string, jest.Mock> = {};
+  ['select', 'addSelect', 'where'].forEach(
+    (method) => (qb[method] = jest.fn(() => qb)),
+  );
+  qb[terminal] = jest.fn().mockResolvedValue(result);
+  return qb;
+};
+
+// The vCenter row comes from getRawOne() so the password column is selected.
+const vCenterRow = {
+  server_ip: '192.168.1.100',
+  server_login: 'admin',
+  server_password: 'password',
+  server_adminUrl: 'https://192.168.1.100',
+};
+
+const ups = { id: 'ups-1', grace_period_on: 30, grace_period_off: 10 } as Ups;
+
 describe('GenerateMigrationPlanWithDestinationUseCase', () => {
   let useCase: GenerateMigrationPlanWithDestinationUseCase;
   const mockServerRepository = {
-    findOne: jest.fn(),
-    findByIds: jest.fn(),
     find: jest.fn(),
     createQueryBuilder: jest.fn(),
   };
-
-  const mockVmRepository = {
-    find: jest.fn(),
-  };
-
-  const mockIloRepository = {
-    find: jest.fn(),
-    createQueryBuilder: jest.fn(),
-  };
-
-  const mockUpsRepository = {};
-
+  const mockVmRepository = { find: jest.fn() };
+  const mockIloRepository = { createQueryBuilder: jest.fn() };
   const mockYamlConfigService = {
     generateMigrationPlan: jest.fn(),
     writeMigrationPlan: jest.fn(),
   };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         GenerateMigrationPlanWithDestinationUseCase,
-        {
-          provide: getRepositoryToken(Server),
-          useValue: mockServerRepository,
-        },
-        {
-          provide: getRepositoryToken(Vm),
-          useValue: mockVmRepository,
-        },
-        {
-          provide: getRepositoryToken(Ilo),
-          useValue: mockIloRepository,
-        },
-        {
-          provide: getRepositoryToken(Ups),
-          useValue: mockUpsRepository,
-        },
-        {
-          provide: YamlConfigService,
-          useValue: mockYamlConfigService,
-        },
+        { provide: getRepositoryToken(Server), useValue: mockServerRepository },
+        { provide: getRepositoryToken(Vm), useValue: mockVmRepository },
+        { provide: getRepositoryToken(Ilo), useValue: mockIloRepository },
+        { provide: getRepositoryToken(Ups), useValue: {} },
+        { provide: YamlConfigService, useValue: mockYamlConfigService },
       ],
     }).compile();
 
-    useCase = module.get<GenerateMigrationPlanWithDestinationUseCase>(
-      GenerateMigrationPlanWithDestinationUseCase,
+    useCase = module.get(GenerateMigrationPlanWithDestinationUseCase);
+
+    mockServerRepository.createQueryBuilder.mockReturnValue(
+      queryBuilder('getRawOne', vCenterRow),
     );
-    jest.clearAllMocks();
+    mockIloRepository.createQueryBuilder.mockReturnValue(
+      queryBuilder('getRawMany', [
+        {
+          ilo_id: 'ilo-1',
+          ilo_ip: '10.0.0.11',
+          ilo_login: 'admin',
+          ilo_password: 'secret',
+        },
+      ]),
+    );
+    mockYamlConfigService.generateMigrationPlan.mockResolvedValue('yaml-content');
+    mockYamlConfigService.writeMigrationPlan.mockResolvedValue('/path/to/file');
   });
 
   describe('execute', () => {
-    it('should generate migration plan with destinations', async () => {
-      const vCenterServer: Server = {
-        id: 'vcenter-1',
-        type: 'vcenter',
-        ip: '192.168.1.100',
-        login: 'admin',
-        password: 'password',
-      } as Server;
-
-      const destinations: MigrationDestination[] = [
-        { sourceServerId: 'esxi-1', destinationServerId: 'esxi-2' },
-      ];
-
-      const servers: Server[] = [
-        {
-          id: 'esxi-1',
-          type: 'esxi',
-          name: 'ESXi-1',
-          priority: 1,
-        } as Server,
-        {
-          id: 'esxi-2',
-          type: 'esxi',
-          name: 'ESXi-2',
-          priority: 2,
-        } as Server,
-      ];
-
-      const vms: Vm[] = [
-        {
-          id: 'vm-1',
-          serverId: 'esxi-1',
-          moid: 'vm-moid-1',
-          priority: 1,
-        } as Vm,
-      ];
-
-      const ilos: Ilo[] = [];
-
-      mockServerRepository.findOne.mockResolvedValue(vCenterServer);
-      mockServerRepository.findByIds.mockResolvedValue(servers);
+    it('generates the plan with destinations, iLOs, vCenter and UPS grace periods', async () => {
+      const servers = [
+        { id: 'esxi-1', type: 'esxi', name: 'ESXi-1', priority: 1, ups },
+        { id: 'esxi-2', type: 'esxi', name: 'ESXi-2', priority: 2, ups },
+      ] as Server[];
+      const vms = [
+        { id: 'vm-1', serverId: 'esxi-1', moid: 'vm-moid-1', priority: 1 },
+      ] as Vm[];
+      mockServerRepository.find.mockResolvedValue(servers);
       mockVmRepository.find.mockResolvedValue(vms);
-      mockIloRepository.find.mockResolvedValue(ilos);
-      mockYamlConfigService.generateMigrationPlan.mockResolvedValue(
-        'yaml-content',
-      );
-      mockYamlConfigService.writeMigrationPlan.mockResolvedValue(
-        '/path/to/file',
-      );
 
-      await useCase.execute(destinations);
-
-      expect(mockServerRepository.findOne).toHaveBeenCalledWith({
-        where: { type: 'vcenter' },
-      });
-      expect(mockServerRepository.findByIds).toHaveBeenCalledWith([
-        'esxi-1',
-        'esxi-2',
+      await useCase.execute([
+        { sourceServerId: 'esxi-1', destinationServerId: 'esxi-2' },
       ]);
+
+      expect(mockServerRepository.find).toHaveBeenCalledWith({
+        where: [{ id: 'esxi-1' }, { id: 'esxi-2' }],
+        relations: ['ups'],
+      });
       expect(mockVmRepository.find).toHaveBeenCalledWith({
         where: [{ serverId: 'esxi-1' }],
         order: { serverId: 'ASC', priority: 'ASC' },
       });
 
-      expect(mockYamlConfigService.generateMigrationPlan).toHaveBeenCalledWith(
-        [servers[0]],
-        vms,
-        expect.any(Map),
-        {
-          ip: '192.168.1.100',
-          user: 'admin',
-          password: 'password',
-        },
-        expect.any(Map),
-      );
+      const [sources, planVms, ilos, vCenter, upsConfig, destinations] =
+        mockYamlConfigService.generateMigrationPlan.mock.calls[0];
+      expect(sources).toEqual([servers[0]]);
+      expect(planVms).toBe(vms);
+      expect(ilos.get('ilo-1')).toEqual({
+        id: 'ilo-1',
+        ip: '10.0.0.11',
+        login: 'admin',
+        password: 'secret',
+      });
+      expect(vCenter).toEqual({
+        ip: '192.168.1.100',
+        user: 'admin',
+        password: 'password',
+        adminUrl: 'https://192.168.1.100',
+      });
+      expect(upsConfig).toEqual({ shutdownGrace: 10, restartGrace: 30 });
+      expect(destinations.get('esxi-1')).toBe(servers[1]);
 
       expect(mockYamlConfigService.writeMigrationPlan).toHaveBeenCalledWith(
         'migration.yml',
@@ -152,69 +126,56 @@ describe('GenerateMigrationPlanWithDestinationUseCase', () => {
       );
     });
 
-    it('should throw NotFoundException when vCenter server not found', async () => {
-      mockServerRepository.findOne.mockResolvedValue(null);
-
-      const destinations: MigrationDestination[] = [
-        { sourceServerId: 'esxi-1', destinationServerId: 'esxi-2' },
-      ];
-
-      await expect(useCase.execute(destinations)).rejects.toThrow(
-        new NotFoundException('vCenter server not found in database'),
+    it('throws NotFoundException when no vCenter is in the database', async () => {
+      mockServerRepository.createQueryBuilder.mockReturnValue(
+        queryBuilder('getRawOne', undefined),
       );
+
+      await expect(
+        useCase.execute([{ sourceServerId: 'esxi-1', destinationServerId: 'esxi-2' }]),
+      ).rejects.toThrow(new NotFoundException('vCenter server not found in database'));
     });
 
-    it('should filter out non-esxi servers', async () => {
-      const vCenterServer: Server = {
-        id: 'vcenter-1',
-        type: 'vcenter',
-        ip: '192.168.1.100',
-        login: 'admin',
-        password: 'password',
-      } as Server;
+    it('throws NotFoundException when the vCenter has no password', async () => {
+      mockServerRepository.createQueryBuilder.mockReturnValue(
+        queryBuilder('getRawOne', { ...vCenterRow, server_password: null }),
+      );
 
-      const destinations: MigrationDestination[] = [
-        { sourceServerId: 'esxi-1', destinationServerId: 'vcenter-2' },
-      ];
+      await expect(
+        useCase.execute([{ sourceServerId: 'esxi-1' }]),
+      ).rejects.toThrow(/password not found/);
+    });
 
-      const servers: Server[] = [
-        {
-          id: 'esxi-1',
-          type: 'esxi',
-          name: 'ESXi-1',
-          priority: 1,
-        } as Server,
-        {
-          id: 'vcenter-2',
-          type: 'vcenter',
-          name: 'vCenter-2',
-          priority: 2,
-        } as Server,
-      ];
-
-      mockServerRepository.findOne.mockResolvedValue(vCenterServer);
-      mockServerRepository.findByIds.mockResolvedValue(servers);
+    it('requires a UPS on the source servers', async () => {
+      mockServerRepository.find.mockResolvedValue([
+        { id: 'esxi-1', type: 'esxi', name: 'ESXi-1', priority: 1 },
+      ]);
       mockVmRepository.find.mockResolvedValue([]);
-      mockIloRepository.find.mockResolvedValue([]);
-      mockYamlConfigService.generateMigrationPlan.mockResolvedValue(
-        'yaml-content',
-      );
-      mockYamlConfigService.writeMigrationPlan.mockResolvedValue(
-        '/path/to/file',
-      );
 
-      await useCase.execute(destinations);
-
-      expect(mockYamlConfigService.generateMigrationPlan).toHaveBeenCalledWith(
-        [servers[0]],
-        [],
-        expect.any(Map),
-        expect.any(Object),
-        new Map(),
-      );
+      await expect(
+        useCase.execute([{ sourceServerId: 'esxi-1' }]),
+      ).rejects.toThrow(/No UPS found/);
     });
 
-    it('should throw BadRequestException for duplicate source servers', async () => {
+    it('ignores a vCenter given as destination', async () => {
+      const servers = [
+        { id: 'esxi-1', type: 'esxi', name: 'ESXi-1', priority: 1, ups },
+        { id: 'vcenter-2', type: 'vcenter', name: 'vCenter-2', priority: 2 },
+      ] as Server[];
+      mockServerRepository.find.mockResolvedValue(servers);
+      mockVmRepository.find.mockResolvedValue([]);
+
+      await useCase.execute([
+        { sourceServerId: 'esxi-1', destinationServerId: 'vcenter-2' },
+      ]);
+
+      const [sources, , , , , destinations] =
+        mockYamlConfigService.generateMigrationPlan.mock.calls[0];
+      expect(sources).toEqual([servers[0]]);
+      expect(destinations.size).toBe(0);
+    });
+
+    it('rejects duplicate source servers', async () => {
       const destinations: MigrationDestination[] = [
         { sourceServerId: 'esxi-1', destinationServerId: 'esxi-2' },
         { sourceServerId: 'esxi-1', destinationServerId: 'esxi-3' },
@@ -227,12 +188,10 @@ describe('GenerateMigrationPlanWithDestinationUseCase', () => {
       );
     });
 
-    it('should throw BadRequestException for same source and destination', async () => {
-      const destinations: MigrationDestination[] = [
-        { sourceServerId: 'esxi-1', destinationServerId: 'esxi-1' },
-      ];
-
-      await expect(useCase.execute(destinations)).rejects.toThrow(
+    it('rejects the same server as source and destination', async () => {
+      await expect(
+        useCase.execute([{ sourceServerId: 'esxi-1', destinationServerId: 'esxi-1' }]),
+      ).rejects.toThrow(
         new BadRequestException(
           'Source and destination server cannot be the same',
         ),

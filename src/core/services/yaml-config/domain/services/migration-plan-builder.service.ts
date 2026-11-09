@@ -28,7 +28,8 @@ export class MigrationPlanBuilderService {
     );
 
     this.logger.debug(
-      `Building migration plan with ${serverConfigs.length} servers and vCenter config: ${JSON.stringify(vCenterConfig)} with a password length of ${vCenterConfig.password?.length ?? 0}`,
+      // The config holds the vCenter password: log its address only.
+      `Building migration plan with ${serverConfigs.length} servers for vCenter ${vCenterConfig.ip}:${vCenterConfig.port}`,
     );
 
     return {

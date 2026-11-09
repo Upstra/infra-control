@@ -67,10 +67,12 @@ describe('BulkCreateDto', () => {
       expect(errors[0].property).toBe('name');
     });
 
-    it('should fail validation with invalid IP', async () => {
+    // Hostnames (`mock-ups`) and URLs are valid on purpose for the demo stack;
+    // a value with spaces or illegal characters is not.
+    it('should fail validation with an invalid IP / hostname', async () => {
       const dto = plainToInstance(BulkUpsDto, {
         name: 'UPS-01',
-        ip: 'invalid-ip',
+        ip: 'not a host!',
         grace_period_on: 30,
         grace_period_off: 30,
       });

@@ -4,6 +4,7 @@ import {
   IsArray,
   IsNotEmpty,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
   IsUUID,
@@ -262,12 +263,14 @@ export class IdMappingDto {
     description: 'Map of temporary room IDs to room names',
     example: { temp_room_1: 'Server Room 1' },
   })
+  @IsObject()
   rooms: Record<string, string>;
 
   @ApiProperty({
     description: 'Map of temporary UPS IDs to UPS names',
     example: { temp_ups_1: 'UPS-01' },
   })
+  @IsObject()
   ups: Record<string, string>;
 }
 

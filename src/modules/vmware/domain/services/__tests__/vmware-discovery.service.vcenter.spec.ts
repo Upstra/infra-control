@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { VmwareDiscoveryService } from '../vmware-discovery.service';
 import { VmwareService } from '../vmware.service';
+import { VmwareConnectionService } from '../vmware-connection.service';
 import { VmwareDiscoveryGateway } from '../../../application/gateway/vmware-discovery.gateway';
 import { SaveDiscoveredVmsUseCase } from '../../../application/use-cases/save-discovered-vms.use-case';
 import { DiscoverySessionService } from '../discovery-session.service';
@@ -98,6 +99,8 @@ describe('VmwareDiscoveryService - vCenter Discovery', () => {
             listServers: jest.fn(),
           },
         },
+        // Real service: it only maps a Server to connection settings.
+        VmwareConnectionService,
         {
           provide: VmwareDiscoveryGateway,
           useValue: {
@@ -165,8 +168,8 @@ describe('VmwareDiscoveryService - vCenter Discovery', () => {
         port: 443,
       });
 
-      expect(saveDiscoveredVmsUseCase.execute).toHaveBeenCalledWith(
-        expect.arrayContaining([
+      expect(saveDiscoveredVmsUseCase.execute).toHaveBeenCalledWith({
+        vms: expect.arrayContaining([
           expect.objectContaining({
             name: 'UPS-WEBSRV02',
             serverId: 'esxi-2',
@@ -180,7 +183,7 @@ describe('VmwareDiscoveryService - vCenter Discovery', () => {
             esxiHostMoid: 'host-14',
           }),
         ]),
-      );
+      });
 
       expect(result).toEqual({
         totalVmsDiscovered: 2,
@@ -322,14 +325,14 @@ describe('VmwareDiscoveryService - vCenter Discovery', () => {
 
       // Should only discover VMs for ESXi server 2
       expect(result.totalVmsDiscovered).toBe(1);
-      expect(saveDiscoveredVmsUseCase.execute).toHaveBeenCalledWith(
-        expect.arrayContaining([
+      expect(saveDiscoveredVmsUseCase.execute).toHaveBeenCalledWith({
+        vms: expect.arrayContaining([
           expect.objectContaining({
             name: 'UPS-WEBSRV02',
             serverId: 'esxi-2',
           }),
         ]),
-      );
+      });
     });
 
     it('should handle save failures gracefully', async () => {
@@ -376,7 +379,8 @@ describe('VmwareDiscoveryService - vCenter Discovery', () => {
         sessionId,
       );
 
-      expect(saveDiscoveredVmsUseCase.execute).toHaveBeenCalledWith([
+      expect(saveDiscoveredVmsUseCase.execute).toHaveBeenCalledWith({
+        vms: [
         {
           moid: 'vm-1007',
           name: 'UPS-WEBSRV02',
@@ -389,7 +393,8 @@ describe('VmwareDiscoveryService - vCenter Discovery', () => {
           serverName: 'ESXi Server 2',
           esxiHostMoid: 'host-24',
         },
-      ]);
+        ],
+      });
     });
   });
 });

@@ -57,7 +57,7 @@ describe('IloPowerService', () => {
         currentStatus: IloServerStatus.ON,
       });
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'server_start.py',
+        'server_start.sh',
         [
           '--ip',
           '192.168.1.100',
@@ -89,7 +89,7 @@ describe('IloPowerService', () => {
         currentStatus: IloServerStatus.OFF,
       });
       expect(pythonExecutor.executePython).toHaveBeenCalledWith(
-        'server_stop.py',
+        'server_stop.sh',
         [
           '--ip',
           '192.168.1.100',

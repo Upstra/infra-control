@@ -5,6 +5,7 @@ import { RemoveMigrationDestinationUseCase } from '../remove-migration-destinati
 import { Server } from '../../../../servers/domain/entities/server.entity';
 import { Vm } from '../../../../vms/domain/entities/vm.entity';
 import { Ilo } from '../../../../ilos/domain/entities/ilo.entity';
+import { Ups } from '../../../../ups/domain/entities/ups.entity';
 import { YamlConfigService } from '@/core/services/yaml-config/application/yaml-config.service';
 
 describe('RemoveMigrationDestinationUseCase', () => {
@@ -20,6 +21,12 @@ describe('RemoveMigrationDestinationUseCase', () => {
 
   const mockIloRepository = {
     find: jest.fn(),
+  };
+
+  // The plan now carries the UPS grace periods.
+  const mockUpsRepository = {
+    find: jest.fn().mockResolvedValue([]),
+    findOne: jest.fn().mockResolvedValue(null),
   };
 
   const mockYamlConfigService = {
@@ -44,6 +51,10 @@ describe('RemoveMigrationDestinationUseCase', () => {
           useValue: mockIloRepository,
         },
         {
+          provide: getRepositoryToken(Ups),
+          useValue: mockUpsRepository,
+        },
+        {
           provide: YamlConfigService,
           useValue: mockYamlConfigService,
         },
@@ -60,10 +71,12 @@ describe('RemoveMigrationDestinationUseCase', () => {
   describe('execute', () => {
     it('should remove migration destination successfully', async () => {
       const sourceServerId = 'server-1';
+      // The plan needs the UPS grace periods of the servers it shuts down.
       const sourceServer: Server = {
         id: sourceServerId,
         type: 'esxi',
         name: 'ESXi-1',
+        ups: { grace_period_on: 30, grace_period_off: 10 },
       } as Server;
 
       const vCenterServer: Server = {
@@ -107,7 +120,9 @@ describe('RemoveMigrationDestinationUseCase', () => {
           ip: '192.168.1.100',
           user: 'admin',
           password: 'password',
+          adminUrl: undefined,
         },
+        { shutdownGrace: 10, restartGrace: 30 },
         new Map(),
       );
       expect(mockYamlConfigService.writeMigrationPlan).toHaveBeenCalledWith(

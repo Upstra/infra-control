@@ -58,6 +58,7 @@ export class GenerateMigrationPlanUseCase {
       ip: vCenterServer.ip,
       user: vCenterServer.login,
       password: vCenterServer.password,
+      adminUrl: vCenterServer.adminUrl,
     };
 
     this.logger.debug(

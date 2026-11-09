@@ -30,19 +30,25 @@ export class YamlConfigService implements IYamlConfigService {
       string,
       Ilo | { id: string; ip: string; login: string; password: string }
     >,
-    vCenterConfig: { ip: string; user: string; password: string },
+    vCenterConfig: {
+      ip: string;
+      user: string;
+      password: string;
+      port?: number;
+      adminUrl?: string | null;
+    },
     upsConfig: UpsConfig,
     destinationServers?: Map<string, Server>,
   ): Promise<string> {
+    const { adminUrl, ...connection } = vCenterConfig;
     const config: VCenterConfig = {
-      ...vCenterConfig,
-      port:
-        (vCenterConfig as any).port ??
-        extractPortFromAdminUrl((vCenterConfig as any).adminUrl, 443),
+      ...connection,
+      port: vCenterConfig.port ?? extractPortFromAdminUrl(adminUrl ?? undefined, 443),
     };
 
+    // Never log the password (it used to be dumped with the whole config).
     this.logger.debug(
-      `Generating migration plan with vcenter config: ${JSON.stringify(config)} with a password length of ${vCenterConfig.password?.length ?? 0}`,
+      `Generating migration plan for vCenter ${config.ip}:${config.port} as ${config.user}`,
     );
 
     const migrationPlan = this.planBuilder.buildMigrationPlan(
@@ -59,7 +65,7 @@ export class YamlConfigService implements IYamlConfigService {
 
   generateMigrationPlanContent(config: MigrationPlanConfig): string {
     this.logger.debug(
-      `Generating migration plan content with Vcenter config: ${JSON.stringify(config.vCenter)}`,
+      `Generating migration plan content for vCenter ${config.vCenter.ip}:${config.vCenter.port}`,
     );
     return this.yamlParser.generateYaml(config);
   }
