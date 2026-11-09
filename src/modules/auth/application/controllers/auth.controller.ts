@@ -26,6 +26,10 @@ import { LoginResponseDto } from '../dto';
 import { AuthRateLimitGuard } from '@/core/guards/rate-limit.guard';
 import { RequestContextDto } from '@/core/dto';
 import { PasswordResetRateLimitGuard } from '@/core/guards/password-reset-rate-limit.guard';
+import {
+  REFRESH_TOKEN_COOKIE,
+  refreshTokenCookieOptions,
+} from '../refresh-token-cookie';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -68,12 +72,11 @@ export class AuthController {
         return response;
       }
 
-      res.cookie('refreshToken', response.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-      });
+      res.cookie(
+        REFRESH_TOKEN_COOKIE,
+        response.refreshToken,
+        refreshTokenCookieOptions(),
+      );
       return { accessToken: response.accessToken };
     });
   }
@@ -101,12 +104,11 @@ export class AuthController {
     return this.registerUseCase
       .execute(dto, requestContext)
       .then(({ accessToken, refreshToken }) => {
-        res.cookie('refreshToken', refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production-https',
-          sameSite: 'lax',
-          path: '/',
-        });
+        res.cookie(
+        REFRESH_TOKEN_COOKIE,
+        refreshToken,
+        refreshTokenCookieOptions(),
+      );
         return { accessToken };
       });
   }
@@ -130,19 +132,20 @@ export class AuthController {
 
     const { accessToken, refreshToken: newRefreshToken } =
       await this.renewTokenUseCase.execute(refreshToken);
-    res.cookie('refreshToken', newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-    });
+    res.cookie(
+        REFRESH_TOKEN_COOKIE,
+        newRefreshToken,
+        refreshTokenCookieOptions(),
+      );
     return { accessToken };
   }
 
   @Post('logout')
   @ApiResponse({ status: 200, description: 'Déconnexion réussie' })
   logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('refreshToken', { path: '/' });
+    res.clearCookie(REFRESH_TOKEN_COOKIE, {
+      path: refreshTokenCookieOptions().path,
+    });
     return { message: 'Déconnexion réussie' };
   }
 

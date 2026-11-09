@@ -30,6 +30,10 @@ import { Disable2FAUseCase } from '../use-cases/disable-2fa.use-case';
 import { InvalidQueryExceptionFilter } from '@/core/filters/invalid-query.exception.filter';
 import { Verify2FARecoveryUseCase } from '../use-cases';
 import { AuthRateLimitGuard } from '@/core/guards/rate-limit.guard';
+import {
+  REFRESH_TOKEN_COOKIE,
+  refreshTokenCookieOptions,
+} from '../refresh-token-cookie';
 
 @ApiTags('2FA')
 @Controller('auth/2fa')
@@ -87,12 +91,11 @@ export class TwoFAController {
     const result = await this.verify2FAUseCase.execute(user, dto);
     
     if (result.refreshToken) {
-      res.cookie('refreshToken', result.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-      });
+      res.cookie(
+        REFRESH_TOKEN_COOKIE,
+        result.refreshToken,
+        refreshTokenCookieOptions(),
+      );
     }
     
     return result;
@@ -131,12 +134,11 @@ export class TwoFAController {
     const result = await this.verify2FARecoveryUseCase.execute(user, dto);
     
     if (result.refreshToken) {
-      res.cookie('refreshToken', result.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-      });
+      res.cookie(
+        REFRESH_TOKEN_COOKIE,
+        result.refreshToken,
+        refreshTokenCookieOptions(),
+      );
     }
     
     return result;

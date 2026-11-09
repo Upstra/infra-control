@@ -105,7 +105,7 @@ Vrais problèmes trouvés en route :
 
 Tests alignés sur des choix voulus du code (vérifiés dans l'historique) : endpoints `priorities` réservés aux admins donc sans filtrage par permission, swap de priorités en transaction qui régénère le plan, cookie de refresh en `path: '/'` / `sameSite: 'lax'`, ping UPS sur l'IP enregistrée (plus celle du corps de requête), logs de réponse limités aux clés, scripts lancés via leur `.sh`, lien de connexion des emails via `FRONTEND_URL`. Les specs de modules email lisent maintenant les métadonnées au lieu de compiler toute l'application (qui exigeait une base).
 
-**Point à trancher** : le cookie de refresh est `secure` si `NODE_ENV === 'production'` pour login / refresh / 2FA, mais `'production-https'` pour `register`. Selon que la prod tourne en HTTP ou en HTTPS, l'un des deux est faux ; non modifié.
+**Cookie de refresh** : la prod tourne en HTTPS. `register` testait `NODE_ENV === 'production-https'` et envoyait donc son cookie sans `secure` en production. Les 5 endroits qui posent le cookie (login, register, refresh, 2FA verify et recovery) passent maintenant par `refreshTokenCookieOptions()` (`auth/application/refresh-token-cookie.ts`) : `secure` en production, `httpOnly`, `sameSite: 'lax'`, `path: '/'`.
 
 ## Tests
 
@@ -119,5 +119,4 @@ Base vide → wizard → import du seed → ping auto « Connecté » partout �
 
 ## Reste à faire
 
-- Trancher la condition `secure` du cookie de refresh (`production` vs `production-https`).
 - Page migration « Aucune salle » : corrigée côté front (voir `infra-control_front/docs/demo-flow-fixes.md`).
