@@ -49,6 +49,9 @@ export class PythonErrorInterceptor implements ExceptionFilter {
         status = HttpStatus.INTERNAL_SERVER_ERROR;
         message = 'Python script execution error';
       } else {
+        // Unrecognised script failure: still a server error, and the status
+        // must be set (it was left undefined).
+        status = HttpStatus.INTERNAL_SERVER_ERROR;
         message = exception.message;
       }
     } else {
