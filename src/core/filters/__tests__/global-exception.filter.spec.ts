@@ -77,9 +77,12 @@ describe('GlobalExceptionFilter', () => {
 
     filter.catch(exception, mockHost);
 
-    expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+    // Not even an Error: a genuine internal failure.
+    expect(mockResponse.status).toHaveBeenCalledWith(
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
     expect(mockResponse.json).toHaveBeenCalledWith({
-      statusCode: HttpStatus.BAD_REQUEST,
+      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       timestamp: expect.any(String),
       path: '/test-endpoint',
       message: 'Internal server error',

@@ -3,6 +3,20 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ServerController } from '../server.controller';
 import { GetServersWithVmsUseCase } from '../../use-cases/get-servers-with-vms.use-case';
 import { ServerWithVmsResponseDto } from '../../dto/server-with-vms.response.dto';
+import { RoleGuard } from '@/core/guards/role.guard';
+import { ResourcePermissionGuard } from '@/core/guards/ressource-permission.guard';
+import {
+  GetAllServersUseCase,
+  GetServerByIdUseCase,
+  CreateServerUseCase,
+  UpdateServerUseCase,
+  DeleteServerUseCase,
+  GetUserServersUseCase,
+  GetUserServersWithMetricsUseCase,
+  UpdateServerPriorityUseCase,
+  CheckServerPermissionUseCase,
+} from '../../use-cases';
+import { PingServerUseCase } from '../../use-cases/ping-server.use-case';
 
 describe('ServerController - light-with-vms endpoint', () => {
   let controller: ServerController;
@@ -33,18 +47,20 @@ describe('ServerController - light-with-vms endpoint', () => {
       execute: jest.fn(),
     };
 
-    // Mock all required dependencies
-    const mockUseCases = {
-      getAllServersUseCase: { execute: jest.fn() },
-      getServerByIdUseCase: { execute: jest.fn() },
-      createServerUseCase: { execute: jest.fn() },
-      updateServerUseCase: { execute: jest.fn() },
-      deleteServerUseCase: { execute: jest.fn() },
-      getUserServersUseCase: { execute: jest.fn() },
-      updateServerPriorityUseCase: { execute: jest.fn() },
-      checkServerPermissionUseCase: { execute: jest.fn() },
-      pingServerUseCase: { execute: jest.fn() },
-    };
+    // Every other controller dependency, provided by class (string keys such
+    // as 'getAllServersUseCase' never matched the injection tokens).
+    const otherUseCases = [
+      GetAllServersUseCase,
+      GetServerByIdUseCase,
+      CreateServerUseCase,
+      UpdateServerUseCase,
+      DeleteServerUseCase,
+      GetUserServersUseCase,
+      GetUserServersWithMetricsUseCase,
+      UpdateServerPriorityUseCase,
+      CheckServerPermissionUseCase,
+      PingServerUseCase,
+    ];
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ServerController],
@@ -57,12 +73,19 @@ describe('ServerController - light-with-vms endpoint', () => {
           provide: GetServersWithVmsUseCase,
           useValue: mockGetServersWithVmsUseCase,
         },
-        ...Object.entries(mockUseCases).map(([key, value]) => ({
-          provide: key,
-          useValue: value,
+        ...otherUseCases.map((useCase) => ({
+          provide: useCase,
+          useValue: { execute: jest.fn() },
         })),
       ],
-    }).compile();
+    })
+      // RoleGuard resolves the user's role from the database; role checks are
+      // covered by the guard's own spec, not by these controller tests.
+      .overrideGuard(RoleGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(ResourcePermissionGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<ServerController>(ServerController);
     getServersWithVmsUseCase = module.get(GetServersWithVmsUseCase);

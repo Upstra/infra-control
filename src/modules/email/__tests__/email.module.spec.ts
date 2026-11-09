@@ -1,23 +1,27 @@
-import { Test } from '@nestjs/testing';
 import { EmailModule } from '../email.module';
+import { EmailApplicationModule } from '../application/email-application.module';
+import { EmailInfrastructureModule } from '../infrastructure/email-infrastructure.module';
 import { EmailEventListener } from '../infrastructure/listeners/email-event.listener';
 
+/**
+ * Compiling EmailModule pulls the whole application graph (users → roles →
+ * servers → TypeORM…), which needs a real database. These checks read the
+ * module metadata instead: what it wires and what it exposes.
+ */
 describe('EmailModule', () => {
-  it('should compile the module', async () => {
-    const module = await Test.createTestingModule({
-      imports: [EmailModule],
-    }).compile();
+  const metadata = (key: string) => Reflect.getMetadata(key, EmailModule);
 
-    expect(module).toBeDefined();
+  it('imports the email infrastructure and application layers', () => {
+    expect(metadata('imports')).toEqual(
+      expect.arrayContaining([EmailInfrastructureModule, EmailApplicationModule]),
+    );
   });
 
-  it('should provide EmailEventListener', async () => {
-    const module = await Test.createTestingModule({
-      imports: [EmailModule],
-    }).compile();
+  it('registers the email event listener', () => {
+    expect(metadata('providers')).toContain(EmailEventListener);
+  });
 
-    const listener = module.get(EmailEventListener);
-    expect(listener).toBeDefined();
-    expect(listener).toBeInstanceOf(EmailEventListener);
+  it('exposes the application module to its importers', () => {
+    expect(metadata('exports')).toContain(EmailApplicationModule);
   });
 });

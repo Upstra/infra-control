@@ -85,9 +85,7 @@ describe('Role Exceptions', () => {
     it('should create RoleNotFoundException via roleNotFound', () => {
       const exception = new RoleNotFoundException();
       expect(exception).toBeInstanceOf(RoleNotFoundException);
-      expect(exception.message).toBe(
-        'Role with ID One or more roles not found not found',
-      );
+      expect(exception.message).toBe('One or more roles not found');
       expect(exception.name).toBe('RoleNotFoundException');
     });
 

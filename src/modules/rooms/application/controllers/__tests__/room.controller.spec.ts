@@ -10,6 +10,7 @@ import {
   GetRoomTreeListUseCase,
 } from '../../use-cases';
 import { RoomTreeListResponseDto } from '../../dto/room-tree.dto';
+import { RoleGuard } from '@/core/guards/role.guard';
 
 describe('RoomController', () => {
   let controller: RoomController;
@@ -62,7 +63,12 @@ describe('RoomController', () => {
           },
         },
       ],
-    }).compile();
+    })
+      // RoleGuard resolves the user's role from the database; role checks are
+      // covered by the guard's own spec, not by these controller tests.
+      .overrideGuard(RoleGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<RoomController>(RoomController);
     getRoomTreeListUseCase = module.get(GetRoomTreeListUseCase);

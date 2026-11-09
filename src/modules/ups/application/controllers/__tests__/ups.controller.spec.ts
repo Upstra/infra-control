@@ -180,7 +180,6 @@ describe('UpsController', () => {
 
       expect(pingUpsUseCase.execute).toHaveBeenCalledWith(
         upsId,
-        pingDto.host,
         pingDto.timeout,
       );
       expect(result).toEqual(expectedResult);
@@ -203,7 +202,6 @@ describe('UpsController', () => {
 
       expect(pingUpsUseCase.execute).toHaveBeenCalledWith(
         upsId,
-        pingDto.host,
         undefined,
       );
       expect(result).toEqual(expectedResult);
@@ -226,7 +224,6 @@ describe('UpsController', () => {
 
       expect(pingUpsUseCase.execute).toHaveBeenCalledWith(
         upsId,
-        pingDto.host,
         undefined,
       );
       expect(result).toEqual(expectedResult);

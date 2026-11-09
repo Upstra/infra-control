@@ -72,8 +72,8 @@ describe('PythonExecutorService', () => {
       const result = await executionPromise;
 
       expect(spawn).toHaveBeenCalledWith(
-        'python3',
-        ['/home/upstra/ups_manager/test_script.py', '--arg1', 'value1'],
+        'bash',
+        ['/home/upstra/ups_manager/test_script.sh', '--arg1', 'value1'],
         expect.objectContaining({
           env: expect.any(Object),
         }),
@@ -146,8 +146,8 @@ describe('PythonExecutorService', () => {
       await executionPromise;
 
       expect(spawn).toHaveBeenCalledWith(
-        'python3',
-        ['/home/upstra/ups_manager/test_script.py'],
+        'bash',
+        ['/home/upstra/ups_manager/test_script.sh'],
         expect.objectContaining({
           env: expect.objectContaining(customEnv),
         }),
@@ -198,7 +198,7 @@ describe('PythonExecutorService', () => {
 
       expect(result).toBe(true);
       expect(fs.promises.access).toHaveBeenCalledWith(
-        '/home/upstra/ups_manager/test_script.py',
+        '/home/upstra/ups_manager/test_script.sh',
       );
     });
 
@@ -244,8 +244,8 @@ describe('PythonExecutorService', () => {
       await executionPromise;
 
       expect(spawn).toHaveBeenCalledWith(
-        'python3',
-        ['/home/upstra/ups_manager/test.py'],
+        'bash',
+        ['/home/upstra/ups_manager/test.sh'],
         expect.any(Object),
       );
     });

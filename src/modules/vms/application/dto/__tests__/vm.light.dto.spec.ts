@@ -2,9 +2,12 @@ import { validate } from 'class-validator';
 import { VmLightDto } from '../vm.light.dto';
 import { Vm } from '../../../domain/entities/vm.entity';
 
+// VmLightDto validates its id as a UUID.
+const VM_ID = '0a5c2f6e-3d4b-4a1e-8f2c-9b7d6e5a4c03';
+
 describe('VmLightDto', () => {
   const mockVm: Vm = {
-    id: 'vm-123',
+    id: VM_ID,
     name: 'Test VM',
     state: 'running',
     serverId: 'server-123',
@@ -45,7 +48,7 @@ describe('VmLightDto', () => {
 
       // Assert
       expect(dto).toEqual({
-        id: 'vm-123',
+        id: VM_ID,
         name: 'Test VM',
         state: 'running',
       });

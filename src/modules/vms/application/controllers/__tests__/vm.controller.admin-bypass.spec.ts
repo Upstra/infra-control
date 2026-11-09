@@ -19,6 +19,7 @@ import {
 } from '../../use-cases';
 import { Reflector } from '@nestjs/core';
 import { GetUserWithRoleUseCase } from '@/modules/users/application/use-cases/get-user-with-role.use-case';
+import { GetAllVmsWithMetricsUseCase, GetAllVmsAdminWithMetricsUseCase, GetVmByIdWithMetricsUseCase, GetVmListWithMetricsUseCase } from '@/modules/vms/application/use-cases';
 
 describe('VmController - Admin Bypass Tests', () => {
   let controller: VmController;
@@ -83,6 +84,11 @@ describe('VmController - Admin Bypass Tests', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [VmController],
       providers: [
+        // Added to the controller after this spec was written.
+        { provide: GetAllVmsWithMetricsUseCase, useValue: { execute: jest.fn() } },
+        { provide: GetAllVmsAdminWithMetricsUseCase, useValue: { execute: jest.fn() } },
+        { provide: GetVmByIdWithMetricsUseCase, useValue: { execute: jest.fn() } },
+        { provide: GetVmListWithMetricsUseCase, useValue: { execute: jest.fn() } },
         {
           provide: UpdateVmUseCase,
           useValue: updateVmUseCase,

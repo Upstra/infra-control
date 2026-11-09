@@ -9,6 +9,7 @@ import { CreateGroupDto } from '../../dto/create-group.dto';
 import { UpdateGroupDto } from '../../dto/update-group.dto';
 import { GroupQueryDto } from '../../dto/group-query.dto';
 import { GroupType } from '../../../domain/enums/group-type.enum';
+import { RoleGuard } from '@/core/guards/role.guard';
 
 describe('GroupController', () => {
   let controller: GroupController;
@@ -53,7 +54,12 @@ describe('GroupController', () => {
           },
         },
       ],
-    }).compile();
+    })
+      // RoleGuard resolves the user's role from the database; role checks are
+      // covered by the guard's own spec, not by these controller tests.
+      .overrideGuard(RoleGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<GroupController>(GroupController);
     createGroupUseCase = module.get(CreateGroupUseCase);

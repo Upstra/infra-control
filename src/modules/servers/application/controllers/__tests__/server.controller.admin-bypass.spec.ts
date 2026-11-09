@@ -19,6 +19,8 @@ import {
 } from '../../use-cases';
 import { Reflector } from '@nestjs/core';
 import { GetUserWithRoleUseCase } from '@/modules/users/application/use-cases/get-user-with-role.use-case';
+import { GetUserServersWithMetricsUseCase, GetServersWithVmsUseCase } from '@/modules/servers/application/use-cases';
+import { PingServerUseCase } from '@/modules/servers/application/use-cases/ping-server.use-case';
 
 describe('ServerController - Admin Bypass Tests', () => {
   let controller: ServerController;
@@ -66,6 +68,10 @@ describe('ServerController - Admin Bypass Tests', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ServerController],
       providers: [
+        // Added to the controller after this spec was written.
+        { provide: GetUserServersWithMetricsUseCase, useValue: { execute: jest.fn() } },
+        { provide: GetServersWithVmsUseCase, useValue: { execute: jest.fn() } },
+        { provide: PingServerUseCase, useValue: { execute: jest.fn() } },
         {
           provide: EnrichServersWithHardwareUseCase,
           useValue: { execute: jest.fn(async (items) => items) },

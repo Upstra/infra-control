@@ -75,8 +75,8 @@ describe('AuthController', () => {
         'ref',
         expect.objectContaining({
           httpOnly: true,
-          sameSite: 'strict',
-          path: '/auth/refresh',
+          sameSite: 'lax',
+          path: '/',
         }),
       );
       expect(result).toEqual({ accessToken: 'acc' });
@@ -149,8 +149,8 @@ describe('AuthController', () => {
       'ref',
       expect.objectContaining({
         httpOnly: true,
-        sameSite: 'strict',
-        path: '/auth/refresh',
+        sameSite: 'lax',
+        path: '/',
       }),
     );
     expect(result).toEqual({ accessToken: 'acc' });
@@ -171,8 +171,8 @@ describe('AuthController', () => {
       'newRef',
       expect.objectContaining({
         httpOnly: true,
-        sameSite: 'strict',
-        path: '/auth/refresh',
+        sameSite: 'lax',
+        path: '/',
       }),
     );
   });
@@ -194,7 +194,7 @@ describe('AuthController', () => {
       const result = await controller.logout(mockRes);
 
       expect(mockRes.clearCookie).toHaveBeenCalledWith('refreshToken', {
-        path: '/auth/refresh',
+        path: '/',
       });
       expect(result).toEqual({ message: 'Déconnexion réussie' });
     });

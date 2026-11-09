@@ -132,15 +132,18 @@ describe('GetDashboardFullStatsUseCase', () => {
     vmRepo.countByState.mockImplementation((state) =>
       state === 'UP' ? Promise.resolve(2) : Promise.resolve(0),
     );
+    // 3 of the 7 active wizard steps done; the deprecated CREATE_SERVER
+    // record must not count.
     progressRepo.findAll.mockResolvedValue([
       { step: SetupStep.WELCOME } as SetupProgress,
+      { step: SetupStep.RESOURCE_PLANNING } as SetupProgress,
+      { step: SetupStep.ROOMS_CONFIG } as SetupProgress,
       { step: SetupStep.CREATE_SERVER } as SetupProgress,
-      { step: SetupStep.CREATE_ROOM } as SetupProgress,
     ]);
 
     const result = await useCase.execute();
 
-    expect(result.setupProgress).toBe(60);
+    expect(result.setupProgress).toBe(43);
     expect(result.setupComplete).toBe(false);
     expect(result.serversDown).toBe(2);
     expect(result.vmsDown).toBe(0);
@@ -168,6 +171,6 @@ describe('GetDashboardFullStatsUseCase', () => {
     const result = await useCase.execute();
 
     expect(result.setupComplete).toBe(true);
-    expect(result.setupProgress).toBe(20);
+    expect(result.setupProgress).toBe(100);
   });
 });

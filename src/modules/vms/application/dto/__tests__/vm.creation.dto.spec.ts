@@ -16,6 +16,9 @@ describe('VmCreationDto', () => {
       login: 'admin',
       password: 'admin123',
       priority: 1,
+      // Required since the VM grace periods were added.
+      grace_period_on: 30,
+      grace_period_off: 30,
       serverId: crypto.randomUUID(),
       groupId: crypto.randomUUID(),
     });
