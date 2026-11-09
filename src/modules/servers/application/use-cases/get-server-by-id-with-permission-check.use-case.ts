@@ -60,23 +60,29 @@ export class GetServerByIdWithPermissionCheckUseCase {
       throw new ForbiddenException('User has no role assigned');
     }
 
-    const permissions = await PermissionResolver.resolveServerPermissions(
-      this.permissionRepo,
-      roleIds,
-    );
-
-    this.logger.debug(`User ${userId} has ${permissions.length} permissions`);
-
-    const permissionSet = new PermissionSet(permissions);
-    const readablePermissions = permissionSet.filterByBit(PermissionBit.READ);
-
-    const accessibleServerIds = readablePermissions.getAccessibleResourceIds();
-
-    if (!accessibleServerIds.includes(serverId)) {
-      this.logger.debug(
-        `User ${userId} does not have READ permission for server ${serverId}`,
+    // Admins read every server, as on the other server endpoints (a wizard
+    // setup grants them no per-server permission).
+    const isAdmin = user?.roles?.some((role) => role.isAdmin) ?? false;
+    if (!isAdmin) {
+      const permissions = await PermissionResolver.resolveServerPermissions(
+        this.permissionRepo,
+        roleIds,
       );
-      throw new ForbiddenException('Access denied to this server');
+
+      this.logger.debug(`User ${userId} has ${permissions.length} permissions`);
+
+      const permissionSet = new PermissionSet(permissions);
+      const readablePermissions = permissionSet.filterByBit(PermissionBit.READ);
+
+      const accessibleServerIds =
+        readablePermissions.getAccessibleResourceIds();
+
+      if (!accessibleServerIds.includes(serverId)) {
+        this.logger.debug(
+          `User ${userId} does not have READ permission for server ${serverId}`,
+        );
+        throw new ForbiddenException('Access denied to this server');
+      }
     }
 
     const server = await this.serverRepo.findOneByField({

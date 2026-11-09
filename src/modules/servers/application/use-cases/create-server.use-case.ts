@@ -130,6 +130,13 @@ export class CreateServerUseCase {
     }
 
     const entity = this.serverDomain.createServerEntityFromDto(dto, iloId);
+    // The column is NOT NULL but a vCenter may come without priority: give it
+    // the next free slot, after every server (it drives the ESXi shutdowns).
+    if (entity.priority === undefined || entity.priority === null) {
+      const servers = await this.serverRepository.findAll();
+      entity.priority =
+        Math.max(0, ...servers.map((s) => s.priority ?? 0)) + 1;
+    }
     const server = await this.serverRepository.save(entity);
 
     const user = await this.userRepository.findOneByField({
