@@ -86,7 +86,26 @@ Les 15 suites en échec de `setup`, `ilos` et `vmware` (68 tests) sont réparée
 
 Choix assumé : un mot de passe iLO `null` **ne remplace pas** le mot de passe enregistré (le test qui voulait l'effacer a été aligné sur le code).
 
-Résultat : `setup`, `ilos`, `vmware`, `yaml-config` → 98 suites vertes. Il reste **41 suites en échec ailleurs** dans le backend (`servers`, `priorities`, `email`, `auth`, `rooms`, `ping`…), toutes antérieures à cette session.
+Résultat : `setup`, `ilos`, `vmware`, `yaml-config` → 98 suites vertes.
+
+## Suite du 09/11 (bis) : toute la suite backend au vert
+
+Les 33 autres suites en échec (175 tests, antérieures à la session) sont réparées : **454 suites / 3 330 tests, 0 échec**, et `pnpm build` (typecheck des specs compris) passe.
+
+Pour lancer la suite complète sans saturer Docker : `pnpm jest --maxWorkers=3 --workerIdleMemoryLimit=600MB` (en `--runInBand`, la mémoire s'accumule et Jest est tué).
+
+Vrais problèmes trouvés en route :
+
+- **Injection de commande (critique)** : `PingService.performICMPPing` (`GET /ping/hostname/:hostname`, ouvert à tout utilisateur connecté) construisait `ping … ${hostname}` et l'exécutait dans un shell via `exec`. `8.8.8.8;id` exécutait `id` sur le serveur. Le ping passe désormais par `execFile('ping', [...])` (aucun shell), la cible est validée (IP ou nom d'hôte RFC 1123) et le processus a un timeout. Vérifié dans la démo : `127.0.0.1;touch /tmp/pwned` et `$(touch …)` → 400, aucun fichier créé. `core/services/ping` (spawn, sans shell) refuse en plus les cibles commençant par `-` (elles seraient lues comme options).
+- **Encore deux logs du secret vCenter** : `priorities/GenerateMigrationPlanUseCase` (mot de passe en clair) et `VmwareCacheService` (mot de passe chiffré). N'affichent plus que l'adresse.
+- **Statut HTTP indéfini** : `GlobalExceptionFilter` (toute `Error` non HTTP) et `PythonErrorInterceptor` (erreur de script non reconnue) répondaient `res.status(undefined)`. Désormais 400 pour une `Error` (intention du commit « remove internal server error »), 500 pour le reste.
+- **Progression du setup au dashboard** : divisée par toutes les valeurs de l'enum, étapes dépréciées comprises (un setup presque fini affichait 27 %). Calculée sur les 7 étapes actives du wizard, 100 % une fois terminé.
+- **vCenter créé à la main sans priorité** : même violation `NOT NULL` que dans le wizard ; il prend la place suivant tous les serveurs.
+- **`GetServerByIdWithPermissionCheckUseCase`** : sans passe-droit admin (pas encore branché à un contrôleur, corrigé avant qu'il le soit).
+
+Tests alignés sur des choix voulus du code (vérifiés dans l'historique) : endpoints `priorities` réservés aux admins donc sans filtrage par permission, swap de priorités en transaction qui régénère le plan, cookie de refresh en `path: '/'` / `sameSite: 'lax'`, ping UPS sur l'IP enregistrée (plus celle du corps de requête), logs de réponse limités aux clés, scripts lancés via leur `.sh`, lien de connexion des emails via `FRONTEND_URL`. Les specs de modules email lisent maintenant les métadonnées au lieu de compiler toute l'application (qui exigeait une base).
+
+**Point à trancher** : le cookie de refresh est `secure` si `NODE_ENV === 'production'` pour login / refresh / 2FA, mais `'production-https'` pour `register`. Selon que la prod tourne en HTTP ou en HTTPS, l'un des deux est faux ; non modifié.
 
 ## Tests
 
@@ -100,5 +119,5 @@ Base vide → wizard → import du seed → ping auto « Connecté » partout �
 
 ## Reste à faire
 
-- Les 41 suites backend encore en échec hors `setup` / `ilos` / `vmware` (antérieures).
+- Trancher la condition `secure` du cookie de refresh (`production` vs `production-https`).
 - Page migration « Aucune salle » : corrigée côté front (voir `infra-control_front/docs/demo-flow-fixes.md`).
