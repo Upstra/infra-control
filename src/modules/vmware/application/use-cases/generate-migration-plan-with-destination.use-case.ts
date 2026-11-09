@@ -106,6 +106,8 @@ export class GenerateMigrationPlanWithDestinationUseCase {
       ip: vCenterServer.server_ip,
       user: vCenterServer.server_login,
       password: vCenterServer.server_password,
+      // Lets the plan use a vCenter that does not listen on 443.
+      adminUrl: vCenterServer.server_adminUrl,
     };
 
     const serverWithUps = sourceServers.find((server) => server.ups);
