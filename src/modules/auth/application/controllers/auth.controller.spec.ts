@@ -120,6 +120,34 @@ describe('AuthController', () => {
     });
   });
 
+  // Register used to check NODE_ENV === 'production-https' and sent its
+  // cookie without `secure` on the HTTPS production.
+  it('register sets a secure refresh cookie in production', async () => {
+    const nodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    const res = { cookie: jest.fn() } as any;
+    registerUseCase.execute.mockResolvedValue({
+      accessToken: 'acc',
+      refreshToken: 'ref',
+    });
+
+    try {
+      await controller.register(
+        {} as RegisterDto,
+        res,
+        { ip: '127.0.0.1', get: jest.fn() } as any,
+      );
+    } finally {
+      process.env.NODE_ENV = nodeEnv;
+    }
+
+    expect(res.cookie).toHaveBeenCalledWith(
+      'refreshToken',
+      'ref',
+      expect.objectContaining({ secure: true }),
+    );
+  });
+
   it('should call register use case with dto and set cookie', async () => {
     const dto: RegisterDto = {
       firstName: 'John',
