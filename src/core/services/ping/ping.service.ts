@@ -18,6 +18,12 @@ export class PingService {
 
     this.logger.log(`Pinging host: ${host}`);
 
+    // No shell is involved (spawn + args), but a value starting with '-'
+    // would still be read by ping as an option.
+    if (!host || host.trim().startsWith('-')) {
+      return { accessible: false, error: 'Invalid host', host };
+    }
+
     return new Promise((resolve) => {
       const startTime = Date.now();
       const isWindows = process.platform === 'win32';
