@@ -37,20 +37,18 @@ export class MigrationCompletedListener {
       `Processing migration completed event for session ${event.sessionId}`,
     );
 
+    // Only the VM refresh depends on the migration type: admins must hear about
+    // a shutdown (or a run where nothing migrated) all the more.
     if (event.migrationType === 'shutdown') {
       this.logger.log('Shutdown migration, no VM updates needed');
-      return;
-    }
-
-    if (event.successfulVms.length === 0) {
+    } else if (event.successfulVms.length === 0) {
       this.logger.log('No successful VMs to update');
-      return;
-    }
-
-    try {
-      await this.updateAllMigratedVms(event.successfulVms, event.userId);
-    } catch (error) {
-      this.logger.error('Failed to update migrated VMs:', error);
+    } else {
+      try {
+        await this.updateAllMigratedVms(event.successfulVms, event.userId);
+      } catch (error) {
+        this.logger.error('Failed to update migrated VMs:', error);
+      }
     }
 
     try {
