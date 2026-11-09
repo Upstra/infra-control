@@ -3,6 +3,7 @@ import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
+  IsDefined,
   IsNumber,
   IsOptional,
   IsString,
@@ -51,6 +52,7 @@ export class ValidationRequestDto {
     description: 'Resources to validate',
     type: ValidationResourcesDto,
   })
+  @IsDefined()
   @ValidateNested()
   @Type(() => ValidationResourcesDto)
   resources: ValidationResourcesDto;
